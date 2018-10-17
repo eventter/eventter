@@ -9,29 +9,47 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"eventter.io/livereload/logger"
+	"github.com/pkg/errors"
 )
 
 const (
 	MasterEnv                  = "LIVERELOAD_MASTER"
 	ConfigHashEnv              = "LIVERELOAD_MASTER_CONFIG_HASH"
+	BuildTagsEnv               = "LIVERELOAD_BUILD_TAGS"
+	BuildArgsEnv               = "LIVERELOAD_BUILD_ARGS"
 	DefaultPort                = 20123
 	ConfigHashMismatchExitCode = 3
 )
 
 type Config struct {
-	Live         bool                 // If false, won't actually do master-worker setup and returns always only worker.
-	Network      string               // Master socket network.
-	Address      string               // Master socket address.
-	Package      string               // Watch for changes in this package. If empty, will watch only for changes to the binary itself.
-	GoGenerate   bool                 // If true, will run `go generate` before build for changed files.
-	ReadyTimeout time.Duration        // Max time to wait for worker to report ready.
-	Listeners    []ListenerDefinition // Listeners are created by master and passed to workers by FDs >=3.
+	// If false, won't actually do master-worker setup and returns always only worker.
+	Live bool
+	// Master socket network.
+	Network string
+	// Master socket address.
+	Address string
+	// Watch for changes in this package. If empty, will watch only for changes to the binary itself.
+	Package string
+	// Build tags to be used when rebuilding package.
+	BuildTags []string
+	// Extra build command line arguments.
+	BuildArgs []string
+	// Max time to wait for worker to report readyRoute.
+	ReadyTimeout time.Duration
+	// Listeners are created by master and passed to workers by FDs >=3.
+	Listeners []ListenerDefinition
+	// Log messages will be passed to the instance. Defaults to stdlib log.
+	Logger logger.Logger `json:"-"`
+	// Whether log messages should NOT use pretty colors.
+	NoColors bool
 }
 
 func (c *Config) Hash() (uint64, error) {
 	h := fnv.New64()
 	if err := json.NewEncoder(h).Encode(c); err != nil {
-		return 0, err
+		return 0, errors.Wrap(err, "config hash")
 	}
 	return h.Sum64(), nil
 }
@@ -48,26 +66,55 @@ type Master interface {
 }
 
 type Worker interface {
-	// Create listener for `i`-th listener definition from the config. Multiple calls will create multiple listeners.
+	// Create listener for `i`-th listener definition from the config. Multiple calls will create multiple listenerFiles.
 	Listen(i int) (net.Listener, error)
-	// Report to master that this worker is ready.
+	// Report to master that this worker is readyRoute.
 	MarkReady() error
 }
 
 // Create livereload instance. Either `Master`, or `Worker` won't be nil, but not both.
 func New(config *Config) (Master, Worker, error) {
-	master := os.Getenv(MasterEnv)
-	configHash := os.Getenv(ConfigHashEnv)
+	if config.Address == "" {
+		config.Network = "tcp"
+		config.Address = fmt.Sprintf(":%d", DefaultPort)
+	}
 
-	if master != "" {
-		masterConfigHash, err := strconv.ParseUint(configHash, 10, 64)
+	if config.Network == "" {
+		if strings.Contains(config.Address, "/") || !strings.Contains(config.Address, ":") {
+			config.Network = "unix"
+		} else {
+			config.Network = "tcp"
+		}
+	}
+
+	if config.BuildTags == nil {
+		if buildTags := os.Getenv(BuildTagsEnv); buildTags != "" {
+			config.BuildTags = strings.Split(buildTags, ",")
+		}
+	}
+
+	if config.BuildArgs == nil {
+		if buildArgs := os.Getenv(BuildArgsEnv); buildArgs != "" {
+			config.BuildArgs = strings.Split(buildArgs, " ")
+		}
+	}
+
+	if config.Logger == nil {
+		config.Logger = newDefaultLogger(config.NoColors)
+	}
+
+	masterEnv := os.Getenv(MasterEnv)
+	configHashEnv := os.Getenv(ConfigHashEnv)
+
+	if masterEnv != "" {
+		masterConfigHash, err := strconv.ParseUint(configHashEnv, 10, 64)
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, errors.Wrapf(err, "could not parse env variable [%s] with value [%s]", ConfigHashEnv, configHashEnv)
 		}
 
 		thisConfigHash, err := config.Hash()
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, errors.Wrap(err, "could not create hash for config")
 		}
 
 		if thisConfigHash != masterConfigHash {
@@ -80,23 +127,11 @@ func New(config *Config) (Master, Worker, error) {
 		return nil, w, err
 	}
 
-	if config.Address == "" {
-		config.Network = "tcp"
-		config.Address = fmt.Sprintf(":%d", DefaultPort)
-	}
-	if config.Network == "" {
-		if strings.Contains(config.Address, "/") || !strings.Contains(config.Address, ":") {
-			config.Network = "unix"
-		} else {
-			config.Network = "tcp"
-		}
-	}
-
-	if master == "" {
+	if masterEnv == "" {
 		m, err := newMaster(config)
 		return m, nil, err
 	} else {
-		w, err := newWorker(config, master)
+		w, err := newWorker(config, masterEnv)
 		return nil, w, err
 	}
 }
