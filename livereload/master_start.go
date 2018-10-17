@@ -50,14 +50,12 @@ func (m *master) start(executablePath string) error {
 		}
 	case "unix", "unixpacket":
 		path := strings.Replace(m.config.Address, string(os.PathSeparator), "/", -1)
-		if strings.HasPrefix(path, "/") {
-			path = strings.TrimLeft(path, "/")
-		} else {
-			path = "." + path
+		if !strings.HasPrefix(path, "/") {
+			path = "/./" + path
 		}
 		worker.Env = append(
 			worker.Env,
-			MasterEnv+"="+"unix:///"+path,
+			MasterEnv+"="+"unix://"+path,
 		)
 	default:
 		panic("cannot happen, net.Listen() would've failed")

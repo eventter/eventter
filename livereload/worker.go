@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 
 	"github.com/pkg/errors"
 )
@@ -41,7 +42,11 @@ func newWorker(config *Config, master string) (Worker, error) {
 					case "tcp", "tcp4", "tcp6":
 						return dialer.DialContext(ctx, masterURL.Scheme, masterURL.Host)
 					case "unix", "unixpacket":
-						return dialer.DialContext(ctx, masterURL.Scheme, masterURL.Path)
+						path := masterURL.Path
+						if strings.HasPrefix(path, "/./") {
+							path = path[3:]
+						}
+						return dialer.DialContext(ctx, masterURL.Scheme, path)
 					default:
 						return nil, fmt.Errorf("could not dial network [%s]", masterURL.Scheme)
 					}
@@ -71,6 +76,9 @@ func (w *worker) MarkReady() error {
 		Method: "PUT",
 		URL:    &readyURL,
 	})
+	if err != nil {
+		return err
+	}
 
 	if response.StatusCode < 200 || response.StatusCode > 299 {
 		return fmt.Errorf("master responded with [%d]", response.StatusCode)

@@ -25,18 +25,15 @@ type server struct {
 }
 
 func main() {
-	var (
-		live     bool
-		liveHost string
-		livePort int
-	)
+	var live string
 
 	var rootCmd = &cobra.Command{
 		Use: os.Args[0],
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			master, worker, err := livereload.New(&livereload.Config{
-				Live:    live,
-				Address: fmt.Sprintf("%s:%d", liveHost, livePort),
+				Live:    live != "",
+				Network: "unix",
+				Address: live,
 				Package: "eventter.io/cmd/livereload-example",
 				Listeners: []livereload.ListenerDefinition{
 					{Network: "tcp", Address: ":7000", HTTP: true},
@@ -111,9 +108,7 @@ func main() {
 		},
 	}
 
-	rootCmd.PersistentFlags().BoolVar(&live, "live", false, "")
-	rootCmd.PersistentFlags().StringVar(&liveHost, "live-host", "", "")
-	rootCmd.PersistentFlags().IntVar(&livePort, "live-port", livereload.DefaultPort, "")
+	rootCmd.PersistentFlags().StringVar(&live, "live", "", "Path to livereload socket.")
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
