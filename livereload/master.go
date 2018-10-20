@@ -31,6 +31,8 @@ type master struct {
 	runningWorker      *exec.Cmd
 	startingWorker     *exec.Cmd
 	colors             aurora.Aurora
+	eventC             chan *event
+	eventClients       map[chan *event]struct{}
 }
 
 func newMaster(config *Config) (m Master, err error) {
@@ -43,6 +45,8 @@ func newMaster(config *Config) (m Master, err error) {
 		configHash:         configHash,
 		watchedPackageDirs: make(map[string]string),
 		colors:             aurora.NewAurora(!config.NoColors),
+		eventC:             make(chan *event, 16),
+		eventClients:       make(map[chan *event]struct{}),
 	}, nil
 }
 
@@ -209,19 +213,32 @@ LOOP:
 				return err
 			}
 
+		case ev := <-m.eventC:
+			func() {
+				m.mu.RLock()
+				defer m.mu.RUnlock()
+				for c, _ := range m.eventClients {
+					select {
+					case c <- ev:
+					default:
+						m.config.Logger.Errorf("could not emit event [%s] to a client", ev.name)
+					}
+				}
+			}()
+
 		case err := <-errC:
 			return errors.Wrap(err, "server error")
 
 		case sig := <-interrupt:
 			func() {
-				m.mu.Lock()
-				defer m.mu.Unlock()
-
 				m.config.Logger.Infof("received signal [%s], shutting down", sig)
-				ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+				ctx, _ := context.WithTimeout(context.Background(), 3*time.Second)
 				if err := srv.Shutdown(ctx); err != nil {
 					m.config.Logger.Errorf("could not shutdown HTTP server: %s", err)
 				}
+
+				m.mu.Lock()
+				defer m.mu.Unlock()
 				if m.startingWorker != nil {
 					if err := m.startingWorker.Process.Kill(); err != nil {
 						m.config.Logger.Errorf("could not kill starting worker: %s", err)
@@ -234,6 +251,8 @@ LOOP:
 					}
 					m.runningWorker = nil
 				}
+
+				os.Exit(0)
 			}()
 
 			break LOOP

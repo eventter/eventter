@@ -56,7 +56,9 @@ func (m *master) build(executablePath string) error {
 				}
 				break
 			}
-			m.config.Logger.Info(m.colors.Bold("build:"), " ", strings.TrimRight(line, "\n"))
+			line = strings.TrimRight(line, "\r\n")
+			m.config.Logger.Info(m.colors.Bold("build:"), " ", line)
+			m.emit(&event{name: buildStdoutEvent, data: line})
 		}
 	}()
 
@@ -70,7 +72,9 @@ func (m *master) build(executablePath string) error {
 				}
 				break
 			}
-			m.config.Logger.Info(m.colors.Bold("build:"), " ", strings.TrimRight(line, "\n"))
+			line = strings.TrimRight(line, "\r\n")
+			m.config.Logger.Info(m.colors.Bold("build:"), " ", line)
+			m.emit(&event{name: buildStderrEvent, data: line})
 		}
 	}()
 
@@ -78,11 +82,13 @@ func (m *master) build(executablePath string) error {
 		return err
 	}
 
+	m.emit(&event{name: buildStartEvent})
+
 	err = build.Wait()
 	if err != nil {
+		m.emit(&event{name: buildErrorEvent})
 		if _, ok := err.(*exec.ExitError); ok {
 			m.config.Logger.Error(m.colors.Bold("build:"), " ", "returned non-zero exit code")
-			// TODO: kill current worker & serve friendly error message instead
 			return nil
 		} else {
 			return err
@@ -93,6 +99,8 @@ func (m *master) build(executablePath string) error {
 	if err := os.Rename(newExecutablePath, executablePath); err != nil {
 		return errors.Wrap(err, "could not rename newly built executable")
 	}
+
+	m.emit(&event{name: buildOkEvent})
 
 	return nil
 }

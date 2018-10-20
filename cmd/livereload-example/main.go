@@ -88,11 +88,11 @@ func main() {
 				}
 			}()
 
+			log.Printf("ready to accept connections on [%s]", listener.Addr())
+
 			if err := worker.MarkReady(); err != nil {
 				return err
 			}
-
-			log.Printf("ready to accept connections on [%s]", listener.Addr())
 
 			for {
 				conn, err := listener.Accept()

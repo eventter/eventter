@@ -85,6 +85,7 @@ func (m *master) start(executablePath string) error {
 				break
 			}
 			io.WriteString(os.Stdout, line)
+			m.emit(&event{name: workerStdoutEvent, data: strings.TrimRight(line, "\r\n")})
 		}
 	}()
 
@@ -99,6 +100,7 @@ func (m *master) start(executablePath string) error {
 				break
 			}
 			io.WriteString(os.Stdout, line)
+			m.emit(&event{name: workerStderrEvent, data: strings.TrimRight(line, "\r\n")})
 		}
 	}()
 
@@ -106,13 +108,24 @@ func (m *master) start(executablePath string) error {
 		return err
 	}
 
+	m.emit(&event{name: workerStartEvent})
+
 	tag = fmt.Sprintf("worker/%d:", worker.Process.Pid)
 	m.startingWorker = worker
 
 	go func() {
 		err := worker.Wait()
-		if err != nil {
+		if err == nil {
+
+			m.config.Logger.Info(m.colors.Bold(tag), m.colors.Red("worker exited"))
+		} else {
 			m.config.Logger.Info(m.colors.Bold(tag), m.colors.Red(err))
+
+			m.mu.RLock()
+			if worker == m.startingWorker || worker == m.runningWorker {
+				m.emit(&event{name: workerErrorEvent})
+			}
+			m.mu.RUnlock()
 		}
 	}()
 

@@ -4,6 +4,7 @@ package livereload
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -21,8 +22,7 @@ func (m *master) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		m.handleWorkerReady(pid, w, r)
 
 	} else if matches := eventsRoute.FindStringSubmatch(r.URL.Path); r.Method == "GET" && matches != nil {
-
-		m.config.Logger.Info("new server-sent events connection")
+		m.handleEvents(w, r)
 
 	} else {
 		http.NotFound(w, r)
@@ -60,6 +60,49 @@ func (m *master) handleWorkerReady(pid int, w http.ResponseWriter, r *http.Reque
 	m.runningWorker = m.startingWorker
 	m.startingWorker = nil
 
+	m.emit(&event{name: workerReadyEvent})
+
 	w.WriteHeader(200)
 	fmt.Fprint(w, "200 ok")
+}
+
+func (m *master) handleEvents(w http.ResponseWriter, r *http.Request) {
+	flusher, ok := w.(http.Flusher)
+	if !ok {
+		http.Error(w, "500 streaming not supported", 500)
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("Connection", "keep-alive")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.WriteHeader(200)
+	flusher.Flush()
+
+	m.mu.RLock()
+	ready := m.runningWorker != nil
+	m.mu.RUnlock()
+
+	if ready {
+		writeEvent(w, &event{name: workerReadyEvent})
+		flusher.Flush()
+	}
+
+	c := m.register()
+	defer m.unregister(c)
+
+	for {
+		select {
+		case <-r.Context().Done():
+			return
+		case ev := <-c:
+			writeEvent(w, ev)
+			flusher.Flush()
+		}
+	}
+}
+
+func writeEvent(w io.Writer, ev *event) (n int, err error) {
+	return fmt.Fprintf(w, "event: %s\ndata: %s\n\n", ev.name, ev.data)
 }
