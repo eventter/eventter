@@ -60,7 +60,7 @@ func (m *master) handleWorkerReady(pid int, w http.ResponseWriter, r *http.Reque
 	m.runningWorker = m.startingWorker
 	m.startingWorker = nil
 
-	m.emit(&event{name: workerReadyEvent})
+	m.emit(&event{name: workerReadyEvent, data: strconv.Itoa(pid)})
 
 	w.WriteHeader(200)
 	fmt.Fprint(w, "200 ok")
@@ -81,11 +81,14 @@ func (m *master) handleEvents(w http.ResponseWriter, r *http.Request) {
 	flusher.Flush()
 
 	m.mu.RLock()
-	ready := m.runningWorker != nil
+	var pidString string
+	if m.runningWorker != nil {
+		pidString = strconv.Itoa(m.runningWorker.Process.Pid)
+	}
 	m.mu.RUnlock()
 
-	if ready {
-		writeEvent(w, &event{name: workerReadyEvent})
+	if pidString != "" {
+		writeEvent(w, &event{name: workerReadyEvent, data: pidString})
 		flusher.Flush()
 	}
 

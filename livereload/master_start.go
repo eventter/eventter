@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func (m *master) start(executablePath string) error {
@@ -17,9 +18,7 @@ func (m *master) start(executablePath string) error {
 	defer m.mu.Unlock()
 
 	if m.startingWorker != nil {
-		if err := m.startingWorker.Process.Kill(); err != nil {
-			return err
-		}
+		m.startingWorker.Process.Kill()
 		m.startingWorker = nil
 	}
 
@@ -108,10 +107,32 @@ func (m *master) start(executablePath string) error {
 		return err
 	}
 
-	m.emit(&event{name: workerStartEvent})
-
 	tag = fmt.Sprintf("worker/%d:", worker.Process.Pid)
+	pidString := strconv.Itoa(worker.Process.Pid)
 	m.startingWorker = worker
+
+	m.emit(&event{name: workerStartEvent, data: pidString})
+
+	if m.config.ReadyTimeout > 0 {
+		go func() {
+			<-time.After(m.config.ReadyTimeout)
+			m.mu.Lock()
+			defer m.mu.Unlock()
+
+			if m.startingWorker != worker {
+				return
+			}
+
+			m.config.Logger.Error(m.colors.Bold(tag), m.colors.Red(fmt.Sprintf(
+				"worker did not report ready in [%v] since started, killing it",
+				m.config.ReadyTimeout,
+			)))
+			m.startingWorker.Process.Kill()
+			m.startingWorker = nil
+
+			m.emit(&event{name: workerErrorEvent, data: pidString})
+		}()
+	}
 
 	go func() {
 		err := worker.Wait()
@@ -123,7 +144,7 @@ func (m *master) start(executablePath string) error {
 
 			m.mu.RLock()
 			if worker == m.startingWorker || worker == m.runningWorker {
-				m.emit(&event{name: workerErrorEvent})
+				m.emit(&event{name: workerErrorEvent, data: pidString})
 			}
 			m.mu.RUnlock()
 		}

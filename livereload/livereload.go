@@ -20,6 +20,7 @@ const (
 	BuildTagsEnv               = "LIVERELOAD_BUILD_TAGS"
 	BuildArgsEnv               = "LIVERELOAD_BUILD_ARGS"
 	DefaultPort                = 20123
+	DefaultReadyTimeout        = 10 * time.Second
 	ConfigHashMismatchExitCode = 3
 )
 
@@ -101,6 +102,10 @@ func New(config *Config) (Master, Worker, error) {
 
 	if config.Logger == nil {
 		config.Logger = newDefaultLogger(config.NoColors)
+	}
+
+	if config.ReadyTimeout == 0 {
+		config.ReadyTimeout = DefaultReadyTimeout
 	}
 
 	masterEnv := os.Getenv(MasterEnv)
