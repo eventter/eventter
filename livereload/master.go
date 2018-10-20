@@ -33,6 +33,7 @@ type master struct {
 	colors             aurora.Aurora
 	eventC             chan *event
 	eventClients       map[chan *event]struct{}
+	restartC           chan struct{}
 }
 
 func newMaster(config *Config) (m Master, err error) {
@@ -47,6 +48,7 @@ func newMaster(config *Config) (m Master, err error) {
 		colors:             aurora.NewAurora(!config.NoColors),
 		eventC:             make(chan *event, 16),
 		eventClients:       make(map[chan *event]struct{}),
+		restartC:           make(chan struct{}, 1),
 	}, nil
 }
 
@@ -256,6 +258,39 @@ LOOP:
 			}()
 
 			break LOOP
+
+		case <-m.restartC:
+			func() {
+				m.mu.Lock()
+				defer m.mu.Unlock()
+
+				m.config.Logger.Info(m.colors.Bold("master:"), m.colors.Cyan(
+					"child returned exit code indicating mismatch, will re-start master",
+				))
+
+				if m.startingWorker != nil {
+					m.startingWorker.Process.Kill()
+					m.startingWorker = nil
+				}
+
+				if m.runningWorker != nil {
+					m.runningWorker.Process.Kill()
+					m.runningWorker = nil
+				}
+
+				for _, f := range m.listenerFiles {
+					f.Close()
+				}
+
+				ctx, _ := context.WithTimeout(context.Background(), 0)
+				srv.Shutdown(ctx)
+				masterListener.Close()
+
+				if err := syscall.Exec(executablePath, os.Args, os.Environ()); err != nil {
+					m.config.Logger.Errorf("could not re-start master: %v", err)
+					os.Exit(1)
+				}
+			}()
 		}
 	}
 

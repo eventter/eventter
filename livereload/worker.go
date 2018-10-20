@@ -68,7 +68,7 @@ func (w *worker) Listen(i int) (net.Listener, error) {
 	return net.FileListener(f)
 }
 
-func (w *worker) MarkReady() error {
+func (w *worker) Ready() error {
 	readyURL := *w.masterHttpURL
 	readyURL.Path = fmt.Sprintf("/livereload/workers/%d/ready", os.Getpid())
 

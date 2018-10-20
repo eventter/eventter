@@ -58,7 +58,6 @@ func (c *Config) Hash() (uint64, error) {
 type ListenerDefinition struct {
 	Network string // `network` argument for `net.Listen()`
 	Address string // `address` argument for `net.Listen()`
-	HTTP    bool   // If true and worker crashed, or compilation failed, master will take over the socket and serve nice error page
 }
 
 type Master interface {
@@ -70,7 +69,7 @@ type Worker interface {
 	// Create listener for `i`-th listener definition from the config. Multiple calls will create multiple listenerFiles.
 	Listen(i int) (net.Listener, error)
 	// Report to master that this worker is readyRoute.
-	MarkReady() error
+	Ready() error
 }
 
 // Create livereload instance. Either `Master`, or `Worker` won't be nil, but not both.
@@ -154,6 +153,6 @@ func (w *masterWorker) Listen(i int) (net.Listener, error) {
 	return net.Listen(l.Network, l.Address)
 }
 
-func (w *masterWorker) MarkReady() error {
+func (w *masterWorker) Ready() error {
 	return nil
 }

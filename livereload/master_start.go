@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 )
 
@@ -137,10 +138,18 @@ func (m *master) start(executablePath string) error {
 	go func() {
 		err := worker.Wait()
 		if err == nil {
+			m.config.Logger.Info(m.colors.Bold(tag), m.colors.Brown("worker exited"))
 
-			m.config.Logger.Info(m.colors.Bold(tag), m.colors.Red("worker exited"))
 		} else {
-			m.config.Logger.Info(m.colors.Bold(tag), m.colors.Red(err))
+			if exit, ok := err.(*exec.ExitError); ok {
+				if status, ok := exit.Sys().(syscall.WaitStatus); ok && status.ExitStatus() == ConfigHashMismatchExitCode {
+					m.restartC <- struct{}{}
+				} else {
+					m.config.Logger.Error(m.colors.Bold(tag), m.colors.Red(err))
+				}
+			} else {
+				m.config.Logger.Error(m.colors.Bold(tag), m.colors.Red(err))
+			}
 
 			m.mu.RLock()
 			if worker == m.startingWorker || worker == m.runningWorker {

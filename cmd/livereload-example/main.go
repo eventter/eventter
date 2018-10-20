@@ -31,24 +31,19 @@ func main() {
 		Use: os.Args[0],
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			master, worker, err := livereload.New(&livereload.Config{
-				Live:    live != "",
-				Network: "unix",
-				Address: live,
-				Package: "eventter.io/cmd/livereload-example",
-				Listeners: []livereload.ListenerDefinition{
-					{Network: "tcp", Address: ":7000", HTTP: true},
-				},
+				Live:      live != "",
+				Network:   "unix",
+				Address:   live,
+				Package:   "eventter.io/cmd/livereload-example",
+				Listeners: []livereload.ListenerDefinition{{"tcp", ":7000"}},
 			})
 			if err != nil {
 				return err
 			}
 
 			if master != nil {
-				log.Println("running livereload master")
 				return master.Run()
 			}
-
-			log.Println("running livereload worker")
 
 			listener, err := worker.Listen(0)
 			if err != nil {
@@ -90,7 +85,7 @@ func main() {
 
 			log.Printf("ready to accept connections on [%s]", listener.Addr())
 
-			if err := worker.MarkReady(); err != nil {
+			if err := worker.Ready(); err != nil {
 				return err
 			}
 
