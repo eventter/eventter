@@ -32,19 +32,20 @@ func main() {
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			master, worker, err := livereload.New(&livereload.Config{
 				Live:      live != "",
-				Network:   "unix",
 				Address:   live,
 				Package:   "eventter.io/cmd/livereload-example",
-				Listeners: []livereload.ListenerDefinition{{"tcp", ":7000"}},
+				Listeners: []livereload.ListenerDefinition{{"tcp", ":8080"}},
 			})
 			if err != nil {
 				return err
 			}
 
+			// This is a master process.
 			if master != nil {
 				return master.Run()
 			}
 
+			// If `master` is nil, it means this is worker process. Create listener and do work as usual.
 			listener, err := worker.Listen(0)
 			if err != nil {
 				return err

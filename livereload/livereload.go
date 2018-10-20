@@ -47,7 +47,7 @@ type Config struct {
 	NoColors bool
 }
 
-func (c *Config) Hash() (uint64, error) {
+func (c *Config) hash() (uint64, error) {
 	h := fnv.New64()
 	if err := json.NewEncoder(h).Encode(c); err != nil {
 		return 0, errors.Wrap(err, "config hash")
@@ -60,15 +60,17 @@ type ListenerDefinition struct {
 	Address string // `address` argument for `net.Listen()`
 }
 
+// Master represents that this is a master process.
 type Master interface {
 	// Will either return error right away, or takes over the process to do master stuff.
 	Run() error
 }
 
+// Worker represents that this is a worker process. When worker receives SIGTERM, it should terminate gracefully.
 type Worker interface {
-	// Create listener for `i`-th listener definition from the config. Multiple calls will create multiple listenerFiles.
+	// Create listener for `i`-th listener definition from the config. Multiple calls will create multiple listeners.
 	Listen(i int) (net.Listener, error)
-	// Report to master that this worker is readyRoute.
+	// Report to master that this worker is ready.
 	Ready() error
 }
 
@@ -116,7 +118,7 @@ func New(config *Config) (Master, Worker, error) {
 			return nil, nil, errors.Wrapf(err, "could not parse env variable [%s] with value [%s]", ConfigHashEnv, configHashEnv)
 		}
 
-		thisConfigHash, err := config.Hash()
+		thisConfigHash, err := config.hash()
 		if err != nil {
 			return nil, nil, errors.Wrap(err, "could not create hash for config")
 		}

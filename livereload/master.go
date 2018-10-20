@@ -37,7 +37,7 @@ type master struct {
 }
 
 func newMaster(config *Config) (m Master, err error) {
-	configHash, err := config.Hash()
+	configHash, err := config.hash()
 	if err != nil {
 		return nil, errors.Wrap(err, "compute config hash")
 	}
