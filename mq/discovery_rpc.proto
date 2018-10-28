@@ -1,5 +1,7 @@
 syntax = "proto3";
+
 package io.eventter.mq;
+
 option go_package = "mq";
 
 service DiscoveryRPC {

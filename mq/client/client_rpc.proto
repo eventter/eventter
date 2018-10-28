@@ -1,0 +1,197 @@
+syntax = "proto3";
+
+package io.eventter.mq.client;
+
+import "google/api/annotations.proto";
+import "google/protobuf/any.proto";
+import "google/protobuf/timestamp.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "client";
+
+message NamespaceName {
+    string namespace = 1;
+    string name = 2;
+}
+
+message CreateTopicRequest {
+    NamespaceName topic = 1;
+    // AMQP exchange type.
+    string type = 2;
+    // AMQP exchange arguments.
+    map<string, google.protobuf.Any> arguments = 3;
+}
+
+message ListTopicsRequest {
+    string namespace = 1;
+}
+
+message ListTopicsResponse {
+    // TODO
+}
+
+message DeleteTopicRequest {
+    NamespaceName topic = 1;
+    // If true, topic be deleted only if there are no consumer groups using it.
+    bool if_unused = 2;
+}
+
+message CreateConsumerGroupRequest {
+    NamespaceName consumer_group = 1;
+    repeated Binding bindings = 2;
+    // AMQP queue arguments.
+    map<string, google.protobuf.Any> arguments = 3;
+
+    message Binding {
+        NamespaceName topic = 1;
+        string routing_key = 2;
+        map<string, google.protobuf.Any> arguments = 3;
+    }
+}
+
+message ListConsumerGroupsRequest {
+    string namespace = 1;
+}
+
+message ListConsumerGroupsResponse {
+    // TODO
+}
+
+message DeleteConsumerGroupRequest {
+    NamespaceName consumer_group = 1;
+    // Only if there are no consumers.
+    bool if_unused = 2;
+    // Only if there are no pending messages.
+    bool if_empty = 3;
+}
+
+message OkResponse {
+    bool ok = 1;
+}
+
+message Message {
+    string routing_key = 1;
+    Properties properties = 2;
+    map<string, google.protobuf.Any> headers = 3;
+    bytes data = 4;
+
+    message Properties {
+        string content_type = 1;
+        string content_encoding = 2;
+        int32 delivery_mode = 3;
+        int32 priority = 4;
+        string correlation_id = 5;
+        string reply_to = 6;
+        string expiration = 7;
+        string message_id = 8;
+        google.protobuf.Timestamp timestamp = 9 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
+        string type = 10;
+        string user_id = 11;
+        string app_id = 12;
+    }
+}
+
+message PublishRequest {
+    NamespaceName topic = 1;
+    Message message = 2;
+}
+
+message PublishResponse {
+    bytes message_id = 1;
+}
+
+message ConsumeRequest {
+    message Consume {
+        string consumer_tag = 1;
+        NamespaceName consumer_group = 2;
+        map<string, google.protobuf.Any> arguments = 3;
+        bool no_ack = 4;
+        bool exclusive = 5;
+    }
+
+    message Cancel {
+        string consumer_tag = 1;
+    }
+
+    message Ack {
+        uint64 delivery_tag = 1;
+        bool multiple = 2;
+    }
+
+    message Nack {
+        uint64 delivery_tag = 1;
+        bool multiple = 2;
+        bool requeue = 3;
+    }
+
+    oneof body {
+        Consume consume = 1;
+        Cancel cancel = 2;
+        Ack ack = 3;
+        Nack nack = 4;
+    }
+}
+
+message ConsumeResponse {
+    message Delivery {
+        uint64 delivery_tag = 1;
+        NamespaceName topic = 2;
+        Message message = 3;
+    }
+
+    oneof body {
+        Delivery delivery = 1;
+    }
+}
+
+service ClientRPC {
+
+    rpc CreateTopic (CreateTopicRequest) returns (OkResponse) {
+        option (google.api.http) = {
+            put: "/topics/{topic.namespace}/{topic.name}"
+        };
+    }
+
+    rpc ListTopics (ListTopicsRequest) returns (ListTopicsResponse) {
+        option (google.api.http) = {
+            get: "/topics/{namespace}"
+        };
+    }
+
+    rpc DeleteTopic (DeleteTopicRequest) returns (OkResponse) {
+        option (google.api.http) = {
+            delete: "/topics/{topic.namespace}/{topic.name}"
+        };
+    }
+
+    rpc CreateConsumerGroup (CreateConsumerGroupRequest) returns (OkResponse) {
+        option (google.api.http) = {
+            put: "/cgs/{consumer_group.namespace}/{consumer_group.name}"
+        };
+    }
+
+    rpc ListConsumerGroups (ListConsumerGroupsRequest) returns (ListConsumerGroupsResponse) {
+        option (google.api.http) = {
+            get: "/cgs/{namespace}"
+        };
+    }
+
+    rpc DeleteConsumerGroup (DeleteConsumerGroupRequest) returns (OkResponse) {
+        option (google.api.http) = {
+            delete: "/cgs/{consumer_group.namespace}/{consumer_group.name}"
+        };
+    }
+
+    rpc Publish (PublishRequest) returns (PublishResponse) {
+        option (google.api.http) = {
+            post: "/topics/{topic.namespace}/{topic.name}"
+        };
+    }
+
+    rpc Consume (stream ConsumeRequest) returns (stream ConsumeResponse) {
+        option (google.api.http) = {
+            post: "/consume"
+        };
+    }
+
+}

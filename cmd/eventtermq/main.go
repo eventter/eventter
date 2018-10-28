@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"eventter.io/mq"
+	"eventter.io/mq/client"
 	"github.com/hashicorp/memberlist"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
@@ -38,15 +39,39 @@ func main() {
 			//	return err
 			//}
 
-			transport, err := mq.NewDiscoveryTransport(rootConfig.BindHost, rootConfig.Port)
+			advertiseIPs, err := net.LookupIP(rootConfig.AdvertiseHost)
 			if err != nil {
 				return err
 			}
-			defer transport.Shutdown()
+			var advertiseIP net.IP
+			for _, candidateIp := range advertiseIPs {
+				if ip4 := candidateIp.To4(); ip4 != nil {
+					advertiseIP = ip4
+					break
+				}
+			}
+			if advertiseIP == nil {
+				advertiseIP = advertiseIPs[0]
+			}
 
 			grpcServer := grpc.NewServer()
-			mq.RegisterDiscoveryRPCServer(grpcServer, transport)
-			listener, err := net.Listen("tcp", rootConfig.BindHost + ":" + strconv.Itoa(rootConfig.Port))
+
+			clientPool := mq.NewClientConnPool(30*time.Second, grpc.WithInsecure())
+
+			raftTransport := mq.NewRaftRPCTransport(advertiseIP, rootConfig.Port, clientPool)
+			mq.RegisterRaftRPCServer(grpcServer, raftTransport)
+
+			clientServer := mq.NewClientRPCServer()
+			client.RegisterClientRPCServer(grpcServer, clientServer)
+
+			discoveryTransport, err := mq.NewDiscoveryRPCTransport(rootConfig.BindHost, rootConfig.Port, clientPool)
+			if err != nil {
+				return err
+			}
+			defer discoveryTransport.Shutdown()
+			mq.RegisterDiscoveryRPCServer(grpcServer, discoveryTransport)
+
+			listener, err := net.Listen("tcp", rootConfig.BindHost+":"+strconv.Itoa(rootConfig.Port))
 			if err != nil {
 				return err
 			}
@@ -55,26 +80,10 @@ func main() {
 			go grpcServer.Serve(listener)
 			defer grpcServer.Stop()
 
-			advertiseIps, err := net.LookupIP(rootConfig.AdvertiseHost)
-			if err != nil {
-				return err
-			}
-			var advertiseIp net.IP
-			for _, candidateIp := range advertiseIps {
-				if ip4 := candidateIp.To4(); ip4 != nil {
-					advertiseIp = ip4
-					break
-				}
-			}
-			if advertiseIp == nil {
-				advertiseIp = advertiseIps[0]
-			}
-
 			config := memberlist.DefaultLANConfig()
-			hostname, _ := os.Hostname()
-			config.Name = fmt.Sprintf("%016x@%s", rootConfig.ID, hostname)
-			config.Transport = transport
-			config.AdvertiseAddr = advertiseIp.String()
+			config.Name = fmt.Sprintf("%016x", rootConfig.ID)
+			config.Transport = discoveryTransport
+			config.AdvertiseAddr = advertiseIP.String()
 			config.AdvertisePort = rootConfig.Port
 			events := &memberEventsListener{}
 			config.Events = events
@@ -93,7 +102,7 @@ func main() {
 			fmt.Printf("num joined: %d\n", n)
 
 			go func() {
-				t := time.NewTicker(5*time.Second)
+				t := time.NewTicker(5 * time.Second)
 				for range t.C {
 					fmt.Println("members:")
 					for _, member := range list.Members() {

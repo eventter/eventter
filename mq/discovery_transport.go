@@ -10,7 +10,6 @@ import (
 
 	"github.com/hashicorp/memberlist"
 	"github.com/pkg/errors"
-	"google.golang.org/grpc"
 )
 
 const (
@@ -18,17 +17,18 @@ const (
 	udpReadBufferSize   = 2 * 1024 * 1024
 )
 
-type discoveryTransport struct {
+type DiscoveryRPCTransport struct {
+	pool         *ClientConnPool
 	packetCh     chan *memberlist.Packet
 	streamCh     chan net.Conn
-	tcpListeners []*net.TCPListener
 	udpListeners []*net.UDPConn
 	shutdown     int32
 	wg           sync.WaitGroup
 }
 
-func NewDiscoveryTransport(host string, port int) (transport *discoveryTransport, err error) {
-	t := &discoveryTransport{
+func NewDiscoveryRPCTransport(host string, port int, pool *ClientConnPool) (transport *DiscoveryRPCTransport, err error) {
+	t := &DiscoveryRPCTransport{
+		pool:     pool,
 		packetCh: make(chan *memberlist.Packet),
 		streamCh: make(chan net.Conn),
 	}
@@ -68,7 +68,7 @@ func NewDiscoveryTransport(host string, port int) (transport *discoveryTransport
 	return t, nil
 }
 
-func (t *discoveryTransport) listenUDP(conn *net.UDPConn) {
+func (t *DiscoveryRPCTransport) listenUDP(conn *net.UDPConn) {
 	defer t.wg.Done()
 	for {
 		buf := make([]byte, discoveryBufferSize)
@@ -91,7 +91,7 @@ func (t *discoveryTransport) listenUDP(conn *net.UDPConn) {
 	}
 }
 
-func (t *discoveryTransport) FinalAdvertiseAddr(addr string, port int) (net.IP, int, error) {
+func (t *DiscoveryRPCTransport) FinalAdvertiseAddr(addr string, port int) (net.IP, int, error) {
 	ip := net.ParseIP(addr)
 	if ip == nil {
 		return nil, 0, errors.Errorf("could not parse address: %q", addr)
@@ -99,7 +99,7 @@ func (t *discoveryTransport) FinalAdvertiseAddr(addr string, port int) (net.IP, 
 	return ip, port, nil
 }
 
-func (t *discoveryTransport) WriteTo(b []byte, addr string) (time.Time, error) {
+func (t *DiscoveryRPCTransport) WriteTo(b []byte, addr string) (time.Time, error) {
 	udpAddr, err := net.ResolveUDPAddr("udp", addr)
 	if err != nil {
 		return time.Time{}, err
@@ -108,21 +108,19 @@ func (t *discoveryTransport) WriteTo(b []byte, addr string) (time.Time, error) {
 	return time.Now(), err
 }
 
-func (t *discoveryTransport) PacketCh() <-chan *memberlist.Packet {
+func (t *DiscoveryRPCTransport) PacketCh() <-chan *memberlist.Packet {
 	return t.packetCh
 }
 
-func (t *discoveryTransport) DialTimeout(addr string, timeout time.Duration) (conn net.Conn, err error) {
+func (t *DiscoveryRPCTransport) DialTimeout(addr string, timeout time.Duration) (conn net.Conn, err error) {
 	ctx, _ := context.WithTimeout(context.Background(), timeout)
-	// TODO: connection pooling?
-	// TODO: dial options?
-	grpcConn, err := grpc.DialContext(ctx, addr, grpc.WithInsecure())
+	grpcConn, err := t.pool.Get(ctx, addr)
 	if err != nil {
 		return nil, err
 	}
 	defer func() {
 		if err != nil {
-			grpcConn.Close()
+			t.pool.Put(grpcConn)
 		}
 	}()
 	client := NewDiscoveryRPCClient(grpcConn)
@@ -140,7 +138,7 @@ func (t *discoveryTransport) DialTimeout(addr string, timeout time.Duration) (co
 		defer func() {
 			pipe.Close()
 			if atomic.AddInt32(&pending, -1) == 0 {
-				grpcConn.Close()
+				t.pool.Put(grpcConn)
 			}
 		}()
 		for {
@@ -159,7 +157,7 @@ func (t *discoveryTransport) DialTimeout(addr string, timeout time.Duration) (co
 		defer func() {
 			tunnel.CloseSend()
 			if atomic.AddInt32(&pending, -1) == 0 {
-				grpcConn.Close()
+				t.pool.Put(grpcConn)
 			}
 		}()
 		buf := make([]byte, discoveryBufferSize)
@@ -179,11 +177,11 @@ func (t *discoveryTransport) DialTimeout(addr string, timeout time.Duration) (co
 	return conn, nil
 }
 
-func (t *discoveryTransport) StreamCh() <-chan net.Conn {
+func (t *DiscoveryRPCTransport) StreamCh() <-chan net.Conn {
 	return t.streamCh
 }
 
-func (t *discoveryTransport) Shutdown() error {
+func (t *DiscoveryRPCTransport) Shutdown() error {
 	atomic.StoreInt32(&t.shutdown, 1)
 
 	for _, conn := range t.udpListeners {
@@ -206,7 +204,7 @@ func setUDPReadBuffer(c *net.UDPConn) error {
 	return err
 }
 
-func (t *discoveryTransport) Tunnel(stream DiscoveryRPC_TunnelServer) error {
+func (t *DiscoveryRPCTransport) Tunnel(stream DiscoveryRPC_TunnelServer) error {
 	conn, pipe := net.Pipe()
 	defer pipe.Close()
 	t.streamCh <- conn

@@ -3,9 +3,9 @@
 package mq
 
 import (
+	"github.com/dgraph-io/badger"
 	"github.com/google/go-cloud/wire"
 	"github.com/hashicorp/memberlist"
-	"github.com/dgraph-io/badger"
 )
 
 func createMemberlistConfig(config *Config) *memberlist.Config {
