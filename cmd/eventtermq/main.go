@@ -1,24 +1,33 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"strconv"
 	"syscall"
 	"time"
 
 	"eventter.io/mq"
 	"eventter.io/mq/client"
+	"github.com/bbva/raft-badger"
 	"github.com/hashicorp/memberlist"
+	"github.com/hashicorp/raft"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 )
 
+var rootConfig = &mq.Config{}
+
+func newClient(ctx context.Context) (client.Client, error) {
+	return client.DialContext(ctx, fmt.Sprintf("%s:%d", rootConfig.BindHost, rootConfig.Port), grpc.WithInsecure())
+}
+
 func main() {
-	rootConfig := &mq.Config{}
 	var join []string
 
 	rootCmd := &cobra.Command{
@@ -27,18 +36,6 @@ func main() {
 			return rootConfig.Init()
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			//opts := badger.DefaultOptions
-			//opts.Dir = rootConfig.Dir
-			//db, err := badger.Open(opts)
-			//if err != nil {
-			//	return err
-			//}
-			//srv, shutdown, err := mq.Open(rootConfig)
-			//if err != nil {
-			//	shutdown()
-			//	return err
-			//}
-
 			advertiseIPs, err := net.LookupIP(rootConfig.AdvertiseHost)
 			if err != nil {
 				return err
@@ -62,7 +59,7 @@ func main() {
 			mq.RegisterRaftRPCServer(grpcServer, raftTransport)
 
 			clientServer := mq.NewClientRPCServer()
-			client.RegisterClientRPCServer(grpcServer, clientServer)
+			client.RegisterEventterMQServer(grpcServer, clientServer)
 
 			discoveryTransport, err := mq.NewDiscoveryRPCTransport(rootConfig.BindHost, rootConfig.Port, clientPool)
 			if err != nil {
@@ -80,8 +77,35 @@ func main() {
 			go grpcServer.Serve(listener)
 			defer grpcServer.Stop()
 
+			raftStore, err := raftbadger.NewBadgerStore(filepath.Join(rootConfig.Dir, "raft"))
+			if err != nil {
+				return err
+			}
+			defer raftStore.Close()
+
+			raftSnapshotStore, err := raft.NewFileSnapshotStore(filepath.Join(rootConfig.Dir, "raft"), 16, os.Stdout)
+			if err != nil {
+				return err
+			}
+
+			raftConfig := raft.DefaultConfig()
+			raftConfig.LocalID = raft.ServerID(fmt.Sprintf("%016x", rootConfig.ID))
+
+			raftNode, err := raft.NewRaft(
+				raftConfig,
+				nil,
+				raftStore,
+				raftStore,
+				raftSnapshotStore,
+				raftTransport,
+			)
+			if err != nil {
+				return err
+			}
+			defer raftNode.Shutdown().Error()
+
 			config := memberlist.DefaultLANConfig()
-			config.Name = fmt.Sprintf("%016x", rootConfig.ID)
+			config.Name = string(raftConfig.LocalID)
 			config.Transport = discoveryTransport
 			config.AdvertiseAddr = advertiseIP.String()
 			config.AdvertisePort = rootConfig.Port
@@ -129,6 +153,17 @@ func main() {
 	rootCmd.Flags().StringVar(&rootConfig.Dir, "dir", "", "Persistent data directory.")
 	rootCmd.Flags().Uint32Var((*uint32)(&rootConfig.DirPerm), "dir-perm", 0755, "Persistent data directory permissions.")
 	rootCmd.Flags().StringSliceVar(&join, "join", nil, "Running peers to join.")
+
+	rootCmd.AddCommand(
+		configureTopicCmd(),
+		listTopicsCmd(),
+		deleteTopicCmd(),
+		configureConsumerGroupCmd(),
+		listConsumerGroupsCmd(),
+		deleteConsumerGroupCmd(),
+		publishCmd(),
+		consumeCmd(),
+	)
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)

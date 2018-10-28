@@ -9,11 +9,11 @@ import (
 type clientRPCServer struct {
 }
 
-func NewClientRPCServer() client.ClientRPCServer {
+func NewClientRPCServer() client.EventterMQServer {
 	return &clientRPCServer{}
 }
 
-func (*clientRPCServer) CreateTopic(context.Context, *client.CreateTopicRequest) (*client.OkResponse, error) {
+func (*clientRPCServer) ConfigureTopic(context.Context, *client.ConfigureTopicRequest) (*client.ConfigureTopicResponse, error) {
 	panic("implement me")
 }
 
@@ -21,11 +21,11 @@ func (*clientRPCServer) ListTopics(context.Context, *client.ListTopicsRequest) (
 	panic("implement me")
 }
 
-func (*clientRPCServer) DeleteTopic(context.Context, *client.DeleteTopicRequest) (*client.OkResponse, error) {
+func (*clientRPCServer) DeleteTopic(context.Context, *client.DeleteTopicRequest) (*client.DeleteTopicResponse, error) {
 	panic("implement me")
 }
 
-func (*clientRPCServer) CreateConsumerGroup(context.Context, *client.CreateConsumerGroupRequest) (*client.OkResponse, error) {
+func (*clientRPCServer) ConfigureConsumerGroup(context.Context, *client.ConfigureConsumerGroupRequest) (*client.ConfigureConsumerGroupResponse, error) {
 	panic("implement me")
 }
 
@@ -33,7 +33,7 @@ func (*clientRPCServer) ListConsumerGroups(context.Context, *client.ListConsumer
 	panic("implement me")
 }
 
-func (*clientRPCServer) DeleteConsumerGroup(context.Context, *client.DeleteConsumerGroupRequest) (*client.OkResponse, error) {
+func (*clientRPCServer) DeleteConsumerGroup(context.Context, *client.DeleteConsumerGroupRequest) (*client.DeleteConsumerGroupResponse, error) {
 	panic("implement me")
 }
 
@@ -41,6 +41,6 @@ func (*clientRPCServer) Publish(context.Context, *client.PublishRequest) (*clien
 	panic("implement me")
 }
 
-func (*clientRPCServer) Consume(client.ClientRPC_ConsumeServer) error {
+func (*clientRPCServer) Consume(client.EventterMQ_ConsumeServer) error {
 	panic("implement me")
 }
