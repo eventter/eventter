@@ -1,8 +1,13 @@
 package mq
 
 import (
+	"fmt"
+	"io/ioutil"
 	"math/rand"
 	"os"
+	"path/filepath"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -22,11 +27,49 @@ func (c *Config) Init() error {
 		return errors.New("dir not set")
 	}
 
+	if err := os.MkdirAll(c.Dir, c.DirPerm); err != nil {
+		return errors.Wrap(err, "could not create dir")
+	}
+
+	idFile := filepath.Join(c.Dir, "id")
+	_, err := os.Stat(idFile)
+	idFileExists := !os.IsNotExist(err)
 	if c.ID == 0 {
-		// TODO: parse from dir first
-		c.ID = rand.New(rand.NewSource(time.Now().UnixNano())).Uint64()
+		if idFileExists {
+			buf, err := ioutil.ReadFile(idFile)
+			if err != nil {
+				return errors.Wrap(err, "could not read ID from file")
+			}
+			id, err := strconv.ParseUint(strings.Trim(string(buf), " \r\n"), 16, 64)
+			if err != nil {
+				return errors.Wrap(err, "could not parse ID from file")
+			}
+			c.ID = id
+		} else {
+			c.ID = rand.New(rand.NewSource(time.Now().UnixNano())).Uint64()
+			err := ioutil.WriteFile(idFile, []byte(fmt.Sprintf("%016x\n", c.ID)), 0644)
+			if err != nil {
+				return errors.Wrap(err, "could not write ID to file")
+			}
+		}
+	} else if idFileExists {
+		buf, err := ioutil.ReadFile(idFile)
+		if err != nil {
+			return errors.Wrap(err, "could not read ID for check")
+		}
+		id, err := strconv.ParseUint(strings.Trim(string(buf), " \r\n"), 16, 64)
+		if err != nil {
+			return errors.Wrap(err, "could not parse ID for check")
+		}
+
+		if id != c.ID {
+			return errors.Errorf("configured with ID [%016x], however, persisted ID is [%016x]", c.ID, id)
+		}
 	} else {
-		// FIXME: check
+		err := ioutil.WriteFile(idFile, []byte(fmt.Sprintf("%016x\n", c.ID)), 0644)
+		if err != nil {
+			return errors.Wrap(err, "could not write ID to file")
+		}
 	}
 
 	if c.AdvertiseHost == "" {
@@ -39,10 +82,6 @@ func (c *Config) Init() error {
 		} else {
 			c.AdvertiseHost = c.BindHost
 		}
-	}
-
-	if err := os.MkdirAll(c.Dir, c.DirPerm); err != nil {
-		return err
 	}
 
 	return nil

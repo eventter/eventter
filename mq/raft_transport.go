@@ -29,7 +29,7 @@ func NewRaftRPCTransport(advertiseIP net.IP, advertisePort int, pool *ClientConn
 		advertiseIP:   advertiseIP,
 		advertisePort: advertisePort,
 		pool:          pool,
-		ch:            make(chan raft.RPC),
+		ch:            make(chan raft.RPC, 128),
 	}
 }
 
@@ -51,7 +51,6 @@ func (t *RaftRPCTransport) AppendEntriesPipeline(id raft.ServerID, target raft.S
 		pool:   t.pool,
 		conn:   conn,
 		client: NewRaftRPCClient(conn),
-		ch:     make(chan raft.AppendFuture),
 	}, nil
 }
 
@@ -59,7 +58,6 @@ type raftRPCTransportAppendPipeline struct {
 	pool   *ClientConnPool
 	conn   *grpc.ClientConn
 	client RaftRPCClient
-	ch     chan raft.AppendFuture
 }
 
 func (p *raftRPCTransportAppendPipeline) AppendEntries(request *raft.AppendEntriesRequest, response *raft.AppendEntriesResponse) (raft.AppendFuture, error) {
@@ -105,13 +103,11 @@ func (p *raftRPCTransportAppendPipeline) AppendEntries(request *raft.AppendEntri
 		}
 	}
 
-	p.ch <- future
-
 	return future, nil
 }
 
 func (p *raftRPCTransportAppendPipeline) Consumer() <-chan raft.AppendFuture {
-	return p.ch
+	return nil
 }
 
 func (p *raftRPCTransportAppendPipeline) Close() error {
@@ -300,6 +296,9 @@ func (t *RaftRPCTransport) DoAppendEntries(ctx context.Context, request *AppendE
 
 	t.ch <- raft.RPC{
 		Command: &raft.AppendEntriesRequest{
+			RPCHeader: raft.RPCHeader{
+				ProtocolVersion: raft.ProtocolVersionMax,
+			},
 			Term:              request.Term,
 			Leader:            request.Leader,
 			PrevLogEntry:      request.PrevLogEntry,
@@ -336,6 +335,9 @@ func (t *RaftRPCTransport) DoRequestVote(ctx context.Context, request *RequestVo
 
 	t.ch <- raft.RPC{
 		Command: &raft.RequestVoteRequest{
+			RPCHeader: raft.RPCHeader{
+				ProtocolVersion: raft.ProtocolVersionMax,
+			},
 			Term:         request.Term,
 			Candidate:    request.Candidate,
 			LastLogIndex: request.LastLogIndex,
@@ -380,6 +382,9 @@ func (t *RaftRPCTransport) DoInstallSnapshot(stream RaftRPC_DoInstallSnapshotSer
 
 	t.ch <- raft.RPC{
 		Command: &raft.InstallSnapshotRequest{
+			RPCHeader: raft.RPCHeader{
+				ProtocolVersion: raft.ProtocolVersionMax,
+			},
 			Term:               request.Term,
 			Leader:             request.Leader,
 			LastLogIndex:       request.LastLogIndex,
