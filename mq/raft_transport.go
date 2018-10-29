@@ -51,6 +51,7 @@ func (t *RaftRPCTransport) AppendEntriesPipeline(id raft.ServerID, target raft.S
 		pool:   t.pool,
 		conn:   conn,
 		client: NewRaftRPCClient(conn),
+		ch:     make(chan raft.AppendFuture),
 	}, nil
 }
 
@@ -58,6 +59,7 @@ type raftRPCTransportAppendPipeline struct {
 	pool   *ClientConnPool
 	conn   *grpc.ClientConn
 	client RaftRPCClient
+	ch     chan raft.AppendFuture
 }
 
 func (p *raftRPCTransportAppendPipeline) AppendEntries(request *raft.AppendEntriesRequest, response *raft.AppendEntriesResponse) (raft.AppendFuture, error) {
@@ -80,34 +82,28 @@ func (p *raftRPCTransportAppendPipeline) AppendEntries(request *raft.AppendEntri
 		Entries:           entries,
 		LeaderCommitIndex: request.LeaderCommitIndex,
 	})
-
-	var future raft.AppendFuture
 	if err != nil {
-		future = &raftRPCTransportAppendFuture{
-			start:   start,
-			request: request,
-			err:     err,
-		}
-	} else {
-		*response = raft.AppendEntriesResponse{
-			Term:           rpcResponse.Term,
-			LastLog:        rpcResponse.LastLog,
-			Success:        rpcResponse.Success,
-			NoRetryBackoff: rpcResponse.NoRetryBackoff,
-		}
-
-		future = &raftRPCTransportAppendFuture{
-			start:    time.Now(),
-			request:  request,
-			response: response,
-		}
+		return nil, err
 	}
 
-	return future, nil
+	*response = raft.AppendEntriesResponse{
+		Term:           rpcResponse.Term,
+		LastLog:        rpcResponse.LastLog,
+		Success:        rpcResponse.Success,
+		NoRetryBackoff: rpcResponse.NoRetryBackoff,
+	}
+
+	p.ch <- &raftRPCTransportAppendFuture{
+		start:    start,
+		request:  request,
+		response: response,
+	}
+
+	return nil, nil
 }
 
 func (p *raftRPCTransportAppendPipeline) Consumer() <-chan raft.AppendFuture {
-	return nil
+	return p.ch
 }
 
 func (p *raftRPCTransportAppendPipeline) Close() error {
@@ -117,12 +113,11 @@ func (p *raftRPCTransportAppendPipeline) Close() error {
 type raftRPCTransportAppendFuture struct {
 	start    time.Time
 	request  *raft.AppendEntriesRequest
-	err      error
 	response *raft.AppendEntriesResponse
 }
 
 func (f *raftRPCTransportAppendFuture) Error() error {
-	return f.err
+	return nil
 }
 
 func (f *raftRPCTransportAppendFuture) Start() time.Time {

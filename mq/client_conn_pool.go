@@ -7,6 +7,7 @@ import (
 
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/connectivity"
 )
 
 type ClientConnPool struct {
@@ -104,7 +105,7 @@ func (p *ClientConnPool) Put(client *grpc.ClientConn) error {
 		p.referenceCounts[client] = rc
 		return nil
 
-	} else if p.idleTimeout > 0 {
+	} else if p.idleTimeout > 0 && (client.GetState() == connectivity.Idle || client.GetState() == connectivity.Ready) {
 		p.referenceCounts[client] = rc
 		p.idlingSince[client] = time.Now()
 		return nil
