@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package io.eventter.mq.client;
+package io.eventter.mq;
 
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
@@ -16,7 +16,7 @@ message NamespaceName {
 }
 
 message ConfigureTopicRequest {
-    NamespaceName topic = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+    NamespaceName topic = 1 [(gogoproto.nullable) = false];
     // AMQP exchange type.
     string type = 2;
     // AMQP exchange arguments.
@@ -39,7 +39,7 @@ message ListTopicsResponse {
 }
 
 message DeleteTopicRequest {
-    NamespaceName topic = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+    NamespaceName topic = 1 [(gogoproto.nullable) = false];
     // If true, topic be deleted only if there are no consumer groups using it.
     bool if_unused = 2;
 }
@@ -49,13 +49,13 @@ message DeleteTopicResponse {
 }
 
 message ConfigureConsumerGroupRequest {
-    NamespaceName consumer_group = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+    NamespaceName consumer_group = 1 [(gogoproto.nullable) = false];
     repeated Binding bindings = 2;
     // AMQP queue arguments.
     map<string, google.protobuf.Any> arguments = 3;
 
     message Binding {
-        NamespaceName topic = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+        NamespaceName topic = 1 [(gogoproto.nullable) = false];
         string routing_key = 2;
         map<string, google.protobuf.Any> arguments = 3;
     }
@@ -76,7 +76,7 @@ message ListConsumerGroupsResponse {
 }
 
 message DeleteConsumerGroupRequest {
-    NamespaceName consumer_group = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+    NamespaceName consumer_group = 1 [(gogoproto.nullable) = false];
     // Only if there are no consumers.
     bool if_unused = 2;
     // Only if there are no pending messages.
@@ -110,7 +110,7 @@ message Message {
 }
 
 message PublishRequest {
-    NamespaceName topic = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+    NamespaceName topic = 1 [(gogoproto.nullable) = false];
     Message message = 2 [(gogoproto.nullable) = false];
 }
 
@@ -122,7 +122,7 @@ message PublishResponse {
 message ConsumeRequest {
     message Request {
         string consumer_tag = 1;
-        NamespaceName consumer_group = 2 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+        NamespaceName consumer_group = 2 [(gogoproto.nullable) = false];
         map<string, google.protobuf.Any> arguments = 3;
         bool no_ack = 4;
         bool exclusive = 5;
@@ -150,7 +150,7 @@ message ConsumeResponse {
     message Delivery {
         uint64 delivery_tag = 1;
         string consumer_tag = 2;
-        NamespaceName topic = 3 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+        NamespaceName topic = 3 [(gogoproto.nullable) = false];
         Message message = 4 [(gogoproto.nullable) = false];
     }
 
@@ -204,10 +204,6 @@ service EventterMQ {
         };
     }
 
-    rpc Consume (stream ConsumeRequest) returns (stream ConsumeResponse) {
-        option (google.api.http) = {
-            post: "/consume"
-        };
-    }
+    rpc Consume (stream ConsumeRequest) returns (stream ConsumeResponse);
 
 }

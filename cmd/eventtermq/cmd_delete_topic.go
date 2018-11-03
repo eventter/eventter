@@ -39,8 +39,8 @@ func deleteTopicCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVar(&request.Namespace, "namespace", "default", "Topic namespace.")
-	cmd.Flags().StringVarP(&request.Name, "name", "n", "", "Topic name.")
+	cmd.Flags().StringVar(&request.Topic.Namespace, "namespace", "default", "Topic namespace.")
+	cmd.Flags().StringVarP(&request.Topic.Name, "name", "n", "", "Topic name.")
 	cmd.Flags().BoolVar(&request.IfUnused, "if-unused", false, "If unused.")
 
 	return cmd

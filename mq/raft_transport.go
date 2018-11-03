@@ -46,7 +46,7 @@ func (t *RaftRPCTransport) AppendEntriesPipeline(id raft.ServerID, target raft.S
 	if err != nil {
 		return nil, err
 	}
-	defer func () {
+	defer func() {
 		if err != nil {
 			t.pool.Put(conn)
 		}

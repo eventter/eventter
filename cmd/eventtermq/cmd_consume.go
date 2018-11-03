@@ -38,6 +38,15 @@ func consumeCmd() *cobra.Command {
 				return err
 			}
 
+			err = stream.Send(&client.ConsumeRequest{
+				Body: &client.ConsumeRequest_Request_{
+					Request: request,
+				},
+			})
+			if err != nil {
+				return err
+			}
+
 			encoder := json.NewEncoder(os.Stdout)
 			encoder.SetIndent("", "  ")
 
@@ -78,8 +87,8 @@ func consumeCmd() *cobra.Command {
 	buf := make([]byte, 16)
 	rand.Read(buf)
 
-	cmd.Flags().StringVar(&request.Namespace, "namespace", "default", "Topic namespace.")
-	cmd.Flags().StringVarP(&request.Name, "name", "n", "", "Topic name.")
+	cmd.Flags().StringVar(&request.ConsumerGroup.Namespace, "namespace", "default", "Consumer group namespace.")
+	cmd.Flags().StringVarP(&request.ConsumerGroup.Name, "name", "n", "", "Consumer group name.")
 	cmd.Flags().StringVarP(&request.ConsumerTag, "consumer-tag", "t", hex.EncodeToString(buf), "Consumer tag.")
 	cmd.Flags().BoolVar(&request.NoAck, "no-ack", false, "No ack.")
 	cmd.Flags().BoolVar(&request.Exclusive, "exclusive", false, "Exclusive.")

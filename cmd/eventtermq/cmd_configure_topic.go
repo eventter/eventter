@@ -40,8 +40,8 @@ func configureTopicCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVar(&request.Namespace, "namespace", "default", "Topic namespace.")
-	cmd.Flags().StringVarP(&request.Name, "name", "n", "", "Topic name.")
+	cmd.Flags().StringVar(&request.Topic.Namespace, "namespace", "default", "Topic namespace.")
+	cmd.Flags().StringVarP(&request.Topic.Name, "name", "n", "", "Topic name.")
 	cmd.Flags().StringVarP(&request.Type, "type", "t", "direct", "Topic type.")
 	cmd.Flags().DurationVar(&request.Retention, "retention", 0, "Topic retention.")
 
