@@ -40,7 +40,8 @@ func listTopicsCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVar(&request.Namespace, "namespace", "default", "Topic namespace.")
+	cmd.Flags().StringVar(&request.Topic.Namespace, "namespace", "default", "Topics namespace.")
+	cmd.Flags().StringVar(&request.Topic.Name, "name", "", "Topic name.")
 
 	return cmd
 }

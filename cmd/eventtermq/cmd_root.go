@@ -58,17 +58,11 @@ func rootCmd() *cobra.Command {
 			raftTransport := mq.NewRaftRPCTransport(advertiseIP, rootConfig.Port, clientPool)
 			mq.RegisterRaftRPCServer(grpcServer, raftTransport)
 
-			clientServer := mq.NewClientRPCServer()
-			client.RegisterEventterMQServer(grpcServer, clientServer)
-
 			listener, err := net.Listen("tcp", rootConfig.BindHost+":"+strconv.Itoa(rootConfig.Port))
 			if err != nil {
 				return errors.Wrap(err, "listen failed")
 			}
 			defer listener.Close()
-
-			go grpcServer.Serve(listener)
-			defer grpcServer.Stop()
 
 			nodeName := fmt.Sprintf("%016x", rootConfig.ID)
 
@@ -97,11 +91,11 @@ func rootCmd() *cobra.Command {
 				return errors.Wrap(err, "could not open raft snapshot store")
 			}
 
-			state := mq.NewClusterState()
+			clusterState := mq.NewClusterStateStore()
 
 			raftNode, err := raft.NewRaft(
 				raftConfig,
-				state,
+				clusterState,
 				raftLogStore,
 				raftStableStore,
 				raftSnapshotStore,
@@ -113,6 +107,12 @@ func rootCmd() *cobra.Command {
 			defer func() {
 				raftNode.Shutdown().Error()
 			}()
+
+			server := mq.NewServer(raftNode, clientPool, clusterState)
+			client.RegisterEventterMQServer(grpcServer, server)
+
+			go grpcServer.Serve(listener)
+			defer grpcServer.Stop()
 
 			listConfig := memberlist.DefaultLANConfig()
 			listConfig.Name = nodeName

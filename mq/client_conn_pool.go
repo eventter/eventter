@@ -23,7 +23,7 @@ type ClientConnPool struct {
 
 func NewClientConnPool(idleTimeout time.Duration, dialOptions ...grpc.DialOption) *ClientConnPool {
 	if idleTimeout < 0 {
-		panic("idle timeout must be greater than zero")
+		panic("idle timeout must not be negative")
 	}
 
 	p := &ClientConnPool{
@@ -45,6 +45,8 @@ func NewClientConnPool(idleTimeout time.Duration, dialOptions ...grpc.DialOption
 
 func (p *ClientConnPool) closeIdle() {
 	ticker := time.NewTicker(p.idleTimeout)
+	defer ticker.Stop()
+
 	for {
 		select {
 		case <-ticker.C:

@@ -16,29 +16,43 @@ message NamespaceName {
 }
 
 message ConfigureTopicRequest {
+    // If true and node is not a leader, request will fail.
+    bool leader_only = 99;
+
     NamespaceName topic = 1 [(gogoproto.nullable) = false];
     // AMQP exchange type.
     string type = 2;
-    // AMQP exchange arguments.
-    map<string, google.protobuf.Any> arguments = 3;
+    uint32 shards = 3;
     google.protobuf.Duration retention = 4 [(gogoproto.nullable) = false, (gogoproto.stdduration) = true];
 }
 
 message ConfigureTopicResponse {
     bool ok = 1 [(gogoproto.customname) = "OK"];
-    // TODO
+    uint64 index = 2;
+}
+
+message Topic {
+    NamespaceName topic = 1 [(gogoproto.nullable) = false];
+    string type = 2;
+    uint32 shards = 3;
+    google.protobuf.Duration retention = 4 [(gogoproto.nullable) = false, (gogoproto.stdduration) = true];
 }
 
 message ListTopicsRequest {
-    string namespace = 1;
+    // If true and node is not a leader, request will fail.
+    bool leader_only = 99;
+    NamespaceName topic = 1 [(gogoproto.nullable) = false];
 }
 
 message ListTopicsResponse {
     bool ok = 1 [(gogoproto.customname) = "OK"];
-    // TODO
+    uint64 index = 2;
+    repeated Topic topics = 3;
 }
 
 message DeleteTopicRequest {
+    // If true and node is not a leader, request will fail.
+    bool leader_only = 99;
     NamespaceName topic = 1 [(gogoproto.nullable) = false];
     // If true, topic be deleted only if there are no consumer groups using it.
     bool if_unused = 2;
@@ -46,36 +60,53 @@ message DeleteTopicRequest {
 
 message DeleteTopicResponse {
     bool ok = 1 [(gogoproto.customname) = "OK"];
+    uint64 index = 2;
 }
 
 message ConfigureConsumerGroupRequest {
+    // If true and node is not a leader, request will fail.
+    bool leader_only = 99;
     NamespaceName consumer_group = 1 [(gogoproto.nullable) = false];
     repeated Binding bindings = 2;
-    // AMQP queue arguments.
-    map<string, google.protobuf.Any> arguments = 3;
+    uint32 shards = 3;
 
     message Binding {
-        NamespaceName topic = 1 [(gogoproto.nullable) = false];
+        string topic_name = 1;
         string routing_key = 2;
-        map<string, google.protobuf.Any> arguments = 3;
     }
 }
 
 message ConfigureConsumerGroupResponse {
     bool ok = 1 [(gogoproto.customname) = "OK"];
-    // TODO
+    uint64 index = 2;
+}
+
+message ConsumerGroup {
+    NamespaceName consumer_group = 1 [(gogoproto.nullable) = false];
+    repeated Binding bindings = 2;
+    uint32 shards = 3;
+
+    message Binding {
+        string topic_name = 1;
+        string routing_key = 2;
+    }
 }
 
 message ListConsumerGroupsRequest {
-    string namespace = 1;
+    // If true and node is not a leader, request will fail.
+    bool leader_only = 99;
+    NamespaceName consumer_group = 1 [(gogoproto.nullable) = false];
 }
 
 message ListConsumerGroupsResponse {
     bool ok = 1 [(gogoproto.customname) = "OK"];
-    // TODO
+    uint64 index = 2;
+    repeated ConsumerGroup consumer_groups = 3;
 }
 
 message DeleteConsumerGroupRequest {
+    // If true and node is not a leader, request will fail.
+    bool leader_only = 99;
     NamespaceName consumer_group = 1 [(gogoproto.nullable) = false];
     // Only if there are no consumers.
     bool if_unused = 2;
@@ -85,6 +116,7 @@ message DeleteConsumerGroupRequest {
 
 message DeleteConsumerGroupResponse {
     bool ok = 1 [(gogoproto.customname) = "OK"];
+    uint64 index = 2;
 }
 
 message Message {
@@ -121,11 +153,10 @@ message PublishResponse {
 
 message ConsumeRequest {
     message Request {
-        string consumer_tag = 1;
-        NamespaceName consumer_group = 2 [(gogoproto.nullable) = false];
-        map<string, google.protobuf.Any> arguments = 3;
-        bool no_ack = 4;
-        bool exclusive = 5;
+        NamespaceName consumer_group = 1 [(gogoproto.nullable) = false];
+        string consumer_tag = 2;
+        bool no_ack = 3;
+        bool exclusive = 4;
     }
 
     message Ack {
@@ -169,7 +200,7 @@ service EventterMQ {
 
     rpc ListTopics (ListTopicsRequest) returns (ListTopicsResponse) {
         option (google.api.http) = {
-            get: "/{namespace}/topics"
+            get: "/{topic.namespace}/topics"
         };
     }
 
@@ -187,7 +218,7 @@ service EventterMQ {
 
     rpc ListConsumerGroups (ListConsumerGroupsRequest) returns (ListConsumerGroupsResponse) {
         option (google.api.http) = {
-            get: "/{namespace}/cgs"
+            get: "/{consumer_group.namespace}/cgs"
         };
     }
 

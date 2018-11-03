@@ -1,0 +1,60 @@
+syntax = "proto3";
+
+package io.eventter.mq;
+
+import "client/eventtermq.proto";
+import "gogoproto/gogo.proto";
+import "google/protobuf/duration.proto";
+
+option go_package = "mq";
+
+message ClusterState {
+    uint64 index = 1;
+    repeated ClusterNamespace namespaces = 2;
+    repeated ClusterSegment open_segments = 3;
+    repeated ClusterSegment closed_segments = 4;
+}
+
+message ClusterNamespace {
+    string name = 1;
+    repeated ClusterTopic topics = 2;
+    repeated ClusterConsumerGroup consumer_groups = 3;
+}
+
+message ClusterTopic {
+    string name = 1;
+    string type = 2;
+    uint32 shards = 3;
+    google.protobuf.Duration retention = 4 [(gogoproto.nullable) = false, (gogoproto.stdduration) = true];
+}
+
+message ClusterConsumerGroup {
+    string name = 1;
+    repeated Binding bindings = 2;
+    uint32 shards = 3;
+
+    message Binding {
+        string topic_name = 1;
+        string routing_key = 2;
+    }
+}
+
+message ClusterSegment {
+    string topic_namespace = 1;
+    string topic_name = 2;
+    bytes first_message_id = 3;
+    bytes last_message_id = 4;
+    Nodes nodes = 5 [(gogoproto.nullable) = false];
+
+    message Nodes {
+        uint64 primary = 1;
+        repeated uint64 replicating = 2;
+        repeated uint64 done = 3;
+    }
+}
+
+message Command {
+    oneof command {
+        ConfigureTopicRequest configure_topic = 1;
+    }
+}

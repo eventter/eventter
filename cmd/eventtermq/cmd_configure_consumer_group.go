@@ -34,10 +34,7 @@ func configureConsumerGroupCmd() *cobra.Command {
 			for _, binding := range bindings {
 				parts := strings.SplitN(binding, ":", 2)
 				request.Bindings = append(request.Bindings, &client.ConfigureConsumerGroupRequest_Binding{
-					Topic: client.NamespaceName{
-						Namespace: request.ConsumerGroup.Namespace,
-						Name:      parts[0],
-					},
+					TopicName:  parts[0],
 					RoutingKey: parts[1],
 				})
 			}

@@ -15,7 +15,7 @@ func listConsumerGroupsCmd() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:     "list-consumer-groups",
-		Short:   "List consumser groups.",
+		Short:   "List consumer groups.",
 		Aliases: []string{"cgs"},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if rootConfig.BindHost == "" {
@@ -40,7 +40,8 @@ func listConsumerGroupsCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVar(&request.Namespace, "namespace", "default", "Topic namespace.")
+	cmd.Flags().StringVar(&request.ConsumerGroup.Namespace, "namespace", "default", "Consumer groups namespace.")
+	cmd.Flags().StringVar(&request.ConsumerGroup.Name, "name", "", "Consumer group name.")
 
 	return cmd
 }
