@@ -6,6 +6,7 @@ import (
 	"io"
 	"net"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/hashicorp/raft"
@@ -18,10 +19,12 @@ const (
 )
 
 type RaftRPCTransport struct {
-	advertiseIP   net.IP
-	advertisePort int
-	pool          *ClientConnPool
-	ch            chan raft.RPC
+	advertiseIP      net.IP
+	advertisePort    int
+	pool             *ClientConnPool
+	ch               chan raft.RPC
+	mutex            sync.RWMutex
+	heartbeatHandler func(rpc raft.RPC)
 }
 
 func NewRaftRPCTransport(advertiseIP net.IP, advertisePort int, pool *ClientConnPool) *RaftRPCTransport {
@@ -300,8 +303,10 @@ func (t *RaftRPCTransport) DecodePeer(peer []byte) raft.ServerAddress {
 	return raft.ServerAddress(peer[index+1:])
 }
 
-func (t *RaftRPCTransport) SetHeartbeatHandler(cb func(rpc raft.RPC)) {
-	// TODO
+func (t *RaftRPCTransport) SetHeartbeatHandler(handler func(rpc raft.RPC)) {
+	t.mutex.Lock()
+	t.heartbeatHandler = handler
+	t.mutex.Unlock()
 }
 
 func (t *RaftRPCTransport) DoAppendEntries(stream RaftRPC_DoAppendEntriesServer) error {
@@ -327,7 +332,7 @@ func (t *RaftRPCTransport) DoAppendEntries(stream RaftRPC_DoAppendEntriesServer)
 			})
 		}
 
-		t.ch <- raft.RPC{
+		call := raft.RPC{
 			Command: &raft.AppendEntriesRequest{
 				RPCHeader: raft.RPCHeader{
 					ProtocolVersion: raft.ProtocolVersionMax,
@@ -342,6 +347,28 @@ func (t *RaftRPCTransport) DoAppendEntries(stream RaftRPC_DoAppendEntriesServer)
 			RespChan: responseC,
 		}
 
+		isHeartbeat := request.Term != 0 && request.Leader != nil &&
+			request.PrevLogEntry == 0 && request.PrevLogTerm == 0 &&
+			len(request.Entries) == 0 && request.LeaderCommitIndex == 0
+
+		if isHeartbeat {
+			t.mutex.RLock()
+			handleHeartbeat := t.heartbeatHandler
+			t.mutex.RUnlock()
+
+			if handleHeartbeat != nil {
+				handleHeartbeat(call)
+				goto RESPONSE
+			}
+		}
+
+		select {
+		case <-ctx.Done():
+			return context.Canceled
+		case t.ch <- call:
+		}
+
+	RESPONSE:
 		var responseOrError raft.RPCResponse
 		select {
 		case <-ctx.Done():
