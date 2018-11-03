@@ -5,8 +5,7 @@ package io.eventter.mq;
 option go_package = "mq";
 
 service DiscoveryRPC {
-    rpc Tunnel (stream TunnelData) returns (stream TunnelData) {
-    }
+    rpc Tunnel (stream TunnelData) returns (stream TunnelData);
 }
 
 message TunnelData {

@@ -15,7 +15,7 @@ import (
 )
 
 func consumeCmd() *cobra.Command {
-	request := &client.ConsumeRequest_Consume{}
+	request := &client.ConsumeRequest_Request{}
 
 	cmd := &cobra.Command{
 		Use:     "consume",

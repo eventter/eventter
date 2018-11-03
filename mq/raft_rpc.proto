@@ -48,7 +48,7 @@ message RequestVoteResponse {
     bool granted = 2;
 }
 
-message InstallSnapshot {
+message InstallSnapshotRequest {
     message Request {
         uint64 term = 1;
         bytes leader = 2;
@@ -70,14 +70,7 @@ message InstallSnapshotResponse {
 }
 
 service RaftRPC {
-
-    rpc DoAppendEntries (AppendEntriesRequest) returns (AppendEntriesResponse) {
-    }
-
-    rpc DoRequestVote (RequestVoteRequest) returns (RequestVoteResponse) {
-    }
-
-    rpc DoInstallSnapshot (stream InstallSnapshot) returns (InstallSnapshotResponse) {
-    }
-
+    rpc DoAppendEntries (stream AppendEntriesRequest) returns (stream AppendEntriesResponse);
+    rpc DoRequestVote (RequestVoteRequest) returns (RequestVoteResponse);
+    rpc DoInstallSnapshot (stream InstallSnapshotRequest) returns (InstallSnapshotResponse);
 }

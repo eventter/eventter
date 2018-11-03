@@ -41,8 +41,20 @@ func (t *RaftRPCTransport) LocalAddr() raft.ServerAddress {
 	return raft.ServerAddress(t.advertiseIP.String() + ":" + strconv.Itoa(t.advertisePort))
 }
 
-func (t *RaftRPCTransport) AppendEntriesPipeline(id raft.ServerID, target raft.ServerAddress) (raft.AppendPipeline, error) {
+func (t *RaftRPCTransport) AppendEntriesPipeline(id raft.ServerID, target raft.ServerAddress) (pipeline raft.AppendPipeline, err error) {
 	conn, err := t.pool.Get(context.Background(), string(target))
+	if err != nil {
+		return nil, err
+	}
+	defer func () {
+		if err != nil {
+			t.pool.Put(conn)
+		}
+	}()
+
+	client := NewRaftRPCClient(conn)
+
+	stream, err := client.DoAppendEntries(context.Background())
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +62,7 @@ func (t *RaftRPCTransport) AppendEntriesPipeline(id raft.ServerID, target raft.S
 	return &raftRPCTransportAppendPipeline{
 		pool:   t.pool,
 		conn:   conn,
-		client: NewRaftRPCClient(conn),
+		stream: stream,
 		ch:     make(chan raft.AppendFuture),
 	}, nil
 }
@@ -58,7 +70,7 @@ func (t *RaftRPCTransport) AppendEntriesPipeline(id raft.ServerID, target raft.S
 type raftRPCTransportAppendPipeline struct {
 	pool   *ClientConnPool
 	conn   *grpc.ClientConn
-	client RaftRPCClient
+	stream RaftRPC_DoAppendEntriesClient
 	ch     chan raft.AppendFuture
 }
 
@@ -74,7 +86,7 @@ func (p *raftRPCTransportAppendPipeline) AppendEntries(request *raft.AppendEntri
 			Data:  entry.Data,
 		})
 	}
-	rpcResponse, err := p.client.DoAppendEntries(context.Background(), &AppendEntriesRequest{
+	err := p.stream.Send(&AppendEntriesRequest{
 		Term:              request.Term,
 		Leader:            request.Leader,
 		PrevLogEntry:      request.PrevLogEntry,
@@ -82,6 +94,11 @@ func (p *raftRPCTransportAppendPipeline) AppendEntries(request *raft.AppendEntri
 		Entries:           entries,
 		LeaderCommitIndex: request.LeaderCommitIndex,
 	})
+	if err != nil {
+		return nil, err
+	}
+
+	rpcResponse, err := p.stream.Recv()
 	if err != nil {
 		return nil, err
 	}
@@ -107,6 +124,7 @@ func (p *raftRPCTransportAppendPipeline) Consumer() <-chan raft.AppendFuture {
 }
 
 func (p *raftRPCTransportAppendPipeline) Close() error {
+	p.stream.CloseSend()
 	return p.pool.Put(p.conn)
 }
 
@@ -140,6 +158,12 @@ func (t *RaftRPCTransport) AppendEntries(id raft.ServerID, target raft.ServerAdd
 	defer t.pool.Put(conn)
 
 	client := NewRaftRPCClient(conn)
+	stream, err := client.DoAppendEntries(context.Background())
+	if err != nil {
+		return err
+	}
+	defer stream.CloseSend()
+
 	var entries []*AppendEntriesRequest_Entry
 	for _, entry := range request.Entries {
 		entries = append(entries, &AppendEntriesRequest_Entry{
@@ -149,7 +173,7 @@ func (t *RaftRPCTransport) AppendEntries(id raft.ServerID, target raft.ServerAdd
 			Data:  entry.Data,
 		})
 	}
-	rpcResponse, err := client.DoAppendEntries(context.Background(), &AppendEntriesRequest{
+	err = stream.Send(&AppendEntriesRequest{
 		Term:              request.Term,
 		Leader:            request.Leader,
 		PrevLogEntry:      request.PrevLogEntry,
@@ -157,6 +181,11 @@ func (t *RaftRPCTransport) AppendEntries(id raft.ServerID, target raft.ServerAdd
 		Entries:           entries,
 		LeaderCommitIndex: request.LeaderCommitIndex,
 	})
+	if err != nil {
+		return err
+	}
+
+	rpcResponse, err := stream.Recv()
 	if err != nil {
 		return err
 	}
@@ -215,9 +244,9 @@ func (t *RaftRPCTransport) InstallSnapshot(id raft.ServerID, target raft.ServerA
 		}
 	}()
 
-	err = stream.Send(&InstallSnapshot{
-		Body: &InstallSnapshot_Request_{
-			Request: &InstallSnapshot_Request{
+	err = stream.Send(&InstallSnapshotRequest{
+		Body: &InstallSnapshotRequest_Request_{
+			Request: &InstallSnapshotRequest_Request{
 				Term:               request.Term,
 				Leader:             request.Leader,
 				LastLogIndex:       request.LastLogIndex,
@@ -239,8 +268,8 @@ func (t *RaftRPCTransport) InstallSnapshot(id raft.ServerID, target raft.ServerA
 		if err != nil {
 			return err
 		}
-		err = stream.Send(&InstallSnapshot{
-			Body: &InstallSnapshot_Data{
+		err = stream.Send(&InstallSnapshotRequest{
+			Body: &InstallSnapshotRequest_Data{
 				Data: buf[:n],
 			},
 		})
@@ -275,54 +304,69 @@ func (t *RaftRPCTransport) SetHeartbeatHandler(cb func(rpc raft.RPC)) {
 	// TODO
 }
 
-func (t *RaftRPCTransport) DoAppendEntries(ctx context.Context, request *AppendEntriesRequest) (*AppendEntriesResponse, error) {
+func (t *RaftRPCTransport) DoAppendEntries(stream RaftRPC_DoAppendEntriesServer) error {
+	ctx := stream.Context()
 	responseC := make(chan raft.RPCResponse, 1)
 
-	var entries []*raft.Log
+	for {
+		request, err := stream.Recv()
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			return err
+		}
 
-	for _, entry := range request.Entries {
-		entries = append(entries, &raft.Log{
-			Index: entry.Index,
-			Term:  entry.Term,
-			Type:  raft.LogType(entry.Type),
-			Data:  entry.Data,
-		})
-	}
+		var entries []*raft.Log
 
-	t.ch <- raft.RPC{
-		Command: &raft.AppendEntriesRequest{
-			RPCHeader: raft.RPCHeader{
-				ProtocolVersion: raft.ProtocolVersionMax,
+		for _, entry := range request.Entries {
+			entries = append(entries, &raft.Log{
+				Index: entry.Index,
+				Term:  entry.Term,
+				Type:  raft.LogType(entry.Type),
+				Data:  entry.Data,
+			})
+		}
+
+		t.ch <- raft.RPC{
+			Command: &raft.AppendEntriesRequest{
+				RPCHeader: raft.RPCHeader{
+					ProtocolVersion: raft.ProtocolVersionMax,
+				},
+				Term:              request.Term,
+				Leader:            request.Leader,
+				PrevLogEntry:      request.PrevLogEntry,
+				PrevLogTerm:       request.PrevLogTerm,
+				Entries:           entries,
+				LeaderCommitIndex: request.LeaderCommitIndex,
 			},
-			Term:              request.Term,
-			Leader:            request.Leader,
-			PrevLogEntry:      request.PrevLogEntry,
-			PrevLogTerm:       request.PrevLogTerm,
-			Entries:           entries,
-			LeaderCommitIndex: request.LeaderCommitIndex,
-		},
-		RespChan: responseC,
+			RespChan: responseC,
+		}
+
+		var responseOrError raft.RPCResponse
+		select {
+		case <-ctx.Done():
+			return context.Canceled
+		case responseOrError = <-responseC:
+		}
+
+		if responseOrError.Error != nil {
+			return responseOrError.Error
+		}
+
+		response := responseOrError.Response.(*raft.AppendEntriesResponse)
+
+		err = stream.Send(&AppendEntriesResponse{
+			Term:           response.Term,
+			LastLog:        response.LastLog,
+			Success:        response.Success,
+			NoRetryBackoff: response.NoRetryBackoff,
+		})
+		if err != nil {
+			return err
+		}
 	}
 
-	var responseOrError raft.RPCResponse
-	select {
-	case <-ctx.Done():
-		return nil, context.Canceled
-	case responseOrError = <-responseC:
-	}
-
-	if responseOrError.Error != nil {
-		return nil, responseOrError.Error
-	}
-
-	response := responseOrError.Response.(*raft.AppendEntriesResponse)
-
-	return &AppendEntriesResponse{
-		Term:           response.Term,
-		LastLog:        response.LastLog,
-		Success:        response.Success,
-		NoRetryBackoff: response.NoRetryBackoff,
-	}, nil
+	return nil
 }
 
 func (t *RaftRPCTransport) DoRequestVote(ctx context.Context, request *RequestVoteRequest) (*RequestVoteResponse, error) {

@@ -120,16 +120,12 @@ message PublishResponse {
 }
 
 message ConsumeRequest {
-    message Consume {
+    message Request {
         string consumer_tag = 1;
         NamespaceName consumer_group = 2 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
         map<string, google.protobuf.Any> arguments = 3;
         bool no_ack = 4;
         bool exclusive = 5;
-    }
-
-    message Cancel {
-        string consumer_tag = 1;
     }
 
     message Ack {
@@ -144,10 +140,9 @@ message ConsumeRequest {
     }
 
     oneof body {
-        Consume consume = 1;
-        Cancel cancel = 2;
-        Ack ack = 3;
-        Nack nack = 4;
+        Request request = 1;
+        Ack ack = 2;
+        Nack nack = 3;
     }
 }
 
