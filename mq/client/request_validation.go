@@ -63,6 +63,10 @@ func (r *ConfigureTopicRequest) Validate() error {
 		errs = append(errs, errors.Errorf(listErrorFormat, "topic type", r.Type))
 	}
 
+	if r.ReplicationFactor < 1 {
+		errs = append(errs, errors.Errorf(positiveErrorFormat, "replication factor"))
+	}
+
 	if r.Retention < 0 {
 		errs = append(errs, errors.Errorf(negativeErrorFormat, "retention"))
 	}

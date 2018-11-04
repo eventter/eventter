@@ -33,6 +33,11 @@ func (s *Server) DeleteConsumerGroup(ctx context.Context, request *client.Delete
 		return nil, err
 	}
 
+	if err := s.beginTransaction(); err != nil {
+		return nil, err
+	}
+	defer s.releaseTransaction()
+
 	// TODO: access control
 
 	if !s.clusterState.ConsumerGroupExists(request.ConsumerGroup.Namespace, request.ConsumerGroup.Name) {

@@ -3,6 +3,7 @@ package mq
 import (
 	"io"
 	"io/ioutil"
+	"sort"
 	"sync"
 
 	"eventter.io/mq/client"
@@ -45,6 +46,10 @@ func (s *ClusterStateStore) Apply(entry *raft.Log) interface{} {
 		s.doConfigureConsumerGroup(cmd.ConfigureConsumerGroup)
 	case *Command_DeleteConsumerGroup:
 		s.doDeleteConsumerGroup(cmd.DeleteConsumerGroup)
+	case *Command_OpenSegment:
+		s.doOpenSegment(cmd.OpenSegment)
+	case *Command_CloseSegment:
+		s.doCloseSegment(cmd.CloseSegment)
 	default:
 		panic(errors.Errorf("unhandled command of type [%T]", cmd))
 	}
@@ -54,35 +59,36 @@ func (s *ClusterStateStore) Apply(entry *raft.Log) interface{} {
 	return nil
 }
 
-func (s *ClusterStateStore) doConfigureTopic(request *client.ConfigureTopicRequest) {
-	namespace, _ := s.findNamespace(request.Topic.Namespace)
+func (s *ClusterStateStore) doConfigureTopic(cmd *client.ConfigureTopicRequest) {
+	namespace, _ := s.findNamespace(cmd.Topic.Namespace)
 	if namespace == nil {
 		namespace = &ClusterNamespace{
-			Name: request.Topic.Namespace,
+			Name: cmd.Topic.Namespace,
 		}
 		s.state.Namespaces = append(s.state.Namespaces, namespace)
 	}
 
-	topic, _ := namespace.findTopic(request.Topic.Name)
+	topic, _ := namespace.findTopic(cmd.Topic.Name)
 	if topic == nil {
 		topic = &ClusterTopic{
-			Name: request.Topic.Name,
+			Name: cmd.Topic.Name,
 		}
 		namespace.Topics = append(namespace.Topics, topic)
 	}
 
-	topic.Type = request.Type
-	topic.Shards = request.Shards
-	topic.Retention = request.Retention
+	topic.Type = cmd.Type
+	topic.Shards = cmd.Shards
+	topic.ReplicationFactor = cmd.ReplicationFactor
+	topic.Retention = cmd.Retention
 }
 
-func (s *ClusterStateStore) doDeleteTopic(request *client.DeleteTopicRequest) {
-	namespace, namespaceIndex := s.findNamespace(request.Topic.Namespace)
+func (s *ClusterStateStore) doDeleteTopic(cmd *client.DeleteTopicRequest) {
+	namespace, namespaceIndex := s.findNamespace(cmd.Topic.Namespace)
 	if namespace == nil {
 		return
 	}
 
-	_, topicIndex := namespace.findTopic(request.Topic.Name)
+	_, topicIndex := namespace.findTopic(cmd.Topic.Name)
 	if topicIndex == -1 {
 		return
 	}
@@ -94,7 +100,7 @@ func (s *ClusterStateStore) doDeleteTopic(request *client.DeleteTopicRequest) {
 	for _, consumerGroup := range namespace.ConsumerGroups {
 		var newBindings []*ClusterConsumerGroup_Binding
 		for _, binding := range consumerGroup.Bindings {
-			if binding.TopicName != request.Topic.Name {
+			if binding.TopicName != cmd.Topic.Name {
 				newBindings = append(newBindings, binding)
 			}
 		}
@@ -116,25 +122,25 @@ func (s *ClusterStateStore) deleteNamespace(namespaceIndex int) {
 	s.state.Namespaces = s.state.Namespaces[:len(s.state.Namespaces)-1]
 }
 
-func (s *ClusterStateStore) doConfigureConsumerGroup(request *client.ConfigureConsumerGroupRequest) {
-	namespace, _ := s.findNamespace(request.ConsumerGroup.Namespace)
+func (s *ClusterStateStore) doConfigureConsumerGroup(cmd *client.ConfigureConsumerGroupRequest) {
+	namespace, _ := s.findNamespace(cmd.ConsumerGroup.Namespace)
 	if namespace == nil {
 		namespace = &ClusterNamespace{
-			Name: request.ConsumerGroup.Namespace,
+			Name: cmd.ConsumerGroup.Namespace,
 		}
 		s.state.Namespaces = append(s.state.Namespaces, namespace)
 	}
 
-	consumerGroup, _ := namespace.findConsumerGroup(request.ConsumerGroup.Name)
+	consumerGroup, _ := namespace.findConsumerGroup(cmd.ConsumerGroup.Name)
 	if consumerGroup == nil {
 		consumerGroup = &ClusterConsumerGroup{
-			Name: request.ConsumerGroup.Name,
+			Name: cmd.ConsumerGroup.Name,
 		}
 		namespace.ConsumerGroups = append(namespace.ConsumerGroups, consumerGroup)
 	}
 
 	var bindings []*ClusterConsumerGroup_Binding
-	for _, binding := range request.Bindings {
+	for _, binding := range cmd.Bindings {
 		bindings = append(bindings, &ClusterConsumerGroup_Binding{
 			TopicName:  binding.TopicName,
 			RoutingKey: binding.RoutingKey,
@@ -142,16 +148,16 @@ func (s *ClusterStateStore) doConfigureConsumerGroup(request *client.ConfigureCo
 	}
 
 	consumerGroup.Bindings = bindings
-	consumerGroup.Shards = request.Shards
+	consumerGroup.Shards = cmd.Shards
 }
 
-func (s *ClusterStateStore) doDeleteConsumerGroup(request *client.DeleteConsumerGroupRequest) {
-	namespace, namespaceIndex := s.findNamespace(request.ConsumerGroup.Namespace)
+func (s *ClusterStateStore) doDeleteConsumerGroup(cmd *client.DeleteConsumerGroupRequest) {
+	namespace, namespaceIndex := s.findNamespace(cmd.ConsumerGroup.Namespace)
 	if namespace == nil {
 		return
 	}
 
-	_, consumerGroupIndex := namespace.findConsumerGroup(request.ConsumerGroup.Name)
+	_, consumerGroupIndex := namespace.findConsumerGroup(cmd.ConsumerGroup.Name)
 	if consumerGroupIndex == -1 {
 		return
 	}
@@ -163,6 +169,56 @@ func (s *ClusterStateStore) doDeleteConsumerGroup(request *client.DeleteConsumer
 	if isNamespaceEmpty(namespace) {
 		s.deleteNamespace(namespaceIndex)
 	}
+}
+
+func (s *ClusterStateStore) doOpenSegment(cmd *OpenSegmentCommand) {
+	if cmd.ID > s.state.CurrentSegmentID {
+		s.state.CurrentSegmentID = cmd.ID
+	}
+
+	s.state.OpenSegments = append(s.state.OpenSegments, &ClusterSegment{
+		ID:             cmd.ID,
+		Topic:          cmd.Topic,
+		FirstMessageID: cmd.FirstMessageID,
+		Nodes: ClusterSegment_Nodes{
+			PrimaryNodeID: cmd.PrimaryNodeID,
+		},
+	})
+	sort.Slice(s.state.ClosedSegments, func(i, j int) bool {
+		return s.state.ClosedSegments[i].ID < s.state.ClosedSegments[j].ID
+	})
+}
+
+func (s *ClusterStateStore) doCloseSegment(cmd *CloseSegmentCommand) {
+	segmentIndex := -1
+	for i, segment := range s.state.OpenSegments {
+		if segment.ID == cmd.ID {
+			segmentIndex = i
+			return
+		}
+	}
+
+	if segmentIndex == -1 {
+		panic("segment not found")
+	}
+
+	segment := s.state.OpenSegments[segmentIndex]
+
+	copy(s.state.OpenSegments[segmentIndex:], s.state.OpenSegments[segmentIndex+1:])
+	s.state.OpenSegments[len(s.state.OpenSegments)-1] = nil
+	s.state.OpenSegments = s.state.OpenSegments[:len(s.state.OpenSegments)-1]
+
+	segment.LastMessageID = cmd.LastMessageID
+	segment.Size_ = cmd.Size_
+	segment.Sha1 = cmd.Sha1
+
+	segment.Nodes.PrimaryNodeID = 0
+	segment.Nodes.DoneNodeIDs = []uint64{cmd.DoneNodeID}
+
+	s.state.ClosedSegments = append(s.state.ClosedSegments, segment)
+	sort.Slice(s.state.ClosedSegments, func(i, j int) bool {
+		return s.state.ClosedSegments[i].ID < s.state.ClosedSegments[j].ID
+	})
 }
 
 func (s *ClusterStateStore) Snapshot() (raft.FSMSnapshot, error) {
@@ -268,6 +324,19 @@ func (s *ClusterStateStore) TopicExists(namespaceName string, topicName string) 
 	return topic != nil
 }
 
+func (s *ClusterStateStore) GetTopic(namespaceName string, topicName string) *ClusterTopic {
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+
+	namespace, _ := s.findNamespace(namespaceName)
+	if namespace == nil {
+		return nil
+	}
+
+	topic, _ := namespace.findTopic(topicName)
+	return topic
+}
+
 func (s *ClusterStateStore) ConsumerGroupExists(namespaceName string, consumerGroupName string) bool {
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
@@ -279,6 +348,43 @@ func (s *ClusterStateStore) ConsumerGroupExists(namespaceName string, consumerGr
 
 	consumerGroup, _ := namespace.findConsumerGroup(consumerGroupName)
 	return consumerGroup != nil
+}
+
+func (s *ClusterStateStore) FindOpenSegmentsFor(namespaceName string, topicName string) []*ClusterSegment {
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+
+	var segments []*ClusterSegment
+
+	for _, segment := range s.state.OpenSegments {
+		if segment.Topic.Namespace == namespaceName && segment.Topic.Name == topicName {
+			segments = append(segments, segment)
+		}
+	}
+
+	return segments
+}
+
+func (s *ClusterStateStore) NextSegmentID() uint64 {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
+	s.state.CurrentSegmentID += 1
+
+	return s.state.CurrentSegmentID
+}
+
+func (s *ClusterStateStore) GetOpenSegment(id uint64) *ClusterSegment {
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+
+	for _, segment := range s.state.OpenSegments {
+		if segment.ID == id {
+			return segment
+		}
+	}
+
+	return nil
 }
 
 func (s *ClusterStateStore) findNamespace(name string) (*ClusterNamespace, int) {

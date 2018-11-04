@@ -33,6 +33,11 @@ func (s *Server) DeleteTopic(ctx context.Context, request *client.DeleteTopicReq
 		return nil, err
 	}
 
+	if err := s.beginTransaction(); err != nil {
+		return nil, err
+	}
+	defer s.releaseTransaction()
+
 	// TODO: access control
 
 	if !s.clusterState.TopicExists(request.Topic.Namespace, request.Topic.Name) {

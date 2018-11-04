@@ -110,6 +110,7 @@ func rootCmd() *cobra.Command {
 
 			server := mq.NewServer(rootConfig.ID, raftNode, clientPool, clusterState)
 			client.RegisterEventterMQServer(grpcServer, server)
+			mq.RegisterNodeRPCServer(grpcServer, server)
 
 			go grpcServer.Serve(listener)
 			defer grpcServer.Stop()

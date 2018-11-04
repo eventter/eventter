@@ -10,7 +10,7 @@ option go_package = "mq";
 
 message ClusterState {
     uint64 index = 1;
-    uint64 next_segment_id = 2;
+    uint64 current_segment_id = 2 [(gogoproto.customname) = "CurrentSegmentID"];
     repeated ClusterNamespace namespaces = 3;
     repeated ClusterSegment open_segments = 4;
     repeated ClusterSegment closed_segments = 5;
@@ -26,7 +26,8 @@ message ClusterTopic {
     string name = 1;
     string type = 2;
     uint32 shards = 3;
-    google.protobuf.Duration retention = 4 [(gogoproto.nullable) = false, (gogoproto.stdduration) = true];
+    uint32 replication_factor = 4;
+    google.protobuf.Duration retention = 5 [(gogoproto.nullable) = false, (gogoproto.stdduration) = true];
 }
 
 message ClusterConsumerGroup {
@@ -41,18 +42,34 @@ message ClusterConsumerGroup {
 }
 
 message ClusterSegment {
-    uint64 id = 1;
-    string topic_namespace = 2;
-    string topic_name = 3;
-    bytes first_message_id = 4;
-    bytes last_message_id = 5;
-    Nodes nodes = 6 [(gogoproto.nullable) = false];
+    uint64 id = 1 [(gogoproto.customname) = "ID"];
+    NamespaceName topic = 2;
+    bytes first_message_id = 3 [(gogoproto.customname) = "FirstMessageID"];
+    bytes last_message_id = 4 [(gogoproto.customname) = "LastMessageID"];
+    Nodes nodes = 5 [(gogoproto.nullable) = false];
+    uint64 size = 6;
+    bytes sha1 = 7;
 
     message Nodes {
-        uint64 primary = 1;
-        repeated uint64 replicating = 2;
-        repeated uint64 done = 3;
+        uint64 primary_node_id = 1 [(gogoproto.customname) = "PrimaryNodeID"];
+        repeated uint64 replicating_node_ids = 2 [(gogoproto.customname) = "ReplicatingNodeIDs"];
+        repeated uint64 done_node_ids = 3 [(gogoproto.customname) = "DoneNodeIDs"];
     }
+}
+
+message OpenSegmentCommand {
+    uint64 id = 1 [(gogoproto.customname) = "ID"];
+    NamespaceName topic = 2;
+    bytes first_message_id = 3 [(gogoproto.customname) = "FirstMessageID"];
+    uint64 primary_node_id = 4 [(gogoproto.customname) = "PrimaryNodeID"];
+}
+
+message CloseSegmentCommand {
+    uint64 id = 1 [(gogoproto.customname) = "ID"];
+    uint64 done_node_id = 2 [(gogoproto.customname) = "DoneNodeID"];
+    bytes last_message_id = 4 [(gogoproto.customname) = "LastMessageID"];
+    uint64 size = 5;
+    bytes sha1 = 6;
 }
 
 message Command {
@@ -61,5 +78,7 @@ message Command {
         DeleteTopicRequest delete_topic = 2;
         ConfigureConsumerGroupRequest configure_consumer_group = 3;
         DeleteConsumerGroupRequest delete_consumer_group = 4;
+        OpenSegmentCommand open_segment = 5;
+        CloseSegmentCommand close_segment = 6;
     }
 }

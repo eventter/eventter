@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package io.eventter.mq;
+
+import "client/eventtermq.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "mq";
+
+message OpenSegmentRequest {
+    uint64 node_id = 1 [(gogoproto.customname) = "NodeID"];
+    NamespaceName topic = 2;
+    bytes first_message_id = 3 [(gogoproto.customname) = "FirstMessageID"];
+}
+
+message OpenSegmentResponse {
+    uint64 segment_id = 1 [(gogoproto.customname) = "SegmentID"];
+    uint64 primary_node_id = 2 [(gogoproto.customname) = "PrimaryNodeID"];
+}
+
+message RotateSegmentRequest {
+    uint64 node_id = 1 [(gogoproto.customname) = "NodeID"];
+    uint64 old_segment_id = 2 [(gogoproto.customname) = "OldSegmentID"];
+    bytes old_last_message_id = 3 [(gogoproto.customname) = "OldLastMessageID"];
+    uint64 old_size = 4;
+    bytes old_sha1 = 5;
+    bytes new_first_message_id = 6 [(gogoproto.customname) = "NewFirstMessageID"];
+}
+
+service NodeRPC {
+    rpc OpenSegment(OpenSegmentRequest) returns (OpenSegmentResponse);
+    rpc RotateSegment(RotateSegmentRequest) returns (OpenSegmentResponse);
+}

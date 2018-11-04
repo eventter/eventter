@@ -44,6 +44,7 @@ func configureTopicCmd() *cobra.Command {
 	cmd.Flags().StringVarP(&request.Topic.Name, "name", "n", "", "Topic name.")
 	cmd.Flags().StringVarP(&request.Type, "type", "t", "direct", "Topic type.")
 	cmd.Flags().Uint32VarP(&request.Shards, "shards", "s", 1, "# of shards.")
+	cmd.Flags().Uint32VarP(&request.ReplicationFactor, "replication-factor", "f", 1, "Replication factor.")
 	cmd.Flags().DurationVarP(&request.Retention, "retention", "r", 0, "Topic retention.")
 
 	return cmd

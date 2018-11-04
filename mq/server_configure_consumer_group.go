@@ -33,6 +33,11 @@ func (s *Server) ConfigureConsumerGroup(ctx context.Context, request *client.Con
 		return nil, err
 	}
 
+	if err := s.beginTransaction(); err != nil {
+		return nil, err
+	}
+	defer s.releaseTransaction()
+
 	for _, binding := range request.Bindings {
 		if !s.clusterState.TopicExists(request.ConsumerGroup.Namespace, binding.TopicName) {
 			return nil, errors.Errorf("topic %s/%s does not exist", request.ConsumerGroup.Namespace, binding.TopicName)
