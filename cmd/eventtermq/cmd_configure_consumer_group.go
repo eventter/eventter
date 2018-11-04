@@ -52,6 +52,7 @@ func configureConsumerGroupCmd() *cobra.Command {
 
 	cmd.Flags().StringVar(&request.ConsumerGroup.Namespace, "namespace", "default", "Consumer group namespace.")
 	cmd.Flags().StringVarP(&request.ConsumerGroup.Name, "name", "n", "", "Consumer group name.")
+	cmd.Flags().Uint32VarP(&request.Shards, "shards", "s", 1, "# of shards.")
 	cmd.Flags().StringSliceVarP(&bindings, "bind", "b", nil, "Bindings in form of <topic>:<routing key>.")
 
 	return cmd

@@ -14,13 +14,15 @@ var (
 )
 
 type Server struct {
+	serverID     uint64
 	raftNode     *raft.Raft
 	pool         *ClientConnPool
 	clusterState *ClusterStateStore
 }
 
-func NewServer(raftNode *raft.Raft, pool *ClientConnPool, clusterState *ClusterStateStore) *Server {
+func NewServer(serverID uint64, raftNode *raft.Raft, pool *ClientConnPool, clusterState *ClusterStateStore) *Server {
 	return &Server{
+		serverID:     serverID,
 		raftNode:     raftNode,
 		pool:         pool,
 		clusterState: clusterState,
@@ -28,22 +30,6 @@ func NewServer(raftNode *raft.Raft, pool *ClientConnPool, clusterState *ClusterS
 }
 
 var _ client.EventterMQServer = (*Server)(nil)
-
-func (s *Server) DeleteTopic(ctx context.Context, request *client.DeleteTopicRequest) (*client.DeleteTopicResponse, error) {
-	panic("implement me")
-}
-
-func (s *Server) ConfigureConsumerGroup(ctx context.Context, request *client.ConfigureConsumerGroupRequest) (*client.ConfigureConsumerGroupResponse, error) {
-	panic("implement me")
-}
-
-func (s *Server) ListConsumerGroups(ctx context.Context, request *client.ListConsumerGroupsRequest) (*client.ListConsumerGroupsResponse, error) {
-	panic("implement me")
-}
-
-func (s *Server) DeleteConsumerGroup(ctx context.Context, request *client.DeleteConsumerGroupRequest) (*client.DeleteConsumerGroupResponse, error) {
-	panic("implement me")
-}
 
 func (s *Server) Publish(ctx context.Context, request *client.PublishRequest) (*client.PublishResponse, error) {
 	panic("implement me")

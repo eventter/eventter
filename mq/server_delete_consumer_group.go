@@ -9,7 +9,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (s *Server) ConfigureTopic(ctx context.Context, request *client.ConfigureTopicRequest) (*client.ConfigureTopicResponse, error) {
+func (s *Server) DeleteConsumerGroup(ctx context.Context, request *client.DeleteConsumerGroupRequest) (*client.DeleteConsumerGroupResponse, error) {
 	if s.raftNode.State() != raft.Leader {
 		if request.LeaderOnly {
 			return nil, errNotALeader
@@ -26,7 +26,7 @@ func (s *Server) ConfigureTopic(ctx context.Context, request *client.ConfigureTo
 		defer s.pool.Put(conn)
 
 		request.LeaderOnly = true
-		return client.NewEventterMQClient(conn).ConfigureTopic(ctx, request)
+		return client.NewEventterMQClient(conn).DeleteConsumerGroup(ctx, request)
 	}
 
 	if err := request.Validate(); err != nil {
@@ -35,9 +35,21 @@ func (s *Server) ConfigureTopic(ctx context.Context, request *client.ConfigureTo
 
 	// TODO: access control
 
+	if !s.clusterState.ConsumerGroupExists(request.ConsumerGroup.Namespace, request.ConsumerGroup.Name) {
+		return nil, errors.Errorf("consumer group %s/%s does not exist", request.ConsumerGroup.Namespace, request.ConsumerGroup.Name)
+	}
+
+	if request.IfEmpty {
+		return nil, errors.New("if empty not implemented")
+	}
+
+	if request.IfUnused {
+		return nil, errors.New("if unused not implemented")
+	}
+
 	buf, err := proto.Marshal(&Command{
-		Command: &Command_ConfigureTopic{
-			ConfigureTopic: request,
+		Command: &Command_DeleteConsumerGroup{
+			DeleteConsumerGroup: request,
 		},
 	})
 	if err != nil {
@@ -49,7 +61,7 @@ func (s *Server) ConfigureTopic(ctx context.Context, request *client.ConfigureTo
 		return nil, err
 	}
 
-	return &client.ConfigureTopicResponse{
+	return &client.DeleteConsumerGroupResponse{
 		OK:    true,
 		Index: future.Index(),
 	}, nil

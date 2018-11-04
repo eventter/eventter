@@ -10,9 +10,10 @@ option go_package = "mq";
 
 message ClusterState {
     uint64 index = 1;
-    repeated ClusterNamespace namespaces = 2;
-    repeated ClusterSegment open_segments = 3;
-    repeated ClusterSegment closed_segments = 4;
+    uint64 next_segment_id = 2;
+    repeated ClusterNamespace namespaces = 3;
+    repeated ClusterSegment open_segments = 4;
+    repeated ClusterSegment closed_segments = 5;
 }
 
 message ClusterNamespace {
@@ -40,11 +41,12 @@ message ClusterConsumerGroup {
 }
 
 message ClusterSegment {
-    string topic_namespace = 1;
-    string topic_name = 2;
-    bytes first_message_id = 3;
-    bytes last_message_id = 4;
-    Nodes nodes = 5 [(gogoproto.nullable) = false];
+    uint64 id = 1;
+    string topic_namespace = 2;
+    string topic_name = 3;
+    bytes first_message_id = 4;
+    bytes last_message_id = 5;
+    Nodes nodes = 6 [(gogoproto.nullable) = false];
 
     message Nodes {
         uint64 primary = 1;
@@ -56,5 +58,8 @@ message ClusterSegment {
 message Command {
     oneof command {
         ConfigureTopicRequest configure_topic = 1;
+        DeleteTopicRequest delete_topic = 2;
+        ConfigureConsumerGroupRequest configure_consumer_group = 3;
+        DeleteConsumerGroupRequest delete_consumer_group = 4;
     }
 }

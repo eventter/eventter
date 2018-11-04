@@ -16,7 +16,7 @@ func listTopicsCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "list-topics",
 		Short:   "List topics.",
-		Aliases: []string{"topics"},
+		Aliases: []string{"topics", "tps"},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if rootConfig.BindHost == "" {
 				rootConfig.BindHost = "localhost"

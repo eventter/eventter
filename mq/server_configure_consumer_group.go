@@ -9,7 +9,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (s *Server) ConfigureTopic(ctx context.Context, request *client.ConfigureTopicRequest) (*client.ConfigureTopicResponse, error) {
+func (s *Server) ConfigureConsumerGroup(ctx context.Context, request *client.ConfigureConsumerGroupRequest) (*client.ConfigureConsumerGroupResponse, error) {
 	if s.raftNode.State() != raft.Leader {
 		if request.LeaderOnly {
 			return nil, errNotALeader
@@ -26,18 +26,24 @@ func (s *Server) ConfigureTopic(ctx context.Context, request *client.ConfigureTo
 		defer s.pool.Put(conn)
 
 		request.LeaderOnly = true
-		return client.NewEventterMQClient(conn).ConfigureTopic(ctx, request)
+		return client.NewEventterMQClient(conn).ConfigureConsumerGroup(ctx, request)
 	}
 
 	if err := request.Validate(); err != nil {
 		return nil, err
 	}
 
+	for _, binding := range request.Bindings {
+		if !s.clusterState.TopicExists(request.ConsumerGroup.Namespace, binding.TopicName) {
+			return nil, errors.Errorf("topic %s/%s does not exist", request.ConsumerGroup.Namespace, binding.TopicName)
+		}
+	}
+
 	// TODO: access control
 
 	buf, err := proto.Marshal(&Command{
-		Command: &Command_ConfigureTopic{
-			ConfigureTopic: request,
+		Command: &Command_ConfigureConsumerGroup{
+			ConfigureConsumerGroup: request,
 		},
 	})
 	if err != nil {
@@ -49,7 +55,7 @@ func (s *Server) ConfigureTopic(ctx context.Context, request *client.ConfigureTo
 		return nil, err
 	}
 
-	return &client.ConfigureTopicResponse{
+	return &client.ConfigureConsumerGroupResponse{
 		OK:    true,
 		Index: future.Index(),
 	}, nil

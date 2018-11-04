@@ -28,9 +28,11 @@ func (s *Server) ListTopics(ctx context.Context, request *client.ListTopicsReque
 		return client.NewEventterMQClient(conn).ListTopics(ctx, request)
 	}
 
-	// TODO: access control
+	if err := request.Validate(); err != nil {
+		return nil, err
+	}
 
-	// TODO: request validation
+	// TODO: access control
 
 	index, t := s.clusterState.ListTopics(request.Topic.Namespace, request.Topic.Name)
 

@@ -39,6 +39,12 @@ func (s *ClusterStateStore) Apply(entry *raft.Log) interface{} {
 	switch cmd := cmd.Command.(type) {
 	case *Command_ConfigureTopic:
 		s.doConfigureTopic(cmd.ConfigureTopic)
+	case *Command_DeleteTopic:
+		s.doDeleteTopic(cmd.DeleteTopic)
+	case *Command_ConfigureConsumerGroup:
+		s.doConfigureConsumerGroup(cmd.ConfigureConsumerGroup)
+	case *Command_DeleteConsumerGroup:
+		s.doDeleteConsumerGroup(cmd.DeleteConsumerGroup)
 	default:
 		panic(errors.Errorf("unhandled command of type [%T]", cmd))
 	}
@@ -49,7 +55,7 @@ func (s *ClusterStateStore) Apply(entry *raft.Log) interface{} {
 }
 
 func (s *ClusterStateStore) doConfigureTopic(request *client.ConfigureTopicRequest) {
-	namespace := s.findNamespace(request.Topic.Namespace)
+	namespace, _ := s.findNamespace(request.Topic.Namespace)
 	if namespace == nil {
 		namespace = &ClusterNamespace{
 			Name: request.Topic.Namespace,
@@ -57,7 +63,7 @@ func (s *ClusterStateStore) doConfigureTopic(request *client.ConfigureTopicReque
 		s.state.Namespaces = append(s.state.Namespaces, namespace)
 	}
 
-	topic := namespace.findTopic(request.Topic.Name)
+	topic, _ := namespace.findTopic(request.Topic.Name)
 	if topic == nil {
 		topic = &ClusterTopic{
 			Name: request.Topic.Name,
@@ -68,6 +74,95 @@ func (s *ClusterStateStore) doConfigureTopic(request *client.ConfigureTopicReque
 	topic.Type = request.Type
 	topic.Shards = request.Shards
 	topic.Retention = request.Retention
+}
+
+func (s *ClusterStateStore) doDeleteTopic(request *client.DeleteTopicRequest) {
+	namespace, namespaceIndex := s.findNamespace(request.Topic.Namespace)
+	if namespace == nil {
+		return
+	}
+
+	_, topicIndex := namespace.findTopic(request.Topic.Name)
+	if topicIndex == -1 {
+		return
+	}
+
+	copy(namespace.Topics[topicIndex:], namespace.Topics[topicIndex+1:])
+	namespace.Topics[len(namespace.Topics)-1] = nil
+	namespace.Topics = namespace.Topics[:len(namespace.Topics)-1]
+
+	for _, consumerGroup := range namespace.ConsumerGroups {
+		var newBindings []*ClusterConsumerGroup_Binding
+		for _, binding := range consumerGroup.Bindings {
+			if binding.TopicName != request.Topic.Name {
+				newBindings = append(newBindings, binding)
+			}
+		}
+		consumerGroup.Bindings = newBindings
+	}
+
+	if isNamespaceEmpty(namespace) {
+		s.deleteNamespace(namespaceIndex)
+	}
+}
+
+func isNamespaceEmpty(namespace *ClusterNamespace) bool {
+	return len(namespace.Topics) == 0 && len(namespace.ConsumerGroups) == 0
+}
+
+func (s *ClusterStateStore) deleteNamespace(namespaceIndex int) {
+	copy(s.state.Namespaces[namespaceIndex:], s.state.Namespaces[namespaceIndex+1:])
+	s.state.Namespaces[len(s.state.Namespaces)-1] = nil
+	s.state.Namespaces = s.state.Namespaces[:len(s.state.Namespaces)-1]
+}
+
+func (s *ClusterStateStore) doConfigureConsumerGroup(request *client.ConfigureConsumerGroupRequest) {
+	namespace, _ := s.findNamespace(request.ConsumerGroup.Namespace)
+	if namespace == nil {
+		namespace = &ClusterNamespace{
+			Name: request.ConsumerGroup.Namespace,
+		}
+		s.state.Namespaces = append(s.state.Namespaces, namespace)
+	}
+
+	consumerGroup, _ := namespace.findConsumerGroup(request.ConsumerGroup.Name)
+	if consumerGroup == nil {
+		consumerGroup = &ClusterConsumerGroup{
+			Name: request.ConsumerGroup.Name,
+		}
+		namespace.ConsumerGroups = append(namespace.ConsumerGroups, consumerGroup)
+	}
+
+	var bindings []*ClusterConsumerGroup_Binding
+	for _, binding := range request.Bindings {
+		bindings = append(bindings, &ClusterConsumerGroup_Binding{
+			TopicName:  binding.TopicName,
+			RoutingKey: binding.RoutingKey,
+		})
+	}
+
+	consumerGroup.Bindings = bindings
+	consumerGroup.Shards = request.Shards
+}
+
+func (s *ClusterStateStore) doDeleteConsumerGroup(request *client.DeleteConsumerGroupRequest) {
+	namespace, namespaceIndex := s.findNamespace(request.ConsumerGroup.Namespace)
+	if namespace == nil {
+		return
+	}
+
+	_, consumerGroupIndex := namespace.findConsumerGroup(request.ConsumerGroup.Name)
+	if consumerGroupIndex == -1 {
+		return
+	}
+
+	copy(namespace.ConsumerGroups[consumerGroupIndex:], namespace.ConsumerGroups[consumerGroupIndex+1:])
+	namespace.ConsumerGroups[len(namespace.ConsumerGroups)-1] = nil
+	namespace.ConsumerGroups = namespace.ConsumerGroups[:len(namespace.ConsumerGroups)-1]
+
+	if isNamespaceEmpty(namespace) {
+		s.deleteNamespace(namespaceIndex)
+	}
 }
 
 func (s *ClusterStateStore) Snapshot() (raft.FSMSnapshot, error) {
@@ -102,7 +197,7 @@ func (s *ClusterStateStore) ListTopics(namespaceName string, topicName string) (
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
 
-	namespace := s.findNamespace(namespaceName)
+	namespace, _ := s.findNamespace(namespaceName)
 	if namespace == nil {
 		return s.state.Index, nil
 	}
@@ -110,7 +205,7 @@ func (s *ClusterStateStore) ListTopics(namespaceName string, topicName string) (
 	if topicName == "" {
 		return s.state.Index, namespace.Topics
 	} else {
-		topic := namespace.findTopic(topicName)
+		topic, _ := namespace.findTopic(topicName)
 		if topic == nil {
 			return s.state.Index, nil
 		} else {
@@ -119,31 +214,98 @@ func (s *ClusterStateStore) ListTopics(namespaceName string, topicName string) (
 	}
 }
 
-func (s *ClusterStateStore) findNamespace(name string) *ClusterNamespace {
-	for _, namespace := range s.state.Namespaces {
-		if namespace.Name == name {
-			return namespace
+func (s *ClusterStateStore) ListConsumerGroups(namespaceName string, consumerGroupName string) (uint64, []*ClusterConsumerGroup) {
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+
+	namespace, _ := s.findNamespace(namespaceName)
+	if namespace == nil {
+		return s.state.Index, nil
+	}
+
+	if consumerGroupName == "" {
+		return s.state.Index, namespace.ConsumerGroups
+	} else {
+		consumerGroup, _ := namespace.findConsumerGroup(consumerGroupName)
+		if consumerGroup == nil {
+			return s.state.Index, nil
+		} else {
+			return s.state.Index, []*ClusterConsumerGroup{consumerGroup}
 		}
 	}
-	return nil
 }
 
-func (namespace *ClusterNamespace) findTopic(name string) *ClusterTopic {
-	for _, topic := range namespace.Topics {
-		if topic.Name == name {
-			return topic
-		}
+func (s *ClusterStateStore) AnyConsumerGroupReferencesTopic(namespaceName string, topicName string) bool {
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+
+	namespace, _ := s.findNamespace(namespaceName)
+	if namespace == nil {
+		return false
 	}
-	return nil
-}
 
-func (namespace *ClusterNamespace) findConsumerGroup(name string) *ClusterConsumerGroup {
 	for _, consumerGroup := range namespace.ConsumerGroups {
-		if consumerGroup.Name == name {
-			return consumerGroup
+		for _, binding := range consumerGroup.Bindings {
+			if binding.TopicName == topicName {
+				return true
+			}
 		}
 	}
-	return nil
+
+	return false
+}
+
+func (s *ClusterStateStore) TopicExists(namespaceName string, topicName string) bool {
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+
+	namespace, _ := s.findNamespace(namespaceName)
+	if namespace == nil {
+		return false
+	}
+
+	topic, _ := namespace.findTopic(topicName)
+	return topic != nil
+}
+
+func (s *ClusterStateStore) ConsumerGroupExists(namespaceName string, consumerGroupName string) bool {
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+
+	namespace, _ := s.findNamespace(namespaceName)
+	if namespace == nil {
+		return false
+	}
+
+	consumerGroup, _ := namespace.findConsumerGroup(consumerGroupName)
+	return consumerGroup != nil
+}
+
+func (s *ClusterStateStore) findNamespace(name string) (*ClusterNamespace, int) {
+	for index, namespace := range s.state.Namespaces {
+		if namespace.Name == name {
+			return namespace, index
+		}
+	}
+	return nil, -1
+}
+
+func (namespace *ClusterNamespace) findTopic(name string) (*ClusterTopic, int) {
+	for index, topic := range namespace.Topics {
+		if topic.Name == name {
+			return topic, index
+		}
+	}
+	return nil, -1
+}
+
+func (namespace *ClusterNamespace) findConsumerGroup(name string) (*ClusterConsumerGroup, int) {
+	for index, consumerGroup := range namespace.ConsumerGroups {
+		if consumerGroup.Name == name {
+			return consumerGroup, index
+		}
+	}
+	return nil, -1
 }
 
 type clusterStateStoreSnapshot []byte
