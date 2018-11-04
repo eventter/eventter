@@ -38,6 +38,15 @@ func (id *ID) Bytes() []byte {
 	return id[:]
 }
 
+func (id *ID) Time() time.Time {
+	millis := uint64(id[0])<<40 + uint64(id[1])<<32 + uint64(id[2])<<24 + uint64(id[3])<<16 + uint64(id[4])<<8 + uint64(id[5])
+	return time.Unix(int64(millis/1000), int64(millis%1000)*int64(time.Millisecond))
+}
+
+func (id *ID) RandomBytes() []byte {
+	return id[6:]
+}
+
 type TimeSource interface {
 	Now() time.Time
 }

@@ -71,11 +71,9 @@ func NewFile(id uint64, path string, filePerm os.FileMode, maxSize int64) (f *Fi
 			return nil, err
 		}
 
-		n, err := file.Read(buf)
+		_, err := io.ReadFull(file, buf)
 		if err != nil {
 			return nil, err
-		} else if n < len(buf) {
-			return nil, errors.New("short read")
 		}
 
 		messageSize := Encoding.Uint32(buf[0:4])
