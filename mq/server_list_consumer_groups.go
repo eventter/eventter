@@ -20,7 +20,7 @@ func (s *Server) ListConsumerGroups(ctx context.Context, request *client.ListCon
 
 		conn, err := s.pool.Get(ctx, string(leader))
 		if err != nil {
-			return nil, errors.Wrap(err, "could not dial leader")
+			return nil, errors.Wrap(err, couldNotDialLeaderError)
 		}
 		defer s.pool.Put(conn)
 

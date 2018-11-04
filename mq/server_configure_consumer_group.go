@@ -21,7 +21,7 @@ func (s *Server) ConfigureConsumerGroup(ctx context.Context, request *client.Con
 
 		conn, err := s.pool.Get(ctx, string(leader))
 		if err != nil {
-			return nil, errors.Wrap(err, "could not dial leader")
+			return nil, errors.Wrap(err, couldNotDialLeaderError)
 		}
 		defer s.pool.Put(conn)
 
@@ -40,7 +40,7 @@ func (s *Server) ConfigureConsumerGroup(ctx context.Context, request *client.Con
 
 	for _, binding := range request.Bindings {
 		if !s.clusterState.TopicExists(request.ConsumerGroup.Namespace, binding.TopicName) {
-			return nil, errors.Errorf("topic %s/%s does not exist", request.ConsumerGroup.Namespace, binding.TopicName)
+			return nil, errors.Errorf(notFoundErrorFormat, entityTopic, request.ConsumerGroup.Namespace, binding.TopicName)
 		}
 	}
 

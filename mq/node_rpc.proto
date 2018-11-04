@@ -7,9 +7,21 @@ import "gogoproto/gogo.proto";
 
 option go_package = "mq";
 
+message DebugRequest {
+}
+
+message DebugResponse {
+    // Cluster state dumped to string.
+    string cluster_state = 1;
+    // Open segments info dumped to string.
+    repeated string segments = 2;
+}
+
 message OpenSegmentRequest {
+    // If true and node is not a leader, request will fail.
+    bool leader_only = 99;
     uint64 node_id = 1 [(gogoproto.customname) = "NodeID"];
-    NamespaceName topic = 2;
+    NamespaceName topic = 2 [(gogoproto.nullable) = false];
     bytes first_message_id = 3 [(gogoproto.customname) = "FirstMessageID"];
 }
 
@@ -19,6 +31,8 @@ message OpenSegmentResponse {
 }
 
 message RotateSegmentRequest {
+    // If true and node is not a leader, request will fail.
+    bool leader_only = 99;
     uint64 node_id = 1 [(gogoproto.customname) = "NodeID"];
     uint64 old_segment_id = 2 [(gogoproto.customname) = "OldSegmentID"];
     bytes old_last_message_id = 3 [(gogoproto.customname) = "OldLastMessageID"];
@@ -28,6 +42,7 @@ message RotateSegmentRequest {
 }
 
 service NodeRPC {
-    rpc OpenSegment(OpenSegmentRequest) returns (OpenSegmentResponse);
-    rpc RotateSegment(RotateSegmentRequest) returns (OpenSegmentResponse);
+    rpc Debug (DebugRequest) returns (DebugResponse);
+    rpc OpenSegment (OpenSegmentRequest) returns (OpenSegmentResponse);
+    rpc RotateSegment (RotateSegmentRequest) returns (OpenSegmentResponse);
 }

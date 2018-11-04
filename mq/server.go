@@ -6,8 +6,17 @@ import (
 	"time"
 
 	"eventter.io/mq/client"
+	"eventter.io/mq/msgid"
+	"eventter.io/mq/segmentfile"
 	"github.com/hashicorp/raft"
 	"github.com/pkg/errors"
+)
+
+const (
+	notFoundErrorFormat     = "%s %s/%s not found"
+	couldNotDialLeaderError = "could not dial leader"
+	entityTopic             = "topic"
+	entityConsumerGroup     = "consumer group"
 )
 
 var (
@@ -16,12 +25,15 @@ var (
 )
 
 type Server struct {
-	serverID     uint64
-	raftNode     *raft.Raft
-	pool         *ClientConnPool
-	clusterState *ClusterStateStore
-	tx           sync.Mutex
-	rnd          *rand.Rand
+	nodeID           uint64
+	raftNode         *raft.Raft
+	pool             *ClientConnPool
+	clusterState     *ClusterStateStore
+	segmentDir       *segmentfile.Dir
+	idGenerator      msgid.Generator
+	tx               sync.Mutex
+	rng              *rand.Rand
+	publishForwardRR uint32
 }
 
 var (
@@ -29,13 +41,15 @@ var (
 	_ NodeRPCServer           = (*Server)(nil)
 )
 
-func NewServer(serverID uint64, raftNode *raft.Raft, pool *ClientConnPool, clusterState *ClusterStateStore) *Server {
+func NewServer(nodeID uint64, raftNode *raft.Raft, pool *ClientConnPool, clusterState *ClusterStateStore, segmentDir *segmentfile.Dir, idGenerator msgid.Generator) *Server {
 	return &Server{
-		serverID:     serverID,
+		nodeID:       nodeID,
 		raftNode:     raftNode,
 		pool:         pool,
 		clusterState: clusterState,
-		rnd:          rand.New(rand.NewSource(time.Now().UnixNano())),
+		segmentDir:   segmentDir,
+		idGenerator:  idGenerator,
+		rng:          rand.New(rand.NewSource(time.Now().UnixNano())),
 	}
 }
 

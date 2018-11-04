@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"net"
 	"os"
 	"os/signal"
@@ -12,6 +13,8 @@ import (
 
 	"eventter.io/mq"
 	"eventter.io/mq/client"
+	"eventter.io/mq/msgid"
+	"eventter.io/mq/segmentfile"
 	"github.com/bbva/raft-badger"
 	"github.com/hashicorp/memberlist"
 	"github.com/hashicorp/raft"
@@ -44,7 +47,7 @@ func rootCmd() *cobra.Command {
 				advertiseIP = advertiseIPs[0]
 			}
 
-			grpcServer := grpc.NewServer()
+			grpcServer := grpc.NewServer(grpc.MaxRecvMsgSize(64 * 1024 * 1024))
 
 			clientPool := mq.NewClientConnPool(30*time.Second, grpc.WithInsecure())
 
@@ -76,13 +79,13 @@ func rootCmd() *cobra.Command {
 
 			raftLogStore, err := raftbadger.NewBadgerStore(filepath.Join(raftDir, "logs"))
 			if err != nil {
-				return errors.Wrap(err, "could not open raft store")
+				return errors.Wrap(err, "could not open raft logs store")
 			}
 			defer raftLogStore.Close()
 
 			raftStableStore, err := raftbadger.NewBadgerStore(filepath.Join(raftDir, "stable"))
 			if err != nil {
-				return errors.Wrap(err, "could not open raft store")
+				return errors.Wrap(err, "could not open raft stable store")
 			}
 			defer raftStableStore.Close()
 
@@ -108,7 +111,21 @@ func rootCmd() *cobra.Command {
 				raftNode.Shutdown().Error()
 			}()
 
-			server := mq.NewServer(rootConfig.ID, raftNode, clientPool, clusterState)
+			segmentDir, err := segmentfile.NewDir(
+				filepath.Join(rootConfig.Dir, "segments"),
+				rootConfig.DirPerm,
+				0644,
+				64*1024*1024, // 64 MiB
+				60*time.Second,
+			)
+			if err != nil {
+				return errors.Wrap(err, "could not open segments dir")
+			}
+			defer segmentDir.Close()
+
+			idGenerator := msgid.NewGenerator(msgid.NewStdTimeSource(), rand.NewSource(time.Now().UnixNano()))
+
+			server := mq.NewServer(rootConfig.ID, raftNode, clientPool, clusterState, segmentDir, idGenerator)
 			client.RegisterEventterMQServer(grpcServer, server)
 			mq.RegisterNodeRPCServer(grpcServer, server)
 
@@ -174,6 +191,7 @@ func rootCmd() *cobra.Command {
 	cmd.Flags().StringSliceVar(&join, "join", nil, "Running peers to join.")
 
 	cmd.AddCommand(
+		debugCmd(),
 		configureConsumerGroupCmd(),
 		configureTopicCmd(),
 		consumeCmd(),

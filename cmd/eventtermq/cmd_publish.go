@@ -22,7 +22,7 @@ func publishCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "publish",
 		Short:   "Publish message to topic.",
-		Aliases: []string{"pub", "p"},
+		Aliases: []string{"pub"},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if rootConfig.BindHost == "" {
 				rootConfig.BindHost = "localhost"
@@ -34,24 +34,30 @@ func publishCmd() *cobra.Command {
 				return err
 			}
 
-			if strings.HasPrefix(args[0], "@") {
-				data, err := ioutil.ReadFile(args[0][1:])
+			for _, arg := range args {
+				if strings.HasPrefix(arg, "@") {
+					data, err := ioutil.ReadFile(arg[1:])
+					if err != nil {
+						return err
+					}
+					request.Message.Data = data
+				} else {
+					request.Message.Data = []byte(arg)
+				}
+
+				response, err := c.Publish(ctx, request)
 				if err != nil {
 					return err
 				}
-				request.Message.Data = data
-			} else {
-				request.Message.Data = []byte(args[0])
+
+				encoder := json.NewEncoder(os.Stdout)
+				encoder.SetIndent("", "  ")
+				if err := encoder.Encode(response); err != nil {
+					return err
+				}
 			}
 
-			response, err := c.Publish(ctx, request)
-			if err != nil {
-				return err
-			}
-
-			encoder := json.NewEncoder(os.Stdout)
-			encoder.SetIndent("", "  ")
-			return encoder.Encode(response)
+			return nil
 		},
 	}
 
@@ -68,8 +74,6 @@ func publishCmd() *cobra.Command {
 	cmd.Flags().StringVar(&request.Message.Properties.MessageID, "message-id", "", "Message ID.")
 	cmd.Flags().StringVar(&request.Message.Properties.Type, "type", "", "Type.")
 	cmd.Flags().StringVar(&request.Message.Properties.UserID, "user-id", "", "User ID.")
-
-	cmd.Args = cobra.ExactArgs(1)
 
 	return cmd
 }

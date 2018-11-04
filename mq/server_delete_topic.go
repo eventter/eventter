@@ -21,7 +21,7 @@ func (s *Server) DeleteTopic(ctx context.Context, request *client.DeleteTopicReq
 
 		conn, err := s.pool.Get(ctx, string(leader))
 		if err != nil {
-			return nil, errors.Wrap(err, "could not dial leader")
+			return nil, errors.Wrap(err, couldNotDialLeaderError)
 		}
 		defer s.pool.Put(conn)
 
@@ -41,7 +41,7 @@ func (s *Server) DeleteTopic(ctx context.Context, request *client.DeleteTopicReq
 	// TODO: access control
 
 	if !s.clusterState.TopicExists(request.Topic.Namespace, request.Topic.Name) {
-		return nil, errors.Errorf("topic %s/%s does not exist", request.Topic.Namespace, request.Topic.Name)
+		return nil, errors.Errorf(notFoundErrorFormat, entityTopic, request.Topic.Namespace, request.Topic.Name)
 	}
 
 	if request.IfUnused {

@@ -2,6 +2,7 @@ package client
 
 import (
 	"regexp"
+	"strings"
 
 	"github.com/pkg/errors"
 )
@@ -33,9 +34,9 @@ type RequestValidationError struct {
 func (e *RequestValidationError) Error() string {
 	s := "There are following validation errors:\n"
 	for _, err := range e.Errors {
-		s += "  - " + err.Error() + "\n"
+		s += "- " + err.Error() + "\n"
 	}
-	return s
+	return strings.TrimRight(s, "\n")
 }
 
 func (r *ConfigureTopicRequest) Validate() error {
@@ -203,6 +204,32 @@ func (r *DeleteConsumerGroupRequest) Validate() error {
 		errs = append(errs, errors.Errorf(nameInvalidErrorFormat, "consumer group name"))
 	} else if len(r.ConsumerGroup.Name) > nameMaxLength {
 		errs = append(errs, errors.Errorf(stringLengthErrorFormat, "consumer group name", nameMaxLength))
+	}
+
+	if len(errs) > 0 {
+		return &RequestValidationError{errs}
+	}
+
+	return nil
+}
+
+func (r *PublishRequest) Validate() error {
+	var errs []error
+
+	if r.Topic.Namespace == "" {
+		errs = append(errs, errors.Errorf(blankErrorFormat, "namespace"))
+	} else if !nameRegex.MatchString(r.Topic.Namespace) {
+		errs = append(errs, errors.Errorf(nameInvalidErrorFormat, "namespace"))
+	} else if len(r.Topic.Namespace) > nameMaxLength {
+		errs = append(errs, errors.Errorf(stringLengthErrorFormat, "namespace", nameMaxLength))
+	}
+
+	if r.Topic.Name == "" {
+		errs = append(errs, errors.Errorf(blankErrorFormat, "topic name"))
+	} else if !nameRegex.MatchString(r.Topic.Name) {
+		errs = append(errs, errors.Errorf(nameInvalidErrorFormat, "topic name"))
+	} else if len(r.Topic.Name) > nameMaxLength {
+		errs = append(errs, errors.Errorf(stringLengthErrorFormat, "topic name", nameMaxLength))
 	}
 
 	if len(errs) > 0 {

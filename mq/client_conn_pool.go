@@ -79,14 +79,13 @@ func (p *ClientConnPool) Get(ctx context.Context, target string) (*grpc.ClientCo
 	}
 
 	client, err := grpc.DialContext(ctx, target, p.dialOptions...)
-
 	if err != nil {
 		return nil, err
 	}
 
 	p.clients[target] = client
 	p.targets[client] = target
-	p.referenceCounts[client] += 1
+	p.referenceCounts[client] = 1
 	delete(p.idlingSince, client)
 
 	return client, nil
@@ -126,6 +125,19 @@ func (p *ClientConnPool) closeClient(client *grpc.ClientConn) error {
 	return client.Close()
 }
 
-func (p *ClientConnPool) Close() {
+func (p *ClientConnPool) Close() error {
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
+
+	var clients []*grpc.ClientConn
+	for _, client := range p.clients {
+		clients = append(clients, client)
+	}
+	for _, client := range clients {
+		p.closeClient(client)
+	}
+
 	close(p.closeC)
+
+	return nil
 }

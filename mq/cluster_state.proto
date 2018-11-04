@@ -43,7 +43,7 @@ message ClusterConsumerGroup {
 
 message ClusterSegment {
     uint64 id = 1 [(gogoproto.customname) = "ID"];
-    NamespaceName topic = 2;
+    NamespaceName topic = 2 [(gogoproto.nullable) = false];
     bytes first_message_id = 3 [(gogoproto.customname) = "FirstMessageID"];
     bytes last_message_id = 4 [(gogoproto.customname) = "LastMessageID"];
     Nodes nodes = 5 [(gogoproto.nullable) = false];
@@ -59,7 +59,7 @@ message ClusterSegment {
 
 message OpenSegmentCommand {
     uint64 id = 1 [(gogoproto.customname) = "ID"];
-    NamespaceName topic = 2;
+    NamespaceName topic = 2 [(gogoproto.nullable) = false];
     bytes first_message_id = 3 [(gogoproto.customname) = "FirstMessageID"];
     uint64 primary_node_id = 4 [(gogoproto.customname) = "PrimaryNodeID"];
 }

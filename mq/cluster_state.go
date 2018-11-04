@@ -23,6 +23,13 @@ func NewClusterStateStore() *ClusterStateStore {
 	return &ClusterStateStore{}
 }
 
+func (s *ClusterStateStore) String() string {
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+
+	return proto.MarshalTextString(&s.state)
+}
+
 func (s *ClusterStateStore) Apply(entry *raft.Log) interface{} {
 	if entry.Type != raft.LogCommand {
 		return nil
@@ -194,12 +201,12 @@ func (s *ClusterStateStore) doCloseSegment(cmd *CloseSegmentCommand) {
 	for i, segment := range s.state.OpenSegments {
 		if segment.ID == cmd.ID {
 			segmentIndex = i
-			return
+			break
 		}
 	}
 
 	if segmentIndex == -1 {
-		panic("segment not found")
+		return
 	}
 
 	segment := s.state.OpenSegments[segmentIndex]
@@ -365,6 +372,21 @@ func (s *ClusterStateStore) FindOpenSegmentsFor(namespaceName string, topicName 
 	return segments
 }
 
+func (s *ClusterStateStore) FindOpenSegmentsIn(nodeID uint64) []*ClusterSegment {
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+
+	var segments []*ClusterSegment
+
+	for _, segment := range s.state.OpenSegments {
+		if segment.Nodes.PrimaryNodeID == nodeID {
+			segments = append(segments, segment)
+		}
+	}
+
+	return segments
+}
+
 func (s *ClusterStateStore) NextSegmentID() uint64 {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
@@ -379,6 +401,19 @@ func (s *ClusterStateStore) GetOpenSegment(id uint64) *ClusterSegment {
 	defer s.mutex.RUnlock()
 
 	for _, segment := range s.state.OpenSegments {
+		if segment.ID == id {
+			return segment
+		}
+	}
+
+	return nil
+}
+
+func (s *ClusterStateStore) GetClosedSegment(id uint64) *ClusterSegment {
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+
+	for _, segment := range s.state.ClosedSegments {
 		if segment.ID == id {
 			return segment
 		}

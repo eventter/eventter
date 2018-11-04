@@ -21,7 +21,7 @@ func (s *Server) DeleteConsumerGroup(ctx context.Context, request *client.Delete
 
 		conn, err := s.pool.Get(ctx, string(leader))
 		if err != nil {
-			return nil, errors.Wrap(err, "could not dial leader")
+			return nil, errors.Wrap(err, couldNotDialLeaderError)
 		}
 		defer s.pool.Put(conn)
 
@@ -41,7 +41,7 @@ func (s *Server) DeleteConsumerGroup(ctx context.Context, request *client.Delete
 	// TODO: access control
 
 	if !s.clusterState.ConsumerGroupExists(request.ConsumerGroup.Namespace, request.ConsumerGroup.Name) {
-		return nil, errors.Errorf("consumer group %s/%s does not exist", request.ConsumerGroup.Namespace, request.ConsumerGroup.Name)
+		return nil, errors.Errorf(notFoundErrorFormat, entityConsumerGroup, request.ConsumerGroup.Namespace, request.ConsumerGroup.Name)
 	}
 
 	if request.IfEmpty {

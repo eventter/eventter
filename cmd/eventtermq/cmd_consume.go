@@ -18,9 +18,8 @@ func consumeCmd() *cobra.Command {
 	request := &client.ConsumeRequest_Request{}
 
 	cmd := &cobra.Command{
-		Use:     "consume",
-		Short:   "Consume messages from consumer group.",
-		Aliases: []string{"c"},
+		Use:   "consume",
+		Short: "Consume messages from consumer group.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if rootConfig.BindHost == "" {
 				rootConfig.BindHost = "localhost"
