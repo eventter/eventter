@@ -76,6 +76,7 @@ message OpenSegmentCommand {
     NamespaceName topic = 2 [(gogoproto.nullable) = false];
     bytes first_message_id = 3 [(gogoproto.customname) = "FirstMessageID"];
     uint64 primary_node_id = 4 [(gogoproto.customname) = "PrimaryNodeID"];
+    repeated uint64 replicating_node_ids = 5 [(gogoproto.customname) = "ReplicatingNodeIDs"];
 }
 
 message CloseSegmentCommand {

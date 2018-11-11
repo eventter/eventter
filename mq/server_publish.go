@@ -2,6 +2,7 @@ package mq
 
 import (
 	"context"
+	"runtime"
 	"sync/atomic"
 
 	"eventter.io/mq/client"
@@ -129,21 +130,21 @@ FORWARD:
 			return nil, errWontForward
 		}
 
-		forwardNodeName := NodeIDToString(forwardNodeID)
-
-		var addr string
-		for _, node := range s.members.Members() {
-			if node.Name == forwardNodeName {
-				addr = node.Address()
-				break
+		node := state.GetNode(forwardNodeID)
+		if node == nil {
+			// raft log from master wasn't applied yet to this node => busy wait for new state
+			for node == nil {
+				runtime.Gosched()
+				state = s.clusterState.Current()
+				node = state.GetNode(forwardNodeID)
 			}
 		}
 
-		if addr == "" {
-			return nil, errors.Errorf("node %d not found", forwardNodeID)
+		if node.State != ClusterNode_ALIVE {
+			return nil, errForwardNodeDead
 		}
 
-		conn, err := s.pool.Get(ctx, addr)
+		conn, err := s.pool.Get(ctx, node.Address)
 		if err != nil {
 			return nil, err
 		}

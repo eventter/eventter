@@ -37,7 +37,12 @@ func (s *Server) OpenSegment(ctx context.Context, request *OpenSegmentRequest) (
 	return s.doOpenSegment(s.clusterState.Current(), request.NodeID, request.Topic, request.FirstMessageID)
 }
 
-func (s *Server) doOpenSegment(state *ClusterState, nodeID uint64, topicName client.NamespaceName, firstMessageID []byte) (*OpenSegmentResponse, error) {
+func (s *Server) doOpenSegment(state *ClusterState, primaryNodeID uint64, topicName client.NamespaceName, firstMessageID []byte) (*OpenSegmentResponse, error) {
+	node := state.GetNode(primaryNodeID)
+	if node == nil {
+		return nil, errors.Errorf("node %d not found", primaryNodeID)
+	}
+
 	topic := state.GetTopic(topicName.Namespace, topicName.Name)
 	if topic == nil {
 		return nil, errors.Errorf(notFoundErrorFormat, entityTopic, topicName.Namespace, topicName.Name)
@@ -47,10 +52,10 @@ func (s *Server) doOpenSegment(state *ClusterState, nodeID uint64, topicName cli
 
 	// return node's existing segment if it exists
 	for _, segment := range openSegments {
-		if segment.Nodes.PrimaryNodeID == nodeID {
+		if segment.Nodes.PrimaryNodeID == primaryNodeID {
 			return &OpenSegmentResponse{
 				SegmentID:     segment.ID,
-				PrimaryNodeID: nodeID,
+				PrimaryNodeID: primaryNodeID,
 			}, nil
 		}
 	}
@@ -67,13 +72,39 @@ func (s *Server) doOpenSegment(state *ClusterState, nodeID uint64, topicName cli
 	// open new segment
 	segmentID := s.clusterState.NextSegmentID()
 
+	var replicatingNodeIDs []uint64
+	if topic.ReplicationFactor > 1 {
+		nodeSegmentCounts := state.CountSegmentsPerNode()
+		var candidateNodeIDs []uint64
+
+		for _, node := range state.Nodes {
+			if node.ID != primaryNodeID && node.State == ClusterNode_ALIVE {
+				candidateNodeIDs = append(candidateNodeIDs, node.ID)
+			}
+		}
+
+		for len(candidateNodeIDs) > 0 && uint32(len(replicatingNodeIDs)) < topic.ReplicationFactor-1 {
+			var candidateIndex = -1
+			for i, candidateNodeID := range candidateNodeIDs {
+				if candidateIndex == -1 || nodeSegmentCounts[candidateNodeID] < nodeSegmentCounts[candidateNodeIDs[candidateIndex]] {
+					candidateIndex = i
+				}
+			}
+
+			replicatingNodeIDs = append(replicatingNodeIDs, candidateNodeIDs[candidateIndex])
+			copy(candidateNodeIDs[candidateIndex:], candidateNodeIDs[candidateIndex+1:])
+			candidateNodeIDs = candidateNodeIDs[:len(candidateNodeIDs)-1]
+		}
+	}
+
 	buf, err := proto.Marshal(&Command{
 		Command: &Command_OpenSegment{
 			OpenSegment: &OpenSegmentCommand{
-				ID:             segmentID,
-				Topic:          topicName,
-				FirstMessageID: firstMessageID,
-				PrimaryNodeID:  nodeID,
+				ID:                 segmentID,
+				Topic:              topicName,
+				FirstMessageID:     firstMessageID,
+				PrimaryNodeID:      primaryNodeID,
+				ReplicatingNodeIDs: replicatingNodeIDs,
 			},
 		},
 	})
@@ -87,6 +118,6 @@ func (s *Server) doOpenSegment(state *ClusterState, nodeID uint64, topicName cli
 
 	return &OpenSegmentResponse{
 		SegmentID:     segmentID,
-		PrimaryNodeID: nodeID,
+		PrimaryNodeID: primaryNodeID,
 	}, nil
 }

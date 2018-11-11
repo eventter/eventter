@@ -321,7 +321,8 @@ func (s *ClusterStateStore) doOpenSegment(state *ClusterState, cmd *OpenSegmentC
 		Topic:          cmd.Topic,
 		FirstMessageID: cmd.FirstMessageID,
 		Nodes: ClusterSegment_Nodes{
-			PrimaryNodeID: cmd.PrimaryNodeID,
+			PrimaryNodeID:      cmd.PrimaryNodeID,
+			ReplicatingNodeIDs: cmd.ReplicatingNodeIDs,
 		},
 	}
 

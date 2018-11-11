@@ -127,6 +127,36 @@ func (s *ClusterState) GetClosedSegment(id uint64) *ClusterSegment {
 	return nil
 }
 
+func (s *ClusterState) CountSegmentsPerNode() map[uint64]int {
+	m := make(map[uint64]int)
+
+	for _, segments := range [][]*ClusterSegment{s.OpenSegments, s.ClosedSegments} {
+		for _, segment := range segments {
+			if segment.Nodes.PrimaryNodeID > 0 {
+				m[segment.Nodes.PrimaryNodeID]++
+			}
+			for _, nodeID := range segment.Nodes.ReplicatingNodeIDs {
+				m[nodeID]++
+			}
+			for _, nodeID := range segment.Nodes.DoneNodeIDs {
+				m[nodeID]++
+			}
+		}
+	}
+
+	return m
+}
+
+func (s *ClusterState) GetNode(nodeID uint64) *ClusterNode {
+	for _, node := range s.Nodes {
+		if node.ID == nodeID {
+			return node
+		}
+	}
+
+	return nil
+}
+
 func (s *ClusterState) findNamespace(name string) (*ClusterNamespace, int) {
 	for index, namespace := range s.Namespaces {
 		if namespace.Name == name {

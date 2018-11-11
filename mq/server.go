@@ -24,6 +24,7 @@ var (
 	errNoLeaderElected = errors.New("no leader elected")
 	errNotALeader      = errors.New("request would be forwarded to leader node, however, leader_only flag was set")
 	errWontForward     = errors.New("request would be forwarded to another node, however, do_not_forward flag was set")
+	errForwardNodeDead = errors.New("forward node is dead")
 )
 
 type Server struct {

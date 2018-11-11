@@ -3,6 +3,8 @@ package mq
 import (
 	"context"
 	"fmt"
+
+	"github.com/gogo/protobuf/proto"
 )
 
 func (s *Server) Debug(ctx context.Context, request *DebugRequest) (*DebugResponse, error) {
@@ -21,7 +23,7 @@ func (s *Server) Debug(ctx context.Context, request *DebugRequest) (*DebugRespon
 	}
 
 	return &DebugResponse{
-		ClusterState: state.String(),
+		ClusterState: proto.MarshalTextString(state),
 		Segments:     segmentDumps,
 	}, nil
 }
