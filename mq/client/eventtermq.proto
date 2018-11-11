@@ -143,6 +143,8 @@ message Message {
 }
 
 message PublishRequest {
+    // If true and node cannot write message to segment, request will fail.
+    bool do_not_forward = 98;
     NamespaceName topic = 1 [(gogoproto.nullable) = false];
     Message message = 2 [(gogoproto.nullable) = false];
 }

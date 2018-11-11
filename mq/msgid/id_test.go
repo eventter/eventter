@@ -46,13 +46,13 @@ func TestID_Bytes(t *testing.T) {
 	}
 }
 
-func TestID_RandomBytes(t *testing.T) {
+func TestID_Randomness(t *testing.T) {
 	g := NewGenerator(staticTimeSource(expectedTime), rand.NewSource(1))
 
 	id := g.New()
 
 	expected := "044278629a0f5f3f164f"
-	if got := hex.EncodeToString(id.RandomBytes()); got != expected {
+	if got := hex.EncodeToString(id.Randomness()); got != expected {
 		t.Errorf("hex - expected: %s, got: %s", expected, got)
 	}
 }

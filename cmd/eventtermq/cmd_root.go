@@ -1,7 +1,9 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"log"
 	"math/rand"
 	"net"
 	"os"
@@ -140,16 +142,16 @@ func rootCmd() *cobra.Command {
 			listConfig.Events = mq.NewRaftMembersDelegate(raftNode)
 			list, err := memberlist.Create(listConfig)
 			if err != nil {
-				return errors.Wrap(err, "could not start discovery")
+				return errors.Wrap(err, "could not start node discovery")
 			}
 			defer list.Shutdown()
 
 			if len(join) == 0 {
-				needsBootstrap, err := raft.HasExistingState(raftLogStore, raftStableStore, raftSnapshotStore)
+				hasExistingState, err := raft.HasExistingState(raftLogStore, raftStableStore, raftSnapshotStore)
 				if err != nil {
 					return err
 				}
-				if !needsBootstrap {
+				if !hasExistingState {
 					var servers []raft.Server
 					for _, node := range list.Members() {
 						servers = append(servers, raft.Server{
@@ -160,15 +162,13 @@ func rootCmd() *cobra.Command {
 
 					future := raftNode.BootstrapCluster(raft.Configuration{Servers: servers})
 					if err := future.Error(); err != nil {
-						return errors.Wrap(err, "could not bootstrap raft")
+						return errors.Wrap(err, "bootstrap failed")
 					}
-
-					fmt.Println("bootstrapped")
 				}
 			} else {
 				_, err = list.Join(join)
 				if err != nil {
-					return errors.Wrap(err, "could not join discovery")
+					return errors.Wrap(err, "join failed")
 				}
 			}
 
@@ -176,7 +176,21 @@ func rootCmd() *cobra.Command {
 			signal.Notify(interrupt, syscall.SIGINT, syscall.SIGTERM)
 			<-interrupt
 
-			grpcServer.GracefulStop()
+			log.Print("gracefully shutting down")
+
+			gracefulShutdownTimeout := 10 * time.Second
+			gracefulShutdownCtx, gracefulShutdownDone := context.WithTimeout(context.Background(), gracefulShutdownTimeout)
+
+			go func() {
+				grpcServer.GracefulStop()
+				gracefulShutdownDone()
+			}()
+
+			<-gracefulShutdownCtx.Done()
+
+			if gracefulShutdownCtx.Err() == context.DeadlineExceeded {
+				log.Printf("graceful shutdown did not complete in %s, forcefully shutting down", gracefulShutdownTimeout.String())
+			}
 
 			return nil
 		},

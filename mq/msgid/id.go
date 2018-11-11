@@ -7,11 +7,9 @@ import (
 	"time"
 )
 
-const (
-	Size = 16
-)
+const Size = 16
 
-type ID [16]byte
+type ID [Size]byte
 
 func (id *ID) FromBytes(buf []byte) {
 	_ = buf[15]
@@ -43,7 +41,7 @@ func (id *ID) Time() time.Time {
 	return time.Unix(int64(millis/1000), int64(millis%1000)*int64(time.Millisecond))
 }
 
-func (id *ID) RandomBytes() []byte {
+func (id *ID) Randomness() []byte {
 	return id[6:]
 }
 

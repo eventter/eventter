@@ -65,11 +65,11 @@ func (s *Server) RotateSegment(ctx context.Context, request *RotateSegmentReques
 		if err := future.Error(); err != nil {
 			return nil, err
 		}
-	}
 
-	future := s.raftNode.Barrier(10 * time.Second)
-	if err := future.Error(); err != nil {
-		return nil, err
+		barrierFuture := s.raftNode.Barrier(10 * time.Second)
+		if err := barrierFuture.Error(); err != nil {
+			return nil, err
+		}
 	}
 
 	return s.doOpenSegment(request.NodeID, oldSegment.Topic, request.NewFirstMessageID)

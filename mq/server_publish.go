@@ -122,7 +122,9 @@ WRITE:
 
 FORWARD:
 	{
-		// TODO
+		if request.DoNotForward {
+			return nil, errWontForward
+		}
 		_ = forwardNodeID
 		return &client.PublishResponse{
 			OK: false,

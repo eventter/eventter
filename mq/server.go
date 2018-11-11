@@ -21,7 +21,8 @@ const (
 
 var (
 	errNoLeaderElected = errors.New("no leader elected")
-	errNotALeader      = errors.New("not a leader")
+	errNotALeader      = errors.New("request would be forwarded to another node, however, leader_only flag was set")
+	errWontForward     = errors.New("request would be forwarded to another node, however, do_not_forward flag was set")
 )
 
 type Server struct {
