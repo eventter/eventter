@@ -100,21 +100,21 @@ func (f *File) Write(id msgid.ID, message proto.Message) error {
 		return ErrReadOnly
 	}
 
+	currentOffset := f.offset
+	if currentOffset > f.maxSize {
+		return ErrFull
+	}
+
 	messageBuf, err := proto.Marshal(message)
 	if err != nil {
 		return err
 	}
 
-	// FIXME: checksum?
+	// TODO: checksum
 	buf := make([]byte, 4+msgid.Size+len(messageBuf))
 	Encoding.PutUint32(buf[0:4], uint32(msgid.Size+len(messageBuf)))
 	copy(buf[4:4+msgid.Size], id.Bytes())
 	copy(buf[4+msgid.Size:], messageBuf)
-
-	currentOffset := f.offset
-	if currentOffset > f.maxSize {
-		return ErrFull
-	}
 
 	if _, err := f.file.WriteAt(buf, currentOffset); err != nil {
 		return err

@@ -1,9 +1,10 @@
 package segmentfile
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -86,7 +87,10 @@ func (d *Dir) Open(id uint64) (*File, error) {
 		return file, nil
 	}
 
-	name := fmt.Sprintf("%016x", id)
+	name := strconv.FormatUint(id, 16)
+	if l := len(name); l < 16 {
+		name = strings.Repeat("0", 16-l) + name
+	}
 	path := filepath.Join(d.dirName, name[14:16], name)
 	pathDir := filepath.Dir(path)
 	if err := os.MkdirAll(pathDir, d.dirPerm); err != nil {

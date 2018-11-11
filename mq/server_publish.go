@@ -127,9 +127,28 @@ FORWARD:
 		if request.DoNotForward {
 			return nil, errWontForward
 		}
-		_ = forwardNodeID
-		return &client.PublishResponse{
-			OK: false,
-		}, nil
+
+		forwardNodeName := NodeIDToString(forwardNodeID)
+
+		var addr string
+		for _, node := range s.members.Members() {
+			if node.Name == forwardNodeName {
+				addr = node.Address()
+				break
+			}
+		}
+
+		if addr == "" {
+			return nil, errors.Errorf("node %d not found", forwardNodeID)
+		}
+
+		conn, err := s.pool.Get(ctx, addr)
+		if err != nil {
+			return nil, err
+		}
+		defer s.pool.Put(conn)
+
+		request.DoNotForward = true
+		return client.NewEventterMQClient(conn).Publish(ctx, request)
 	}
 }

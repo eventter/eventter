@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"math/rand"
 	"net"
@@ -69,7 +68,7 @@ func rootCmd() *cobra.Command {
 			}
 			defer listener.Close()
 
-			nodeName := fmt.Sprintf("%016x", rootConfig.ID)
+			nodeName := mq.NodeIDToString(rootConfig.ID)
 
 			raftConfig := raft.DefaultConfig()
 			raftConfig.LocalID = raft.ServerID(nodeName)
@@ -127,24 +126,24 @@ func rootCmd() *cobra.Command {
 
 			idGenerator := msgid.NewGenerator(msgid.NewStdTimeSource(), rand.NewSource(time.Now().UnixNano()))
 
-			server := mq.NewServer(rootConfig.ID, raftNode, clientPool, clusterState, segmentDir, idGenerator)
-			client.RegisterEventterMQServer(grpcServer, server)
-			mq.RegisterNodeRPCServer(grpcServer, server)
-
-			go grpcServer.Serve(listener)
-			defer grpcServer.Stop()
-
 			listConfig := memberlist.DefaultLANConfig()
 			listConfig.Name = nodeName
 			listConfig.Transport = discoveryTransport
 			listConfig.AdvertiseAddr = advertiseIP.String()
 			listConfig.AdvertisePort = rootConfig.Port
 			listConfig.Events = mq.NewRaftMembersDelegate(raftNode)
-			list, err := memberlist.Create(listConfig)
+			members, err := memberlist.Create(listConfig)
 			if err != nil {
 				return errors.Wrap(err, "could not start node discovery")
 			}
-			defer list.Shutdown()
+			defer members.Shutdown()
+
+			server := mq.NewServer(rootConfig.ID, members, raftNode, clientPool, clusterState, segmentDir, idGenerator)
+			client.RegisterEventterMQServer(grpcServer, server)
+			mq.RegisterNodeRPCServer(grpcServer, server)
+
+			go grpcServer.Serve(listener)
+			defer grpcServer.Stop()
 
 			if len(join) == 0 {
 				hasExistingState, err := raft.HasExistingState(raftLogStore, raftStableStore, raftSnapshotStore)
@@ -153,7 +152,7 @@ func rootCmd() *cobra.Command {
 				}
 				if !hasExistingState {
 					var servers []raft.Server
-					for _, node := range list.Members() {
+					for _, node := range members.Members() {
 						servers = append(servers, raft.Server{
 							ID:      raft.ServerID(node.Name),
 							Address: raft.ServerAddress(node.Addr.String() + ":" + strconv.Itoa(int(node.Port))),
@@ -166,7 +165,7 @@ func rootCmd() *cobra.Command {
 					}
 				}
 			} else {
-				_, err = list.Join(join)
+				_, err = members.Join(join)
 				if err != nil {
 					return errors.Wrap(err, "join failed")
 				}

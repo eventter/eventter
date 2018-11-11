@@ -8,6 +8,7 @@ import (
 	"eventter.io/mq/client"
 	"eventter.io/mq/msgid"
 	"eventter.io/mq/segmentfile"
+	"github.com/hashicorp/memberlist"
 	"github.com/hashicorp/raft"
 	"github.com/pkg/errors"
 )
@@ -21,12 +22,13 @@ const (
 
 var (
 	errNoLeaderElected = errors.New("no leader elected")
-	errNotALeader      = errors.New("request would be forwarded to another node, however, leader_only flag was set")
+	errNotALeader      = errors.New("request would be forwarded to leader node, however, leader_only flag was set")
 	errWontForward     = errors.New("request would be forwarded to another node, however, do_not_forward flag was set")
 )
 
 type Server struct {
 	nodeID           uint64
+	members          *memberlist.Memberlist
 	raftNode         *raft.Raft
 	pool             *ClientConnPool
 	clusterState     *ClusterStateStore
@@ -42,9 +44,10 @@ var (
 	_ NodeRPCServer           = (*Server)(nil)
 )
 
-func NewServer(nodeID uint64, raftNode *raft.Raft, pool *ClientConnPool, clusterState *ClusterStateStore, segmentDir *segmentfile.Dir, idGenerator msgid.Generator) *Server {
+func NewServer(nodeID uint64, members *memberlist.Memberlist, raftNode *raft.Raft, pool *ClientConnPool, clusterState *ClusterStateStore, segmentDir *segmentfile.Dir, idGenerator msgid.Generator) *Server {
 	return &Server{
 		nodeID:       nodeID,
+		members:      members,
 		raftNode:     raftNode,
 		pool:         pool,
 		clusterState: clusterState,
