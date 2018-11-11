@@ -46,8 +46,6 @@ func (s *Server) ConfigureConsumerGroup(ctx context.Context, request *client.Con
 		}
 	}
 
-	// TODO: access control
-
 	buf, err := proto.Marshal(&Command{
 		Command: &Command_ConfigureConsumerGroup{
 			ConfigureConsumerGroup: request,

@@ -81,8 +81,7 @@ func (s *Server) doOpenSegment(state *ClusterState, nodeID uint64, topicName cli
 		return nil, err
 	}
 
-	future := s.raftNode.Apply(buf, 0)
-	if err := future.Error(); err != nil {
+	if err := s.raftNode.Apply(buf, 0).Error(); err != nil {
 		return nil, err
 	}
 

@@ -5,6 +5,7 @@ package io.eventter.mq;
 import "client/eventtermq.proto";
 import "gogoproto/gogo.proto";
 import "google/protobuf/duration.proto";
+import "google/protobuf/timestamp.proto";
 
 option go_package = "mq";
 
@@ -14,6 +15,7 @@ message ClusterState {
     repeated ClusterNamespace namespaces = 3;
     repeated ClusterSegment open_segments = 4;
     repeated ClusterSegment closed_segments = 5;
+    repeated ClusterNode nodes = 6;
 }
 
 message ClusterNamespace {
@@ -57,6 +59,18 @@ message ClusterSegment {
     }
 }
 
+message ClusterNode {
+    uint64 id = 1 [(gogoproto.customname) = "ID"];
+    string address = 2;
+    State state = 3;
+    google.protobuf.Timestamp last_seen_alive = 4 [(gogoproto.stdtime) = true];
+
+    enum State {
+        DEAD = 0;
+        ALIVE = 1;
+    }
+}
+
 message OpenSegmentCommand {
     uint64 id = 1 [(gogoproto.customname) = "ID"];
     NamespaceName topic = 2 [(gogoproto.nullable) = false];
@@ -72,6 +86,13 @@ message CloseSegmentCommand {
     bytes sha1 = 6;
 }
 
+message UpdateNodeCommand {
+    uint64 id = 1 [(gogoproto.customname) = "ID"];
+    string address = 2;
+    ClusterNode.State state = 3;
+    google.protobuf.Timestamp last_seen_alive = 4 [(gogoproto.stdtime) = true];
+}
+
 message Command {
     oneof command {
         ConfigureTopicRequest configure_topic = 1;
@@ -80,5 +101,6 @@ message Command {
         DeleteConsumerGroupRequest delete_consumer_group = 4;
         OpenSegmentCommand open_segment = 5;
         CloseSegmentCommand close_segment = 6;
+        UpdateNodeCommand update_node = 7;
     }
 }

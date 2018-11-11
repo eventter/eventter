@@ -38,8 +38,6 @@ func (s *Server) DeleteTopic(ctx context.Context, request *client.DeleteTopicReq
 	}
 	defer s.releaseTransaction()
 
-	// TODO: access control
-
 	state := s.clusterState.Current()
 
 	if !state.TopicExists(request.Topic.Namespace, request.Topic.Name) {

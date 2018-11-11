@@ -38,8 +38,6 @@ func (s *Server) DeleteConsumerGroup(ctx context.Context, request *client.Delete
 	}
 	defer s.releaseTransaction()
 
-	// TODO: access control
-
 	if !s.clusterState.Current().ConsumerGroupExists(request.ConsumerGroup.Namespace, request.ConsumerGroup.Name) {
 		return nil, errors.Errorf(notFoundErrorFormat, entityConsumerGroup, request.ConsumerGroup.Namespace, request.ConsumerGroup.Name)
 	}

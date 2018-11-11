@@ -37,6 +37,7 @@ type Server struct {
 	tx               sync.Mutex
 	rng              *rand.Rand
 	publishForwardRR uint32
+	closeC           chan struct{}
 }
 
 var (
@@ -54,6 +55,7 @@ func NewServer(nodeID uint64, members *memberlist.Memberlist, raftNode *raft.Raf
 		segmentDir:   segmentDir,
 		idGenerator:  idGenerator,
 		rng:          rand.New(rand.NewSource(time.Now().UnixNano())),
+		closeC:       make(chan struct{}),
 	}
 }
 
@@ -75,4 +77,9 @@ func (s *Server) beginTransaction() (err error) {
 
 func (s *Server) releaseTransaction() {
 	s.tx.Unlock()
+}
+
+func (s *Server) Close() error {
+	close(s.closeC)
+	return nil
 }

@@ -33,8 +33,6 @@ func (s *Server) ConfigureTopic(ctx context.Context, request *client.ConfigureTo
 		return nil, err
 	}
 
-	// TODO: access control
-
 	buf, err := proto.Marshal(&Command{
 		Command: &Command_ConfigureTopic{
 			ConfigureTopic: request,

@@ -64,6 +64,8 @@ func (s *ClusterStateStore) Apply(entry *raft.Log) interface{} {
 			nextState = s.doOpenSegment(state, cmd.OpenSegment)
 		case *Command_CloseSegment:
 			nextState = s.doCloseSegment(state, cmd.CloseSegment)
+		case *Command_UpdateNode:
+			nextState = s.doUpdateNode(state, cmd.UpdateNode)
 		default:
 			panic(errors.Errorf("unhandled command of type [%T]", cmd))
 		}
@@ -365,6 +367,44 @@ func (s *ClusterStateStore) doCloseSegment(state *ClusterState, cmd *CloseSegmen
 
 	sort.Slice(nextState.ClosedSegments, func(i, j int) bool {
 		return nextState.ClosedSegments[i].ID < nextState.ClosedSegments[j].ID
+	})
+
+	return nextState
+}
+
+func (s *ClusterStateStore) doUpdateNode(state *ClusterState, cmd *UpdateNodeCommand) *ClusterState {
+	nodeIndex := -1
+	for i, node := range state.Nodes {
+		if node.ID == cmd.ID {
+			nodeIndex = i
+			break
+		}
+	}
+
+	nextState := &ClusterState{}
+	*nextState = *state
+
+	nextNode := &ClusterNode{}
+
+	if nodeIndex == -1 {
+		nextState.Nodes = make([]*ClusterNode, len(state.Nodes)+1)
+		copy(nextState.Nodes, state.Nodes)
+		nextState.Nodes[len(state.Nodes)] = nextNode
+	} else {
+		*nextNode = *state.Nodes[nodeIndex]
+		nextState.Nodes = make([]*ClusterNode, len(state.Nodes))
+		copy(nextState.Nodes[:nodeIndex], state.Nodes[:nodeIndex])
+		nextState.Nodes[nodeIndex] = nextNode
+		copy(nextState.Nodes[nodeIndex+1:], state.Nodes[nodeIndex+1:])
+	}
+
+	nextNode.ID = cmd.ID
+	nextNode.Address = cmd.Address
+	nextNode.State = cmd.State
+	nextNode.LastSeenAlive = cmd.LastSeenAlive
+
+	sort.Slice(nextState.Nodes, func(i, j int) bool {
+		return nextState.Nodes[i].ID < nextState.Nodes[j].ID
 	})
 
 	return nextState

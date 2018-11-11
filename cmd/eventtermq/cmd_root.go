@@ -62,12 +62,6 @@ func rootCmd() *cobra.Command {
 			raftTransport := mq.NewRaftRPCTransport(advertiseIP, rootConfig.Port, clientPool)
 			mq.RegisterRaftRPCServer(grpcServer, raftTransport)
 
-			listener, err := net.Listen("tcp", rootConfig.BindHost+":"+strconv.Itoa(rootConfig.Port))
-			if err != nil {
-				return errors.Wrap(err, "listen failed")
-			}
-			defer listener.Close()
-
 			nodeName := mq.NodeIDToString(rootConfig.ID)
 
 			raftConfig := raft.DefaultConfig()
@@ -131,7 +125,8 @@ func rootCmd() *cobra.Command {
 			listConfig.Transport = discoveryTransport
 			listConfig.AdvertiseAddr = advertiseIP.String()
 			listConfig.AdvertisePort = rootConfig.Port
-			listConfig.Events = mq.NewRaftMembersDelegate(raftNode)
+			memberEventC := make(chan memberlist.NodeEvent, 128)
+			listConfig.Events = &memberlist.ChannelEventDelegate{Ch: memberEventC}
 			members, err := memberlist.Create(listConfig)
 			if err != nil {
 				return errors.Wrap(err, "could not start node discovery")
@@ -139,9 +134,17 @@ func rootCmd() *cobra.Command {
 			defer members.Shutdown()
 
 			server := mq.NewServer(rootConfig.ID, members, raftNode, clientPool, clusterState, segmentDir, idGenerator)
+			go server.Loop(memberEventC)
+			defer server.Close()
+
 			client.RegisterEventterMQServer(grpcServer, server)
 			mq.RegisterNodeRPCServer(grpcServer, server)
 
+			listener, err := net.Listen("tcp", rootConfig.BindHost+":"+strconv.Itoa(rootConfig.Port))
+			if err != nil {
+				return errors.Wrap(err, "listen failed")
+			}
+			defer listener.Close()
 			go grpcServer.Serve(listener)
 			defer grpcServer.Stop()
 
@@ -163,6 +166,8 @@ func rootCmd() *cobra.Command {
 					if err := future.Error(); err != nil {
 						return errors.Wrap(err, "bootstrap failed")
 					}
+
+					log.Printf("cluster bootstrapped")
 				}
 			} else {
 				_, err = members.Join(join)

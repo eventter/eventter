@@ -73,8 +73,9 @@ WRITE:
 		err = segment.Write(localMessageID, &request.Message)
 		if err == segmentfile.ErrReadOnly {
 			response, err := s.OpenSegment(ctx, &OpenSegmentRequest{
-				NodeID: s.nodeID,
-				Topic:  request.Topic,
+				NodeID:         s.nodeID,
+				Topic:          request.Topic,
+				FirstMessageID: localMessageID.Bytes(),
 			})
 			if err != nil {
 				return nil, err

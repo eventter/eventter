@@ -13,6 +13,14 @@ func NodeIDToString(id uint64) string {
 	return s
 }
 
-func NodeIDFromString(id string) (uint64, error) {
-	return strconv.ParseUint(id, 16, 64)
+func NodeIDFromString(s string) (uint64, error) {
+	return strconv.ParseUint(s, 16, 64)
+}
+
+func MustIDFromString(s string) uint64 {
+	id, err := NodeIDFromString(s)
+	if err != nil {
+		panic(err)
+	}
+	return id
 }
