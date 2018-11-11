@@ -34,16 +34,16 @@ func (s *Server) OpenSegment(ctx context.Context, request *OpenSegmentRequest) (
 	}
 	defer s.releaseTransaction()
 
-	return s.doOpenSegment(request.NodeID, request.Topic, request.FirstMessageID)
+	return s.doOpenSegment(s.clusterState.Current(), request.NodeID, request.Topic, request.FirstMessageID)
 }
 
-func (s *Server) doOpenSegment(nodeID uint64, topicName client.NamespaceName, firstMessageID []byte) (*OpenSegmentResponse, error) {
-	topic := s.clusterState.GetTopic(topicName.Namespace, topicName.Name)
+func (s *Server) doOpenSegment(state *ClusterState, nodeID uint64, topicName client.NamespaceName, firstMessageID []byte) (*OpenSegmentResponse, error) {
+	topic := state.GetTopic(topicName.Namespace, topicName.Name)
 	if topic == nil {
 		return nil, errors.Errorf(notFoundErrorFormat, entityTopic, topicName.Namespace, topicName.Name)
 	}
 
-	openSegments := s.clusterState.FindOpenSegmentsFor(topicName.Namespace, topicName.Name)
+	openSegments := state.FindOpenSegmentsFor(topicName.Namespace, topicName.Name)
 
 	// return node's existing segment if it exists
 	for _, segment := range openSegments {

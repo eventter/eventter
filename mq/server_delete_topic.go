@@ -40,12 +40,14 @@ func (s *Server) DeleteTopic(ctx context.Context, request *client.DeleteTopicReq
 
 	// TODO: access control
 
-	if !s.clusterState.TopicExists(request.Topic.Namespace, request.Topic.Name) {
+	state := s.clusterState.Current()
+
+	if !state.TopicExists(request.Topic.Namespace, request.Topic.Name) {
 		return nil, errors.Errorf(notFoundErrorFormat, entityTopic, request.Topic.Namespace, request.Topic.Name)
 	}
 
 	if request.IfUnused {
-		if s.clusterState.AnyConsumerGroupReferencesTopic(request.Topic.Namespace, request.Topic.Name) {
+		if state.AnyConsumerGroupReferencesTopic(request.Topic.Namespace, request.Topic.Name) {
 			return nil, errors.Errorf("topic %s/%s is referenced by some consumer group(s)", request.Topic.Namespace, request.Topic.Name)
 		}
 	}

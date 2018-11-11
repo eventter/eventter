@@ -34,7 +34,7 @@ func (s *Server) ListConsumerGroups(ctx context.Context, request *client.ListCon
 
 	// TODO: access control
 
-	index, cgs := s.clusterState.ListConsumerGroups(request.ConsumerGroup.Namespace, request.ConsumerGroup.Name)
+	index, cgs := s.clusterState.Current().ListConsumerGroups(request.ConsumerGroup.Namespace, request.ConsumerGroup.Name)
 
 	var consumerGroups []*client.ConsumerGroup
 

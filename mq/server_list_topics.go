@@ -34,7 +34,7 @@ func (s *Server) ListTopics(ctx context.Context, request *client.ListTopicsReque
 
 	// TODO: access control
 
-	index, t := s.clusterState.ListTopics(request.Topic.Namespace, request.Topic.Name)
+	index, t := s.clusterState.Current().ListTopics(request.Topic.Namespace, request.Topic.Name)
 
 	var topics []*client.Topic
 

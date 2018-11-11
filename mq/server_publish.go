@@ -14,7 +14,9 @@ func (s *Server) Publish(ctx context.Context, request *client.PublishRequest) (*
 		return nil, err
 	}
 
-	topic := s.clusterState.GetTopic(request.Topic.Namespace, request.Topic.Name)
+	state := s.clusterState.Current()
+
+	topic := state.GetTopic(request.Topic.Namespace, request.Topic.Name)
 	if topic == nil {
 		return nil, errors.Errorf(notFoundErrorFormat, entityTopic, request.Topic.Namespace, request.Topic.Name)
 	}
@@ -25,7 +27,7 @@ func (s *Server) Publish(ctx context.Context, request *client.PublishRequest) (*
 		forwardNodeID  uint64
 	)
 
-	openSegments := s.clusterState.FindOpenSegmentsFor(request.Topic.Namespace, request.Topic.Name)
+	openSegments := state.FindOpenSegmentsFor(request.Topic.Namespace, request.Topic.Name)
 	for _, openSegment := range openSegments {
 		if openSegment.Nodes.PrimaryNodeID == s.nodeID {
 			localSegmentID = openSegment.ID

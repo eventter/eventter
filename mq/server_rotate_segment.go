@@ -34,9 +34,11 @@ func (s *Server) RotateSegment(ctx context.Context, request *RotateSegmentReques
 	}
 	defer s.releaseTransaction()
 
-	oldSegment := s.clusterState.GetOpenSegment(request.OldSegmentID)
+	state := s.clusterState.Current()
+
+	oldSegment := state.GetOpenSegment(request.OldSegmentID)
 	if oldSegment == nil {
-		oldSegment = s.clusterState.GetClosedSegment(request.OldSegmentID)
+		oldSegment = state.GetClosedSegment(request.OldSegmentID)
 		if oldSegment == nil {
 			return nil, errors.Errorf("segment %d not found", request.OldSegmentID)
 		}
@@ -72,5 +74,5 @@ func (s *Server) RotateSegment(ctx context.Context, request *RotateSegmentReques
 		}
 	}
 
-	return s.doOpenSegment(request.NodeID, oldSegment.Topic, request.NewFirstMessageID)
+	return s.doOpenSegment(state, request.NodeID, oldSegment.Topic, request.NewFirstMessageID)
 }

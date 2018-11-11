@@ -38,8 +38,10 @@ func (s *Server) ConfigureConsumerGroup(ctx context.Context, request *client.Con
 	}
 	defer s.releaseTransaction()
 
+	state := s.clusterState.Current()
+
 	for _, binding := range request.Bindings {
-		if !s.clusterState.TopicExists(request.ConsumerGroup.Namespace, binding.TopicName) {
+		if !state.TopicExists(request.ConsumerGroup.Namespace, binding.TopicName) {
 			return nil, errors.Errorf(notFoundErrorFormat, entityTopic, request.ConsumerGroup.Namespace, binding.TopicName)
 		}
 	}
