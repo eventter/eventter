@@ -4,7 +4,8 @@ import (
 	"io"
 	"io/ioutil"
 	"sort"
-	"sync"
+	"sync/atomic"
+	"unsafe"
 
 	"eventter.io/mq/client"
 	"github.com/gogo/protobuf/proto"
@@ -13,21 +14,23 @@ import (
 )
 
 type ClusterStateStore struct {
-	mutex sync.RWMutex
-	state ClusterState
+	statePtr unsafe.Pointer
 }
 
 var _ raft.FSM = (*ClusterStateStore)(nil)
 
 func NewClusterStateStore() *ClusterStateStore {
-	return &ClusterStateStore{}
+	state := &ClusterState{}
+
+	return &ClusterStateStore{
+		statePtr: unsafe.Pointer(state),
+	}
 }
 
 func (s *ClusterStateStore) String() string {
-	s.mutex.RLock()
-	defer s.mutex.RUnlock()
+	state := (*ClusterState)(atomic.LoadPointer(&s.statePtr))
 
-	return proto.MarshalTextString(&s.state)
+	return proto.MarshalTextString(state)
 }
 
 func (s *ClusterStateStore) Apply(entry *raft.Log) interface{} {
@@ -35,115 +38,219 @@ func (s *ClusterStateStore) Apply(entry *raft.Log) interface{} {
 		return nil
 	}
 
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
-
 	var cmd Command
 
 	if err := proto.Unmarshal(entry.Data, &cmd); err != nil {
 		panic(err)
 	}
 
+	var (
+		state     = (*ClusterState)(atomic.LoadPointer(&s.statePtr))
+		nextState *ClusterState
+	)
+
 	switch cmd := cmd.Command.(type) {
 	case *Command_ConfigureTopic:
-		s.doConfigureTopic(cmd.ConfigureTopic)
+		nextState = s.doConfigureTopic(state, cmd.ConfigureTopic)
 	case *Command_DeleteTopic:
-		s.doDeleteTopic(cmd.DeleteTopic)
+		nextState = s.doDeleteTopic(state, cmd.DeleteTopic)
 	case *Command_ConfigureConsumerGroup:
-		s.doConfigureConsumerGroup(cmd.ConfigureConsumerGroup)
+		nextState = s.doConfigureConsumerGroup(state, cmd.ConfigureConsumerGroup)
 	case *Command_DeleteConsumerGroup:
-		s.doDeleteConsumerGroup(cmd.DeleteConsumerGroup)
+		nextState = s.doDeleteConsumerGroup(state, cmd.DeleteConsumerGroup)
 	case *Command_OpenSegment:
-		s.doOpenSegment(cmd.OpenSegment)
+		nextState = s.doOpenSegment(state, cmd.OpenSegment)
 	case *Command_CloseSegment:
-		s.doCloseSegment(cmd.CloseSegment)
+		nextState = s.doCloseSegment(state, cmd.CloseSegment)
 	default:
 		panic(errors.Errorf("unhandled command of type [%T]", cmd))
 	}
 
-	s.state.Index = entry.Index
+	if nextState == state {
+		nextState := &ClusterState{}
+		*nextState = *state
+	}
+	nextState.Index = entry.Index
+
+	atomic.SwapPointer(&s.statePtr, unsafe.Pointer(nextState))
 
 	return nil
 }
 
-func (s *ClusterStateStore) doConfigureTopic(cmd *client.ConfigureTopicRequest) {
-	namespace, _ := s.findNamespace(cmd.Topic.Namespace)
+func (s *ClusterStateStore) doConfigureTopic(state *ClusterState, cmd *client.ConfigureTopicRequest) *ClusterState {
+	nextState := &ClusterState{}
+	*nextState = *state
+
+	namespace, namespaceIndex := state.findNamespace(cmd.Topic.Namespace)
+	var (
+		nextNamespace *ClusterNamespace
+		nextTopic     *ClusterTopic
+	)
+
 	if namespace == nil {
-		namespace = &ClusterNamespace{
+		nextNamespace = &ClusterNamespace{
 			Name: cmd.Topic.Namespace,
 		}
-		s.state.Namespaces = append(s.state.Namespaces, namespace)
-	}
 
-	topic, _ := namespace.findTopic(cmd.Topic.Name)
-	if topic == nil {
-		topic = &ClusterTopic{
+		nextState.Namespaces = make([]*ClusterNamespace, len(state.Namespaces)+1)
+		copy(nextState.Namespaces, state.Namespaces)
+		nextState.Namespaces[len(state.Namespaces)] = nextNamespace
+
+		nextTopic = &ClusterTopic{
 			Name: cmd.Topic.Name,
 		}
-		namespace.Topics = append(namespace.Topics, topic)
+		nextNamespace.Topics = []*ClusterTopic{nextTopic}
+
+	} else {
+		nextNamespace = &ClusterNamespace{}
+		*nextNamespace = *namespace
+
+		nextState.Namespaces = make([]*ClusterNamespace, len(state.Namespaces))
+		copy(nextState.Namespaces[:namespaceIndex], state.Namespaces[:namespaceIndex])
+		nextState.Namespaces[namespaceIndex] = nextNamespace
+		copy(nextState.Namespaces[namespaceIndex+1:], state.Namespaces[namespaceIndex+1:])
+
+		topic, topicIndex := namespace.findTopic(cmd.Topic.Name)
+		if topic == nil {
+			nextTopic = &ClusterTopic{
+				Name: cmd.Topic.Name,
+			}
+
+			nextNamespace.Topics = make([]*ClusterTopic, len(namespace.Topics)+1)
+			copy(nextNamespace.Topics, namespace.Topics)
+			nextNamespace.Topics[len(namespace.Topics)] = nextTopic
+
+		} else {
+			nextTopic = &ClusterTopic{}
+			*nextTopic = *topic
+
+			nextNamespace.Topics = make([]*ClusterTopic, len(namespace.Topics))
+			copy(nextNamespace.Topics[:topicIndex], namespace.Topics[:topicIndex])
+			nextNamespace.Topics[topicIndex] = nextTopic
+			copy(nextNamespace.Topics[topicIndex+1:], namespace.Topics[topicIndex+1:])
+		}
 	}
 
-	topic.Type = cmd.Type
-	topic.Shards = cmd.Shards
-	topic.ReplicationFactor = cmd.ReplicationFactor
-	topic.Retention = cmd.Retention
+	nextTopic.Type = cmd.Type
+	nextTopic.Shards = cmd.Shards
+	nextTopic.ReplicationFactor = cmd.ReplicationFactor
+	nextTopic.Retention = cmd.Retention
+
+	return nextState
 }
 
-func (s *ClusterStateStore) doDeleteTopic(cmd *client.DeleteTopicRequest) {
-	namespace, namespaceIndex := s.findNamespace(cmd.Topic.Namespace)
+func (s *ClusterStateStore) doDeleteTopic(state *ClusterState, cmd *client.DeleteTopicRequest) *ClusterState {
+	namespace, namespaceIndex := state.findNamespace(cmd.Topic.Namespace)
 	if namespace == nil {
-		return
+		return state
 	}
 
 	_, topicIndex := namespace.findTopic(cmd.Topic.Name)
 	if topicIndex == -1 {
-		return
+		return state
 	}
 
-	copy(namespace.Topics[topicIndex:], namespace.Topics[topicIndex+1:])
-	namespace.Topics[len(namespace.Topics)-1] = nil
-	namespace.Topics = namespace.Topics[:len(namespace.Topics)-1]
+	nextState := &ClusterState{}
+	*nextState = *state
+
+	nextNamespace := &ClusterNamespace{}
+	*nextNamespace = *namespace
+
+	nextNamespace.Topics = make([]*ClusterTopic, len(namespace.Topics)-1)
+	copy(nextNamespace.Topics[:topicIndex], namespace.Topics[:topicIndex])
+	copy(nextNamespace.Topics[topicIndex:], namespace.Topics[topicIndex+1:])
+
+	var consumerGroupsChanged = false
+	var nextConsumerGroups []*ClusterConsumerGroup
 
 	for _, consumerGroup := range namespace.ConsumerGroups {
-		var newBindings []*ClusterConsumerGroup_Binding
+		var bindingsChanged = false
+		var nextBindings []*ClusterConsumerGroup_Binding
 		for _, binding := range consumerGroup.Bindings {
 			if binding.TopicName != cmd.Topic.Name {
-				newBindings = append(newBindings, binding)
+				nextBindings = append(nextBindings, binding)
+			} else {
+				bindingsChanged = true
 			}
 		}
-		consumerGroup.Bindings = newBindings
+		if !bindingsChanged {
+			nextConsumerGroups = append(nextConsumerGroups, consumerGroup)
+			continue
+		}
+
+		nextConsumerGroup := &ClusterConsumerGroup{}
+		*nextConsumerGroup = *consumerGroup
+		nextConsumerGroup.Bindings = nextBindings
+
+		nextConsumerGroups = append(nextConsumerGroups, nextConsumerGroup)
+		consumerGroupsChanged = true
 	}
 
-	if isNamespaceEmpty(namespace) {
-		s.deleteNamespace(namespaceIndex)
+	if consumerGroupsChanged {
+		nextNamespace.ConsumerGroups = nextConsumerGroups
 	}
+
+	if nextNamespace.isEmpty() {
+		nextState.Namespaces = make([]*ClusterNamespace, len(state.Namespaces)-1)
+		copy(nextState.Namespaces[:namespaceIndex], state.Namespaces[:namespaceIndex])
+		copy(nextState.Namespaces[namespaceIndex:], state.Namespaces[namespaceIndex+1:])
+	}
+
+	return nextState
 }
 
-func isNamespaceEmpty(namespace *ClusterNamespace) bool {
-	return len(namespace.Topics) == 0 && len(namespace.ConsumerGroups) == 0
-}
+func (s *ClusterStateStore) doConfigureConsumerGroup(state *ClusterState, cmd *client.ConfigureConsumerGroupRequest) *ClusterState {
+	nextState := &ClusterState{}
+	*nextState = *state
 
-func (s *ClusterStateStore) deleteNamespace(namespaceIndex int) {
-	copy(s.state.Namespaces[namespaceIndex:], s.state.Namespaces[namespaceIndex+1:])
-	s.state.Namespaces[len(s.state.Namespaces)-1] = nil
-	s.state.Namespaces = s.state.Namespaces[:len(s.state.Namespaces)-1]
-}
+	namespace, namespaceIndex := state.findNamespace(cmd.ConsumerGroup.Namespace)
+	var (
+		nextNamespace     *ClusterNamespace
+		nextConsumerGroup *ClusterConsumerGroup
+	)
 
-func (s *ClusterStateStore) doConfigureConsumerGroup(cmd *client.ConfigureConsumerGroupRequest) {
-	namespace, _ := s.findNamespace(cmd.ConsumerGroup.Namespace)
 	if namespace == nil {
-		namespace = &ClusterNamespace{
+		nextNamespace = &ClusterNamespace{
 			Name: cmd.ConsumerGroup.Namespace,
 		}
-		s.state.Namespaces = append(s.state.Namespaces, namespace)
-	}
 
-	consumerGroup, _ := namespace.findConsumerGroup(cmd.ConsumerGroup.Name)
-	if consumerGroup == nil {
-		consumerGroup = &ClusterConsumerGroup{
+		nextState.Namespaces = make([]*ClusterNamespace, len(state.Namespaces)+1)
+		copy(nextState.Namespaces, state.Namespaces)
+		nextState.Namespaces[len(state.Namespaces)] = nextNamespace
+
+		nextConsumerGroup = &ClusterConsumerGroup{
 			Name: cmd.ConsumerGroup.Name,
 		}
-		namespace.ConsumerGroups = append(namespace.ConsumerGroups, consumerGroup)
+		nextNamespace.ConsumerGroups = []*ClusterConsumerGroup{nextConsumerGroup}
+
+	} else {
+		nextNamespace = &ClusterNamespace{}
+		*nextNamespace = *namespace
+
+		nextState.Namespaces = make([]*ClusterNamespace, len(state.Namespaces))
+		copy(nextState.Namespaces[:namespaceIndex], state.Namespaces[:namespaceIndex])
+		nextState.Namespaces[namespaceIndex] = nextNamespace
+		copy(nextState.Namespaces[namespaceIndex+1:], state.Namespaces[namespaceIndex+1:])
+
+		consumerGroup, consumerGroupIndex := namespace.findConsumerGroup(cmd.ConsumerGroup.Name)
+		if consumerGroup == nil {
+			nextConsumerGroup = &ClusterConsumerGroup{
+				Name: cmd.ConsumerGroup.Name,
+			}
+
+			nextNamespace.ConsumerGroups = make([]*ClusterConsumerGroup, len(namespace.ConsumerGroups)+1)
+			copy(nextNamespace.ConsumerGroups, namespace.ConsumerGroups)
+			nextNamespace.ConsumerGroups[len(namespace.ConsumerGroups)] = nextConsumerGroup
+
+		} else {
+			nextConsumerGroup = &ClusterConsumerGroup{}
+			*nextConsumerGroup = *consumerGroup
+
+			nextNamespace.ConsumerGroups = make([]*ClusterConsumerGroup, len(namespace.ConsumerGroups))
+			copy(nextNamespace.ConsumerGroups[:consumerGroupIndex], namespace.ConsumerGroups[:consumerGroupIndex])
+			nextNamespace.ConsumerGroups[consumerGroupIndex] = nextConsumerGroup
+			copy(nextNamespace.ConsumerGroups[consumerGroupIndex+1:], namespace.ConsumerGroups[consumerGroupIndex+1:])
+		}
 	}
 
 	var bindings []*ClusterConsumerGroup_Binding
@@ -154,51 +261,75 @@ func (s *ClusterStateStore) doConfigureConsumerGroup(cmd *client.ConfigureConsum
 		})
 	}
 
-	consumerGroup.Bindings = bindings
-	consumerGroup.Shards = cmd.Shards
+	nextConsumerGroup.Bindings = bindings
+	nextConsumerGroup.Shards = cmd.Shards
+
+	return nextState
 }
 
-func (s *ClusterStateStore) doDeleteConsumerGroup(cmd *client.DeleteConsumerGroupRequest) {
-	namespace, namespaceIndex := s.findNamespace(cmd.ConsumerGroup.Namespace)
+func (s *ClusterStateStore) doDeleteConsumerGroup(state *ClusterState, cmd *client.DeleteConsumerGroupRequest) *ClusterState {
+	namespace, namespaceIndex := state.findNamespace(cmd.ConsumerGroup.Namespace)
 	if namespace == nil {
-		return
+		return state
 	}
 
 	_, consumerGroupIndex := namespace.findConsumerGroup(cmd.ConsumerGroup.Name)
 	if consumerGroupIndex == -1 {
-		return
+		return state
 	}
 
 	copy(namespace.ConsumerGroups[consumerGroupIndex:], namespace.ConsumerGroups[consumerGroupIndex+1:])
 	namespace.ConsumerGroups[len(namespace.ConsumerGroups)-1] = nil
 	namespace.ConsumerGroups = namespace.ConsumerGroups[:len(namespace.ConsumerGroups)-1]
 
-	if isNamespaceEmpty(namespace) {
-		s.deleteNamespace(namespaceIndex)
+	nextState := &ClusterState{}
+	*nextState = *state
+
+	nextNamespace := &ClusterNamespace{}
+	*nextNamespace = *namespace
+
+	nextNamespace.ConsumerGroups = make([]*ClusterConsumerGroup, len(namespace.ConsumerGroups)-1)
+	copy(nextNamespace.ConsumerGroups[:consumerGroupIndex], namespace.ConsumerGroups[:consumerGroupIndex])
+	copy(nextNamespace.ConsumerGroups[consumerGroupIndex:], namespace.ConsumerGroups[consumerGroupIndex+1:])
+
+	if nextNamespace.isEmpty() {
+		nextState.Namespaces = make([]*ClusterNamespace, len(state.Namespaces)-1)
+		copy(nextState.Namespaces[:namespaceIndex], state.Namespaces[:namespaceIndex])
+		copy(nextState.Namespaces[namespaceIndex:], state.Namespaces[namespaceIndex+1:])
 	}
+
+	return nextState
 }
 
-func (s *ClusterStateStore) doOpenSegment(cmd *OpenSegmentCommand) {
-	if cmd.ID > s.state.CurrentSegmentID {
-		s.state.CurrentSegmentID = cmd.ID
+func (s *ClusterStateStore) doOpenSegment(state *ClusterState, cmd *OpenSegmentCommand) *ClusterState {
+	nextState := &ClusterState{}
+	*nextState = *state
+
+	if cmd.ID > nextState.CurrentSegmentID {
+		nextState.CurrentSegmentID = cmd.ID
 	}
 
-	s.state.OpenSegments = append(s.state.OpenSegments, &ClusterSegment{
+	nextState.OpenSegments = make([]*ClusterSegment, len(state.OpenSegments)+1)
+	copy(nextState.OpenSegments, state.OpenSegments)
+	nextState.OpenSegments[len(state.OpenSegments)] = &ClusterSegment{
 		ID:             cmd.ID,
 		Topic:          cmd.Topic,
 		FirstMessageID: cmd.FirstMessageID,
 		Nodes: ClusterSegment_Nodes{
 			PrimaryNodeID: cmd.PrimaryNodeID,
 		},
+	}
+
+	sort.Slice(nextState.OpenSegments, func(i, j int) bool {
+		return nextState.OpenSegments[i].ID < nextState.OpenSegments[j].ID
 	})
-	sort.Slice(s.state.ClosedSegments, func(i, j int) bool {
-		return s.state.ClosedSegments[i].ID < s.state.ClosedSegments[j].ID
-	})
+
+	return nextState
 }
 
-func (s *ClusterStateStore) doCloseSegment(cmd *CloseSegmentCommand) {
+func (s *ClusterStateStore) doCloseSegment(state *ClusterState, cmd *CloseSegmentCommand) *ClusterState {
 	segmentIndex := -1
-	for i, segment := range s.state.OpenSegments {
+	for i, segment := range state.OpenSegments {
 		if segment.ID == cmd.ID {
 			segmentIndex = i
 			break
@@ -206,33 +337,40 @@ func (s *ClusterStateStore) doCloseSegment(cmd *CloseSegmentCommand) {
 	}
 
 	if segmentIndex == -1 {
-		return
+		return state
 	}
 
-	segment := s.state.OpenSegments[segmentIndex]
+	nextSegment := &ClusterSegment{}
+	*nextSegment = *state.OpenSegments[segmentIndex]
 
-	copy(s.state.OpenSegments[segmentIndex:], s.state.OpenSegments[segmentIndex+1:])
-	s.state.OpenSegments[len(s.state.OpenSegments)-1] = nil
-	s.state.OpenSegments = s.state.OpenSegments[:len(s.state.OpenSegments)-1]
+	nextState := &ClusterState{}
+	*nextState = *state
 
-	segment.LastMessageID = cmd.LastMessageID
-	segment.Size_ = cmd.Size_
-	segment.Sha1 = cmd.Sha1
+	nextState.OpenSegments = make([]*ClusterSegment, len(state.OpenSegments)-1)
+	copy(nextState.OpenSegments[:segmentIndex], state.OpenSegments[:segmentIndex])
+	copy(nextState.OpenSegments[segmentIndex:], state.OpenSegments[segmentIndex+1:])
 
-	segment.Nodes.PrimaryNodeID = 0
-	segment.Nodes.DoneNodeIDs = []uint64{cmd.DoneNodeID}
+	nextState.ClosedSegments = make([]*ClusterSegment, len(state.ClosedSegments)+1)
+	copy(nextState.ClosedSegments, state.ClosedSegments)
+	nextState.ClosedSegments[len(state.ClosedSegments)] = nextSegment
 
-	s.state.ClosedSegments = append(s.state.ClosedSegments, segment)
-	sort.Slice(s.state.ClosedSegments, func(i, j int) bool {
-		return s.state.ClosedSegments[i].ID < s.state.ClosedSegments[j].ID
+	nextSegment.LastMessageID = cmd.LastMessageID
+	nextSegment.Size_ = cmd.Size_
+	nextSegment.Sha1 = cmd.Sha1
+	nextSegment.Nodes.PrimaryNodeID = 0
+	nextSegment.Nodes.DoneNodeIDs = []uint64{cmd.DoneNodeID}
+
+	sort.Slice(nextState.ClosedSegments, func(i, j int) bool {
+		return nextState.ClosedSegments[i].ID < nextState.ClosedSegments[j].ID
 	})
+
+	return nextState
 }
 
 func (s *ClusterStateStore) Snapshot() (raft.FSMSnapshot, error) {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
+	state := (*ClusterState)(atomic.LoadPointer(&s.statePtr))
 
-	buf, err := proto.Marshal(&s.state)
+	buf, err := proto.Marshal(state)
 	if err != nil {
 		return nil, err
 	}
@@ -241,68 +379,70 @@ func (s *ClusterStateStore) Snapshot() (raft.FSMSnapshot, error) {
 }
 
 func (s *ClusterStateStore) Restore(r io.ReadCloser) error {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
-
 	buf, err := ioutil.ReadAll(r)
 	if err != nil {
 		return err
 	}
 
-	if err := proto.Unmarshal(buf, &s.state); err != nil {
+	state := &ClusterState{}
+
+	if err := proto.Unmarshal(buf, state); err != nil {
 		return err
 	}
 
-	return r.Close()
+	if err := r.Close(); err != nil {
+		return err
+	}
+
+	atomic.SwapPointer(&s.statePtr, unsafe.Pointer(state))
+
+	return nil
 }
 
 func (s *ClusterStateStore) ListTopics(namespaceName string, topicName string) (uint64, []*ClusterTopic) {
-	s.mutex.RLock()
-	defer s.mutex.RUnlock()
+	state := (*ClusterState)(atomic.LoadPointer(&s.statePtr))
 
-	namespace, _ := s.findNamespace(namespaceName)
+	namespace, _ := state.findNamespace(namespaceName)
 	if namespace == nil {
-		return s.state.Index, nil
+		return state.Index, nil
 	}
 
 	if topicName == "" {
-		return s.state.Index, namespace.Topics
+		return state.Index, namespace.Topics
 	} else {
 		topic, _ := namespace.findTopic(topicName)
 		if topic == nil {
-			return s.state.Index, nil
+			return state.Index, nil
 		} else {
-			return s.state.Index, []*ClusterTopic{topic}
+			return state.Index, []*ClusterTopic{topic}
 		}
 	}
 }
 
 func (s *ClusterStateStore) ListConsumerGroups(namespaceName string, consumerGroupName string) (uint64, []*ClusterConsumerGroup) {
-	s.mutex.RLock()
-	defer s.mutex.RUnlock()
+	state := (*ClusterState)(atomic.LoadPointer(&s.statePtr))
 
-	namespace, _ := s.findNamespace(namespaceName)
+	namespace, _ := state.findNamespace(namespaceName)
 	if namespace == nil {
-		return s.state.Index, nil
+		return state.Index, nil
 	}
 
 	if consumerGroupName == "" {
-		return s.state.Index, namespace.ConsumerGroups
+		return state.Index, namespace.ConsumerGroups
 	} else {
 		consumerGroup, _ := namespace.findConsumerGroup(consumerGroupName)
 		if consumerGroup == nil {
-			return s.state.Index, nil
+			return state.Index, nil
 		} else {
-			return s.state.Index, []*ClusterConsumerGroup{consumerGroup}
+			return state.Index, []*ClusterConsumerGroup{consumerGroup}
 		}
 	}
 }
 
 func (s *ClusterStateStore) AnyConsumerGroupReferencesTopic(namespaceName string, topicName string) bool {
-	s.mutex.RLock()
-	defer s.mutex.RUnlock()
+	state := (*ClusterState)(atomic.LoadPointer(&s.statePtr))
 
-	namespace, _ := s.findNamespace(namespaceName)
+	namespace, _ := state.findNamespace(namespaceName)
 	if namespace == nil {
 		return false
 	}
@@ -319,10 +459,9 @@ func (s *ClusterStateStore) AnyConsumerGroupReferencesTopic(namespaceName string
 }
 
 func (s *ClusterStateStore) TopicExists(namespaceName string, topicName string) bool {
-	s.mutex.RLock()
-	defer s.mutex.RUnlock()
+	state := (*ClusterState)(atomic.LoadPointer(&s.statePtr))
 
-	namespace, _ := s.findNamespace(namespaceName)
+	namespace, _ := state.findNamespace(namespaceName)
 	if namespace == nil {
 		return false
 	}
@@ -332,10 +471,9 @@ func (s *ClusterStateStore) TopicExists(namespaceName string, topicName string) 
 }
 
 func (s *ClusterStateStore) GetTopic(namespaceName string, topicName string) *ClusterTopic {
-	s.mutex.RLock()
-	defer s.mutex.RUnlock()
+	state := (*ClusterState)(atomic.LoadPointer(&s.statePtr))
 
-	namespace, _ := s.findNamespace(namespaceName)
+	namespace, _ := state.findNamespace(namespaceName)
 	if namespace == nil {
 		return nil
 	}
@@ -345,10 +483,9 @@ func (s *ClusterStateStore) GetTopic(namespaceName string, topicName string) *Cl
 }
 
 func (s *ClusterStateStore) ConsumerGroupExists(namespaceName string, consumerGroupName string) bool {
-	s.mutex.RLock()
-	defer s.mutex.RUnlock()
+	state := (*ClusterState)(atomic.LoadPointer(&s.statePtr))
 
-	namespace, _ := s.findNamespace(namespaceName)
+	namespace, _ := state.findNamespace(namespaceName)
 	if namespace == nil {
 		return false
 	}
@@ -358,12 +495,11 @@ func (s *ClusterStateStore) ConsumerGroupExists(namespaceName string, consumerGr
 }
 
 func (s *ClusterStateStore) FindOpenSegmentsFor(namespaceName string, topicName string) []*ClusterSegment {
-	s.mutex.RLock()
-	defer s.mutex.RUnlock()
+	state := (*ClusterState)(atomic.LoadPointer(&s.statePtr))
 
 	var segments []*ClusterSegment
 
-	for _, segment := range s.state.OpenSegments {
+	for _, segment := range state.OpenSegments {
 		if segment.Topic.Namespace == namespaceName && segment.Topic.Name == topicName {
 			segments = append(segments, segment)
 		}
@@ -373,12 +509,11 @@ func (s *ClusterStateStore) FindOpenSegmentsFor(namespaceName string, topicName 
 }
 
 func (s *ClusterStateStore) FindOpenSegmentsIn(nodeID uint64) []*ClusterSegment {
-	s.mutex.RLock()
-	defer s.mutex.RUnlock()
+	state := (*ClusterState)(atomic.LoadPointer(&s.statePtr))
 
 	var segments []*ClusterSegment
 
-	for _, segment := range s.state.OpenSegments {
+	for _, segment := range state.OpenSegments {
 		if segment.Nodes.PrimaryNodeID == nodeID {
 			segments = append(segments, segment)
 		}
@@ -388,19 +523,24 @@ func (s *ClusterStateStore) FindOpenSegmentsIn(nodeID uint64) []*ClusterSegment 
 }
 
 func (s *ClusterStateStore) NextSegmentID() uint64 {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
+	for {
+		statePtr := atomic.LoadPointer(&s.statePtr)
+		state := (*ClusterState)(statePtr)
+		nextState := &ClusterState{}
+		*nextState = *state
+		nextState.CurrentSegmentID += 1
+		nextStatePtr := unsafe.Pointer(nextState)
 
-	s.state.CurrentSegmentID += 1
-
-	return s.state.CurrentSegmentID
+		if atomic.CompareAndSwapPointer(&s.statePtr, statePtr, nextStatePtr) {
+			return nextState.CurrentSegmentID
+		}
+	}
 }
 
 func (s *ClusterStateStore) GetOpenSegment(id uint64) *ClusterSegment {
-	s.mutex.RLock()
-	defer s.mutex.RUnlock()
+	state := (*ClusterState)(atomic.LoadPointer(&s.statePtr))
 
-	for _, segment := range s.state.OpenSegments {
+	for _, segment := range state.OpenSegments {
 		if segment.ID == id {
 			return segment
 		}
@@ -410,10 +550,9 @@ func (s *ClusterStateStore) GetOpenSegment(id uint64) *ClusterSegment {
 }
 
 func (s *ClusterStateStore) GetClosedSegment(id uint64) *ClusterSegment {
-	s.mutex.RLock()
-	defer s.mutex.RUnlock()
+	state := (*ClusterState)(atomic.LoadPointer(&s.statePtr))
 
-	for _, segment := range s.state.ClosedSegments {
+	for _, segment := range state.ClosedSegments {
 		if segment.ID == id {
 			return segment
 		}
@@ -422,8 +561,8 @@ func (s *ClusterStateStore) GetClosedSegment(id uint64) *ClusterSegment {
 	return nil
 }
 
-func (s *ClusterStateStore) findNamespace(name string) (*ClusterNamespace, int) {
-	for index, namespace := range s.state.Namespaces {
+func (s *ClusterState) findNamespace(name string) (*ClusterNamespace, int) {
+	for index, namespace := range s.Namespaces {
 		if namespace.Name == name {
 			return namespace, index
 		}
@@ -447,6 +586,10 @@ func (namespace *ClusterNamespace) findConsumerGroup(name string) (*ClusterConsu
 		}
 	}
 	return nil, -1
+}
+
+func (namespace *ClusterNamespace) isEmpty() bool {
+	return len(namespace.Topics) == 0 && len(namespace.ConsumerGroups) == 0
 }
 
 type clusterStateStoreSnapshot []byte
