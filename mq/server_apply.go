@@ -6,7 +6,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (s *Server) apply(cmd interface{}) (index uint64, err error) {
+func (s *Server) Apply(cmd interface{}) (index uint64, err error) {
 	outer := &Command{}
 	switch cmd := cmd.(type) {
 	case *client.ConfigureTopicRequest:

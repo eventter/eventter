@@ -58,7 +58,7 @@ func (s *Server) RotateSegment(ctx context.Context, request *RotateSegmentReques
 			// possible clock skew => move closed time to opened time
 			cmd.ClosedAt = oldSegment.OpenedAt
 		}
-		_, err := s.apply(cmd)
+		_, err := s.Apply(cmd)
 		if err != nil {
 			return nil, err
 		}

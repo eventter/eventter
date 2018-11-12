@@ -49,7 +49,7 @@ func (s *Server) DeleteConsumerGroup(ctx context.Context, request *client.Delete
 		return nil, errors.New("if unused not implemented")
 	}
 
-	index, err := s.apply(request)
+	index, err := s.Apply(request)
 	if err != nil {
 		return nil, err
 	}

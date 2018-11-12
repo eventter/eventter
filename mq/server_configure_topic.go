@@ -32,7 +32,7 @@ func (s *Server) ConfigureTopic(ctx context.Context, request *client.ConfigureTo
 		return nil, err
 	}
 
-	index, err := s.apply(request)
+	index, err := s.Apply(request)
 	if err != nil {
 		return nil, err
 	}
