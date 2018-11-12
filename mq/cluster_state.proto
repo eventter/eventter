@@ -96,7 +96,13 @@ message UpdateNodeCommand {
 
 message UpdateSegmentNodesCommand {
     uint64 id = 1 [(gogoproto.customname) = "ID"];
-    ClusterSegment.Nodes nodes = 2 [(gogoproto.nullable) = false];
+    Which which = 2;
+    ClusterSegment.Nodes nodes = 3 [(gogoproto.nullable) = false];
+
+    enum Which {
+        OPEN = 0;
+        CLOSED = 1;
+    }
 }
 
 message Command {

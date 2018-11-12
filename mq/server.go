@@ -1,6 +1,7 @@
 package mq
 
 import (
+	"log"
 	"math/rand"
 	"sync"
 	"time"

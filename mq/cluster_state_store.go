@@ -414,24 +414,26 @@ func (s *ClusterStateStore) doUpdateNode(state *ClusterState, cmd *UpdateNodeCom
 }
 
 func (s *ClusterStateStore) doUpdateSegmentNodes(state *ClusterState, cmd *UpdateSegmentNodesCommand) *ClusterState {
-	if len(state.OpenSegments) > 0 {
+	if cmd.Which == UpdateSegmentNodesCommand_OPEN {
 		i := sort.Search(len(state.OpenSegments), func(i int) bool { return state.OpenSegments[i].ID >= cmd.ID })
-		if state.OpenSegments[i].ID == cmd.ID {
+		if i < len(state.OpenSegments) && state.OpenSegments[i].ID == cmd.ID {
 			nextState := &ClusterState{}
 			*nextState = *state
 			nextState.OpenSegments = s.doUpdateSegmentNodesIn(state.OpenSegments, i, cmd)
 			return nextState
 		}
-	}
 
-	if len(state.ClosedSegments) > 0 {
+	} else if cmd.Which == UpdateSegmentNodesCommand_CLOSED {
 		i := sort.Search(len(state.ClosedSegments), func(i int) bool { return state.ClosedSegments[i].ID >= cmd.ID })
-		if state.ClosedSegments[i].ID == cmd.ID {
+		if i < len(state.ClosedSegments) && state.ClosedSegments[i].ID == cmd.ID {
 			nextState := &ClusterState{}
 			*nextState = *state
 			nextState.ClosedSegments = s.doUpdateSegmentNodesIn(state.ClosedSegments, i, cmd)
 			return nextState
 		}
+
+	} else {
+		panic("unhandled which: " + cmd.Which.String())
 	}
 
 	return state
