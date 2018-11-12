@@ -282,6 +282,16 @@ func (s *Server) reconcileOpenSegmentWithAlivePrimary(segment *ClusterSegment, s
 }
 
 func (s *Server) reconcileOpenSegmentWithDeadPrimary(segment *ClusterSegment, state *ClusterState, nodeSegmentCounts map[uint64]int, nodeMap map[uint64]*ClusterNode, allCandidateNodeIDs []uint64) {
+	if len(segment.Nodes.ReplicatingNodeIDs) == 0 {
+		log.Printf(
+			"open segment %d (of topic %s/%s) has dead primary and no replica to promote to primary",
+			segment.ID,
+			segment.Topic.Namespace,
+			segment.Topic.Name,
+		)
+		return
+	}
+
 	// TODO
 }
 

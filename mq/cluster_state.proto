@@ -54,8 +54,8 @@ message ClusterSegment {
 
     message Nodes {
         uint64 primary_node_id = 1 [(gogoproto.customname) = "PrimaryNodeID"];
-        repeated uint64 replicating_node_ids = 2 [(gogoproto.customname) = "ReplicatingNodeIDs"];
-        repeated uint64 done_node_ids = 3 [(gogoproto.customname) = "DoneNodeIDs"];
+        repeated uint64 done_node_ids = 2 [(gogoproto.customname) = "DoneNodeIDs"];
+        repeated uint64 replicating_node_ids = 3 [(gogoproto.customname) = "ReplicatingNodeIDs"];
     }
 }
 
