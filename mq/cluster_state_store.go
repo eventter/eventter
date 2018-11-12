@@ -68,6 +68,8 @@ func (s *ClusterStateStore) Apply(entry *raft.Log) interface{} {
 			nextState = s.doUpdateNode(state, cmd.UpdateNode)
 		case *Command_UpdateSegmentNodes:
 			nextState = s.doUpdateSegmentNodes(state, cmd.UpdateSegmentNodes)
+		case *Command_DeleteSegment:
+			nextState = s.doDeleteSegment(state, cmd.DeleteSegment)
 		default:
 			panic(errors.Errorf("unhandled command of type [%T]", cmd))
 		}
@@ -316,6 +318,7 @@ func (s *ClusterStateStore) doOpenSegment(state *ClusterState, cmd *OpenSegmentC
 		nextState.CurrentSegmentID = cmd.ID
 	}
 
+	// TODO: do binary search, then insert
 	nextState.OpenSegments = make([]*ClusterSegment, len(state.OpenSegments)+1)
 	copy(nextState.OpenSegments, state.OpenSegments)
 	nextState.OpenSegments[len(state.OpenSegments)] = &ClusterSegment{
@@ -336,6 +339,7 @@ func (s *ClusterStateStore) doOpenSegment(state *ClusterState, cmd *OpenSegmentC
 }
 
 func (s *ClusterStateStore) doCloseSegment(state *ClusterState, cmd *CloseSegmentCommand) *ClusterState {
+	// TODO: do binary search
 	segmentIndex := -1
 	for i, segment := range state.OpenSegments {
 		if segment.ID == cmd.ID {
@@ -358,6 +362,7 @@ func (s *ClusterStateStore) doCloseSegment(state *ClusterState, cmd *CloseSegmen
 	copy(nextState.OpenSegments[:segmentIndex], state.OpenSegments[:segmentIndex])
 	copy(nextState.OpenSegments[segmentIndex:], state.OpenSegments[segmentIndex+1:])
 
+	// TODO: do binary search, then insert
 	nextState.ClosedSegments = make([]*ClusterSegment, len(state.ClosedSegments)+1)
 	copy(nextState.ClosedSegments, state.ClosedSegments)
 	nextState.ClosedSegments[len(state.ClosedSegments)] = nextSegment
@@ -450,6 +455,21 @@ func (s *ClusterStateStore) doUpdateSegmentNodesIn(segments []*ClusterSegment, s
 	nextSegment.Nodes = cmd.Nodes
 
 	return nextSegments
+}
+
+func (s *ClusterStateStore) doDeleteSegment(state *ClusterState, cmd *DeleteSegmentCommand) *ClusterState {
+	i := sort.Search(len(state.ClosedSegments), func(i int) bool { return state.ClosedSegments[i].ID >= cmd.ID })
+	if i < len(state.ClosedSegments) && state.ClosedSegments[i].ID == cmd.ID {
+		nextState := &ClusterState{}
+		*nextState = *state
+		nextState.ClosedSegments = make([]*ClusterSegment, len(state.ClosedSegments)-1)
+		copy(nextState.ClosedSegments[:i], state.ClosedSegments[:i])
+		copy(nextState.ClosedSegments[i:], state.ClosedSegments[i+1:])
+
+		return nextState
+	}
+
+	return state
 }
 
 func (s *ClusterStateStore) Snapshot() (raft.FSMSnapshot, error) {

@@ -45,7 +45,7 @@ func (s *Server) ConfigureConsumerGroup(ctx context.Context, request *client.Con
 		}
 	}
 
-	index, err := s.apply(request, applyTimeout)
+	index, err := s.apply(request)
 	if err != nil {
 		return nil, err
 	}

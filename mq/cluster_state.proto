@@ -105,6 +105,10 @@ message UpdateSegmentNodesCommand {
     }
 }
 
+message DeleteSegmentCommand {
+    uint64 id = 1 [(gogoproto.customname) = "ID"];
+}
+
 message Command {
     oneof command {
         ConfigureTopicRequest configure_topic = 1;
@@ -115,5 +119,6 @@ message Command {
         CloseSegmentCommand close_segment = 6;
         UpdateNodeCommand update_node = 7;
         UpdateSegmentNodesCommand update_segment_nodes = 8;
+        DeleteSegmentCommand delete_segment = 9;
     }
 }

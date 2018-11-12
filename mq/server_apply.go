@@ -1,14 +1,12 @@
 package mq
 
 import (
-	"time"
-
 	"eventter.io/mq/client"
 	"github.com/gogo/protobuf/proto"
 	"github.com/pkg/errors"
 )
 
-func (s *Server) apply(cmd interface{}, timeout time.Duration) (index uint64, err error) {
+func (s *Server) apply(cmd interface{}) (index uint64, err error) {
 	outer := &Command{}
 	switch cmd := cmd.(type) {
 	case *client.ConfigureTopicRequest:
@@ -27,6 +25,8 @@ func (s *Server) apply(cmd interface{}, timeout time.Duration) (index uint64, er
 		outer.Command = &Command_UpdateNode{cmd}
 	case *UpdateSegmentNodesCommand:
 		outer.Command = &Command_UpdateSegmentNodes{cmd}
+	case *DeleteSegmentCommand:
+		outer.Command = &Command_DeleteSegment{cmd}
 	default:
 		return 0, errors.Errorf("unhandled command of type: %T", cmd)
 	}
@@ -36,7 +36,7 @@ func (s *Server) apply(cmd interface{}, timeout time.Duration) (index uint64, er
 		return 0, err
 	}
 
-	future := s.raftNode.Apply(buf, timeout)
+	future := s.raftNode.Apply(buf, applyTimeout)
 	if err := future.Error(); err != nil {
 		return 0, err
 	}

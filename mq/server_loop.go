@@ -76,7 +76,7 @@ func (s *Server) Loop(memberEventsC chan memberlist.NodeEvent) {
 				cmd.LastSeenAlive = &now
 			}
 
-			_, err := s.apply(cmd, applyTimeout)
+			_, err := s.apply(cmd)
 			if err != nil {
 				log.Printf("could not apply update node by members event: %v", err)
 				continue
@@ -119,7 +119,7 @@ func (s *Server) reconcileNodes() {
 				Address: member.Address(),
 				State:   ClusterNode_ALIVE,
 			}
-			_, err := s.apply(cmd, applyTimeout)
+			_, err := s.apply(cmd)
 			if err != nil {
 				log.Printf("could not apply update node: %v", err)
 				continue
@@ -149,7 +149,7 @@ func (s *Server) reconcileNodes() {
 			State:         ClusterNode_DEAD,
 			LastSeenAlive: &now,
 		}
-		_, err := s.apply(cmd, applyTimeout)
+		_, err := s.apply(cmd)
 		if err != nil {
 			log.Printf("could not apply update node: %v", err)
 			return
@@ -209,7 +209,7 @@ func (s *Server) reconcileOpenSegmentWithAlivePrimary(segment *ClusterSegment, s
 			}
 		}
 
-		_, err := s.apply(cmd, applyTimeout)
+		_, err := s.apply(cmd)
 		if err != nil {
 			log.Printf("could not remove segment replica(s): %v", err)
 			return
@@ -266,7 +266,7 @@ func (s *Server) reconcileOpenSegmentWithAlivePrimary(segment *ClusterSegment, s
 		}
 
 		if added {
-			_, err := s.apply(cmd, applyTimeout)
+			_, err := s.apply(cmd)
 			if err != nil {
 				log.Printf("could not add segment replica(s): %v", err)
 				return
@@ -292,6 +292,28 @@ func (s *Server) reconcileClosedSegments(state *ClusterState, nodeSegmentCounts 
 }
 
 func (s *Server) reconcileClosedSegment(segment *ClusterSegment, state *ClusterState, nodeSegmentCounts map[uint64]int, nodeMap map[uint64]*ClusterNode, allCandidateNodeIDs []uint64) {
+	topic := state.GetTopic(segment.Topic.Namespace, segment.Topic.Name)
+
+	if topic.Retention > 0 {
+		retainTill := time.Now().Add(-topic.Retention)
+		if segment.ClosedAt.Before(retainTill) {
+			_, err := s.apply(&DeleteSegmentCommand{ID: segment.ID})
+			if err != nil {
+				log.Printf("could not delete closed segment after retention period: %v", err)
+				return
+			}
+
+			log.Printf(
+				"closed segment %d (of topic %s/%s) fell off retention period, deleted",
+				segment.ID,
+				segment.Topic.Namespace,
+				segment.Topic.Name,
+			)
+
+			return
+		}
+	}
+
 	aliveReplicas := uint32(0)
 	aliveDone := uint32(0)
 	for _, nodeID := range segment.Nodes.DoneNodeIDs {
@@ -306,7 +328,6 @@ func (s *Server) reconcileClosedSegment(segment *ClusterSegment, state *ClusterS
 		}
 	}
 
-	topic := state.GetTopic(segment.Topic.Namespace, segment.Topic.Name)
 	if topic.ReplicationFactor < 1 {
 		panic("replication factor is zero")
 	}
@@ -347,13 +368,13 @@ func (s *Server) reconcileClosedSegment(segment *ClusterSegment, state *ClusterS
 			}
 		}
 
-		_, err := s.apply(cmd, applyTimeout)
+		_, err := s.apply(cmd)
 		if err != nil {
 			log.Printf("could not add segment replica(s): %v", err)
 			return
 		}
 		log.Printf(
-			"closed segment %d (of topic %s/%s) was under-replicated, added replica(s)",
+			"closed segment %d (of topic %s/%s) was over-replicated, removed replica(s)",
 			segment.ID,
 			segment.Topic.Namespace,
 			segment.Topic.Name,
@@ -421,7 +442,7 @@ func (s *Server) reconcileClosedSegment(segment *ClusterSegment, state *ClusterS
 		}
 
 		if added {
-			_, err := s.apply(cmd, applyTimeout)
+			_, err := s.apply(cmd)
 			if err != nil {
 				log.Printf("could not add segment replica(s): %v", err)
 				return

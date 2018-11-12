@@ -104,7 +104,7 @@ func (s *Server) txOpenSegment(state *ClusterState, primaryNodeID uint64, topicN
 		PrimaryNodeID:      primaryNodeID,
 		ReplicatingNodeIDs: replicatingNodeIDs,
 	}
-	_, err := s.apply(cmd, applyTimeout)
+	_, err := s.apply(cmd)
 	if err != nil {
 		return nil, err
 	}

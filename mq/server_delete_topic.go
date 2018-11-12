@@ -49,7 +49,7 @@ func (s *Server) DeleteTopic(ctx context.Context, request *client.DeleteTopicReq
 		}
 	}
 
-	index, err := s.apply(request, applyTimeout)
+	index, err := s.apply(request)
 	if err != nil {
 		return nil, err
 	}

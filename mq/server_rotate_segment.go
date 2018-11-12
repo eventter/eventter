@@ -47,16 +47,18 @@ func (s *Server) RotateSegment(ctx context.Context, request *RotateSegmentReques
 			return nil, errors.Errorf("node %d is not primary for segment %d", request.NodeID, request.OldSegmentID)
 		}
 
-		cmd := &Command_CloseSegment{
-			CloseSegment: &CloseSegmentCommand{
-				ID:         oldSegment.ID,
-				DoneNodeID: request.NodeID,
-				ClosedAt:   time.Now(),
-				Size_:      request.OldSize,
-				Sha1:       request.OldSha1,
-			},
+		cmd := &CloseSegmentCommand{
+			ID:         oldSegment.ID,
+			DoneNodeID: request.NodeID,
+			ClosedAt:   time.Now(),
+			Size_:      request.OldSize,
+			Sha1:       request.OldSha1,
 		}
-		_, err := s.apply(cmd, applyTimeout)
+		if cmd.ClosedAt.Before(oldSegment.OpenedAt) {
+			// possible clock skew => move closed time to opened time
+			cmd.ClosedAt = oldSegment.OpenedAt
+		}
+		_, err := s.apply(cmd)
 		if err != nil {
 			return nil, err
 		}

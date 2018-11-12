@@ -22,8 +22,13 @@ message ConfigureTopicRequest {
     NamespaceName topic = 1 [(gogoproto.nullable) = false];
     // AMQP exchange type.
     string type = 2;
+    // Shards limit max number of open segments at the time. Messages are ordered within the shard (segment), however,
+    // ordering across shards is not guaranteed. Therefore, for strict ordering (and lower throughput) set shard to 1.
     uint32 shards = 3;
+    // Number of copies of data throughout the cluster.
     uint32 replication_factor = 4;
+    // If retention is specified, segments will be deleted after they fall off retention period. Zero retention means
+    // that segments WON'T be automatically deleted. For segments to be deleted ASAP, use very low retention, i.e. 1 nanosecond.
     google.protobuf.Duration retention = 5 [(gogoproto.nullable) = false, (gogoproto.stdduration) = true];
 }
 
