@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"eventter.io/mq/client"
-	"github.com/gogo/protobuf/proto"
 	"github.com/hashicorp/raft"
 	"github.com/pkg/errors"
 )
@@ -35,10 +34,10 @@ func (s *Server) OpenSegment(ctx context.Context, request *OpenSegmentRequest) (
 	}
 	defer s.releaseTransaction()
 
-	return s.doOpenSegment(s.clusterState.Current(), request.NodeID, request.Topic)
+	return s.txOpenSegment(s.clusterState.Current(), request.NodeID, request.Topic)
 }
 
-func (s *Server) doOpenSegment(state *ClusterState, primaryNodeID uint64, topicName client.NamespaceName) (*OpenSegmentResponse, error) {
+func (s *Server) txOpenSegment(state *ClusterState, primaryNodeID uint64, topicName client.NamespaceName) (*OpenSegmentResponse, error) {
 	node := state.GetNode(primaryNodeID)
 	if node == nil {
 		return nil, errors.Errorf("node %d not found", primaryNodeID)
@@ -98,22 +97,15 @@ func (s *Server) doOpenSegment(state *ClusterState, primaryNodeID uint64, topicN
 		}
 	}
 
-	buf, err := proto.Marshal(&Command{
-		Command: &Command_OpenSegment{
-			OpenSegment: &OpenSegmentCommand{
-				ID:                 segmentID,
-				Topic:              topicName,
-				OpenedAt:           time.Now(),
-				PrimaryNodeID:      primaryNodeID,
-				ReplicatingNodeIDs: replicatingNodeIDs,
-			},
-		},
-	})
-	if err != nil {
-		return nil, err
+	cmd := &OpenSegmentCommand{
+		ID:                 segmentID,
+		Topic:              topicName,
+		OpenedAt:           time.Now(),
+		PrimaryNodeID:      primaryNodeID,
+		ReplicatingNodeIDs: replicatingNodeIDs,
 	}
-
-	if err := s.raftNode.Apply(buf, 0).Error(); err != nil {
+	_, err := s.apply(cmd, applyTimeout)
+	if err != nil {
 		return nil, err
 	}
 

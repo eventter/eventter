@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"eventter.io/mq/client"
-	"github.com/gogo/protobuf/proto"
 	"github.com/hashicorp/raft"
 	"github.com/pkg/errors"
 )
@@ -46,22 +45,13 @@ func (s *Server) ConfigureConsumerGroup(ctx context.Context, request *client.Con
 		}
 	}
 
-	buf, err := proto.Marshal(&Command{
-		Command: &Command_ConfigureConsumerGroup{
-			ConfigureConsumerGroup: request,
-		},
-	})
+	index, err := s.apply(request, applyTimeout)
 	if err != nil {
-		return nil, err
-	}
-
-	future := s.raftNode.Apply(buf, 0)
-	if err := future.Error(); err != nil {
 		return nil, err
 	}
 
 	return &client.ConfigureConsumerGroupResponse{
 		OK:    true,
-		Index: future.Index(),
+		Index: index,
 	}, nil
 }

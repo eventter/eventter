@@ -17,6 +17,7 @@ const (
 	couldNotDialLeaderError = "could not dial leader"
 	entityTopic             = "topic"
 	entityConsumerGroup     = "consumer group"
+	applyTimeout            = 10 * time.Second
 )
 
 var (

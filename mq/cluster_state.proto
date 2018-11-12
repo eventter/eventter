@@ -94,6 +94,11 @@ message UpdateNodeCommand {
     google.protobuf.Timestamp last_seen_alive = 4 [(gogoproto.stdtime) = true];
 }
 
+message UpdateSegmentNodesCommand {
+    uint64 id = 1 [(gogoproto.customname) = "ID"];
+    ClusterSegment.Nodes nodes = 2 [(gogoproto.nullable) = false];
+}
+
 message Command {
     oneof command {
         ConfigureTopicRequest configure_topic = 1;
@@ -103,5 +108,6 @@ message Command {
         OpenSegmentCommand open_segment = 5;
         CloseSegmentCommand close_segment = 6;
         UpdateNodeCommand update_node = 7;
+        UpdateSegmentNodesCommand update_segment_nodes = 8;
     }
 }

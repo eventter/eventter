@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"eventter.io/mq/client"
-	"github.com/gogo/protobuf/proto"
 	"github.com/hashicorp/raft"
 	"github.com/pkg/errors"
 )
@@ -50,22 +49,13 @@ func (s *Server) DeleteConsumerGroup(ctx context.Context, request *client.Delete
 		return nil, errors.New("if unused not implemented")
 	}
 
-	buf, err := proto.Marshal(&Command{
-		Command: &Command_DeleteConsumerGroup{
-			DeleteConsumerGroup: request,
-		},
-	})
+	index, err := s.apply(request, applyTimeout)
 	if err != nil {
-		return nil, err
-	}
-
-	future := s.raftNode.Apply(buf, 0)
-	if err := future.Error(); err != nil {
 		return nil, err
 	}
 
 	return &client.DeleteConsumerGroupResponse{
 		OK:    true,
-		Index: future.Index(),
+		Index: index,
 	}, nil
 }

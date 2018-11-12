@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/gogo/protobuf/proto"
 	"github.com/hashicorp/raft"
 	"github.com/pkg/errors"
 )
@@ -48,23 +47,17 @@ func (s *Server) RotateSegment(ctx context.Context, request *RotateSegmentReques
 			return nil, errors.Errorf("node %d is not primary for segment %d", request.NodeID, request.OldSegmentID)
 		}
 
-		buf, err := proto.Marshal(&Command{
-			Command: &Command_CloseSegment{
-				CloseSegment: &CloseSegmentCommand{
-					ID:         oldSegment.ID,
-					DoneNodeID: request.NodeID,
-					ClosedAt:   time.Now(),
-					Size_:      request.OldSize,
-					Sha1:       request.OldSha1,
-				},
+		cmd := &Command_CloseSegment{
+			CloseSegment: &CloseSegmentCommand{
+				ID:         oldSegment.ID,
+				DoneNodeID: request.NodeID,
+				ClosedAt:   time.Now(),
+				Size_:      request.OldSize,
+				Sha1:       request.OldSha1,
 			},
-		})
-		if err != nil {
-			return nil, err
 		}
-
-		future := s.raftNode.Apply(buf, 0)
-		if err := future.Error(); err != nil {
+		_, err := s.apply(cmd, applyTimeout)
+		if err != nil {
 			return nil, err
 		}
 
@@ -74,5 +67,5 @@ func (s *Server) RotateSegment(ctx context.Context, request *RotateSegmentReques
 		}
 	}
 
-	return s.doOpenSegment(state, request.NodeID, oldSegment.Topic)
+	return s.txOpenSegment(state, request.NodeID, oldSegment.Topic)
 }
