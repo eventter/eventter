@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"eventter.io/mq/client"
-	"eventter.io/mq/msgid"
 	"eventter.io/mq/segmentfile"
 	"github.com/hashicorp/memberlist"
 	"github.com/hashicorp/raft"
@@ -34,7 +33,6 @@ type Server struct {
 	pool             *ClientConnPool
 	clusterState     *ClusterStateStore
 	segmentDir       *segmentfile.Dir
-	idGenerator      msgid.Generator
 	tx               sync.Mutex
 	rng              *rand.Rand
 	publishForwardRR uint32
@@ -46,7 +44,7 @@ var (
 	_ NodeRPCServer           = (*Server)(nil)
 )
 
-func NewServer(nodeID uint64, members *memberlist.Memberlist, raftNode *raft.Raft, pool *ClientConnPool, clusterState *ClusterStateStore, segmentDir *segmentfile.Dir, idGenerator msgid.Generator) *Server {
+func NewServer(nodeID uint64, members *memberlist.Memberlist, raftNode *raft.Raft, pool *ClientConnPool, clusterState *ClusterStateStore, segmentDir *segmentfile.Dir) *Server {
 	return &Server{
 		nodeID:       nodeID,
 		members:      members,
@@ -54,7 +52,6 @@ func NewServer(nodeID uint64, members *memberlist.Memberlist, raftNode *raft.Raf
 		pool:         pool,
 		clusterState: clusterState,
 		segmentDir:   segmentDir,
-		idGenerator:  idGenerator,
 		rng:          rand.New(rand.NewSource(time.Now().UnixNano())),
 		closeC:       make(chan struct{}),
 	}

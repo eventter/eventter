@@ -22,7 +22,6 @@ message OpenSegmentRequest {
     bool leader_only = 99;
     uint64 node_id = 1 [(gogoproto.customname) = "NodeID"];
     NamespaceName topic = 2 [(gogoproto.nullable) = false];
-    bytes first_message_id = 3 [(gogoproto.customname) = "FirstMessageID"];
 }
 
 message OpenSegmentResponse {
@@ -35,10 +34,8 @@ message RotateSegmentRequest {
     bool leader_only = 99;
     uint64 node_id = 1 [(gogoproto.customname) = "NodeID"];
     uint64 old_segment_id = 2 [(gogoproto.customname) = "OldSegmentID"];
-    bytes old_last_message_id = 3 [(gogoproto.customname) = "OldLastMessageID"];
-    uint64 old_size = 4;
-    bytes old_sha1 = 5;
-    bytes new_first_message_id = 6 [(gogoproto.customname) = "NewFirstMessageID"];
+    uint64 old_size = 3;
+    bytes old_sha1 = 4;
 }
 
 service NodeRPC {

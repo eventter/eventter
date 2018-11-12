@@ -23,7 +23,6 @@ func (s *Server) Publish(ctx context.Context, request *client.PublishRequest) (*
 	}
 
 	var (
-		localMessageID = s.idGenerator.New()
 		localSegmentID uint64
 		forwardNodeID  uint64
 	)
@@ -46,9 +45,8 @@ func (s *Server) Publish(ctx context.Context, request *client.PublishRequest) (*
 
 		} else {
 			response, err := s.OpenSegment(ctx, &OpenSegmentRequest{
-				NodeID:         s.nodeID,
-				Topic:          request.Topic,
-				FirstMessageID: localMessageID.Bytes(),
+				NodeID: s.nodeID,
+				Topic:  request.Topic,
 			})
 			if err != nil {
 				return nil, err
@@ -71,36 +69,17 @@ WRITE:
 		}
 		defer s.segmentDir.Release(segment)
 
-		err = segment.Write(localMessageID, &request.Message)
-		if err == segmentfile.ErrReadOnly {
-			response, err := s.OpenSegment(ctx, &OpenSegmentRequest{
-				NodeID:         s.nodeID,
-				Topic:          request.Topic,
-				FirstMessageID: localMessageID.Bytes(),
-			})
-			if err != nil {
-				return nil, err
-			}
-
-			if response.PrimaryNodeID != s.nodeID {
-				forwardNodeID = response.PrimaryNodeID
-				goto FORWARD
-			}
-
-			localSegmentID = response.SegmentID
-			goto WRITE
-
-		} else if err == segmentfile.ErrFull {
-			sha1, size, lastMessageID, err := segment.Complete()
+		err = segment.Write(&request.Message)
+		if err == segmentfile.ErrFull {
+			sha1, size, err := segment.Complete()
 			if err != nil {
 				return nil, err
 			}
 			response, err := s.RotateSegment(ctx, &RotateSegmentRequest{
-				NodeID:           s.nodeID,
-				OldSegmentID:     localSegmentID,
-				OldLastMessageID: lastMessageID.Bytes(),
-				OldSize:          uint64(size),
-				OldSha1:          sha1,
+				NodeID:       s.nodeID,
+				OldSegmentID: localSegmentID,
+				OldSize:      uint64(size),
+				OldSha1:      sha1,
 			})
 			if err != nil {
 				return nil, err
@@ -119,8 +98,7 @@ WRITE:
 		}
 
 		return &client.PublishResponse{
-			OK:        true,
-			MessageID: localMessageID.Bytes(),
+			OK: true,
 		}, nil
 	}
 

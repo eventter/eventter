@@ -51,11 +51,11 @@ func (s *Server) RotateSegment(ctx context.Context, request *RotateSegmentReques
 		buf, err := proto.Marshal(&Command{
 			Command: &Command_CloseSegment{
 				CloseSegment: &CloseSegmentCommand{
-					ID:            oldSegment.ID,
-					DoneNodeID:    request.NodeID,
-					LastMessageID: request.OldLastMessageID,
-					Size_:         request.OldSize,
-					Sha1:          request.OldSha1,
+					ID:         oldSegment.ID,
+					DoneNodeID: request.NodeID,
+					ClosedAt:   time.Now(),
+					Size_:      request.OldSize,
+					Sha1:       request.OldSha1,
 				},
 			},
 		})
@@ -74,5 +74,5 @@ func (s *Server) RotateSegment(ctx context.Context, request *RotateSegmentReques
 		}
 	}
 
-	return s.doOpenSegment(state, request.NodeID, oldSegment.Topic, request.NewFirstMessageID)
+	return s.doOpenSegment(state, request.NodeID, oldSegment.Topic)
 }

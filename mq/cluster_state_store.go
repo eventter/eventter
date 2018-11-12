@@ -317,9 +317,9 @@ func (s *ClusterStateStore) doOpenSegment(state *ClusterState, cmd *OpenSegmentC
 	nextState.OpenSegments = make([]*ClusterSegment, len(state.OpenSegments)+1)
 	copy(nextState.OpenSegments, state.OpenSegments)
 	nextState.OpenSegments[len(state.OpenSegments)] = &ClusterSegment{
-		ID:             cmd.ID,
-		Topic:          cmd.Topic,
-		FirstMessageID: cmd.FirstMessageID,
+		ID:       cmd.ID,
+		Topic:    cmd.Topic,
+		OpenedAt: cmd.OpenedAt,
 		Nodes: ClusterSegment_Nodes{
 			PrimaryNodeID:      cmd.PrimaryNodeID,
 			ReplicatingNodeIDs: cmd.ReplicatingNodeIDs,
@@ -360,7 +360,7 @@ func (s *ClusterStateStore) doCloseSegment(state *ClusterState, cmd *CloseSegmen
 	copy(nextState.ClosedSegments, state.ClosedSegments)
 	nextState.ClosedSegments[len(state.ClosedSegments)] = nextSegment
 
-	nextSegment.LastMessageID = cmd.LastMessageID
+	nextSegment.ClosedAt = cmd.ClosedAt
 	nextSegment.Size_ = cmd.Size_
 	nextSegment.Sha1 = cmd.Sha1
 	nextSegment.Nodes.PrimaryNodeID = 0

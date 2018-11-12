@@ -2,6 +2,7 @@ package mq
 
 import (
 	"context"
+	"time"
 
 	"eventter.io/mq/client"
 	"github.com/gogo/protobuf/proto"
@@ -34,10 +35,10 @@ func (s *Server) OpenSegment(ctx context.Context, request *OpenSegmentRequest) (
 	}
 	defer s.releaseTransaction()
 
-	return s.doOpenSegment(s.clusterState.Current(), request.NodeID, request.Topic, request.FirstMessageID)
+	return s.doOpenSegment(s.clusterState.Current(), request.NodeID, request.Topic)
 }
 
-func (s *Server) doOpenSegment(state *ClusterState, primaryNodeID uint64, topicName client.NamespaceName, firstMessageID []byte) (*OpenSegmentResponse, error) {
+func (s *Server) doOpenSegment(state *ClusterState, primaryNodeID uint64, topicName client.NamespaceName) (*OpenSegmentResponse, error) {
 	node := state.GetNode(primaryNodeID)
 	if node == nil {
 		return nil, errors.Errorf("node %d not found", primaryNodeID)
@@ -102,7 +103,7 @@ func (s *Server) doOpenSegment(state *ClusterState, primaryNodeID uint64, topicN
 			OpenSegment: &OpenSegmentCommand{
 				ID:                 segmentID,
 				Topic:              topicName,
-				FirstMessageID:     firstMessageID,
+				OpenedAt:           time.Now(),
 				PrimaryNodeID:      primaryNodeID,
 				ReplicatingNodeIDs: replicatingNodeIDs,
 			},

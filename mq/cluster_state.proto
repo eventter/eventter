@@ -46,8 +46,8 @@ message ClusterConsumerGroup {
 message ClusterSegment {
     uint64 id = 1 [(gogoproto.customname) = "ID"];
     NamespaceName topic = 2 [(gogoproto.nullable) = false];
-    bytes first_message_id = 3 [(gogoproto.customname) = "FirstMessageID"];
-    bytes last_message_id = 4 [(gogoproto.customname) = "LastMessageID"];
+    google.protobuf.Timestamp opened_at = 3 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
+    google.protobuf.Timestamp closed_at = 4 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
     Nodes nodes = 5 [(gogoproto.nullable) = false];
     uint64 size = 6;
     bytes sha1 = 7;
@@ -74,7 +74,7 @@ message ClusterNode {
 message OpenSegmentCommand {
     uint64 id = 1 [(gogoproto.customname) = "ID"];
     NamespaceName topic = 2 [(gogoproto.nullable) = false];
-    bytes first_message_id = 3 [(gogoproto.customname) = "FirstMessageID"];
+    google.protobuf.Timestamp opened_at = 3 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
     uint64 primary_node_id = 4 [(gogoproto.customname) = "PrimaryNodeID"];
     repeated uint64 replicating_node_ids = 5 [(gogoproto.customname) = "ReplicatingNodeIDs"];
 }
@@ -82,7 +82,7 @@ message OpenSegmentCommand {
 message CloseSegmentCommand {
     uint64 id = 1 [(gogoproto.customname) = "ID"];
     uint64 done_node_id = 2 [(gogoproto.customname) = "DoneNodeID"];
-    bytes last_message_id = 4 [(gogoproto.customname) = "LastMessageID"];
+    google.protobuf.Timestamp closed_at = 4 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
     uint64 size = 5;
     bytes sha1 = 6;
 }

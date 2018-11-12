@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"log"
-	"math/rand"
 	"net"
 	"os"
 	"os/signal"
@@ -14,7 +13,6 @@ import (
 
 	"eventter.io/mq"
 	"eventter.io/mq/client"
-	"eventter.io/mq/msgid"
 	"eventter.io/mq/segmentfile"
 	"github.com/bbva/raft-badger"
 	"github.com/hashicorp/memberlist"
@@ -118,8 +116,6 @@ func rootCmd() *cobra.Command {
 			}
 			defer segmentDir.Close()
 
-			idGenerator := msgid.NewGenerator(msgid.NewStdTimeSource(), rand.NewSource(time.Now().UnixNano()))
-
 			listConfig := memberlist.DefaultLANConfig()
 			listConfig.Name = nodeName
 			listConfig.Transport = discoveryTransport
@@ -133,7 +129,7 @@ func rootCmd() *cobra.Command {
 			}
 			defer members.Shutdown()
 
-			server := mq.NewServer(rootConfig.ID, members, raftNode, clientPool, clusterState, segmentDir, idGenerator)
+			server := mq.NewServer(rootConfig.ID, members, raftNode, clientPool, clusterState, segmentDir)
 			go server.Loop(memberEventC)
 			defer server.Close()
 

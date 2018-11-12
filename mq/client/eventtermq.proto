@@ -151,7 +151,6 @@ message PublishRequest {
 
 message PublishResponse {
     bool ok = 1 [(gogoproto.customname) = "OK"];
-    bytes message_id = 2 [(gogoproto.customname) = "MessageID"];
 }
 
 message ConsumeRequest {

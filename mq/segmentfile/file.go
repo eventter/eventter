@@ -3,21 +3,19 @@ package segmentfile
 import (
 	"crypto/sha1"
 	"encoding/binary"
-	"encoding/hex"
 	"fmt"
+	"hash/crc32"
 	"io"
 	"os"
 	"sync"
 
-	"eventter.io/mq/msgid"
 	"github.com/gogo/protobuf/proto"
 	"github.com/pkg/errors"
 )
 
 var (
-	ErrFull     = errors.New("segment is full")
-	ErrReadOnly = errors.New("segment is read only")
-	Encoding    = binary.LittleEndian
+	ErrFull  = errors.New("segment is full")
+	Encoding = binary.LittleEndian
 )
 
 const (
@@ -26,18 +24,16 @@ const (
 )
 
 type File struct {
-	id            uint64
-	path          string
-	maxSize       int64
-	readOnly      bool
-	offset        int64
-	lastMessageID msgid.ID
-	file          *os.File
-	mutex         sync.Mutex
+	id      uint64
+	path    string
+	maxSize int64
+	offset  int64
+	file    *os.File
+	mutex   sync.Mutex
 }
 
 func NewFile(id uint64, path string, filePerm os.FileMode, maxSize int64) (f *File, err error) {
-	file, err := os.OpenFile(path+dataFileSuffix, os.O_CREATE|os.O_RDWR, filePerm)
+	file, err := os.OpenFile(path+dataFileSuffix, os.O_CREATE|os.O_RDWR|os.O_APPEND|openSync, filePerm)
 	if err != nil {
 		return nil, errors.Wrap(err, "open failed")
 	}
@@ -47,17 +43,6 @@ func NewFile(id uint64, path string, filePerm os.FileMode, maxSize int64) (f *Fi
 		}
 	}()
 
-	_, err = os.Stat(path + indexFileSuffix)
-	var (
-		readOnly      bool
-		lastMessageID msgid.ID
-	)
-	if os.IsNotExist(err) {
-		readOnly = false
-	} else {
-		readOnly = true
-	}
-
 	stat, err := file.Stat()
 	if err != nil {
 		return nil, err
@@ -65,7 +50,7 @@ func NewFile(id uint64, path string, filePerm os.FileMode, maxSize int64) (f *Fi
 
 	offset := stat.Size()
 	var i int64 = 0
-	buf := make([]byte, 4+msgid.Size)
+	buf := make([]byte, 4+4)
 	for i < offset {
 		if _, err := file.Seek(i, io.SeekStart); err != nil {
 			return nil, err
@@ -77,28 +62,21 @@ func NewFile(id uint64, path string, filePerm os.FileMode, maxSize int64) (f *Fi
 		}
 
 		messageSize := Encoding.Uint32(buf[0:4])
-		lastMessageID.FromBytes(buf[4:])
 		i += 4 + int64(messageSize)
 	}
 
 	return &File{
-		id:            id,
-		path:          path,
-		file:          file,
-		maxSize:       maxSize,
-		readOnly:      readOnly,
-		offset:        offset,
-		lastMessageID: lastMessageID,
+		id:      id,
+		path:    path,
+		file:    file,
+		maxSize: maxSize,
+		offset:  offset,
 	}, nil
 }
 
-func (f *File) Write(id msgid.ID, message proto.Message) error {
+func (f *File) Write(message proto.Message) error {
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
-
-	if f.readOnly {
-		return ErrReadOnly
-	}
 
 	currentOffset := f.offset
 	if currentOffset > f.maxSize {
@@ -110,36 +88,34 @@ func (f *File) Write(id msgid.ID, message proto.Message) error {
 		return err
 	}
 
-	// TODO: checksum
-	buf := make([]byte, 4+msgid.Size+len(messageBuf))
-	Encoding.PutUint32(buf[0:4], uint32(msgid.Size+len(messageBuf)))
-	copy(buf[4:4+msgid.Size], id.Bytes())
-	copy(buf[4+msgid.Size:], messageBuf)
+	buf := make([]byte, 4+4+len(messageBuf))
+	Encoding.PutUint32(buf[0:4], uint32(4+len(messageBuf)))
+	Encoding.PutUint32(buf[4:8], crc32.ChecksumIEEE(messageBuf))
+	copy(buf[8:], messageBuf)
 
-	if _, err := f.file.WriteAt(buf, currentOffset); err != nil {
+	if _, err := f.file.Write(buf); err != nil {
 		return err
 	}
 
 	f.offset += int64(len(buf))
-	f.lastMessageID = id
 
 	return nil
 }
 
-func (f *File) Complete() (sha1Sum []byte, size int64, lastMessageID msgid.ID, err error) {
+func (f *File) Complete() (sha1Sum []byte, size int64, err error) {
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
 
 	if _, err := f.file.Seek(0, io.SeekStart); err != nil {
-		return nil, 0, msgid.ID{}, err
+		return nil, 0, err
 	}
 
 	h := sha1.New()
 	if _, err := io.Copy(h, f.file); err != nil {
-		return nil, 0, msgid.ID{}, err
+		return nil, 0, err
 	}
 
-	return h.Sum(nil), f.offset, f.lastMessageID, nil
+	return h.Sum(nil), f.offset, nil
 }
 
 func (f *File) String() string {
@@ -147,13 +123,11 @@ func (f *File) String() string {
 	defer f.mutex.Unlock()
 
 	return fmt.Sprintf(
-		"segment %d: path=%s maxSize=%d readOnly=%t offset=%d lastMessageID=%s",
+		"segment %d: path=%s maxSize=%d offset=%d",
 		f.id,
 		f.path,
 		f.maxSize,
-		f.readOnly,
 		f.offset,
-		hex.EncodeToString(f.lastMessageID.Bytes()),
 	)
 }
 
