@@ -74,7 +74,6 @@ message ConfigureConsumerGroupRequest {
     bool leader_only = 99;
     NamespaceName consumer_group = 1 [(gogoproto.nullable) = false];
     repeated Binding bindings = 2;
-    uint32 shards = 3;
 
     message Binding {
         string topic_name = 1;

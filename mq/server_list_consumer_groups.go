@@ -52,7 +52,6 @@ func (s *Server) ListConsumerGroups(ctx context.Context, request *client.ListCon
 				Name:      cg.Name,
 			},
 			Bindings: bindings,
-			Shards:   cg.Shards,
 		})
 	}
 

@@ -150,10 +150,6 @@ func (r *ConfigureConsumerGroupRequest) Validate() error {
 		errs = append(errs, errors.Errorf(stringLengthErrorFormat, "consumer group name", nameMaxLength))
 	}
 
-	if r.Shards < 1 {
-		errs = append(errs, errors.Errorf(positiveErrorFormat, "shards"))
-	}
-
 	if len(errs) > 0 {
 		return &RequestValidationError{errs}
 	}

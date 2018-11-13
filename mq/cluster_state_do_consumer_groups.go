@@ -67,7 +67,6 @@ func (s *ClusterState) doConfigureConsumerGroup(cmd *client.ConfigureConsumerGro
 	}
 
 	nextConsumerGroup.Bindings = bindings
-	nextConsumerGroup.Shards = cmd.Shards
 
 	return next
 }
