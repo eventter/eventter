@@ -4,7 +4,6 @@ import (
 	"crypto/sha1"
 	"encoding/binary"
 	"fmt"
-	"hash/crc32"
 	"io"
 	"os"
 	"sync"
@@ -21,6 +20,7 @@ var (
 const (
 	dataFileSuffix  = ".seg"
 	indexFileSuffix = ".ind"
+	version         = 1
 )
 
 type File struct {
@@ -45,24 +45,58 @@ func NewFile(id uint64, path string, filePerm os.FileMode, maxSize int64) (f *Fi
 
 	stat, err := file.Stat()
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "stat failed")
 	}
 
-	offset := stat.Size()
-	var i int64 = 0
-	buf := make([]byte, 4+4)
-	for i < offset {
-		if _, err := file.Seek(i, io.SeekStart); err != nil {
-			return nil, err
+	offset := int64(1)
+	size := stat.Size()
+
+	if size == 0 {
+		if _, err := file.Write([]byte{version}); err != nil {
+			return nil, errors.Wrap(err, "write version failed")
 		}
 
-		_, err := io.ReadFull(file, buf)
-		if err != nil {
-			return nil, err
+	} else {
+		buf := make([]byte, binary.MaxVarintLen64)
+
+		if n, err := file.Read(buf[:1]); err != nil {
+			return nil, errors.Wrap(err, "read version failed")
+		} else if n == 0 {
+			return nil, errors.New("read version failed")
 		}
 
-		messageSize := Encoding.Uint32(buf[0:4])
-		i += 4 + int64(messageSize)
+		if buf[0] != version {
+			return nil, errors.Errorf("bad version: %d", buf[0])
+		}
+
+		for offset < size {
+			if _, err := file.Seek(offset, io.SeekStart); err != nil {
+				return nil, errors.Wrap(err, "seek failed")
+			}
+
+			n, err := file.Read(buf)
+			if err != nil {
+				return nil, errors.Wrap(err, "read failed")
+			}
+
+			buf = buf[:n]
+
+			messageSize, n := binary.Uvarint(buf)
+			if n == 0 {
+				return nil, errors.Errorf("wrong message size at offset %d", offset)
+			}
+
+			increment := int64(n) + int64(messageSize)
+
+			if offset+increment > size {
+				if err := file.Truncate(offset); err != nil {
+					return nil, errors.Wrap(err, "truncate failed")
+				}
+				break
+			}
+
+			offset += increment
+		}
 	}
 
 	return &File{
@@ -88,13 +122,16 @@ func (f *File) Write(message proto.Message) error {
 		return err
 	}
 
-	buf := make([]byte, 4+4+len(messageBuf))
-	Encoding.PutUint32(buf[0:4], uint32(4+len(messageBuf)))
-	Encoding.PutUint32(buf[4:8], crc32.ChecksumIEEE(messageBuf))
-	copy(buf[8:], messageBuf)
+	buf := make([]byte, binary.MaxVarintLen64+len(messageBuf)) // TODO: buffer pooling
+	n := binary.PutUvarint(buf, uint64(len(messageBuf)))
+	copy(buf[n:], messageBuf)
+	buf = buf[:n+len(messageBuf)]
 
-	if _, err := f.file.Write(buf); err != nil {
-		return err
+	if n, err := f.file.Write(buf); err != nil || n < len(buf) {
+		if err := f.file.Truncate(f.offset); err != nil {
+			panic("segment file " + f.path + " might be corrupted, truncate failed: " + err.Error())
+		}
+		return errors.Wrap(err, "write failed")
 	}
 
 	f.offset += int64(len(buf))
