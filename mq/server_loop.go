@@ -61,7 +61,7 @@ LOOP:
 
 			state = newState
 
-			// TODO: create / cancel node tasks, e.g. replication
+			// TODO: create / cancel node tasks, e.g. segment replication
 
 		case ev := <-memberEventsC:
 			if !isLeader {

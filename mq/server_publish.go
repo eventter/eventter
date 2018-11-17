@@ -8,6 +8,7 @@ import (
 
 	"eventter.io/mq/client"
 	"eventter.io/mq/segmentfile"
+	"github.com/gogo/protobuf/proto"
 	"github.com/pkg/errors"
 )
 
@@ -70,7 +71,12 @@ WRITE:
 		}
 		defer s.segmentDir.Release(segment)
 
-		err = segment.Write(&request.Message)
+		buf, err := proto.Marshal(&request.Message)
+		if err != nil {
+			return nil, err
+		}
+
+		err = segment.Write(buf)
 		if err == segmentfile.ErrFull {
 			sha1Sum, size, err := segment.Sum(sha1.New())
 			if err != nil {

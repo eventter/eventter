@@ -8,8 +8,6 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-
-	"eventter.io/mq/client"
 )
 
 func TestOpen(t *testing.T) {
@@ -53,20 +51,14 @@ func TestFile_Write(t *testing.T) {
 	}
 	defer f.Close()
 
-	writeMessage := &client.Message{
-		RoutingKey: "foo",
-		Data:       []byte("bar"),
-	}
-
-	if err := f.Write(writeMessage); err != nil {
+	if err := f.Write([]byte("bar")); err != nil {
 		t.Error(err)
 	}
 
 	iterator := f.Read(false)
-	readMessage := &client.Message{}
 	messagesRead := 0
 	for {
-		err := iterator.Next(readMessage)
+		message, _, err := iterator.Next()
 		if err == io.EOF {
 			break
 		} else if err != nil {
@@ -75,12 +67,8 @@ func TestFile_Write(t *testing.T) {
 
 		messagesRead++
 
-		if readMessage.RoutingKey != writeMessage.RoutingKey {
-			t.Errorf("wrong routing key read")
-		}
-
-		if string(readMessage.Data) != string(writeMessage.Data) {
-			t.Errorf("wrong data read")
+		if string(message) != "bar" {
+			t.Errorf("wrong message read")
 		}
 	}
 
@@ -102,11 +90,7 @@ func TestFile_Sum(t *testing.T) {
 	}
 	defer f.Close()
 
-	msg := &client.Message{
-		Data: []byte("hello, world"),
-	}
-
-	if err := f.Write(msg); err != nil {
+	if err := f.Write([]byte("hello, world")); err != nil {
 		t.Error(err)
 	}
 
@@ -115,12 +99,12 @@ func TestFile_Sum(t *testing.T) {
 		t.Error(err)
 	}
 
-	expectedSum := "a11f718b31266ab02933b324ee457713b29545b8"
+	expectedSum := "841cd25736208650f307bb48d90f9b9a493fe842"
 	if gotSum := hex.EncodeToString(sum); gotSum != expectedSum {
 		t.Errorf("sha1 sum expected: %s, got: %s", expectedSum, gotSum)
 	}
 
-	expectedSize := int64(16)
+	expectedSize := int64(14)
 	if size != expectedSize {
 		t.Errorf("size expected: %d, got: %d", expectedSize, size)
 	}

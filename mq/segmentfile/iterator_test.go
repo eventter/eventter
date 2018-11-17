@@ -8,8 +8,6 @@ import (
 	"strconv"
 	"testing"
 	"time"
-
-	"eventter.io/mq/client"
 )
 
 func TestIterator_Next_NoWait(t *testing.T) {
@@ -25,13 +23,11 @@ func TestIterator_Next_NoWait(t *testing.T) {
 	}
 	defer f.Close()
 
-	msg := &client.Message{}
-
 	// write 10 messages
+	offsets := make([]int64, 11)
 	for i := 1; i <= 10; i++ {
-		msg.Reset()
-		msg.Data = []byte(strconv.Itoa(i))
-		if err := f.Write(msg); err != nil {
+		offsets[i] = f.offset
+		if err := f.Write([]byte(strconv.Itoa(i))); err != nil {
 			t.Error(err)
 		}
 	}
@@ -40,7 +36,7 @@ func TestIterator_Next_NoWait(t *testing.T) {
 	iterator := f.Read(false)
 	n := 0
 	for i := 1; ; i++ {
-		err := iterator.Next(msg)
+		message, offset, err := iterator.Next()
 		if err == io.EOF {
 			break
 		} else if err != nil {
@@ -49,8 +45,12 @@ func TestIterator_Next_NoWait(t *testing.T) {
 
 		n++
 
-		if got := string(msg.Data); strconv.Itoa(i) != got {
+		if got := string(message); strconv.Itoa(i) != got {
 			t.Errorf("expected: %d, got: %s", i, got)
+		}
+
+		if offset != offsets[i] {
+			t.Errorf("offset - expected: %d, got: %d", offsets[i], offset)
 		}
 	}
 
@@ -60,9 +60,7 @@ func TestIterator_Next_NoWait(t *testing.T) {
 
 	// write another 10 messages
 	for i := 11; i <= 20; i++ {
-		msg.Reset()
-		msg.Data = []byte(strconv.Itoa(i))
-		if err := f.Write(msg); err != nil {
+		if err := f.Write([]byte(strconv.Itoa(i))); err != nil {
 			t.Error(err)
 		}
 	}
@@ -71,7 +69,7 @@ func TestIterator_Next_NoWait(t *testing.T) {
 	iterator = f.Read(false)
 	n = 0
 	for i := 1; ; i++ {
-		err := iterator.Next(msg)
+		message, _, err := iterator.Next()
 		if err == io.EOF {
 			break
 		} else if err != nil {
@@ -80,7 +78,7 @@ func TestIterator_Next_NoWait(t *testing.T) {
 
 		n++
 
-		if got := string(msg.Data); strconv.Itoa(i) != got {
+		if got := string(message); strconv.Itoa(i) != got {
 			t.Errorf("expected: %d, got: %s", i, got)
 		}
 	}
@@ -103,13 +101,16 @@ func TestIterator_Next_Wait(t *testing.T) {
 	}
 	defer f.Close()
 
+	expectedN := 284
+	offsets := make([]int64, expectedN+1)
+
 	go func() {
 		time.Sleep(1 * time.Millisecond)
 
 		// write until full
 		for i := 1; ; i++ {
-			msg := &client.Message{Data: []byte(strconv.Itoa(i))}
-			err := f.Write(msg)
+			offsets[i] = f.offset
+			err := f.Write([]byte(strconv.Itoa(i)))
 			if err == ErrFull {
 				break
 			} else if err != nil {
@@ -118,26 +119,65 @@ func TestIterator_Next_Wait(t *testing.T) {
 		}
 	}()
 
-	msg := &client.Message{}
-
 	iterator := f.Read(true)
 	n := 1
 	for {
-		err := iterator.Next(msg)
+		message, offset, err := iterator.Next()
 		if err == io.EOF {
 			break
 		} else if err != nil {
 			t.Error(err)
 		}
 
-		if got := string(msg.Data); strconv.Itoa(n) != got {
+		if got := string(message); strconv.Itoa(n) != got {
 			t.Errorf("expected: %d, got: %s", n, got)
+		}
+
+		if offset != offsets[n] {
+			t.Errorf("expected offset: %d, got: %d", offsets[n], offset)
 		}
 
 		n++
 	}
 
-	expectedN := 190
+	if n != expectedN {
+		t.Errorf("expected to read %d messages, got %d", expectedN, n)
+	}
+}
+
+func TestIterator_Close(t *testing.T) {
+	tmpDir, err := ioutil.TempDir("", "")
+	if err != nil {
+		t.Error(err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	f, err := Open(filepath.Join(tmpDir, t.Name()), 0644, 1024)
+	if err != nil {
+		t.Error(err)
+	}
+	defer f.Close()
+
+	iterator := f.Read(true)
+
+	go func() {
+		time.Sleep(1 * time.Millisecond)
+		iterator.Close()
+	}()
+
+	n := 0
+	for {
+		_, _, err := iterator.Next()
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			t.Error(err)
+		}
+
+		n++
+	}
+
+	expectedN := 0
 	if n != expectedN {
 		t.Errorf("expected to read %d messages, got %d", expectedN, n)
 	}

@@ -10,7 +10,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gogo/protobuf/proto"
 	"github.com/pkg/errors"
 )
 
@@ -88,7 +87,7 @@ func Open(path string, filePerm os.FileMode, maxSize int64) (f *File, err error)
 
 			messageSize, n := binary.Uvarint(buf)
 			if n == 0 {
-				return nil, errors.Errorf("wrong message size at offset %d", offset)
+				return nil, errors.Errorf("wrong message size at endOffset %d", offset)
 			}
 
 			increment := int64(n) + int64(messageSize)
@@ -116,7 +115,7 @@ func Open(path string, filePerm os.FileMode, maxSize int64) (f *File, err error)
 	return f, nil
 }
 
-func (f *File) Write(message proto.Message) error {
+func (f *File) Write(message []byte) error {
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
 
@@ -125,15 +124,10 @@ func (f *File) Write(message proto.Message) error {
 		return ErrFull
 	}
 
-	messageBuf, err := proto.Marshal(message)
-	if err != nil {
-		return err
-	}
-
-	buf := make([]byte, binary.MaxVarintLen64+len(messageBuf)) // TODO: buffer pooling
-	n := binary.PutUvarint(buf, uint64(len(messageBuf)))
-	copy(buf[n:], messageBuf)
-	buf = buf[:n+len(messageBuf)]
+	buf := make([]byte, binary.MaxVarintLen64+len(message)) // TODO: buffer pooling
+	n := binary.PutUvarint(buf, uint64(len(message)))
+	copy(buf[n:], message)
+	buf = buf[:n+len(message)]
 
 	if n, err := f.file.Write(buf); err != nil || n < len(buf) {
 		if err := f.file.Truncate(f.offset); err != nil {
@@ -161,14 +155,19 @@ func (f *File) Read(wait bool) *Iterator {
 }
 
 func (f *File) ReadAt(offset int64, wait bool) *Iterator {
+	if offset < 1 {
+		panic("offset must be positive")
+	}
+
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
 
 	return &Iterator{
-		file:   f,
-		offset: f.offset,
-		wait:   wait,
-		reader: bufio.NewReader(io.NewSectionReader(f.file, offset, f.offset-offset)),
+		file:      f,
+		offset:    offset,
+		endOffset: f.offset,
+		wait:      wait,
+		reader:    bufio.NewReader(io.NewSectionReader(f.file, offset, f.offset-offset)),
 	}
 }
 
@@ -189,7 +188,7 @@ func (f *File) String() string {
 	defer f.mutex.Unlock()
 
 	return fmt.Sprintf(
-		"segment %d: path=%s maxSize=%d offset=%d",
+		"segment %d: path=%s maxSize=%d endOffset=%d",
 		f.id,
 		f.path,
 		f.maxSize,

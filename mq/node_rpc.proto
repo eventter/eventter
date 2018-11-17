@@ -46,9 +46,23 @@ message SegmentGetSizeResponse {
     int64 size = 1;
 }
 
+message SegmentReadRequest {
+    uint64 segment_id = 1 [(gogoproto.customname) = "SegmentID"];
+    int64 offset = 2;
+    // If true, will wait for more messages.
+    bool wait = 3;
+}
+
+message SegmentReadResponse {
+    uint64 segment_id = 1 [(gogoproto.customname) = "SegmentID"];
+    int64 offset = 2;
+    bytes data = 3;
+}
+
 service NodeRPC {
     rpc Debug (DebugRequest) returns (DebugResponse);
     rpc SegmentOpen (SegmentOpenRequest) returns (SegmentOpenResponse);
     rpc SegmentRotate (SegmentRotateRequest) returns (SegmentOpenResponse);
     rpc SegmentGetSize (SegmentGetSizeRequest) returns (SegmentGetSizeResponse);
+    rpc SegmentRead (SegmentReadRequest) returns (stream SegmentReadResponse);
 }

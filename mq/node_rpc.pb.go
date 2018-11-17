@@ -34,7 +34,7 @@ func (m *DebugRequest) Reset()         { *m = DebugRequest{} }
 func (m *DebugRequest) String() string { return proto.CompactTextString(m) }
 func (*DebugRequest) ProtoMessage()    {}
 func (*DebugRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_node_rpc_b325ee32d6c319d8, []int{0}
+	return fileDescriptor_node_rpc_67fb6f8c05c695c2, []int{0}
 }
 func (m *DebugRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -76,7 +76,7 @@ func (m *DebugResponse) Reset()         { *m = DebugResponse{} }
 func (m *DebugResponse) String() string { return proto.CompactTextString(m) }
 func (*DebugResponse) ProtoMessage()    {}
 func (*DebugResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_node_rpc_b325ee32d6c319d8, []int{1}
+	return fileDescriptor_node_rpc_67fb6f8c05c695c2, []int{1}
 }
 func (m *DebugResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -132,7 +132,7 @@ func (m *SegmentOpenRequest) Reset()         { *m = SegmentOpenRequest{} }
 func (m *SegmentOpenRequest) String() string { return proto.CompactTextString(m) }
 func (*SegmentOpenRequest) ProtoMessage()    {}
 func (*SegmentOpenRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_node_rpc_b325ee32d6c319d8, []int{2}
+	return fileDescriptor_node_rpc_67fb6f8c05c695c2, []int{2}
 }
 func (m *SegmentOpenRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -193,7 +193,7 @@ func (m *SegmentOpenResponse) Reset()         { *m = SegmentOpenResponse{} }
 func (m *SegmentOpenResponse) String() string { return proto.CompactTextString(m) }
 func (*SegmentOpenResponse) ProtoMessage()    {}
 func (*SegmentOpenResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_node_rpc_b325ee32d6c319d8, []int{3}
+	return fileDescriptor_node_rpc_67fb6f8c05c695c2, []int{3}
 }
 func (m *SegmentOpenResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -251,7 +251,7 @@ func (m *SegmentRotateRequest) Reset()         { *m = SegmentRotateRequest{} }
 func (m *SegmentRotateRequest) String() string { return proto.CompactTextString(m) }
 func (*SegmentRotateRequest) ProtoMessage()    {}
 func (*SegmentRotateRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_node_rpc_b325ee32d6c319d8, []int{4}
+	return fileDescriptor_node_rpc_67fb6f8c05c695c2, []int{4}
 }
 func (m *SegmentRotateRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -325,7 +325,7 @@ func (m *SegmentGetSizeRequest) Reset()         { *m = SegmentGetSizeRequest{} }
 func (m *SegmentGetSizeRequest) String() string { return proto.CompactTextString(m) }
 func (*SegmentGetSizeRequest) ProtoMessage()    {}
 func (*SegmentGetSizeRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_node_rpc_b325ee32d6c319d8, []int{5}
+	return fileDescriptor_node_rpc_67fb6f8c05c695c2, []int{5}
 }
 func (m *SegmentGetSizeRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -371,7 +371,7 @@ func (m *SegmentGetSizeResponse) Reset()         { *m = SegmentGetSizeResponse{}
 func (m *SegmentGetSizeResponse) String() string { return proto.CompactTextString(m) }
 func (*SegmentGetSizeResponse) ProtoMessage()    {}
 func (*SegmentGetSizeResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_node_rpc_b325ee32d6c319d8, []int{6}
+	return fileDescriptor_node_rpc_67fb6f8c05c695c2, []int{6}
 }
 func (m *SegmentGetSizeResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -407,6 +407,131 @@ func (m *SegmentGetSizeResponse) GetSize_() int64 {
 	return 0
 }
 
+type SegmentReadRequest struct {
+	SegmentID uint64 `protobuf:"varint,1,opt,name=segment_id,json=segmentId,proto3" json:"segment_id,omitempty"`
+	Offset    int64  `protobuf:"varint,2,opt,name=offset,proto3" json:"offset,omitempty"`
+	// If true, will wait for more messages.
+	Wait                 bool     `protobuf:"varint,3,opt,name=wait,proto3" json:"wait,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *SegmentReadRequest) Reset()         { *m = SegmentReadRequest{} }
+func (m *SegmentReadRequest) String() string { return proto.CompactTextString(m) }
+func (*SegmentReadRequest) ProtoMessage()    {}
+func (*SegmentReadRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_node_rpc_67fb6f8c05c695c2, []int{7}
+}
+func (m *SegmentReadRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *SegmentReadRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_SegmentReadRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (dst *SegmentReadRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SegmentReadRequest.Merge(dst, src)
+}
+func (m *SegmentReadRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *SegmentReadRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_SegmentReadRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SegmentReadRequest proto.InternalMessageInfo
+
+func (m *SegmentReadRequest) GetSegmentID() uint64 {
+	if m != nil {
+		return m.SegmentID
+	}
+	return 0
+}
+
+func (m *SegmentReadRequest) GetOffset() int64 {
+	if m != nil {
+		return m.Offset
+	}
+	return 0
+}
+
+func (m *SegmentReadRequest) GetWait() bool {
+	if m != nil {
+		return m.Wait
+	}
+	return false
+}
+
+type SegmentReadResponse struct {
+	SegmentID            uint64   `protobuf:"varint,1,opt,name=segment_id,json=segmentId,proto3" json:"segment_id,omitempty"`
+	Offset               int64    `protobuf:"varint,2,opt,name=offset,proto3" json:"offset,omitempty"`
+	Data                 []byte   `protobuf:"bytes,3,opt,name=data,proto3" json:"data,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *SegmentReadResponse) Reset()         { *m = SegmentReadResponse{} }
+func (m *SegmentReadResponse) String() string { return proto.CompactTextString(m) }
+func (*SegmentReadResponse) ProtoMessage()    {}
+func (*SegmentReadResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_node_rpc_67fb6f8c05c695c2, []int{8}
+}
+func (m *SegmentReadResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *SegmentReadResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_SegmentReadResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (dst *SegmentReadResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SegmentReadResponse.Merge(dst, src)
+}
+func (m *SegmentReadResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *SegmentReadResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_SegmentReadResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SegmentReadResponse proto.InternalMessageInfo
+
+func (m *SegmentReadResponse) GetSegmentID() uint64 {
+	if m != nil {
+		return m.SegmentID
+	}
+	return 0
+}
+
+func (m *SegmentReadResponse) GetOffset() int64 {
+	if m != nil {
+		return m.Offset
+	}
+	return 0
+}
+
+func (m *SegmentReadResponse) GetData() []byte {
+	if m != nil {
+		return m.Data
+	}
+	return nil
+}
+
 func init() {
 	proto.RegisterType((*DebugRequest)(nil), "io.eventter.mq.DebugRequest")
 	proto.RegisterType((*DebugResponse)(nil), "io.eventter.mq.DebugResponse")
@@ -415,6 +540,8 @@ func init() {
 	proto.RegisterType((*SegmentRotateRequest)(nil), "io.eventter.mq.SegmentRotateRequest")
 	proto.RegisterType((*SegmentGetSizeRequest)(nil), "io.eventter.mq.SegmentGetSizeRequest")
 	proto.RegisterType((*SegmentGetSizeResponse)(nil), "io.eventter.mq.SegmentGetSizeResponse")
+	proto.RegisterType((*SegmentReadRequest)(nil), "io.eventter.mq.SegmentReadRequest")
+	proto.RegisterType((*SegmentReadResponse)(nil), "io.eventter.mq.SegmentReadResponse")
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -432,6 +559,7 @@ type NodeRPCClient interface {
 	SegmentOpen(ctx context.Context, in *SegmentOpenRequest, opts ...grpc.CallOption) (*SegmentOpenResponse, error)
 	SegmentRotate(ctx context.Context, in *SegmentRotateRequest, opts ...grpc.CallOption) (*SegmentOpenResponse, error)
 	SegmentGetSize(ctx context.Context, in *SegmentGetSizeRequest, opts ...grpc.CallOption) (*SegmentGetSizeResponse, error)
+	SegmentRead(ctx context.Context, in *SegmentReadRequest, opts ...grpc.CallOption) (NodeRPC_SegmentReadClient, error)
 }
 
 type nodeRPCClient struct {
@@ -478,6 +606,38 @@ func (c *nodeRPCClient) SegmentGetSize(ctx context.Context, in *SegmentGetSizeRe
 	return out, nil
 }
 
+func (c *nodeRPCClient) SegmentRead(ctx context.Context, in *SegmentReadRequest, opts ...grpc.CallOption) (NodeRPC_SegmentReadClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_NodeRPC_serviceDesc.Streams[0], "/io.eventter.mq.NodeRPC/SegmentRead", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &nodeRPCSegmentReadClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type NodeRPC_SegmentReadClient interface {
+	Recv() (*SegmentReadResponse, error)
+	grpc.ClientStream
+}
+
+type nodeRPCSegmentReadClient struct {
+	grpc.ClientStream
+}
+
+func (x *nodeRPCSegmentReadClient) Recv() (*SegmentReadResponse, error) {
+	m := new(SegmentReadResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // Server API for NodeRPC service
 
 type NodeRPCServer interface {
@@ -485,6 +645,7 @@ type NodeRPCServer interface {
 	SegmentOpen(context.Context, *SegmentOpenRequest) (*SegmentOpenResponse, error)
 	SegmentRotate(context.Context, *SegmentRotateRequest) (*SegmentOpenResponse, error)
 	SegmentGetSize(context.Context, *SegmentGetSizeRequest) (*SegmentGetSizeResponse, error)
+	SegmentRead(*SegmentReadRequest, NodeRPC_SegmentReadServer) error
 }
 
 func RegisterNodeRPCServer(s *grpc.Server, srv NodeRPCServer) {
@@ -563,6 +724,27 @@ func _NodeRPC_SegmentGetSize_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _NodeRPC_SegmentRead_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SegmentReadRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(NodeRPCServer).SegmentRead(m, &nodeRPCSegmentReadServer{stream})
+}
+
+type NodeRPC_SegmentReadServer interface {
+	Send(*SegmentReadResponse) error
+	grpc.ServerStream
+}
+
+type nodeRPCSegmentReadServer struct {
+	grpc.ServerStream
+}
+
+func (x *nodeRPCSegmentReadServer) Send(m *SegmentReadResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 var _NodeRPC_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "io.eventter.mq.NodeRPC",
 	HandlerType: (*NodeRPCServer)(nil),
@@ -584,7 +766,13 @@ var _NodeRPC_serviceDesc = grpc.ServiceDesc{
 			Handler:    _NodeRPC_SegmentGetSize_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "SegmentRead",
+			Handler:       _NodeRPC_SegmentRead_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "node_rpc.proto",
 }
 
@@ -813,6 +1001,78 @@ func (m *SegmentGetSizeResponse) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
+func (m *SegmentReadRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *SegmentReadRequest) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.SegmentID != 0 {
+		dAtA[i] = 0x8
+		i++
+		i = encodeVarintNodeRpc(dAtA, i, uint64(m.SegmentID))
+	}
+	if m.Offset != 0 {
+		dAtA[i] = 0x10
+		i++
+		i = encodeVarintNodeRpc(dAtA, i, uint64(m.Offset))
+	}
+	if m.Wait {
+		dAtA[i] = 0x18
+		i++
+		if m.Wait {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i++
+	}
+	return i, nil
+}
+
+func (m *SegmentReadResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *SegmentReadResponse) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.SegmentID != 0 {
+		dAtA[i] = 0x8
+		i++
+		i = encodeVarintNodeRpc(dAtA, i, uint64(m.SegmentID))
+	}
+	if m.Offset != 0 {
+		dAtA[i] = 0x10
+		i++
+		i = encodeVarintNodeRpc(dAtA, i, uint64(m.Offset))
+	}
+	if len(m.Data) > 0 {
+		dAtA[i] = 0x1a
+		i++
+		i = encodeVarintNodeRpc(dAtA, i, uint64(len(m.Data)))
+		i += copy(dAtA[i:], m.Data)
+	}
+	return i, nil
+}
+
 func encodeVarintNodeRpc(dAtA []byte, offset int, v uint64) int {
 	for v >= 1<<7 {
 		dAtA[offset] = uint8(v&0x7f | 0x80)
@@ -906,6 +1166,37 @@ func (m *SegmentGetSizeResponse) Size() (n int) {
 	_ = l
 	if m.Size_ != 0 {
 		n += 1 + sovNodeRpc(uint64(m.Size_))
+	}
+	return n
+}
+
+func (m *SegmentReadRequest) Size() (n int) {
+	var l int
+	_ = l
+	if m.SegmentID != 0 {
+		n += 1 + sovNodeRpc(uint64(m.SegmentID))
+	}
+	if m.Offset != 0 {
+		n += 1 + sovNodeRpc(uint64(m.Offset))
+	}
+	if m.Wait {
+		n += 2
+	}
+	return n
+}
+
+func (m *SegmentReadResponse) Size() (n int) {
+	var l int
+	_ = l
+	if m.SegmentID != 0 {
+		n += 1 + sovNodeRpc(uint64(m.SegmentID))
+	}
+	if m.Offset != 0 {
+		n += 1 + sovNodeRpc(uint64(m.Offset))
+	}
+	l = len(m.Data)
+	if l > 0 {
+		n += 1 + l + sovNodeRpc(uint64(l))
 	}
 	return n
 }
@@ -1584,6 +1875,233 @@ func (m *SegmentGetSizeResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+func (m *SegmentReadRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowNodeRpc
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: SegmentReadRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: SegmentReadRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SegmentID", wireType)
+			}
+			m.SegmentID = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowNodeRpc
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.SegmentID |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Offset", wireType)
+			}
+			m.Offset = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowNodeRpc
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Offset |= (int64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Wait", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowNodeRpc
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.Wait = bool(v != 0)
+		default:
+			iNdEx = preIndex
+			skippy, err := skipNodeRpc(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthNodeRpc
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *SegmentReadResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowNodeRpc
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: SegmentReadResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: SegmentReadResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SegmentID", wireType)
+			}
+			m.SegmentID = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowNodeRpc
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.SegmentID |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Offset", wireType)
+			}
+			m.Offset = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowNodeRpc
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Offset |= (int64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Data", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowNodeRpc
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthNodeRpc
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Data = append(m.Data[:0], dAtA[iNdEx:postIndex]...)
+			if m.Data == nil {
+				m.Data = []byte{}
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipNodeRpc(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthNodeRpc
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
 func skipNodeRpc(dAtA []byte) (n int, err error) {
 	l := len(dAtA)
 	iNdEx := 0
@@ -1689,42 +2207,46 @@ var (
 	ErrIntOverflowNodeRpc   = fmt.Errorf("proto: integer overflow")
 )
 
-func init() { proto.RegisterFile("node_rpc.proto", fileDescriptor_node_rpc_b325ee32d6c319d8) }
+func init() { proto.RegisterFile("node_rpc.proto", fileDescriptor_node_rpc_67fb6f8c05c695c2) }
 
-var fileDescriptor_node_rpc_b325ee32d6c319d8 = []byte{
-	// 535 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x54, 0xcd, 0x6e, 0xd3, 0x40,
-	0x10, 0xee, 0xa6, 0x69, 0x9b, 0x4c, 0xe2, 0x00, 0x4b, 0x00, 0x63, 0xd1, 0xd8, 0x72, 0x00, 0xf9,
-	0x50, 0xa5, 0x6a, 0x91, 0x90, 0xb8, 0x86, 0x20, 0x94, 0x4b, 0x13, 0xb9, 0x12, 0x87, 0x5e, 0x2c,
-	0xd7, 0x1e, 0xa5, 0x96, 0x6c, 0xaf, 0x63, 0x3b, 0x48, 0xe9, 0x81, 0x67, 0xe0, 0xc2, 0x3b, 0x55,
-	0x9c, 0x78, 0x82, 0x08, 0x19, 0x1e, 0x04, 0x79, 0xbd, 0x69, 0xe2, 0xa0, 0x50, 0x7a, 0x9b, 0xff,
-	0xf9, 0xe6, 0xdb, 0x4f, 0x0b, 0xad, 0x90, 0xb9, 0x68, 0xc5, 0x91, 0xd3, 0x8b, 0x62, 0x96, 0x32,
-	0xda, 0xf2, 0x58, 0x0f, 0x3f, 0x63, 0x98, 0xa6, 0x18, 0xf7, 0x82, 0xa9, 0xf2, 0xcc, 0xf1, 0x3d,
-	0x0c, 0xd3, 0xe3, 0x65, 0x2c, 0x98, 0x16, 0x85, 0x4a, 0x7b, 0xc2, 0x26, 0x8c, 0x9b, 0xc7, 0xb9,
-	0x55, 0x44, 0xf5, 0x16, 0x34, 0x07, 0x78, 0x39, 0x9b, 0x98, 0x38, 0x9d, 0x61, 0x92, 0xea, 0x63,
-	0x90, 0x84, 0x9f, 0x44, 0x2c, 0x4c, 0x90, 0x76, 0x41, 0x72, 0xfc, 0x59, 0x92, 0x62, 0x6c, 0x25,
-	0xa9, 0x9d, 0xa2, 0x4c, 0x34, 0x62, 0xd4, 0xcd, 0xa6, 0x08, 0x9e, 0xe7, 0x31, 0xaa, 0x40, 0x2d,
-	0xc1, 0x49, 0x80, 0x61, 0x9a, 0xc8, 0x15, 0x6d, 0xd7, 0xa8, 0x9b, 0xb7, 0xbe, 0xfe, 0x8d, 0x00,
-	0x3d, 0x2f, 0x9c, 0x51, 0x84, 0xa1, 0x58, 0x44, 0xbb, 0x70, 0xc0, 0x2f, 0xf1, 0x5c, 0x3e, 0xb1,
-	0xda, 0x87, 0x6c, 0xa1, 0xee, 0x9f, 0x31, 0x17, 0x87, 0x03, 0x73, 0x3f, 0x4f, 0x0d, 0x5d, 0xfa,
-	0x0e, 0xf6, 0x52, 0x16, 0x79, 0x8e, 0x5c, 0xd1, 0x88, 0xd1, 0x38, 0x3d, 0xec, 0x95, 0x8f, 0xed,
-	0x9d, 0xd9, 0x01, 0x26, 0x91, 0xed, 0x60, 0x6e, 0xf4, 0xab, 0x37, 0x0b, 0x75, 0xc7, 0x2c, 0x3a,
-	0xa8, 0x0a, 0x0d, 0x1f, 0x6d, 0x17, 0x63, 0x8b, 0x85, 0xfe, 0x5c, 0x76, 0x34, 0x62, 0xd4, 0x4c,
-	0x28, 0x42, 0xa3, 0xd0, 0x9f, 0xeb, 0x5f, 0xe0, 0x71, 0x09, 0x96, 0xb8, 0xf7, 0x08, 0x40, 0x40,
-	0x5f, 0x41, 0x93, 0xb2, 0x85, 0x5a, 0x17, 0xc5, 0xc3, 0x81, 0x59, 0x17, 0x05, 0x1c, 0xe0, 0x83,
-	0x28, 0xf6, 0x02, 0x3b, 0x9e, 0x5b, 0xcb, 0x6b, 0x2a, 0xbc, 0xe5, 0x51, 0xb6, 0x50, 0xa5, 0x71,
-	0x91, 0x12, 0x47, 0x49, 0xd1, 0x9a, 0xeb, 0xea, 0xdf, 0x09, 0xb4, 0xc5, 0x4c, 0x93, 0xe5, 0x2c,
-	0xde, 0x8b, 0x99, 0xb7, 0xd0, 0x62, 0xbe, 0x6b, 0xad, 0x41, 0x2d, 0xf6, 0x3e, 0xcc, 0x16, 0x6a,
-	0x73, 0xe4, 0xbb, 0x2b, 0xb4, 0x4d, 0xb6, 0xf2, 0x5c, 0xfa, 0x1c, 0x6a, 0xbc, 0xcf, 0xbb, 0x46,
-	0x79, 0x57, 0x23, 0xc6, 0xae, 0x79, 0x90, 0xe7, 0xbd, 0x6b, 0xbc, 0x4d, 0x5d, 0xd9, 0x27, 0x72,
-	0x55, 0x23, 0x46, 0xb3, 0x48, 0x5d, 0xd9, 0x27, 0x77, 0x93, 0xf9, 0x01, 0x9e, 0x88, 0x1d, 0x1f,
-	0x31, 0xcd, 0xa7, 0x2d, 0x8f, 0xb9, 0x17, 0x9d, 0xfa, 0x11, 0x3c, 0xdd, 0x1c, 0x23, 0x9e, 0x85,
-	0x42, 0x95, 0x63, 0x26, 0x1c, 0x33, 0xb7, 0x4f, 0x7f, 0x57, 0xe0, 0x20, 0xa7, 0xc5, 0x1c, 0xbf,
-	0xa7, 0x03, 0xd8, 0xe3, 0xba, 0xa5, 0x2f, 0x36, 0x35, 0xb2, 0x2e, 0x6f, 0xe5, 0x70, 0x4b, 0x56,
-	0x6c, 0xf9, 0x04, 0x8d, 0x35, 0x4d, 0x50, 0x7d, 0xb3, 0xfa, 0x6f, 0x1d, 0x2b, 0xdd, 0x7f, 0xd6,
-	0x88, 0xb9, 0x17, 0x20, 0x95, 0x9e, 0x9a, 0xbe, 0xdc, 0xd2, 0x55, 0x52, 0xc2, 0xff, 0xcd, 0xb6,
-	0xa0, 0x55, 0xe6, 0x8c, 0xbe, 0xda, 0xd2, 0x56, 0x7e, 0x1a, 0xe5, 0xf5, 0x5d, 0x65, 0xc5, 0x82,
-	0x7e, 0xfb, 0x26, 0xeb, 0x90, 0x1f, 0x59, 0x87, 0xfc, 0xcc, 0x3a, 0xe4, 0xeb, 0xaf, 0xce, 0xce,
-	0x45, 0x25, 0x98, 0x5e, 0xee, 0xf3, 0xff, 0xe3, 0xcd, 0x9f, 0x00, 0x00, 0x00, 0xff, 0xff, 0x02,
-	0x1b, 0x40, 0x9e, 0x90, 0x04, 0x00, 0x00,
+var fileDescriptor_node_rpc_67fb6f8c05c695c2 = []byte{
+	// 606 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x54, 0xcd, 0x4e, 0xdb, 0x4c,
+	0x14, 0x65, 0x92, 0x10, 0x92, 0x4b, 0x92, 0xef, 0xeb, 0x94, 0xd2, 0x34, 0x2a, 0xb1, 0x65, 0xda,
+	0xca, 0x0b, 0x14, 0x0a, 0x95, 0x2a, 0x75, 0x4b, 0x53, 0x55, 0x6c, 0x00, 0x0d, 0x52, 0x55, 0xb1,
+	0xb1, 0x8c, 0x7d, 0x09, 0x96, 0x6c, 0x8f, 0x63, 0x0f, 0xad, 0x60, 0xd1, 0x67, 0xe8, 0xa6, 0xaf,
+	0xd3, 0x35, 0xea, 0xaa, 0x4f, 0x10, 0x55, 0xee, 0x8b, 0x54, 0x1e, 0x0f, 0xc1, 0x4e, 0x15, 0x28,
+	0xec, 0xee, 0xff, 0x39, 0xf7, 0xfa, 0x8c, 0xa1, 0x13, 0x72, 0x17, 0xad, 0x38, 0x72, 0x06, 0x51,
+	0xcc, 0x05, 0xa7, 0x1d, 0x8f, 0x0f, 0xf0, 0x13, 0x86, 0x42, 0x60, 0x3c, 0x08, 0xc6, 0xbd, 0xc7,
+	0x8e, 0xef, 0x61, 0x28, 0x36, 0xaf, 0x62, 0xc1, 0x38, 0x2f, 0xec, 0xad, 0x8c, 0xf8, 0x88, 0x4b,
+	0x73, 0x33, 0xb3, 0xf2, 0xa8, 0xd1, 0x81, 0xd6, 0x10, 0x8f, 0xcf, 0x46, 0x0c, 0xc7, 0x67, 0x98,
+	0x08, 0xe3, 0x00, 0xda, 0xca, 0x4f, 0x22, 0x1e, 0x26, 0x48, 0xd7, 0xa1, 0xed, 0xf8, 0x67, 0x89,
+	0xc0, 0xd8, 0x4a, 0x84, 0x2d, 0xb0, 0x4b, 0x74, 0x62, 0x36, 0x59, 0x4b, 0x05, 0x0f, 0xb3, 0x18,
+	0xed, 0x41, 0x23, 0xc1, 0x51, 0x80, 0xa1, 0x48, 0xba, 0x15, 0xbd, 0x6a, 0x36, 0xd9, 0xd4, 0x37,
+	0xbe, 0x11, 0xa0, 0x87, 0xb9, 0xb3, 0x1f, 0x61, 0xa8, 0x80, 0xe8, 0x3a, 0x2c, 0xc9, 0x4d, 0x3c,
+	0x57, 0x4e, 0xac, 0xed, 0x40, 0x3a, 0xd1, 0xea, 0x7b, 0xdc, 0xc5, 0xdd, 0x21, 0xab, 0x67, 0xa9,
+	0x5d, 0x97, 0xbe, 0x81, 0x45, 0xc1, 0x23, 0xcf, 0xe9, 0x56, 0x74, 0x62, 0x2e, 0x6f, 0xaf, 0x0d,
+	0xca, 0xcb, 0x0e, 0xf6, 0xec, 0x00, 0x93, 0xc8, 0x76, 0x30, 0x33, 0x76, 0x6a, 0x97, 0x13, 0x6d,
+	0x81, 0xe5, 0x1d, 0x54, 0x83, 0x65, 0x1f, 0x6d, 0x17, 0x63, 0x8b, 0x87, 0xfe, 0x79, 0xd7, 0xd1,
+	0x89, 0xd9, 0x60, 0x90, 0x87, 0xf6, 0x43, 0xff, 0xdc, 0xf8, 0x02, 0x0f, 0x4b, 0xb4, 0xd4, 0xbe,
+	0x1b, 0x00, 0x8a, 0xfa, 0x35, 0xb5, 0x76, 0x3a, 0xd1, 0x9a, 0xaa, 0x78, 0x77, 0xc8, 0x9a, 0xaa,
+	0x40, 0x12, 0xfc, 0x2f, 0x8a, 0xbd, 0xc0, 0x8e, 0xcf, 0xad, 0xab, 0x6d, 0x2a, 0xb2, 0xe5, 0x41,
+	0x3a, 0xd1, 0xda, 0x07, 0x79, 0x4a, 0x2d, 0xd5, 0x8e, 0x0a, 0xae, 0x6b, 0xfc, 0x20, 0xb0, 0xa2,
+	0x66, 0x32, 0x9e, 0x5d, 0xf1, 0x4e, 0x97, 0x79, 0x0d, 0x1d, 0xee, 0xbb, 0x56, 0x81, 0x6a, 0x8e,
+	0xfb, 0x7f, 0x3a, 0xd1, 0x5a, 0xfb, 0xbe, 0x7b, 0xcd, 0xb6, 0xc5, 0xaf, 0x3d, 0x97, 0x3e, 0x81,
+	0x86, 0xec, 0xf3, 0x2e, 0xb0, 0x5b, 0xd5, 0x89, 0x59, 0x65, 0x4b, 0x59, 0xde, 0xbb, 0xc0, 0x69,
+	0xea, 0xd4, 0xde, 0xea, 0xd6, 0x74, 0x62, 0xb6, 0xf2, 0xd4, 0xa9, 0xbd, 0x75, 0xfb, 0x31, 0xdf,
+	0xc1, 0x23, 0x85, 0xf1, 0x1e, 0x45, 0x36, 0xed, 0x6a, 0x99, 0x3b, 0x9d, 0xd3, 0xd8, 0x80, 0xd5,
+	0xd9, 0x31, 0xea, 0xb3, 0x50, 0xa8, 0x49, 0xce, 0x44, 0x72, 0x96, 0xb6, 0x11, 0x4e, 0x85, 0xc5,
+	0xd0, 0x76, 0xef, 0x85, 0x48, 0x57, 0xa1, 0xce, 0x4f, 0x4e, 0x12, 0x14, 0xf2, 0x7e, 0x55, 0xa6,
+	0xbc, 0x0c, 0xef, 0xb3, 0xed, 0x09, 0x79, 0xa3, 0x06, 0x93, 0xb6, 0xc1, 0xa7, 0x8a, 0xc9, 0xf1,
+	0xee, 0xa5, 0x98, 0x1b, 0x00, 0x5d, 0x5b, 0xd8, 0x12, 0xb0, 0xc5, 0xa4, 0xbd, 0xfd, 0xbd, 0x0a,
+	0x4b, 0xd9, 0x77, 0x67, 0x07, 0x6f, 0xe9, 0x10, 0x16, 0xe5, 0xc3, 0xa4, 0x4f, 0x67, 0x1f, 0x41,
+	0xf1, 0xfd, 0xf6, 0xd6, 0xe6, 0x64, 0x15, 0xd7, 0x0f, 0xb0, 0x5c, 0x10, 0x3d, 0x35, 0x66, 0xab,
+	0xff, 0x7e, 0xa8, 0xbd, 0xf5, 0x1b, 0x6b, 0xd4, 0xdc, 0x23, 0x68, 0x97, 0xb4, 0x4c, 0x9f, 0xcd,
+	0xe9, 0x2a, 0x49, 0xfd, 0xdf, 0x66, 0x5b, 0xd0, 0x29, 0x8b, 0x82, 0x3e, 0x9f, 0xd3, 0x56, 0xd6,
+	0x5e, 0xef, 0xc5, 0x6d, 0x65, 0x0a, 0xe0, 0xe3, 0xf4, 0x28, 0xd9, 0x77, 0x9d, 0x7b, 0x94, 0x82,
+	0xc8, 0xe6, 0x12, 0x2f, 0x0a, 0xe3, 0x25, 0xd9, 0x59, 0xb9, 0x4c, 0xfb, 0xe4, 0x67, 0xda, 0x27,
+	0xbf, 0xd2, 0x3e, 0xf9, 0xfa, 0xbb, 0xbf, 0x70, 0x54, 0x09, 0xc6, 0xc7, 0x75, 0xf9, 0xeb, 0x7d,
+	0xf5, 0x27, 0x00, 0x00, 0xff, 0xff, 0xd3, 0x7f, 0x8e, 0xe1, 0xcb, 0x05, 0x00, 0x00,
 }
