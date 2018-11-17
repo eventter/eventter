@@ -31,7 +31,7 @@ type File struct {
 	cond    *sync.Cond
 }
 
-func Open(id uint64, path string, filePerm os.FileMode, maxSize int64) (f *File, err error) {
+func Open(path string, filePerm os.FileMode, maxSize int64) (f *File, err error) {
 	file, err := os.OpenFile(path+dataFileSuffix, os.O_CREATE|os.O_RDWR|os.O_APPEND|openSync, filePerm)
 	if err != nil {
 		return nil, errors.Wrap(err, "open failed")
@@ -99,7 +99,6 @@ func Open(id uint64, path string, filePerm os.FileMode, maxSize int64) (f *File,
 	}
 
 	f = &File{
-		id:      id,
 		path:    path,
 		file:    file,
 		maxSize: maxSize,

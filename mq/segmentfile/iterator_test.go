@@ -19,7 +19,7 @@ func TestIterator_Next_NoWait(t *testing.T) {
 	}
 	defer os.RemoveAll(tmpDir)
 
-	f, err := Open(1, filepath.Join(tmpDir, "1"), 0644, 1024)
+	f, err := Open(filepath.Join(tmpDir, t.Name()), 0644, 1024)
 	if err != nil {
 		t.Error(err)
 	}
@@ -97,7 +97,7 @@ func TestIterator_Next_Wait(t *testing.T) {
 	}
 	defer os.RemoveAll(tmpDir)
 
-	f, err := Open(1, filepath.Join(tmpDir, "1"), 0644, 1024)
+	f, err := Open(filepath.Join(tmpDir, t.Name()), 0644, 1024)
 	if err != nil {
 		t.Error(err)
 	}

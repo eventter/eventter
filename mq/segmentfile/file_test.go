@@ -19,9 +19,9 @@ func TestOpen(t *testing.T) {
 	}
 	defer os.RemoveAll(tmpDir)
 
-	path := filepath.Join(tmpDir, "1")
+	path := filepath.Join(tmpDir, t.Name())
 
-	f, err := Open(1, path, 0644, 1024)
+	f, err := Open(path, 0644, 1024)
 	if err != nil {
 		t.Error(err)
 	}
@@ -30,7 +30,7 @@ func TestOpen(t *testing.T) {
 		t.Error(err)
 	}
 
-	reopenedF, err := Open(1, path, 0644, 1024)
+	reopenedF, err := Open(path, 0644, 1024)
 	if err != nil {
 		t.Error(err)
 	}
@@ -47,7 +47,7 @@ func TestFile_Write(t *testing.T) {
 	}
 	defer os.RemoveAll(tmpDir)
 
-	f, err := Open(1, filepath.Join(tmpDir, "1"), 0644, 1024)
+	f, err := Open(filepath.Join(tmpDir, t.Name()), 0644, 1024)
 	if err != nil {
 		t.Error(err)
 	}
@@ -96,7 +96,7 @@ func TestFile_Sum(t *testing.T) {
 	}
 	defer os.RemoveAll(tmpDir)
 
-	f, err := Open(1, filepath.Join(tmpDir, "1"), 0644, 1024)
+	f, err := Open(filepath.Join(tmpDir, t.Name()), 0644, 1024)
 	if err != nil {
 		t.Error(err)
 	}

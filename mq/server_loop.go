@@ -18,6 +18,7 @@ func (s *Server) Loop(memberEventsC chan memberlist.NodeEvent) {
 
 	reconciler := NewReconciler(s)
 
+LOOP:
 	for {
 		select {
 		case becameLeader := <-s.raftNode.LeaderCh():
@@ -95,7 +96,7 @@ func (s *Server) Loop(memberEventsC chan memberlist.NodeEvent) {
 			}
 
 		case <-s.closeC:
-			return
+			break LOOP
 		}
 	}
 }
