@@ -143,6 +143,13 @@ func (f *File) Write(message []byte) error {
 	return nil
 }
 
+func (f *File) IsFull() bool {
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+
+	return f.offset >= f.maxSize
+}
+
 func (f *File) Size() int64 {
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
@@ -150,17 +157,21 @@ func (f *File) Size() int64 {
 	return f.offset
 }
 
-func (f *File) Read(wait bool) *Iterator {
+func (f *File) Read(wait bool) (*Iterator, error) {
 	return f.ReadAt(1, wait)
 }
 
-func (f *File) ReadAt(offset int64, wait bool) *Iterator {
+func (f *File) ReadAt(offset int64, wait bool) (*Iterator, error) {
 	if offset < 1 {
-		panic("offset must be positive")
+		return nil, errors.New("offset must be positive")
 	}
 
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
+
+	if offset > f.offset {
+		return nil, errors.New("offset out of bounds")
+	}
 
 	return &Iterator{
 		file:      f,
@@ -168,7 +179,7 @@ func (f *File) ReadAt(offset int64, wait bool) *Iterator {
 		endOffset: f.offset,
 		wait:      wait,
 		reader:    bufio.NewReader(io.NewSectionReader(f.file, offset, f.offset-offset)),
-	}
+	}, nil
 }
 
 func (f *File) Sum(h hash.Hash) (sum []byte, size int64, err error) {

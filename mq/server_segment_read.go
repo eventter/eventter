@@ -21,9 +21,12 @@ func (s *Server) SegmentRead(request *SegmentReadRequest, stream NodeRPC_Segment
 
 	var iterator *segmentfile.Iterator
 	if request.Offset > 0 {
-		iterator = segment.ReadAt(request.Offset, request.Wait)
+		iterator, err = segment.ReadAt(request.Offset, request.Wait)
 	} else {
-		iterator = segment.Read(request.Wait)
+		iterator, err = segment.Read(request.Wait)
+	}
+	if err != nil {
+		return err
 	}
 
 	ctx, cancel := context.WithCancel(stream.Context())

@@ -1,7 +1,6 @@
 package mq
 
 import (
-	"math/rand"
 	"sync"
 	"time"
 
@@ -35,7 +34,6 @@ type Server struct {
 	clusterState     *ClusterStateStore
 	segmentDir       *segmentfile.Dir
 	tx               sync.Mutex
-	rng              *rand.Rand
 	publishForwardRR uint32
 	closeC           chan struct{}
 }
@@ -53,7 +51,6 @@ func NewServer(nodeID uint64, members *memberlist.Memberlist, raftNode *raft.Raf
 		pool:         pool,
 		clusterState: clusterState,
 		segmentDir:   segmentDir,
-		rng:          rand.New(rand.NewSource(time.Now().UnixNano())),
 		closeC:       make(chan struct{}),
 	}
 }

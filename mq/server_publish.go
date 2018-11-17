@@ -82,11 +82,11 @@ WRITE:
 			if err != nil {
 				return nil, err
 			}
-			response, err := s.SegmentRotate(ctx, &SegmentRotateRequest{
-				NodeID:       s.nodeID,
-				OldSegmentID: localSegmentID,
-				OldSize:      size,
-				OldSha1:      sha1Sum,
+			response, err := s.SegmentRotate(ctx, &SegmentCloseRequest{
+				NodeID:    s.nodeID,
+				SegmentID: localSegmentID,
+				Size_:     size,
+				Sha1:      sha1Sum,
 			})
 			if err != nil {
 				return nil, err
@@ -104,6 +104,22 @@ WRITE:
 			return nil, err
 		}
 
+		if segment.IsFull() {
+			sha1Sum, size, err := segment.Sum(sha1.New())
+			if err != nil {
+				return nil, err
+			}
+			_, err = s.SegmentClose(ctx, &SegmentCloseRequest{
+				NodeID:    s.nodeID,
+				SegmentID: localSegmentID,
+				Size_:     size,
+				Sha1:      sha1Sum,
+			})
+			if err != nil {
+				return nil, err
+			}
+		}
+
 		return &client.PublishResponse{
 			OK: true,
 		}, nil
@@ -117,9 +133,14 @@ FORWARD:
 
 		node := state.GetNode(forwardNodeID)
 		if node == nil {
-			// raft log from master wasn't applied yet to this node => busy wait for new state
+			// raft log from leader wasn't applied yet to this node => busy wait for new state
 			for node == nil {
-				runtime.Gosched()
+				select {
+				case <-ctx.Done():
+					return nil, ctx.Err()
+				default:
+					runtime.Gosched()
+				}
 				state = s.clusterState.Current()
 				node = state.GetNode(forwardNodeID)
 			}

@@ -34,7 +34,7 @@ func (m *DebugRequest) Reset()         { *m = DebugRequest{} }
 func (m *DebugRequest) String() string { return proto.CompactTextString(m) }
 func (*DebugRequest) ProtoMessage()    {}
 func (*DebugRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_node_rpc_3449127f33feabed, []int{0}
+	return fileDescriptor_node_rpc_b3fd8f73457aa5e4, []int{0}
 }
 func (m *DebugRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -76,7 +76,7 @@ func (m *DebugResponse) Reset()         { *m = DebugResponse{} }
 func (m *DebugResponse) String() string { return proto.CompactTextString(m) }
 func (*DebugResponse) ProtoMessage()    {}
 func (*DebugResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_node_rpc_3449127f33feabed, []int{1}
+	return fileDescriptor_node_rpc_b3fd8f73457aa5e4, []int{1}
 }
 func (m *DebugResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -132,7 +132,7 @@ func (m *SegmentOpenRequest) Reset()         { *m = SegmentOpenRequest{} }
 func (m *SegmentOpenRequest) String() string { return proto.CompactTextString(m) }
 func (*SegmentOpenRequest) ProtoMessage()    {}
 func (*SegmentOpenRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_node_rpc_3449127f33feabed, []int{2}
+	return fileDescriptor_node_rpc_b3fd8f73457aa5e4, []int{2}
 }
 func (m *SegmentOpenRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -193,7 +193,7 @@ func (m *SegmentOpenResponse) Reset()         { *m = SegmentOpenResponse{} }
 func (m *SegmentOpenResponse) String() string { return proto.CompactTextString(m) }
 func (*SegmentOpenResponse) ProtoMessage()    {}
 func (*SegmentOpenResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_node_rpc_3449127f33feabed, []int{3}
+	return fileDescriptor_node_rpc_b3fd8f73457aa5e4, []int{3}
 }
 func (m *SegmentOpenResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -236,29 +236,29 @@ func (m *SegmentOpenResponse) GetPrimaryNodeID() uint64 {
 	return 0
 }
 
-type SegmentRotateRequest struct {
+type SegmentCloseRequest struct {
 	// If true and node is not a leader, request will fail.
 	LeaderOnly           bool     `protobuf:"varint,99,opt,name=leader_only,json=leaderOnly,proto3" json:"leader_only,omitempty"`
 	NodeID               uint64   `protobuf:"varint,1,opt,name=node_id,json=nodeId,proto3" json:"node_id,omitempty"`
-	OldSegmentID         uint64   `protobuf:"varint,2,opt,name=old_segment_id,json=oldSegmentId,proto3" json:"old_segment_id,omitempty"`
-	OldSize              int64    `protobuf:"varint,3,opt,name=old_size,json=oldSize,proto3" json:"old_size,omitempty"`
-	OldSha1              []byte   `protobuf:"bytes,4,opt,name=old_sha1,json=oldSha1,proto3" json:"old_sha1,omitempty"`
+	SegmentID            uint64   `protobuf:"varint,2,opt,name=segment_id,json=segmentId,proto3" json:"segment_id,omitempty"`
+	Size_                int64    `protobuf:"varint,3,opt,name=size,proto3" json:"size,omitempty"`
+	Sha1                 []byte   `protobuf:"bytes,4,opt,name=sha1,proto3" json:"sha1,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *SegmentRotateRequest) Reset()         { *m = SegmentRotateRequest{} }
-func (m *SegmentRotateRequest) String() string { return proto.CompactTextString(m) }
-func (*SegmentRotateRequest) ProtoMessage()    {}
-func (*SegmentRotateRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_node_rpc_3449127f33feabed, []int{4}
+func (m *SegmentCloseRequest) Reset()         { *m = SegmentCloseRequest{} }
+func (m *SegmentCloseRequest) String() string { return proto.CompactTextString(m) }
+func (*SegmentCloseRequest) ProtoMessage()    {}
+func (*SegmentCloseRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_node_rpc_b3fd8f73457aa5e4, []int{4}
 }
-func (m *SegmentRotateRequest) XXX_Unmarshal(b []byte) error {
+func (m *SegmentCloseRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *SegmentRotateRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *SegmentCloseRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_SegmentRotateRequest.Marshal(b, m, deterministic)
+		return xxx_messageInfo_SegmentCloseRequest.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalTo(b)
@@ -268,52 +268,90 @@ func (m *SegmentRotateRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte
 		return b[:n], nil
 	}
 }
-func (dst *SegmentRotateRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_SegmentRotateRequest.Merge(dst, src)
+func (dst *SegmentCloseRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SegmentCloseRequest.Merge(dst, src)
 }
-func (m *SegmentRotateRequest) XXX_Size() int {
+func (m *SegmentCloseRequest) XXX_Size() int {
 	return m.Size()
 }
-func (m *SegmentRotateRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_SegmentRotateRequest.DiscardUnknown(m)
+func (m *SegmentCloseRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_SegmentCloseRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_SegmentRotateRequest proto.InternalMessageInfo
+var xxx_messageInfo_SegmentCloseRequest proto.InternalMessageInfo
 
-func (m *SegmentRotateRequest) GetLeaderOnly() bool {
+func (m *SegmentCloseRequest) GetLeaderOnly() bool {
 	if m != nil {
 		return m.LeaderOnly
 	}
 	return false
 }
 
-func (m *SegmentRotateRequest) GetNodeID() uint64 {
+func (m *SegmentCloseRequest) GetNodeID() uint64 {
 	if m != nil {
 		return m.NodeID
 	}
 	return 0
 }
 
-func (m *SegmentRotateRequest) GetOldSegmentID() uint64 {
+func (m *SegmentCloseRequest) GetSegmentID() uint64 {
 	if m != nil {
-		return m.OldSegmentID
+		return m.SegmentID
 	}
 	return 0
 }
 
-func (m *SegmentRotateRequest) GetOldSize() int64 {
+func (m *SegmentCloseRequest) GetSize_() int64 {
 	if m != nil {
-		return m.OldSize
+		return m.Size_
 	}
 	return 0
 }
 
-func (m *SegmentRotateRequest) GetOldSha1() []byte {
+func (m *SegmentCloseRequest) GetSha1() []byte {
 	if m != nil {
-		return m.OldSha1
+		return m.Sha1
 	}
 	return nil
 }
+
+type SegmentCloseResponse struct {
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *SegmentCloseResponse) Reset()         { *m = SegmentCloseResponse{} }
+func (m *SegmentCloseResponse) String() string { return proto.CompactTextString(m) }
+func (*SegmentCloseResponse) ProtoMessage()    {}
+func (*SegmentCloseResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_node_rpc_b3fd8f73457aa5e4, []int{5}
+}
+func (m *SegmentCloseResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *SegmentCloseResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_SegmentCloseResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (dst *SegmentCloseResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SegmentCloseResponse.Merge(dst, src)
+}
+func (m *SegmentCloseResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *SegmentCloseResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_SegmentCloseResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SegmentCloseResponse proto.InternalMessageInfo
 
 type SegmentGetSizeRequest struct {
 	SegmentID            uint64   `protobuf:"varint,1,opt,name=segment_id,json=segmentId,proto3" json:"segment_id,omitempty"`
@@ -325,7 +363,7 @@ func (m *SegmentGetSizeRequest) Reset()         { *m = SegmentGetSizeRequest{} }
 func (m *SegmentGetSizeRequest) String() string { return proto.CompactTextString(m) }
 func (*SegmentGetSizeRequest) ProtoMessage()    {}
 func (*SegmentGetSizeRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_node_rpc_3449127f33feabed, []int{5}
+	return fileDescriptor_node_rpc_b3fd8f73457aa5e4, []int{6}
 }
 func (m *SegmentGetSizeRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -372,7 +410,7 @@ func (m *SegmentGetSizeResponse) Reset()         { *m = SegmentGetSizeResponse{}
 func (m *SegmentGetSizeResponse) String() string { return proto.CompactTextString(m) }
 func (*SegmentGetSizeResponse) ProtoMessage()    {}
 func (*SegmentGetSizeResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_node_rpc_3449127f33feabed, []int{6}
+	return fileDescriptor_node_rpc_b3fd8f73457aa5e4, []int{7}
 }
 func (m *SegmentGetSizeResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -428,7 +466,7 @@ func (m *SegmentReadRequest) Reset()         { *m = SegmentReadRequest{} }
 func (m *SegmentReadRequest) String() string { return proto.CompactTextString(m) }
 func (*SegmentReadRequest) ProtoMessage()    {}
 func (*SegmentReadRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_node_rpc_3449127f33feabed, []int{7}
+	return fileDescriptor_node_rpc_b3fd8f73457aa5e4, []int{8}
 }
 func (m *SegmentReadRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -490,7 +528,7 @@ func (m *SegmentReadResponse) Reset()         { *m = SegmentReadResponse{} }
 func (m *SegmentReadResponse) String() string { return proto.CompactTextString(m) }
 func (*SegmentReadResponse) ProtoMessage()    {}
 func (*SegmentReadResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_node_rpc_3449127f33feabed, []int{8}
+	return fileDescriptor_node_rpc_b3fd8f73457aa5e4, []int{9}
 }
 func (m *SegmentReadResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -545,7 +583,8 @@ func init() {
 	proto.RegisterType((*DebugResponse)(nil), "io.eventter.mq.DebugResponse")
 	proto.RegisterType((*SegmentOpenRequest)(nil), "io.eventter.mq.SegmentOpenRequest")
 	proto.RegisterType((*SegmentOpenResponse)(nil), "io.eventter.mq.SegmentOpenResponse")
-	proto.RegisterType((*SegmentRotateRequest)(nil), "io.eventter.mq.SegmentRotateRequest")
+	proto.RegisterType((*SegmentCloseRequest)(nil), "io.eventter.mq.SegmentCloseRequest")
+	proto.RegisterType((*SegmentCloseResponse)(nil), "io.eventter.mq.SegmentCloseResponse")
 	proto.RegisterType((*SegmentGetSizeRequest)(nil), "io.eventter.mq.SegmentGetSizeRequest")
 	proto.RegisterType((*SegmentGetSizeResponse)(nil), "io.eventter.mq.SegmentGetSizeResponse")
 	proto.RegisterType((*SegmentReadRequest)(nil), "io.eventter.mq.SegmentReadRequest")
@@ -565,7 +604,9 @@ const _ = grpc.SupportPackageIsVersion4
 type NodeRPCClient interface {
 	Debug(ctx context.Context, in *DebugRequest, opts ...grpc.CallOption) (*DebugResponse, error)
 	SegmentOpen(ctx context.Context, in *SegmentOpenRequest, opts ...grpc.CallOption) (*SegmentOpenResponse, error)
-	SegmentRotate(ctx context.Context, in *SegmentRotateRequest, opts ...grpc.CallOption) (*SegmentOpenResponse, error)
+	SegmentRotate(ctx context.Context, in *SegmentCloseRequest, opts ...grpc.CallOption) (*SegmentOpenResponse, error)
+	SegmentClose(ctx context.Context, in *SegmentCloseRequest, opts ...grpc.CallOption) (*SegmentCloseResponse, error)
+	SegmentReplicaClose(ctx context.Context, in *SegmentCloseRequest, opts ...grpc.CallOption) (*SegmentCloseResponse, error)
 	SegmentGetSize(ctx context.Context, in *SegmentGetSizeRequest, opts ...grpc.CallOption) (*SegmentGetSizeResponse, error)
 	SegmentRead(ctx context.Context, in *SegmentReadRequest, opts ...grpc.CallOption) (NodeRPC_SegmentReadClient, error)
 }
@@ -596,9 +637,27 @@ func (c *nodeRPCClient) SegmentOpen(ctx context.Context, in *SegmentOpenRequest,
 	return out, nil
 }
 
-func (c *nodeRPCClient) SegmentRotate(ctx context.Context, in *SegmentRotateRequest, opts ...grpc.CallOption) (*SegmentOpenResponse, error) {
+func (c *nodeRPCClient) SegmentRotate(ctx context.Context, in *SegmentCloseRequest, opts ...grpc.CallOption) (*SegmentOpenResponse, error) {
 	out := new(SegmentOpenResponse)
 	err := c.cc.Invoke(ctx, "/io.eventter.mq.NodeRPC/SegmentRotate", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *nodeRPCClient) SegmentClose(ctx context.Context, in *SegmentCloseRequest, opts ...grpc.CallOption) (*SegmentCloseResponse, error) {
+	out := new(SegmentCloseResponse)
+	err := c.cc.Invoke(ctx, "/io.eventter.mq.NodeRPC/SegmentClose", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *nodeRPCClient) SegmentReplicaClose(ctx context.Context, in *SegmentCloseRequest, opts ...grpc.CallOption) (*SegmentCloseResponse, error) {
+	out := new(SegmentCloseResponse)
+	err := c.cc.Invoke(ctx, "/io.eventter.mq.NodeRPC/SegmentReplicaClose", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -651,7 +710,9 @@ func (x *nodeRPCSegmentReadClient) Recv() (*SegmentReadResponse, error) {
 type NodeRPCServer interface {
 	Debug(context.Context, *DebugRequest) (*DebugResponse, error)
 	SegmentOpen(context.Context, *SegmentOpenRequest) (*SegmentOpenResponse, error)
-	SegmentRotate(context.Context, *SegmentRotateRequest) (*SegmentOpenResponse, error)
+	SegmentRotate(context.Context, *SegmentCloseRequest) (*SegmentOpenResponse, error)
+	SegmentClose(context.Context, *SegmentCloseRequest) (*SegmentCloseResponse, error)
+	SegmentReplicaClose(context.Context, *SegmentCloseRequest) (*SegmentCloseResponse, error)
 	SegmentGetSize(context.Context, *SegmentGetSizeRequest) (*SegmentGetSizeResponse, error)
 	SegmentRead(*SegmentReadRequest, NodeRPC_SegmentReadServer) error
 }
@@ -697,7 +758,7 @@ func _NodeRPC_SegmentOpen_Handler(srv interface{}, ctx context.Context, dec func
 }
 
 func _NodeRPC_SegmentRotate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SegmentRotateRequest)
+	in := new(SegmentCloseRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -709,7 +770,43 @@ func _NodeRPC_SegmentRotate_Handler(srv interface{}, ctx context.Context, dec fu
 		FullMethod: "/io.eventter.mq.NodeRPC/SegmentRotate",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(NodeRPCServer).SegmentRotate(ctx, req.(*SegmentRotateRequest))
+		return srv.(NodeRPCServer).SegmentRotate(ctx, req.(*SegmentCloseRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _NodeRPC_SegmentClose_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SegmentCloseRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NodeRPCServer).SegmentClose(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/io.eventter.mq.NodeRPC/SegmentClose",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NodeRPCServer).SegmentClose(ctx, req.(*SegmentCloseRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _NodeRPC_SegmentReplicaClose_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SegmentCloseRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NodeRPCServer).SegmentReplicaClose(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/io.eventter.mq.NodeRPC/SegmentReplicaClose",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NodeRPCServer).SegmentReplicaClose(ctx, req.(*SegmentCloseRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -768,6 +865,14 @@ var _NodeRPC_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SegmentRotate",
 			Handler:    _NodeRPC_SegmentRotate_Handler,
+		},
+		{
+			MethodName: "SegmentClose",
+			Handler:    _NodeRPC_SegmentClose_Handler,
+		},
+		{
+			MethodName: "SegmentReplicaClose",
+			Handler:    _NodeRPC_SegmentReplicaClose_Handler,
 		},
 		{
 			MethodName: "SegmentGetSize",
@@ -912,7 +1017,7 @@ func (m *SegmentOpenResponse) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
-func (m *SegmentRotateRequest) Marshal() (dAtA []byte, err error) {
+func (m *SegmentCloseRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalTo(dAtA)
@@ -922,7 +1027,7 @@ func (m *SegmentRotateRequest) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *SegmentRotateRequest) MarshalTo(dAtA []byte) (int, error) {
+func (m *SegmentCloseRequest) MarshalTo(dAtA []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
@@ -932,21 +1037,21 @@ func (m *SegmentRotateRequest) MarshalTo(dAtA []byte) (int, error) {
 		i++
 		i = encodeVarintNodeRpc(dAtA, i, uint64(m.NodeID))
 	}
-	if m.OldSegmentID != 0 {
+	if m.SegmentID != 0 {
 		dAtA[i] = 0x10
 		i++
-		i = encodeVarintNodeRpc(dAtA, i, uint64(m.OldSegmentID))
+		i = encodeVarintNodeRpc(dAtA, i, uint64(m.SegmentID))
 	}
-	if m.OldSize != 0 {
+	if m.Size_ != 0 {
 		dAtA[i] = 0x18
 		i++
-		i = encodeVarintNodeRpc(dAtA, i, uint64(m.OldSize))
+		i = encodeVarintNodeRpc(dAtA, i, uint64(m.Size_))
 	}
-	if len(m.OldSha1) > 0 {
+	if len(m.Sha1) > 0 {
 		dAtA[i] = 0x22
 		i++
-		i = encodeVarintNodeRpc(dAtA, i, uint64(len(m.OldSha1)))
-		i += copy(dAtA[i:], m.OldSha1)
+		i = encodeVarintNodeRpc(dAtA, i, uint64(len(m.Sha1)))
+		i += copy(dAtA[i:], m.Sha1)
 	}
 	if m.LeaderOnly {
 		dAtA[i] = 0x98
@@ -960,6 +1065,24 @@ func (m *SegmentRotateRequest) MarshalTo(dAtA []byte) (int, error) {
 		}
 		i++
 	}
+	return i, nil
+}
+
+func (m *SegmentCloseResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *SegmentCloseResponse) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
 	return i, nil
 }
 
@@ -1143,25 +1266,31 @@ func (m *SegmentOpenResponse) Size() (n int) {
 	return n
 }
 
-func (m *SegmentRotateRequest) Size() (n int) {
+func (m *SegmentCloseRequest) Size() (n int) {
 	var l int
 	_ = l
 	if m.NodeID != 0 {
 		n += 1 + sovNodeRpc(uint64(m.NodeID))
 	}
-	if m.OldSegmentID != 0 {
-		n += 1 + sovNodeRpc(uint64(m.OldSegmentID))
+	if m.SegmentID != 0 {
+		n += 1 + sovNodeRpc(uint64(m.SegmentID))
 	}
-	if m.OldSize != 0 {
-		n += 1 + sovNodeRpc(uint64(m.OldSize))
+	if m.Size_ != 0 {
+		n += 1 + sovNodeRpc(uint64(m.Size_))
 	}
-	l = len(m.OldSha1)
+	l = len(m.Sha1)
 	if l > 0 {
 		n += 1 + l + sovNodeRpc(uint64(l))
 	}
 	if m.LeaderOnly {
 		n += 3
 	}
+	return n
+}
+
+func (m *SegmentCloseResponse) Size() (n int) {
+	var l int
+	_ = l
 	return n
 }
 
@@ -1595,7 +1724,7 @@ func (m *SegmentOpenResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *SegmentRotateRequest) Unmarshal(dAtA []byte) error {
+func (m *SegmentCloseRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1618,10 +1747,10 @@ func (m *SegmentRotateRequest) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: SegmentRotateRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: SegmentCloseRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: SegmentRotateRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: SegmentCloseRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -1645,9 +1774,9 @@ func (m *SegmentRotateRequest) Unmarshal(dAtA []byte) error {
 			}
 		case 2:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field OldSegmentID", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field SegmentID", wireType)
 			}
-			m.OldSegmentID = 0
+			m.SegmentID = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowNodeRpc
@@ -1657,16 +1786,16 @@ func (m *SegmentRotateRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.OldSegmentID |= (uint64(b) & 0x7F) << shift
+				m.SegmentID |= (uint64(b) & 0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
 		case 3:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field OldSize", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Size_", wireType)
 			}
-			m.OldSize = 0
+			m.Size_ = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowNodeRpc
@@ -1676,14 +1805,14 @@ func (m *SegmentRotateRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.OldSize |= (int64(b) & 0x7F) << shift
+				m.Size_ |= (int64(b) & 0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
 		case 4:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field OldSha1", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Sha1", wireType)
 			}
 			var byteLen int
 			for shift := uint(0); ; shift += 7 {
@@ -1707,9 +1836,9 @@ func (m *SegmentRotateRequest) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.OldSha1 = append(m.OldSha1[:0], dAtA[iNdEx:postIndex]...)
-			if m.OldSha1 == nil {
-				m.OldSha1 = []byte{}
+			m.Sha1 = append(m.Sha1[:0], dAtA[iNdEx:postIndex]...)
+			if m.Sha1 == nil {
+				m.Sha1 = []byte{}
 			}
 			iNdEx = postIndex
 		case 99:
@@ -1732,6 +1861,56 @@ func (m *SegmentRotateRequest) Unmarshal(dAtA []byte) error {
 				}
 			}
 			m.LeaderOnly = bool(v != 0)
+		default:
+			iNdEx = preIndex
+			skippy, err := skipNodeRpc(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthNodeRpc
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *SegmentCloseResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowNodeRpc
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: SegmentCloseResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: SegmentCloseResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
 		default:
 			iNdEx = preIndex
 			skippy, err := skipNodeRpc(dAtA[iNdEx:])
@@ -2242,46 +2421,46 @@ var (
 	ErrIntOverflowNodeRpc   = fmt.Errorf("proto: integer overflow")
 )
 
-func init() { proto.RegisterFile("node_rpc.proto", fileDescriptor_node_rpc_3449127f33feabed) }
+func init() { proto.RegisterFile("node_rpc.proto", fileDescriptor_node_rpc_b3fd8f73457aa5e4) }
 
-var fileDescriptor_node_rpc_3449127f33feabed = []byte{
-	// 606 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x54, 0xcd, 0x6e, 0xd3, 0x40,
-	0x10, 0xee, 0x26, 0x69, 0x9a, 0x4c, 0x93, 0x00, 0x4b, 0x29, 0x21, 0xa2, 0xb1, 0xe5, 0x02, 0xf2,
-	0x01, 0xa5, 0xb4, 0x48, 0x48, 0x5c, 0x4b, 0x10, 0xea, 0xa5, 0xad, 0xb6, 0x12, 0x42, 0xbd, 0x58,
-	0xae, 0x3d, 0x4d, 0x2d, 0xd9, 0x5e, 0xc7, 0xde, 0x82, 0xda, 0x03, 0xcf, 0xc0, 0x85, 0xd7, 0xe1,
-	0x5c, 0x71, 0xe2, 0x09, 0x22, 0x64, 0x5e, 0x04, 0x79, 0xbd, 0x4d, 0xed, 0xa2, 0xb4, 0x34, 0xb7,
-	0x99, 0x9d, 0xbf, 0xef, 0x1b, 0x7f, 0x63, 0xe8, 0x84, 0xdc, 0x45, 0x2b, 0x8e, 0x9c, 0x41, 0x14,
-	0x73, 0xc1, 0x69, 0xc7, 0xe3, 0x03, 0xfc, 0x8c, 0xa1, 0x10, 0x18, 0x0f, 0x82, 0x71, 0xef, 0xb1,
-	0xe3, 0x7b, 0x18, 0x8a, 0x8d, 0xcb, 0xb7, 0x60, 0x9c, 0x27, 0xf6, 0x56, 0x46, 0x7c, 0xc4, 0xa5,
-	0xb9, 0x91, 0x59, 0xf9, 0xab, 0xd1, 0x81, 0xd6, 0x10, 0x8f, 0x4e, 0x47, 0x0c, 0xc7, 0xa7, 0x98,
-	0x08, 0x63, 0x1f, 0xda, 0xca, 0x4f, 0x22, 0x1e, 0x26, 0x48, 0xd7, 0xa1, 0xed, 0xf8, 0xa7, 0x89,
-	0xc0, 0xd8, 0x4a, 0x84, 0x2d, 0xb0, 0x4b, 0x74, 0x62, 0x36, 0x59, 0x4b, 0x3d, 0x1e, 0x64, 0x6f,
-	0xb4, 0x07, 0x8d, 0x04, 0x47, 0x01, 0x86, 0x22, 0xe9, 0x56, 0xf4, 0xaa, 0xd9, 0x64, 0x53, 0xdf,
-	0xf8, 0x4e, 0x80, 0x1e, 0xe4, 0xce, 0x5e, 0x84, 0xa1, 0x1a, 0x44, 0xd7, 0x61, 0x49, 0x32, 0xf1,
-	0x5c, 0xd9, 0xb1, 0xb6, 0x0d, 0xe9, 0x44, 0xab, 0xef, 0x72, 0x17, 0x77, 0x86, 0xac, 0x9e, 0x85,
-	0x76, 0x5c, 0xfa, 0x16, 0x16, 0x05, 0x8f, 0x3c, 0xa7, 0x5b, 0xd1, 0x89, 0xb9, 0xbc, 0xb5, 0x36,
-	0x28, 0x93, 0x1d, 0xec, 0xda, 0x01, 0x26, 0x91, 0xed, 0x60, 0x66, 0x6c, 0xd7, 0x2e, 0x26, 0xda,
-	0x02, 0xcb, 0x2b, 0xa8, 0x06, 0xcb, 0x3e, 0xda, 0x2e, 0xc6, 0x16, 0x0f, 0xfd, 0xb3, 0xae, 0xa3,
-	0x13, 0xb3, 0xc1, 0x20, 0x7f, 0xda, 0x0b, 0xfd, 0x33, 0xe3, 0x2b, 0x3c, 0x2c, 0xc1, 0x52, 0x7c,
-	0x5f, 0x02, 0x28, 0xe8, 0x57, 0xd0, 0xda, 0xe9, 0x44, 0x6b, 0xaa, 0xe4, 0x9d, 0x21, 0x6b, 0xaa,
-	0x04, 0x09, 0xf0, 0x5e, 0x14, 0x7b, 0x81, 0x1d, 0x9f, 0x59, 0x97, 0x6c, 0x2a, 0xb2, 0xe4, 0x41,
-	0x3a, 0xd1, 0xda, 0xfb, 0x79, 0x48, 0x91, 0x6a, 0x47, 0x05, 0xd7, 0x35, 0x7e, 0x12, 0x58, 0x51,
-	0x3d, 0x19, 0xcf, 0xb6, 0x78, 0xa7, 0xcd, 0xbc, 0x81, 0x0e, 0xf7, 0x5d, 0xab, 0x00, 0x35, 0x9f,
-	0x7b, 0x3f, 0x9d, 0x68, 0xad, 0x3d, 0xdf, 0xbd, 0x42, 0xdb, 0xe2, 0x57, 0x9e, 0x4b, 0x9f, 0x40,
-	0x43, 0xd6, 0x79, 0xe7, 0xd8, 0xad, 0xea, 0xc4, 0xac, 0xb2, 0xa5, 0x2c, 0xee, 0x9d, 0xe3, 0x34,
-	0x74, 0x62, 0x6f, 0x76, 0x6b, 0x3a, 0x31, 0x5b, 0x79, 0xe8, 0xc4, 0xde, 0xbc, 0x7d, 0x99, 0xef,
-	0xe1, 0x91, 0x9a, 0xf1, 0x01, 0x45, 0xd6, 0xed, 0x92, 0xcc, 0x9d, 0xd6, 0x69, 0x1c, 0xc2, 0xea,
-	0xf5, 0x36, 0x73, 0x7d, 0x16, 0x0a, 0x35, 0xc9, 0xb0, 0x22, 0x19, 0x4a, 0xdb, 0x08, 0xa7, 0x32,
-	0x64, 0x68, 0xbb, 0x73, 0xe1, 0xa3, 0xab, 0x50, 0xe7, 0xc7, 0xc7, 0x09, 0x0a, 0xd5, 0x59, 0x79,
-	0xd9, 0xbc, 0x2f, 0xb6, 0x27, 0xe4, 0x46, 0x1b, 0x4c, 0xda, 0x06, 0x9f, 0xea, 0x2b, 0x9f, 0x37,
-	0x17, 0x91, 0x1b, 0x06, 0xba, 0xb6, 0xb0, 0xe5, 0xc0, 0x16, 0x93, 0xf6, 0xd6, 0x8f, 0x2a, 0x2c,
-	0x65, 0x2a, 0x61, 0xfb, 0xef, 0xe8, 0x10, 0x16, 0xe5, 0x19, 0xd3, 0xa7, 0xd7, 0x4f, 0xa6, 0x78,
-	0xed, 0xbd, 0xb5, 0x19, 0x51, 0x85, 0xf5, 0x23, 0x2c, 0x17, 0x4e, 0x84, 0x1a, 0xd7, 0xb3, 0xff,
-	0x3d, 0xeb, 0xde, 0xfa, 0x8d, 0x39, 0xaa, 0xef, 0x21, 0xb4, 0x4b, 0xca, 0xa7, 0xcf, 0x66, 0x54,
-	0x95, 0x0e, 0xe3, 0xff, 0x7a, 0x5b, 0xd0, 0x29, 0x4b, 0x88, 0x3e, 0x9f, 0x51, 0x56, 0x56, 0x6a,
-	0xef, 0xc5, 0x6d, 0x69, 0x6a, 0xc0, 0xa7, 0xe9, 0x52, 0xb2, 0xef, 0x3a, 0x73, 0x29, 0x05, 0x91,
-	0xcd, 0x04, 0x5e, 0x14, 0xc6, 0x2b, 0xb2, 0xbd, 0x72, 0x91, 0xf6, 0xc9, 0xaf, 0xb4, 0x4f, 0x7e,
-	0xa7, 0x7d, 0xf2, 0xed, 0x4f, 0x7f, 0xe1, 0xb0, 0x12, 0x8c, 0x8f, 0xea, 0xf2, 0x47, 0xfd, 0xfa,
-	0x6f, 0x00, 0x00, 0x00, 0xff, 0xff, 0xb5, 0xa1, 0x3c, 0x2f, 0xf9, 0x05, 0x00, 0x00,
+var fileDescriptor_node_rpc_b3fd8f73457aa5e4 = []byte{
+	// 607 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x55, 0xcd, 0x6e, 0xd3, 0x40,
+	0x10, 0xee, 0xa6, 0x69, 0xda, 0x4c, 0x93, 0x20, 0x96, 0x52, 0x2c, 0x8b, 0x26, 0x96, 0x0b, 0xc8,
+	0x07, 0x94, 0x42, 0x39, 0x71, 0x6d, 0x83, 0x50, 0x2f, 0x6d, 0xb5, 0x95, 0x10, 0xf4, 0x12, 0x5c,
+	0x7b, 0x1a, 0x2c, 0xd9, 0x5e, 0xc7, 0xde, 0x82, 0xda, 0x03, 0xcf, 0xc0, 0x85, 0x07, 0xe1, 0x2d,
+	0x7a, 0xe4, 0x09, 0x22, 0x64, 0xde, 0x82, 0x13, 0xf2, 0x7a, 0xe3, 0xda, 0x45, 0xe9, 0x9f, 0xb8,
+	0xcd, 0xcc, 0xce, 0xcf, 0xf7, 0xcd, 0x8f, 0x0d, 0x9d, 0x90, 0xbb, 0x38, 0x8c, 0x23, 0xa7, 0x1f,
+	0xc5, 0x5c, 0x70, 0xda, 0xf1, 0x78, 0x1f, 0x3f, 0x63, 0x28, 0x04, 0xc6, 0xfd, 0x60, 0xac, 0x3f,
+	0x72, 0x7c, 0x0f, 0x43, 0xb1, 0x31, 0xb5, 0x05, 0xe3, 0xdc, 0x51, 0x5f, 0x19, 0xf1, 0x11, 0x97,
+	0xe2, 0x46, 0x26, 0xe5, 0x56, 0xb3, 0x03, 0xad, 0x01, 0x1e, 0x9d, 0x8c, 0x18, 0x8e, 0x4f, 0x30,
+	0x11, 0xe6, 0x3e, 0xb4, 0x95, 0x9e, 0x44, 0x3c, 0x4c, 0x90, 0xae, 0x43, 0xdb, 0xf1, 0x4f, 0x12,
+	0x81, 0xf1, 0x30, 0x11, 0xb6, 0x40, 0x8d, 0x18, 0xc4, 0x6a, 0xb2, 0x96, 0x32, 0x1e, 0x64, 0x36,
+	0xaa, 0xc3, 0x52, 0x82, 0xa3, 0x00, 0x43, 0x91, 0x68, 0x35, 0x63, 0xde, 0x6a, 0xb2, 0x42, 0x37,
+	0xbf, 0x13, 0xa0, 0x07, 0xb9, 0xb2, 0x17, 0x61, 0xa8, 0x0a, 0xd1, 0x75, 0x58, 0x94, 0x4c, 0x3c,
+	0x57, 0x66, 0xac, 0x6f, 0x41, 0x3a, 0xe9, 0x35, 0x76, 0xb9, 0x8b, 0x3b, 0x03, 0xd6, 0xc8, 0x9e,
+	0x76, 0x5c, 0xfa, 0x1a, 0x16, 0x04, 0x8f, 0x3c, 0x47, 0xab, 0x19, 0xc4, 0x5a, 0xde, 0x5c, 0xeb,
+	0x57, 0xc9, 0xf6, 0x77, 0xed, 0x00, 0x93, 0xc8, 0x76, 0x30, 0x13, 0xb6, 0xea, 0xe7, 0x93, 0xde,
+	0x1c, 0xcb, 0x23, 0x68, 0x0f, 0x96, 0x7d, 0xb4, 0x5d, 0x8c, 0x87, 0x3c, 0xf4, 0x4f, 0x35, 0xc7,
+	0x20, 0xd6, 0x12, 0x83, 0xdc, 0xb4, 0x17, 0xfa, 0xa7, 0xe6, 0x57, 0x78, 0x50, 0x81, 0xa5, 0xf8,
+	0x3e, 0x07, 0x50, 0xd0, 0x2f, 0xa0, 0xb5, 0xd3, 0x49, 0xaf, 0xa9, 0x9c, 0x77, 0x06, 0xac, 0xa9,
+	0x1c, 0x24, 0xc0, 0x7b, 0x51, 0xec, 0x05, 0x76, 0x7c, 0x3a, 0x9c, 0xb2, 0xa9, 0xc9, 0x90, 0xfb,
+	0xe9, 0xa4, 0xd7, 0xde, 0xcf, 0x9f, 0x14, 0xa9, 0x76, 0x54, 0x52, 0x5d, 0xf3, 0x07, 0x29, 0x00,
+	0x6c, 0xfb, 0x3c, 0xc1, 0x5b, 0x35, 0xa6, 0x8a, 0xb2, 0x76, 0x0d, 0x4a, 0x0a, 0xf5, 0xc4, 0x3b,
+	0x43, 0x6d, 0xde, 0x20, 0xd6, 0x3c, 0x93, 0xb2, 0xb4, 0x7d, 0xb2, 0x5f, 0x6a, 0x75, 0x83, 0x58,
+	0x2d, 0x26, 0xe5, 0xeb, 0x7b, 0xb6, 0x0a, 0x2b, 0x55, 0xc8, 0x79, 0xd3, 0xcc, 0x37, 0xf0, 0x50,
+	0xd9, 0xdf, 0xa2, 0x38, 0xf0, 0xce, 0x0a, 0x32, 0xb7, 0xea, 0xa6, 0x79, 0x08, 0xab, 0x97, 0xd3,
+	0xdc, 0x69, 0x2a, 0x53, 0xbe, 0xb5, 0x0b, 0xbe, 0x66, 0x58, 0x6c, 0x21, 0x43, 0xdb, 0xbd, 0x13,
+	0x3e, 0xba, 0x0a, 0x0d, 0x7e, 0x7c, 0x9c, 0xa0, 0x50, 0x99, 0x95, 0x96, 0xd5, 0xfb, 0x62, 0x7b,
+	0x42, 0xf6, 0x77, 0x89, 0x49, 0xd9, 0xe4, 0xc5, 0x74, 0xf3, 0x7a, 0x77, 0x22, 0x72, 0x45, 0x41,
+	0xd7, 0x16, 0xb6, 0x2c, 0xd8, 0x62, 0x52, 0xde, 0xfc, 0x53, 0x87, 0xc5, 0x6c, 0x4b, 0xd8, 0xfe,
+	0x36, 0x1d, 0xc0, 0x82, 0xbc, 0x62, 0xfa, 0xf8, 0xf2, 0xc5, 0x94, 0x8f, 0x5d, 0x5f, 0x9b, 0xf1,
+	0xaa, 0xb0, 0xbe, 0x83, 0xe5, 0xd2, 0x85, 0x50, 0xf3, 0xb2, 0xf7, 0xbf, 0x57, 0xad, 0xaf, 0x5f,
+	0xe9, 0xa3, 0xf2, 0x7e, 0x80, 0xf6, 0xb4, 0x35, 0x5c, 0x7e, 0x3e, 0x66, 0x45, 0x95, 0xef, 0xe2,
+	0xa6, 0xa9, 0x5b, 0xe5, 0xd8, 0x9b, 0x65, 0x7e, 0x72, 0xb5, 0x93, 0x4a, 0xfd, 0xb1, 0x34, 0xd0,
+	0xc8, 0xf7, 0x1c, 0xfb, 0xbf, 0x57, 0x18, 0x42, 0xa7, 0xba, 0xfe, 0xf4, 0xe9, 0x8c, 0xb8, 0xea,
+	0x95, 0xe9, 0xcf, 0xae, 0x73, 0x53, 0x05, 0xde, 0x17, 0x03, 0xcd, 0x76, 0x72, 0xe6, 0x40, 0x4b,
+	0x07, 0x32, 0xb3, 0xeb, 0xe5, 0xa5, 0x7e, 0x41, 0xb6, 0x56, 0xce, 0xd3, 0x2e, 0xf9, 0x99, 0x76,
+	0xc9, 0xaf, 0xb4, 0x4b, 0xbe, 0xfd, 0xee, 0xce, 0x1d, 0xd6, 0x82, 0xf1, 0x51, 0x43, 0xfe, 0x63,
+	0x5e, 0xfd, 0x0d, 0x00, 0x00, 0xff, 0xff, 0x4c, 0x35, 0x91, 0x24, 0xb4, 0x06, 0x00, 0x00,
 }

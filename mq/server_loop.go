@@ -3,12 +3,19 @@ package mq
 import (
 	"context"
 	"log"
+	"math/rand"
 	"time"
 
 	"github.com/hashicorp/memberlist"
 	"github.com/hashicorp/raft"
 	"github.com/pkg/errors"
 )
+
+type task struct {
+	id     uint64
+	ctx    context.Context
+	cancel func()
+}
 
 func (s *Server) Loop(memberEventsC chan memberlist.NodeEvent) {
 	isLeader := s.raftNode.State() == raft.Leader
@@ -19,6 +26,22 @@ func (s *Server) Loop(memberEventsC chan memberlist.NodeEvent) {
 	nodeTicker := time.NewTicker(100 * time.Millisecond)
 
 	reconciler := NewReconciler(s)
+
+	taskCompletedC := make(chan uint64, 128)
+	runningSegmentReplicationTasks := make(map[uint64]*task)
+
+	var currentID uint64
+
+	makeCompletedFunc := func(task *task) func() {
+		return func() {
+			task.cancel()
+			select {
+			case taskCompletedC <- task.id:
+			default:
+				log.Printf("could not send completion of task %d", task.id)
+			}
+		}
+	}
 
 LOOP:
 	for {
@@ -43,15 +66,23 @@ LOOP:
 				continue
 			}
 
-			reconciler.ReconcileNodes(s.clusterState.Current())
+			func() {
+				if err := s.beginTransaction(); err != nil {
+					log.Printf("could not begin leader loop tx")
+					return
+				}
+				defer s.releaseTransaction()
 
-			// barrier before segments reconciliation
-			if err := s.raftNode.Barrier(10 * time.Second).Error(); err != nil {
-				log.Printf("could not add barrier: %v", err)
-				continue
-			}
+				reconciler.ReconcileNodes(s.clusterState.Current())
 
-			reconciler.ReconcileSegments(s.clusterState.Current())
+				// barrier before segments reconciliation
+				if err := s.raftNode.Barrier(10 * time.Second).Error(); err != nil {
+					log.Printf("could not add barrier: %v", err)
+					return
+				}
+
+				reconciler.ReconcileSegments(s.clusterState.Current())
+			}()
 
 		case <-nodeTicker.C:
 			newState := s.clusterState.Current()
@@ -61,7 +92,78 @@ LOOP:
 
 			state = newState
 
-			// TODO: create / cancel node tasks, e.g. segment replication
+			replicatingSegmentIDs := make(map[uint64]bool)
+
+			for _, segment := range state.OpenSegments {
+				for _, nodeID := range segment.Nodes.ReplicatingNodeIDs {
+					if nodeID == s.nodeID {
+						replicatingSegmentIDs[segment.ID] = true
+
+						if _, ok := runningSegmentReplicationTasks[segment.ID]; !ok {
+							ctx, cancel := context.WithCancel(context.Background())
+							currentID++
+							t := &task{
+								id:     currentID,
+								ctx:    ctx,
+								cancel: cancel,
+							}
+							runningSegmentReplicationTasks[segment.ID] = t
+							go s.taskSegmentReplicate(
+								ctx,
+								makeCompletedFunc(t),
+								segment.ID,
+								segment.Nodes.PrimaryNodeID,
+								true,
+							)
+						}
+					}
+				}
+			}
+
+			for _, segment := range state.ClosedSegments {
+				for _, nodeID := range segment.Nodes.ReplicatingNodeIDs {
+					if nodeID == s.nodeID {
+						replicatingSegmentIDs[segment.ID] = true
+
+						if _, ok := runningSegmentReplicationTasks[segment.ID]; !ok {
+							ctx, cancel := context.WithCancel(context.Background())
+							currentID++
+							t := &task{
+								id:     currentID,
+								ctx:    ctx,
+								cancel: cancel,
+							}
+							runningSegmentReplicationTasks[segment.ID] = t
+							go s.taskSegmentReplicate(
+								ctx,
+								makeCompletedFunc(t),
+								segment.ID,
+								segment.Nodes.DoneNodeIDs[rand.Intn(len(segment.Nodes.DoneNodeIDs))], // select random node that is done
+								false,
+							)
+						}
+					}
+				}
+			}
+
+			for segmentID, task := range runningSegmentReplicationTasks {
+				if !replicatingSegmentIDs[segmentID] {
+					task.cancel()
+				}
+			}
+
+		case taskID := <-taskCompletedC:
+			var segmentID uint64
+			for candidateSegmentID, task := range runningSegmentReplicationTasks {
+				if task.id == taskID {
+					segmentID = candidateSegmentID
+					break
+				}
+			}
+
+			if segmentID > 0 {
+				delete(runningSegmentReplicationTasks, segmentID)
+			}
 
 		case ev := <-memberEventsC:
 			if !isLeader {
@@ -100,6 +202,10 @@ LOOP:
 		case <-s.closeC:
 			break LOOP
 		}
+	}
+
+	for _, task := range runningSegmentReplicationTasks {
+		task.cancel()
 	}
 }
 

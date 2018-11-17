@@ -8,7 +8,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (s *Server) SegmentRotate(ctx context.Context, request *SegmentRotateRequest) (*SegmentOpenResponse, error) {
+func (s *Server) SegmentRotate(ctx context.Context, request *SegmentCloseRequest) (*SegmentOpenResponse, error) {
 	if s.raftNode.State() != raft.Leader {
 		if request.LeaderOnly {
 			return nil, errNotALeader
@@ -35,39 +35,20 @@ func (s *Server) SegmentRotate(ctx context.Context, request *SegmentRotateReques
 
 	state := s.clusterState.Current()
 
-	oldSegment := state.GetOpenSegment(request.OldSegmentID)
-	if oldSegment == nil {
-		oldSegment = state.GetClosedSegment(request.OldSegmentID)
-		if oldSegment == nil {
-			return nil, errors.Errorf("segment %d not found", request.OldSegmentID)
-		}
-
-	} else {
-		if oldSegment.Nodes.PrimaryNodeID != request.NodeID {
-			return nil, errors.Errorf("node %d is not primary for segment %d", request.NodeID, request.OldSegmentID)
-		}
-
-		cmd := &CloseSegmentCommand{
-			ID:         oldSegment.ID,
-			DoneNodeID: request.NodeID,
-			ClosedAt:   time.Now(),
-			Size_:      request.OldSize,
-			Sha1:       request.OldSha1,
-		}
-		if cmd.ClosedAt.Before(oldSegment.OpenedAt) {
-			// possible clock skew => move closed time to opened time
-			cmd.ClosedAt = oldSegment.OpenedAt
-		}
-		_, err := s.Apply(cmd)
-		if err != nil {
-			return nil, err
-		}
-
-		barrierFuture := s.raftNode.Barrier(10 * time.Second)
-		if err := barrierFuture.Error(); err != nil {
-			return nil, err
-		}
+	if err := s.txSegmentClose(state, request); err != nil {
+		return nil, err
 	}
 
-	return s.txOpenSegment(state, request.NodeID, oldSegment.Topic)
+	barrierFuture := s.raftNode.Barrier(10 * time.Second)
+	if err := barrierFuture.Error(); err != nil {
+		return nil, err
+	}
+
+	state = s.clusterState.Current()
+	oldSegment := state.GetClosedSegment(request.SegmentID)
+	if oldSegment == nil {
+		return nil, errors.New("segment deleted in between")
+	}
+
+	return s.txSegmentOpen(state, request.NodeID, oldSegment.Topic)
 }

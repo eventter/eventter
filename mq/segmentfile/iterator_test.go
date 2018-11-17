@@ -33,7 +33,10 @@ func TestIterator_Next_NoWait(t *testing.T) {
 	}
 
 	// read 10 messages back
-	iterator := f.Read(false)
+	iterator, err := f.Read(false)
+	if err != nil {
+		t.Error(err)
+	}
 	n := 0
 	for i := 1; ; i++ {
 		message, offset, err := iterator.Next()
@@ -66,7 +69,10 @@ func TestIterator_Next_NoWait(t *testing.T) {
 	}
 
 	// read 20 messages back
-	iterator = f.Read(false)
+	iterator, err = f.Read(false)
+	if err != nil {
+		t.Error(err)
+	}
 	n = 0
 	for i := 1; ; i++ {
 		message, _, err := iterator.Next()
@@ -119,7 +125,10 @@ func TestIterator_Next_Wait(t *testing.T) {
 		}
 	}()
 
-	iterator := f.Read(true)
+	iterator, err := f.Read(true)
+	if err != nil {
+		t.Error(err)
+	}
 	n := 1
 	for {
 		message, offset, err := iterator.Next()
@@ -158,7 +167,10 @@ func TestIterator_Close(t *testing.T) {
 	}
 	defer f.Close()
 
-	iterator := f.Read(true)
+	iterator, err := f.Read(true)
+	if err != nil {
+		t.Error(err)
+	}
 
 	go func() {
 		time.Sleep(1 * time.Millisecond)

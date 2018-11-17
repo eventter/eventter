@@ -2,6 +2,7 @@ package mq
 
 import (
 	"context"
+	"math/rand"
 	"time"
 
 	"eventter.io/mq/client"
@@ -34,10 +35,10 @@ func (s *Server) SegmentOpen(ctx context.Context, request *SegmentOpenRequest) (
 	}
 	defer s.releaseTransaction()
 
-	return s.txOpenSegment(s.clusterState.Current(), request.NodeID, request.Topic)
+	return s.txSegmentOpen(s.clusterState.Current(), request.NodeID, request.Topic)
 }
 
-func (s *Server) txOpenSegment(state *ClusterState, primaryNodeID uint64, topicName client.NamespaceName) (*SegmentOpenResponse, error) {
+func (s *Server) txSegmentOpen(state *ClusterState, primaryNodeID uint64, topicName client.NamespaceName) (*SegmentOpenResponse, error) {
 	node := state.GetNode(primaryNodeID)
 	if node == nil {
 		return nil, errors.Errorf("node %d not found", primaryNodeID)
@@ -62,7 +63,7 @@ func (s *Server) txOpenSegment(state *ClusterState, primaryNodeID uint64, topicN
 
 	// return random segment from another node if there would be more shards than configured
 	if topic.Shards > 0 && uint32(len(openSegments)) >= topic.Shards {
-		segment := openSegments[s.rng.Intn(len(openSegments))]
+		segment := openSegments[rand.Intn(len(openSegments))]
 		return &SegmentOpenResponse{
 			SegmentID:     segment.ID,
 			PrimaryNodeID: segment.Nodes.PrimaryNodeID,

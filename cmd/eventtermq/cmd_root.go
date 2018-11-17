@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"math/rand"
 	"net"
 	"os"
 	"os/signal"
@@ -31,6 +32,8 @@ func rootCmd() *cobra.Command {
 			return rootConfig.Init()
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
+			rand.Seed(time.Now().UnixNano())
+
 			advertiseIPs, err := net.LookupIP(rootConfig.AdvertiseHost)
 			if err != nil {
 				return errors.Wrap(err, "advertise host lookup failed")

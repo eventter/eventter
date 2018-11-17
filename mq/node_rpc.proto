@@ -29,13 +29,16 @@ message SegmentOpenResponse {
     uint64 primary_node_id = 2 [(gogoproto.customname) = "PrimaryNodeID"];
 }
 
-message SegmentRotateRequest {
+message SegmentCloseRequest {
     // If true and node is not a leader, request will fail.
     bool leader_only = 99;
     uint64 node_id = 1 [(gogoproto.customname) = "NodeID"];
-    uint64 old_segment_id = 2 [(gogoproto.customname) = "OldSegmentID"];
-    int64 old_size = 3;
-    bytes old_sha1 = 4;
+    uint64 segment_id = 2 [(gogoproto.customname) = "SegmentID"];
+    int64 size = 3;
+    bytes sha1 = 4;
+}
+
+message SegmentCloseResponse {
 }
 
 message SegmentGetSizeRequest {
@@ -63,7 +66,9 @@ message SegmentReadResponse {
 service NodeRPC {
     rpc Debug (DebugRequest) returns (DebugResponse);
     rpc SegmentOpen (SegmentOpenRequest) returns (SegmentOpenResponse);
-    rpc SegmentRotate (SegmentRotateRequest) returns (SegmentOpenResponse);
+    rpc SegmentRotate (SegmentCloseRequest) returns (SegmentOpenResponse);
+    rpc SegmentClose (SegmentCloseRequest) returns (SegmentCloseResponse);
+    rpc SegmentReplicaClose (SegmentCloseRequest) returns (SegmentCloseResponse);
     rpc SegmentGetSize (SegmentGetSizeRequest) returns (SegmentGetSizeResponse);
     rpc SegmentRead (SegmentReadRequest) returns (stream SegmentReadResponse);
 }

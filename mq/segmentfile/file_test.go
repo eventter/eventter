@@ -55,7 +55,10 @@ func TestFile_Write(t *testing.T) {
 		t.Error(err)
 	}
 
-	iterator := f.Read(false)
+	iterator, err := f.Read(false)
+	if err != nil {
+		t.Error(err)
+	}
 	messagesRead := 0
 	for {
 		message, _, err := iterator.Next()
