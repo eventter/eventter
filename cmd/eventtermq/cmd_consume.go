@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/hex"
 	"encoding/json"
 	"io"
 	"math/rand"
@@ -10,7 +9,6 @@ import (
 	"time"
 
 	"eventter.io/mq/client"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -58,24 +56,19 @@ func consumeCmd() *cobra.Command {
 					return err
 				}
 
-				switch body := in.Body.(type) {
-				case *client.ConsumeResponse_Delivery_:
-					encoder.Encode(body.Delivery)
+				encoder.Encode(in)
 
-					if !request.NoAck {
-						err = stream.Send(&client.ConsumeRequest{
-							Body: &client.ConsumeRequest_Ack_{
-								Ack: &client.ConsumeRequest_Ack{
-									DeliveryTag: body.Delivery.DeliveryTag,
-								},
+				if !request.NoAck {
+					err = stream.Send(&client.ConsumeRequest{
+						Body: &client.ConsumeRequest_Ack_{
+							Ack: &client.ConsumeRequest_Ack{
+								DeliveryTag: in.DeliveryTag,
 							},
-						})
-						if err != nil {
-							return err
-						}
+						},
+					})
+					if err != nil {
+						return err
 					}
-				default:
-					return errors.Errorf("unhandled type: %T", in.Body)
 				}
 			}
 
@@ -89,7 +82,6 @@ func consumeCmd() *cobra.Command {
 
 	cmd.Flags().StringVar(&request.ConsumerGroup.Namespace, "namespace", "default", "Consumer group namespace.")
 	cmd.Flags().StringVarP(&request.ConsumerGroup.Name, "name", "n", "", "Consumer group name.")
-	cmd.Flags().StringVarP(&request.ConsumerTag, "consumer-tag", "t", hex.EncodeToString(buf), "Consumer tag.")
 	cmd.Flags().BoolVar(&request.NoAck, "no-ack", false, "No ack.")
 	cmd.Flags().BoolVar(&request.Exclusive, "exclusive", false, "Exclusive.")
 

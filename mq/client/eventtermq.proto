@@ -161,9 +161,8 @@ message PublishResponse {
 message ConsumeRequest {
     message Request {
         NamespaceName consumer_group = 1 [(gogoproto.nullable) = false];
-        string consumer_tag = 2;
-        bool no_ack = 3;
-        bool exclusive = 4;
+        bool no_ack = 2;
+        bool exclusive = 3;
     }
 
     message Ack {
@@ -185,16 +184,9 @@ message ConsumeRequest {
 }
 
 message ConsumeResponse {
-    message Delivery {
-        uint64 delivery_tag = 1;
-        string consumer_tag = 2;
-        NamespaceName topic = 3 [(gogoproto.nullable) = false];
-        Message message = 4 [(gogoproto.nullable) = false];
-    }
-
-    oneof body {
-        Delivery delivery = 1;
-    }
+    uint64 delivery_tag = 1;
+    NamespaceName topic = 2 [(gogoproto.nullable) = false];
+    Message message = 3 [(gogoproto.nullable) = false];
 }
 
 service EventterMQ {
