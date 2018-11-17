@@ -28,9 +28,29 @@ func (r *Reconciler) reconcileOpenSegments(state *ClusterState, nodeSegmentCount
 }
 
 func (r *Reconciler) reconcileOpenSegment(segment *ClusterSegment, state *ClusterState, nodeSegmentCounts map[uint64]int, nodeMap map[uint64]*ClusterNode, allCandidateNodeIDs []uint64) {
+	topic := state.GetTopic(segment.Topic.Namespace, segment.Topic.Name)
+
+	if topic == nil {
+		_, err := r.delegate.Apply(&DeleteSegmentCommand{
+			ID:    segment.ID,
+			Which: DeleteSegmentCommand_OPEN,
+		})
+		if err != nil {
+			log.Printf("could not delete open segment with non-existent topic: %v", err)
+			return
+		}
+		log.Printf(
+			"topic %s/%s does not exist, open segment %d deleted",
+			segment.Topic.Namespace,
+			segment.Topic.Name,
+			segment.ID,
+		)
+		return
+	}
+
 	primaryNode := nodeMap[segment.Nodes.PrimaryNodeID]
 	if primaryNode.State == ClusterNode_ALIVE {
-		r.reconcileOpenSegmentWithAlivePrimary(segment, state, nodeSegmentCounts, nodeMap, allCandidateNodeIDs)
+		r.reconcileOpenSegmentWithAlivePrimary(segment, topic, state, nodeSegmentCounts, nodeMap, allCandidateNodeIDs)
 	} else if primaryNode.State == ClusterNode_DEAD {
 		r.reconcileOpenSegmentWithDeadPrimary(segment, state, nodeSegmentCounts, nodeMap, allCandidateNodeIDs)
 	} else {
@@ -38,8 +58,7 @@ func (r *Reconciler) reconcileOpenSegment(segment *ClusterSegment, state *Cluste
 	}
 }
 
-func (r *Reconciler) reconcileOpenSegmentWithAlivePrimary(segment *ClusterSegment, state *ClusterState, nodeSegmentCounts map[uint64]int, nodeMap map[uint64]*ClusterNode, allCandidateNodeIDs []uint64) {
-	topic := state.GetTopic(segment.Topic.Namespace, segment.Topic.Name)
+func (r *Reconciler) reconcileOpenSegmentWithAlivePrimary(segment *ClusterSegment, topic *ClusterTopic, state *ClusterState, nodeSegmentCounts map[uint64]int, nodeMap map[uint64]*ClusterNode, allCandidateNodeIDs []uint64) {
 	if topic.ReplicationFactor < 1 {
 		panic("replication factor is zero")
 	}
@@ -230,22 +249,41 @@ func (r *Reconciler) reconcileClosedSegments(state *ClusterState, nodeSegmentCou
 func (r *Reconciler) reconcileClosedSegment(segment *ClusterSegment, state *ClusterState, nodeSegmentCounts map[uint64]int, nodeMap map[uint64]*ClusterNode, allCandidateNodeIDs []uint64) {
 	topic := state.GetTopic(segment.Topic.Namespace, segment.Topic.Name)
 
-	if topic.Retention > 0 {
+	if topic == nil {
+		_, err := r.delegate.Apply(&DeleteSegmentCommand{
+			ID:    segment.ID,
+			Which: DeleteSegmentCommand_CLOSED,
+		})
+		if err != nil {
+			log.Printf("could not delete closed segment with non-existent topic: %v", err)
+			return
+		}
+
+		log.Printf(
+			"topic %s/%s does not exist, closed segment %d deleted",
+			segment.Topic.Namespace,
+			segment.Topic.Name,
+			segment.ID,
+		)
+		return
+
+	} else if topic.Retention > 0 {
 		retainTill := time.Now().Add(-topic.Retention)
 		if segment.ClosedAt.Before(retainTill) {
-			_, err := r.delegate.Apply(&DeleteSegmentCommand{ID: segment.ID})
+			_, err := r.delegate.Apply(&DeleteSegmentCommand{
+				ID:    segment.ID,
+				Which: DeleteSegmentCommand_CLOSED,
+			})
 			if err != nil {
 				log.Printf("could not delete closed segment after retention period: %v", err)
 				return
 			}
-
 			log.Printf(
 				"closed segment %d (of topic %s/%s) fell off retention period, deleted",
 				segment.ID,
 				segment.Topic.Namespace,
 				segment.Topic.Name,
 			)
-
 			return
 		}
 	}

@@ -106,6 +106,12 @@ message UpdateSegmentNodesCommand {
 
 message DeleteSegmentCommand {
     uint64 id = 1 [(gogoproto.customname) = "ID"];
+    Which which = 2;
+
+    enum Which {
+        OPEN = 0;
+        CLOSED = 1;
+    }
 }
 
 message Command {

@@ -114,15 +114,32 @@ func (s *ClusterState) doUpdateSegmentNodesIn(segments []*ClusterSegment, segmen
 }
 
 func (s *ClusterState) doDeleteSegment(cmd *DeleteSegmentCommand) *ClusterState {
-	i := sort.Search(len(s.ClosedSegments), func(i int) bool { return s.ClosedSegments[i].ID >= cmd.ID })
-	if i < len(s.ClosedSegments) && s.ClosedSegments[i].ID == cmd.ID {
-		next := &ClusterState{}
-		*next = *s
-		next.ClosedSegments = make([]*ClusterSegment, len(s.ClosedSegments)-1)
-		copy(next.ClosedSegments[:i], s.ClosedSegments[:i])
-		copy(next.ClosedSegments[i:], s.ClosedSegments[i+1:])
+	if cmd.Which == DeleteSegmentCommand_OPEN {
+		i := sort.Search(len(s.OpenSegments), func(i int) bool { return s.OpenSegments[i].ID >= cmd.ID })
+		if i < len(s.OpenSegments) && s.OpenSegments[i].ID == cmd.ID {
+			next := &ClusterState{}
+			*next = *s
+			next.OpenSegments = make([]*ClusterSegment, len(s.OpenSegments)-1)
+			copy(next.OpenSegments[:i], s.OpenSegments[:i])
+			copy(next.OpenSegments[i:], s.OpenSegments[i+1:])
 
-		return next
+			return next
+		}
+
+	} else if cmd.Which == DeleteSegmentCommand_CLOSED {
+		i := sort.Search(len(s.ClosedSegments), func(i int) bool { return s.ClosedSegments[i].ID >= cmd.ID })
+		if i < len(s.ClosedSegments) && s.ClosedSegments[i].ID == cmd.ID {
+			next := &ClusterState{}
+			*next = *s
+			next.ClosedSegments = make([]*ClusterSegment, len(s.ClosedSegments)-1)
+			copy(next.ClosedSegments[:i], s.ClosedSegments[:i])
+			copy(next.ClosedSegments[i:], s.ClosedSegments[i+1:])
+
+			return next
+		}
+
+	} else {
+		panic("unhandled which: " + cmd.Which.String())
 	}
 
 	return s
