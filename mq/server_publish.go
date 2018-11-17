@@ -2,6 +2,7 @@ package mq
 
 import (
 	"context"
+	"crypto/sha1"
 	"runtime"
 	"sync/atomic"
 
@@ -71,7 +72,7 @@ WRITE:
 
 		err = segment.Write(&request.Message)
 		if err == segmentfile.ErrFull {
-			sha1, size, err := segment.Complete()
+			sha1Sum, size, err := segment.Sum(sha1.New())
 			if err != nil {
 				return nil, err
 			}
@@ -79,7 +80,7 @@ WRITE:
 				NodeID:       s.nodeID,
 				OldSegmentID: localSegmentID,
 				OldSize:      uint64(size),
-				OldSha1:      sha1,
+				OldSha1:      sha1Sum,
 			})
 			if err != nil {
 				return nil, err

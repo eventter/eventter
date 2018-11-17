@@ -96,7 +96,7 @@ func (d *Dir) Open(id uint64) (*File, error) {
 	if err := os.MkdirAll(pathDir, d.dirPerm); err != nil {
 		return nil, errors.Wrap(err, "mkdir failed")
 	}
-	file, err := NewFile(id, path, d.filePerm, d.maxSize)
+	file, err := Open(id, path, d.filePerm, d.maxSize)
 	if err != nil {
 		return nil, errors.Wrap(err, "creating segment file failed")
 	}

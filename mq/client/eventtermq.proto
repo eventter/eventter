@@ -4,8 +4,8 @@ package io.eventter.mq;
 
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
-import "google/protobuf/any.proto";
 import "google/protobuf/duration.proto";
+import "google/protobuf/struct.proto";
 import "google/protobuf/timestamp.proto";
 
 option go_package = "client";
@@ -127,7 +127,7 @@ message DeleteConsumerGroupResponse {
 message Message {
     string routing_key = 1;
     Properties properties = 2;
-    map<string, google.protobuf.Any> headers = 3;
+    google.protobuf.Struct headers = 3;
     bytes data = 4;
 
     message Properties {

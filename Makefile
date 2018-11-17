@@ -20,3 +20,6 @@ download-proto:
 		mkdir -p google/api ; \
 		cp googleapis-master/google/api/{annotations,http}.proto google/api/ ; \
 		rm -rf googleapis-master
+
+test:
+	go test -v -race ./mq/...

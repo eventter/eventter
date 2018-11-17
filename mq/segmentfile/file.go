@@ -1,9 +1,10 @@
 package segmentfile
 
 import (
-	"crypto/sha1"
+	"bufio"
 	"encoding/binary"
 	"fmt"
+	"hash"
 	"io"
 	"os"
 	"sync"
@@ -12,10 +13,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-var (
-	ErrFull  = errors.New("segment is full")
-	Encoding = binary.LittleEndian
-)
+var ErrFull = errors.New("segment is full")
 
 const (
 	dataFileSuffix  = ".seg"
@@ -30,9 +28,10 @@ type File struct {
 	offset  int64
 	file    *os.File
 	mutex   sync.Mutex
+	cond    *sync.Cond
 }
 
-func NewFile(id uint64, path string, filePerm os.FileMode, maxSize int64) (f *File, err error) {
+func Open(id uint64, path string, filePerm os.FileMode, maxSize int64) (f *File, err error) {
 	file, err := os.OpenFile(path+dataFileSuffix, os.O_CREATE|os.O_RDWR|os.O_APPEND|openSync, filePerm)
 	if err != nil {
 		return nil, errors.Wrap(err, "open failed")
@@ -66,7 +65,7 @@ func NewFile(id uint64, path string, filePerm os.FileMode, maxSize int64) (f *Fi
 		}
 
 		if buf[0] != version {
-			return nil, errors.Errorf("bad version: %d", buf[0])
+			return nil, errors.Errorf("bad version, expected: %d, got: %d", version, buf[0])
 		}
 
 		for offset < size {
@@ -99,13 +98,17 @@ func NewFile(id uint64, path string, filePerm os.FileMode, maxSize int64) (f *Fi
 		}
 	}
 
-	return &File{
+	f = &File{
 		id:      id,
 		path:    path,
 		file:    file,
 		maxSize: maxSize,
 		offset:  offset,
-	}, nil
+	}
+
+	f.cond = sync.NewCond(&f.mutex)
+
+	return f, nil
 }
 
 func (f *File) Write(message proto.Message) error {
@@ -113,7 +116,7 @@ func (f *File) Write(message proto.Message) error {
 	defer f.mutex.Unlock()
 
 	currentOffset := f.offset
-	if currentOffset > f.maxSize {
+	if currentOffset >= f.maxSize {
 		return ErrFull
 	}
 
@@ -136,19 +139,48 @@ func (f *File) Write(message proto.Message) error {
 
 	f.offset += int64(len(buf))
 
+	f.cond.Broadcast()
+
 	return nil
 }
 
-func (f *File) Complete() (sha1Sum []byte, size int64, err error) {
+func (f *File) Size() int64 {
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
 
-	if _, err := f.file.Seek(0, io.SeekStart); err != nil {
-		return nil, 0, err
-	}
+	return f.offset
+}
 
-	h := sha1.New()
-	if _, err := io.Copy(h, f.file); err != nil {
+func (f *File) Read(wait bool) *Iterator {
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+
+	return &Iterator{
+		file:   f,
+		offset: f.offset,
+		wait:   wait,
+		reader: bufio.NewReader(io.NewSectionReader(f.file, 1, f.offset-1)),
+	}
+}
+
+func (f *File) ReadAt(offset int64, wait bool) *Iterator {
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+
+	return &Iterator{
+		file:   f,
+		offset: f.offset,
+		wait:   wait,
+		reader: bufio.NewReader(io.NewSectionReader(f.file, offset, f.offset-offset)),
+	}
+}
+
+func (f *File) Sum(h hash.Hash) (sum []byte, size int64, err error) {
+	f.mutex.Lock()
+	r := io.NewSectionReader(f.file, 0, f.offset)
+	f.mutex.Unlock()
+
+	if _, err := io.Copy(h, r); err != nil {
 		return nil, 0, err
 	}
 
