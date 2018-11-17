@@ -1,11 +1,13 @@
 package mq
 
 import (
+	"context"
 	"log"
 	"time"
 
 	"github.com/hashicorp/memberlist"
 	"github.com/hashicorp/raft"
+	"github.com/pkg/errors"
 )
 
 func (s *Server) Loop(memberEventsC chan memberlist.NodeEvent) {
@@ -113,4 +115,26 @@ func (s *Server) AddVoter(id string, addr string) error {
 		applyTimeout,
 	)
 	return future.Error()
+}
+
+func (s *Server) GetSegmentSizeFromNode(ctx context.Context, segmentID uint64, nodeID uint64, nodeAddr string) (size int64, err error) {
+	request := &SegmentGetSizeRequest{SegmentID: segmentID}
+	var response *SegmentGetSizeResponse
+	if nodeID == s.nodeID {
+		response, err = s.SegmentGetSize(ctx, request)
+	} else {
+		conn, err := s.pool.Get(ctx, nodeAddr)
+		if err != nil {
+			return -1, errors.Wrap(err, couldNotDialLeaderError)
+		}
+		defer s.pool.Put(conn)
+
+		response, err = NewNodeRPCClient(conn).SegmentGetSize(ctx, request)
+	}
+
+	if err != nil {
+		return -1, err
+	}
+
+	return response.Size_, nil
 }

@@ -13,7 +13,7 @@ import (
 )
 
 func TestIterator_Next_NoWait(t *testing.T) {
-	tmpDir, err := ioutil.TempDir("", "segmentfile")
+	tmpDir, err := ioutil.TempDir("", "")
 	if err != nil {
 		t.Error(err)
 	}
@@ -91,7 +91,7 @@ func TestIterator_Next_NoWait(t *testing.T) {
 }
 
 func TestIterator_Next_Wait(t *testing.T) {
-	tmpDir, err := ioutil.TempDir("", "segmentfile")
+	tmpDir, err := ioutil.TempDir("", "")
 	if err != nil {
 		t.Error(err)
 	}

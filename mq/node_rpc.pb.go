@@ -34,7 +34,7 @@ func (m *DebugRequest) Reset()         { *m = DebugRequest{} }
 func (m *DebugRequest) String() string { return proto.CompactTextString(m) }
 func (*DebugRequest) ProtoMessage()    {}
 func (*DebugRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_node_rpc_87d5468cc5b90137, []int{0}
+	return fileDescriptor_node_rpc_b325ee32d6c319d8, []int{0}
 }
 func (m *DebugRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -76,7 +76,7 @@ func (m *DebugResponse) Reset()         { *m = DebugResponse{} }
 func (m *DebugResponse) String() string { return proto.CompactTextString(m) }
 func (*DebugResponse) ProtoMessage()    {}
 func (*DebugResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_node_rpc_87d5468cc5b90137, []int{1}
+	return fileDescriptor_node_rpc_b325ee32d6c319d8, []int{1}
 }
 func (m *DebugResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -119,7 +119,7 @@ func (m *DebugResponse) GetSegments() []string {
 	return nil
 }
 
-type OpenSegmentRequest struct {
+type SegmentOpenRequest struct {
 	// If true and node is not a leader, request will fail.
 	LeaderOnly           bool                 `protobuf:"varint,99,opt,name=leader_only,json=leaderOnly,proto3" json:"leader_only,omitempty"`
 	NodeID               uint64               `protobuf:"varint,1,opt,name=node_id,json=nodeId,proto3" json:"node_id,omitempty"`
@@ -128,18 +128,18 @@ type OpenSegmentRequest struct {
 	XXX_sizecache        int32                `json:"-"`
 }
 
-func (m *OpenSegmentRequest) Reset()         { *m = OpenSegmentRequest{} }
-func (m *OpenSegmentRequest) String() string { return proto.CompactTextString(m) }
-func (*OpenSegmentRequest) ProtoMessage()    {}
-func (*OpenSegmentRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_node_rpc_87d5468cc5b90137, []int{2}
+func (m *SegmentOpenRequest) Reset()         { *m = SegmentOpenRequest{} }
+func (m *SegmentOpenRequest) String() string { return proto.CompactTextString(m) }
+func (*SegmentOpenRequest) ProtoMessage()    {}
+func (*SegmentOpenRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_node_rpc_b325ee32d6c319d8, []int{2}
 }
-func (m *OpenSegmentRequest) XXX_Unmarshal(b []byte) error {
+func (m *SegmentOpenRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *OpenSegmentRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *SegmentOpenRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_OpenSegmentRequest.Marshal(b, m, deterministic)
+		return xxx_messageInfo_SegmentOpenRequest.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalTo(b)
@@ -149,58 +149,58 @@ func (m *OpenSegmentRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, 
 		return b[:n], nil
 	}
 }
-func (dst *OpenSegmentRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_OpenSegmentRequest.Merge(dst, src)
+func (dst *SegmentOpenRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SegmentOpenRequest.Merge(dst, src)
 }
-func (m *OpenSegmentRequest) XXX_Size() int {
+func (m *SegmentOpenRequest) XXX_Size() int {
 	return m.Size()
 }
-func (m *OpenSegmentRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_OpenSegmentRequest.DiscardUnknown(m)
+func (m *SegmentOpenRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_SegmentOpenRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_OpenSegmentRequest proto.InternalMessageInfo
+var xxx_messageInfo_SegmentOpenRequest proto.InternalMessageInfo
 
-func (m *OpenSegmentRequest) GetLeaderOnly() bool {
+func (m *SegmentOpenRequest) GetLeaderOnly() bool {
 	if m != nil {
 		return m.LeaderOnly
 	}
 	return false
 }
 
-func (m *OpenSegmentRequest) GetNodeID() uint64 {
+func (m *SegmentOpenRequest) GetNodeID() uint64 {
 	if m != nil {
 		return m.NodeID
 	}
 	return 0
 }
 
-func (m *OpenSegmentRequest) GetTopic() client.NamespaceName {
+func (m *SegmentOpenRequest) GetTopic() client.NamespaceName {
 	if m != nil {
 		return m.Topic
 	}
 	return client.NamespaceName{}
 }
 
-type OpenSegmentResponse struct {
+type SegmentOpenResponse struct {
 	SegmentID            uint64   `protobuf:"varint,1,opt,name=segment_id,json=segmentId,proto3" json:"segment_id,omitempty"`
 	PrimaryNodeID        uint64   `protobuf:"varint,2,opt,name=primary_node_id,json=primaryNodeId,proto3" json:"primary_node_id,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *OpenSegmentResponse) Reset()         { *m = OpenSegmentResponse{} }
-func (m *OpenSegmentResponse) String() string { return proto.CompactTextString(m) }
-func (*OpenSegmentResponse) ProtoMessage()    {}
-func (*OpenSegmentResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_node_rpc_87d5468cc5b90137, []int{3}
+func (m *SegmentOpenResponse) Reset()         { *m = SegmentOpenResponse{} }
+func (m *SegmentOpenResponse) String() string { return proto.CompactTextString(m) }
+func (*SegmentOpenResponse) ProtoMessage()    {}
+func (*SegmentOpenResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_node_rpc_b325ee32d6c319d8, []int{3}
 }
-func (m *OpenSegmentResponse) XXX_Unmarshal(b []byte) error {
+func (m *SegmentOpenResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *OpenSegmentResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *SegmentOpenResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_OpenSegmentResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_SegmentOpenResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalTo(b)
@@ -210,55 +210,55 @@ func (m *OpenSegmentResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte,
 		return b[:n], nil
 	}
 }
-func (dst *OpenSegmentResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_OpenSegmentResponse.Merge(dst, src)
+func (dst *SegmentOpenResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SegmentOpenResponse.Merge(dst, src)
 }
-func (m *OpenSegmentResponse) XXX_Size() int {
+func (m *SegmentOpenResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *OpenSegmentResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_OpenSegmentResponse.DiscardUnknown(m)
+func (m *SegmentOpenResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_SegmentOpenResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_OpenSegmentResponse proto.InternalMessageInfo
+var xxx_messageInfo_SegmentOpenResponse proto.InternalMessageInfo
 
-func (m *OpenSegmentResponse) GetSegmentID() uint64 {
+func (m *SegmentOpenResponse) GetSegmentID() uint64 {
 	if m != nil {
 		return m.SegmentID
 	}
 	return 0
 }
 
-func (m *OpenSegmentResponse) GetPrimaryNodeID() uint64 {
+func (m *SegmentOpenResponse) GetPrimaryNodeID() uint64 {
 	if m != nil {
 		return m.PrimaryNodeID
 	}
 	return 0
 }
 
-type RotateSegmentRequest struct {
+type SegmentRotateRequest struct {
 	// If true and node is not a leader, request will fail.
 	LeaderOnly           bool     `protobuf:"varint,99,opt,name=leader_only,json=leaderOnly,proto3" json:"leader_only,omitempty"`
 	NodeID               uint64   `protobuf:"varint,1,opt,name=node_id,json=nodeId,proto3" json:"node_id,omitempty"`
 	OldSegmentID         uint64   `protobuf:"varint,2,opt,name=old_segment_id,json=oldSegmentId,proto3" json:"old_segment_id,omitempty"`
-	OldSize              uint64   `protobuf:"varint,3,opt,name=old_size,json=oldSize,proto3" json:"old_size,omitempty"`
+	OldSize              int64    `protobuf:"varint,3,opt,name=old_size,json=oldSize,proto3" json:"old_size,omitempty"`
 	OldSha1              []byte   `protobuf:"bytes,4,opt,name=old_sha1,json=oldSha1,proto3" json:"old_sha1,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *RotateSegmentRequest) Reset()         { *m = RotateSegmentRequest{} }
-func (m *RotateSegmentRequest) String() string { return proto.CompactTextString(m) }
-func (*RotateSegmentRequest) ProtoMessage()    {}
-func (*RotateSegmentRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_node_rpc_87d5468cc5b90137, []int{4}
+func (m *SegmentRotateRequest) Reset()         { *m = SegmentRotateRequest{} }
+func (m *SegmentRotateRequest) String() string { return proto.CompactTextString(m) }
+func (*SegmentRotateRequest) ProtoMessage()    {}
+func (*SegmentRotateRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_node_rpc_b325ee32d6c319d8, []int{4}
 }
-func (m *RotateSegmentRequest) XXX_Unmarshal(b []byte) error {
+func (m *SegmentRotateRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *RotateSegmentRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *SegmentRotateRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_RotateSegmentRequest.Marshal(b, m, deterministic)
+		return xxx_messageInfo_SegmentRotateRequest.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalTo(b)
@@ -268,59 +268,153 @@ func (m *RotateSegmentRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte
 		return b[:n], nil
 	}
 }
-func (dst *RotateSegmentRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_RotateSegmentRequest.Merge(dst, src)
+func (dst *SegmentRotateRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SegmentRotateRequest.Merge(dst, src)
 }
-func (m *RotateSegmentRequest) XXX_Size() int {
+func (m *SegmentRotateRequest) XXX_Size() int {
 	return m.Size()
 }
-func (m *RotateSegmentRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_RotateSegmentRequest.DiscardUnknown(m)
+func (m *SegmentRotateRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_SegmentRotateRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_RotateSegmentRequest proto.InternalMessageInfo
+var xxx_messageInfo_SegmentRotateRequest proto.InternalMessageInfo
 
-func (m *RotateSegmentRequest) GetLeaderOnly() bool {
+func (m *SegmentRotateRequest) GetLeaderOnly() bool {
 	if m != nil {
 		return m.LeaderOnly
 	}
 	return false
 }
 
-func (m *RotateSegmentRequest) GetNodeID() uint64 {
+func (m *SegmentRotateRequest) GetNodeID() uint64 {
 	if m != nil {
 		return m.NodeID
 	}
 	return 0
 }
 
-func (m *RotateSegmentRequest) GetOldSegmentID() uint64 {
+func (m *SegmentRotateRequest) GetOldSegmentID() uint64 {
 	if m != nil {
 		return m.OldSegmentID
 	}
 	return 0
 }
 
-func (m *RotateSegmentRequest) GetOldSize() uint64 {
+func (m *SegmentRotateRequest) GetOldSize() int64 {
 	if m != nil {
 		return m.OldSize
 	}
 	return 0
 }
 
-func (m *RotateSegmentRequest) GetOldSha1() []byte {
+func (m *SegmentRotateRequest) GetOldSha1() []byte {
 	if m != nil {
 		return m.OldSha1
 	}
 	return nil
 }
 
+type SegmentGetSizeRequest struct {
+	SegmentID            uint64   `protobuf:"varint,1,opt,name=segment_id,json=segmentId,proto3" json:"segment_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *SegmentGetSizeRequest) Reset()         { *m = SegmentGetSizeRequest{} }
+func (m *SegmentGetSizeRequest) String() string { return proto.CompactTextString(m) }
+func (*SegmentGetSizeRequest) ProtoMessage()    {}
+func (*SegmentGetSizeRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_node_rpc_b325ee32d6c319d8, []int{5}
+}
+func (m *SegmentGetSizeRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *SegmentGetSizeRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_SegmentGetSizeRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (dst *SegmentGetSizeRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SegmentGetSizeRequest.Merge(dst, src)
+}
+func (m *SegmentGetSizeRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *SegmentGetSizeRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_SegmentGetSizeRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SegmentGetSizeRequest proto.InternalMessageInfo
+
+func (m *SegmentGetSizeRequest) GetSegmentID() uint64 {
+	if m != nil {
+		return m.SegmentID
+	}
+	return 0
+}
+
+type SegmentGetSizeResponse struct {
+	Size_                int64    `protobuf:"varint,1,opt,name=size,proto3" json:"size,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *SegmentGetSizeResponse) Reset()         { *m = SegmentGetSizeResponse{} }
+func (m *SegmentGetSizeResponse) String() string { return proto.CompactTextString(m) }
+func (*SegmentGetSizeResponse) ProtoMessage()    {}
+func (*SegmentGetSizeResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_node_rpc_b325ee32d6c319d8, []int{6}
+}
+func (m *SegmentGetSizeResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *SegmentGetSizeResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_SegmentGetSizeResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (dst *SegmentGetSizeResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SegmentGetSizeResponse.Merge(dst, src)
+}
+func (m *SegmentGetSizeResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *SegmentGetSizeResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_SegmentGetSizeResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SegmentGetSizeResponse proto.InternalMessageInfo
+
+func (m *SegmentGetSizeResponse) GetSize_() int64 {
+	if m != nil {
+		return m.Size_
+	}
+	return 0
+}
+
 func init() {
 	proto.RegisterType((*DebugRequest)(nil), "io.eventter.mq.DebugRequest")
 	proto.RegisterType((*DebugResponse)(nil), "io.eventter.mq.DebugResponse")
-	proto.RegisterType((*OpenSegmentRequest)(nil), "io.eventter.mq.OpenSegmentRequest")
-	proto.RegisterType((*OpenSegmentResponse)(nil), "io.eventter.mq.OpenSegmentResponse")
-	proto.RegisterType((*RotateSegmentRequest)(nil), "io.eventter.mq.RotateSegmentRequest")
+	proto.RegisterType((*SegmentOpenRequest)(nil), "io.eventter.mq.SegmentOpenRequest")
+	proto.RegisterType((*SegmentOpenResponse)(nil), "io.eventter.mq.SegmentOpenResponse")
+	proto.RegisterType((*SegmentRotateRequest)(nil), "io.eventter.mq.SegmentRotateRequest")
+	proto.RegisterType((*SegmentGetSizeRequest)(nil), "io.eventter.mq.SegmentGetSizeRequest")
+	proto.RegisterType((*SegmentGetSizeResponse)(nil), "io.eventter.mq.SegmentGetSizeResponse")
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -335,8 +429,9 @@ const _ = grpc.SupportPackageIsVersion4
 
 type NodeRPCClient interface {
 	Debug(ctx context.Context, in *DebugRequest, opts ...grpc.CallOption) (*DebugResponse, error)
-	OpenSegment(ctx context.Context, in *OpenSegmentRequest, opts ...grpc.CallOption) (*OpenSegmentResponse, error)
-	RotateSegment(ctx context.Context, in *RotateSegmentRequest, opts ...grpc.CallOption) (*OpenSegmentResponse, error)
+	SegmentOpen(ctx context.Context, in *SegmentOpenRequest, opts ...grpc.CallOption) (*SegmentOpenResponse, error)
+	SegmentRotate(ctx context.Context, in *SegmentRotateRequest, opts ...grpc.CallOption) (*SegmentOpenResponse, error)
+	SegmentGetSize(ctx context.Context, in *SegmentGetSizeRequest, opts ...grpc.CallOption) (*SegmentGetSizeResponse, error)
 }
 
 type nodeRPCClient struct {
@@ -356,18 +451,27 @@ func (c *nodeRPCClient) Debug(ctx context.Context, in *DebugRequest, opts ...grp
 	return out, nil
 }
 
-func (c *nodeRPCClient) OpenSegment(ctx context.Context, in *OpenSegmentRequest, opts ...grpc.CallOption) (*OpenSegmentResponse, error) {
-	out := new(OpenSegmentResponse)
-	err := c.cc.Invoke(ctx, "/io.eventter.mq.NodeRPC/OpenSegment", in, out, opts...)
+func (c *nodeRPCClient) SegmentOpen(ctx context.Context, in *SegmentOpenRequest, opts ...grpc.CallOption) (*SegmentOpenResponse, error) {
+	out := new(SegmentOpenResponse)
+	err := c.cc.Invoke(ctx, "/io.eventter.mq.NodeRPC/SegmentOpen", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *nodeRPCClient) RotateSegment(ctx context.Context, in *RotateSegmentRequest, opts ...grpc.CallOption) (*OpenSegmentResponse, error) {
-	out := new(OpenSegmentResponse)
-	err := c.cc.Invoke(ctx, "/io.eventter.mq.NodeRPC/RotateSegment", in, out, opts...)
+func (c *nodeRPCClient) SegmentRotate(ctx context.Context, in *SegmentRotateRequest, opts ...grpc.CallOption) (*SegmentOpenResponse, error) {
+	out := new(SegmentOpenResponse)
+	err := c.cc.Invoke(ctx, "/io.eventter.mq.NodeRPC/SegmentRotate", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *nodeRPCClient) SegmentGetSize(ctx context.Context, in *SegmentGetSizeRequest, opts ...grpc.CallOption) (*SegmentGetSizeResponse, error) {
+	out := new(SegmentGetSizeResponse)
+	err := c.cc.Invoke(ctx, "/io.eventter.mq.NodeRPC/SegmentGetSize", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -378,8 +482,9 @@ func (c *nodeRPCClient) RotateSegment(ctx context.Context, in *RotateSegmentRequ
 
 type NodeRPCServer interface {
 	Debug(context.Context, *DebugRequest) (*DebugResponse, error)
-	OpenSegment(context.Context, *OpenSegmentRequest) (*OpenSegmentResponse, error)
-	RotateSegment(context.Context, *RotateSegmentRequest) (*OpenSegmentResponse, error)
+	SegmentOpen(context.Context, *SegmentOpenRequest) (*SegmentOpenResponse, error)
+	SegmentRotate(context.Context, *SegmentRotateRequest) (*SegmentOpenResponse, error)
+	SegmentGetSize(context.Context, *SegmentGetSizeRequest) (*SegmentGetSizeResponse, error)
 }
 
 func RegisterNodeRPCServer(s *grpc.Server, srv NodeRPCServer) {
@@ -404,38 +509,56 @@ func _NodeRPC_Debug_Handler(srv interface{}, ctx context.Context, dec func(inter
 	return interceptor(ctx, in, info, handler)
 }
 
-func _NodeRPC_OpenSegment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(OpenSegmentRequest)
+func _NodeRPC_SegmentOpen_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SegmentOpenRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(NodeRPCServer).OpenSegment(ctx, in)
+		return srv.(NodeRPCServer).SegmentOpen(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/io.eventter.mq.NodeRPC/OpenSegment",
+		FullMethod: "/io.eventter.mq.NodeRPC/SegmentOpen",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(NodeRPCServer).OpenSegment(ctx, req.(*OpenSegmentRequest))
+		return srv.(NodeRPCServer).SegmentOpen(ctx, req.(*SegmentOpenRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _NodeRPC_RotateSegment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RotateSegmentRequest)
+func _NodeRPC_SegmentRotate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SegmentRotateRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(NodeRPCServer).RotateSegment(ctx, in)
+		return srv.(NodeRPCServer).SegmentRotate(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/io.eventter.mq.NodeRPC/RotateSegment",
+		FullMethod: "/io.eventter.mq.NodeRPC/SegmentRotate",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(NodeRPCServer).RotateSegment(ctx, req.(*RotateSegmentRequest))
+		return srv.(NodeRPCServer).SegmentRotate(ctx, req.(*SegmentRotateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _NodeRPC_SegmentGetSize_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SegmentGetSizeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NodeRPCServer).SegmentGetSize(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/io.eventter.mq.NodeRPC/SegmentGetSize",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NodeRPCServer).SegmentGetSize(ctx, req.(*SegmentGetSizeRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -449,12 +572,16 @@ var _NodeRPC_serviceDesc = grpc.ServiceDesc{
 			Handler:    _NodeRPC_Debug_Handler,
 		},
 		{
-			MethodName: "OpenSegment",
-			Handler:    _NodeRPC_OpenSegment_Handler,
+			MethodName: "SegmentOpen",
+			Handler:    _NodeRPC_SegmentOpen_Handler,
 		},
 		{
-			MethodName: "RotateSegment",
-			Handler:    _NodeRPC_RotateSegment_Handler,
+			MethodName: "SegmentRotate",
+			Handler:    _NodeRPC_SegmentRotate_Handler,
+		},
+		{
+			MethodName: "SegmentGetSize",
+			Handler:    _NodeRPC_SegmentGetSize_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -518,7 +645,7 @@ func (m *DebugResponse) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
-func (m *OpenSegmentRequest) Marshal() (dAtA []byte, err error) {
+func (m *SegmentOpenRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalTo(dAtA)
@@ -528,7 +655,7 @@ func (m *OpenSegmentRequest) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *OpenSegmentRequest) MarshalTo(dAtA []byte) (int, error) {
+func (m *SegmentOpenRequest) MarshalTo(dAtA []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
@@ -561,7 +688,7 @@ func (m *OpenSegmentRequest) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
-func (m *OpenSegmentResponse) Marshal() (dAtA []byte, err error) {
+func (m *SegmentOpenResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalTo(dAtA)
@@ -571,7 +698,7 @@ func (m *OpenSegmentResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *OpenSegmentResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *SegmentOpenResponse) MarshalTo(dAtA []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
@@ -589,7 +716,7 @@ func (m *OpenSegmentResponse) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
-func (m *RotateSegmentRequest) Marshal() (dAtA []byte, err error) {
+func (m *SegmentRotateRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalTo(dAtA)
@@ -599,7 +726,7 @@ func (m *RotateSegmentRequest) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *RotateSegmentRequest) MarshalTo(dAtA []byte) (int, error) {
+func (m *SegmentRotateRequest) MarshalTo(dAtA []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
@@ -640,6 +767,52 @@ func (m *RotateSegmentRequest) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
+func (m *SegmentGetSizeRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *SegmentGetSizeRequest) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.SegmentID != 0 {
+		dAtA[i] = 0x8
+		i++
+		i = encodeVarintNodeRpc(dAtA, i, uint64(m.SegmentID))
+	}
+	return i, nil
+}
+
+func (m *SegmentGetSizeResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *SegmentGetSizeResponse) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.Size_ != 0 {
+		dAtA[i] = 0x8
+		i++
+		i = encodeVarintNodeRpc(dAtA, i, uint64(m.Size_))
+	}
+	return i, nil
+}
+
 func encodeVarintNodeRpc(dAtA []byte, offset int, v uint64) int {
 	for v >= 1<<7 {
 		dAtA[offset] = uint8(v&0x7f | 0x80)
@@ -671,7 +844,7 @@ func (m *DebugResponse) Size() (n int) {
 	return n
 }
 
-func (m *OpenSegmentRequest) Size() (n int) {
+func (m *SegmentOpenRequest) Size() (n int) {
 	var l int
 	_ = l
 	if m.NodeID != 0 {
@@ -685,7 +858,7 @@ func (m *OpenSegmentRequest) Size() (n int) {
 	return n
 }
 
-func (m *OpenSegmentResponse) Size() (n int) {
+func (m *SegmentOpenResponse) Size() (n int) {
 	var l int
 	_ = l
 	if m.SegmentID != 0 {
@@ -697,7 +870,7 @@ func (m *OpenSegmentResponse) Size() (n int) {
 	return n
 }
 
-func (m *RotateSegmentRequest) Size() (n int) {
+func (m *SegmentRotateRequest) Size() (n int) {
 	var l int
 	_ = l
 	if m.NodeID != 0 {
@@ -715,6 +888,24 @@ func (m *RotateSegmentRequest) Size() (n int) {
 	}
 	if m.LeaderOnly {
 		n += 3
+	}
+	return n
+}
+
+func (m *SegmentGetSizeRequest) Size() (n int) {
+	var l int
+	_ = l
+	if m.SegmentID != 0 {
+		n += 1 + sovNodeRpc(uint64(m.SegmentID))
+	}
+	return n
+}
+
+func (m *SegmentGetSizeResponse) Size() (n int) {
+	var l int
+	_ = l
+	if m.Size_ != 0 {
+		n += 1 + sovNodeRpc(uint64(m.Size_))
 	}
 	return n
 }
@@ -890,7 +1081,7 @@ func (m *DebugResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *OpenSegmentRequest) Unmarshal(dAtA []byte) error {
+func (m *SegmentOpenRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -913,10 +1104,10 @@ func (m *OpenSegmentRequest) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: OpenSegmentRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: SegmentOpenRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: OpenSegmentRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: SegmentOpenRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -1009,7 +1200,7 @@ func (m *OpenSegmentRequest) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *OpenSegmentResponse) Unmarshal(dAtA []byte) error {
+func (m *SegmentOpenResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1032,10 +1223,10 @@ func (m *OpenSegmentResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: OpenSegmentResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: SegmentOpenResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: OpenSegmentResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: SegmentOpenResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -1097,7 +1288,7 @@ func (m *OpenSegmentResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *RotateSegmentRequest) Unmarshal(dAtA []byte) error {
+func (m *SegmentRotateRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1120,10 +1311,10 @@ func (m *RotateSegmentRequest) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: RotateSegmentRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: SegmentRotateRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: RotateSegmentRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: SegmentRotateRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -1178,7 +1369,7 @@ func (m *RotateSegmentRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.OldSize |= (uint64(b) & 0x7F) << shift
+				m.OldSize |= (int64(b) & 0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1234,6 +1425,144 @@ func (m *RotateSegmentRequest) Unmarshal(dAtA []byte) error {
 				}
 			}
 			m.LeaderOnly = bool(v != 0)
+		default:
+			iNdEx = preIndex
+			skippy, err := skipNodeRpc(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthNodeRpc
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *SegmentGetSizeRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowNodeRpc
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: SegmentGetSizeRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: SegmentGetSizeRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SegmentID", wireType)
+			}
+			m.SegmentID = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowNodeRpc
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.SegmentID |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipNodeRpc(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthNodeRpc
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *SegmentGetSizeResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowNodeRpc
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: SegmentGetSizeResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: SegmentGetSizeResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Size_", wireType)
+			}
+			m.Size_ = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowNodeRpc
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Size_ |= (int64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := skipNodeRpc(dAtA[iNdEx:])
@@ -1360,39 +1689,42 @@ var (
 	ErrIntOverflowNodeRpc   = fmt.Errorf("proto: integer overflow")
 )
 
-func init() { proto.RegisterFile("node_rpc.proto", fileDescriptor_node_rpc_87d5468cc5b90137) }
+func init() { proto.RegisterFile("node_rpc.proto", fileDescriptor_node_rpc_b325ee32d6c319d8) }
 
-var fileDescriptor_node_rpc_87d5468cc5b90137 = []byte{
-	// 486 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x53, 0xcd, 0x6e, 0xd3, 0x40,
-	0x10, 0xee, 0xa6, 0x69, 0x7e, 0x26, 0x71, 0x80, 0x25, 0x12, 0x26, 0xa2, 0xb1, 0xe5, 0x70, 0xf0,
-	0x01, 0xb9, 0x6a, 0x91, 0x90, 0xb8, 0x86, 0x5c, 0x72, 0x69, 0xa2, 0xad, 0xc4, 0xa1, 0x17, 0xcb,
-	0xb5, 0x47, 0xa9, 0x25, 0xdb, 0xeb, 0xd8, 0x1b, 0xa4, 0xf4, 0xc0, 0x85, 0x17, 0xe0, 0xc2, 0x3b,
-	0x55, 0x9c, 0x78, 0x02, 0x0b, 0x99, 0x17, 0x41, 0xb6, 0xb7, 0xcd, 0x0f, 0xbf, 0xea, 0x6d, 0xe6,
-	0xfb, 0x66, 0x66, 0xbf, 0xf9, 0x59, 0xe8, 0x45, 0xdc, 0x43, 0x3b, 0x89, 0x5d, 0x2b, 0x4e, 0xb8,
-	0xe0, 0xb4, 0xe7, 0x73, 0x0b, 0x3f, 0x60, 0x24, 0x04, 0x26, 0x56, 0xb8, 0x1c, 0x3c, 0x73, 0x03,
-	0x1f, 0x23, 0x71, 0x72, 0x87, 0x85, 0xcb, 0x2a, 0x70, 0xd0, 0x5f, 0xf0, 0x05, 0x2f, 0xcd, 0x93,
-	0xc2, 0xaa, 0x50, 0xa3, 0x07, 0xdd, 0x09, 0x5e, 0xad, 0x16, 0x0c, 0x97, 0x2b, 0x4c, 0x85, 0x31,
-	0x07, 0x45, 0xfa, 0x69, 0xcc, 0xa3, 0x14, 0xe9, 0x08, 0x14, 0x37, 0x58, 0xa5, 0x02, 0x13, 0x3b,
-	0x15, 0x8e, 0x40, 0x95, 0xe8, 0xc4, 0x6c, 0xb3, 0xae, 0x04, 0x2f, 0x0a, 0x8c, 0x0e, 0xa0, 0x95,
-	0xe2, 0x22, 0xc4, 0x48, 0xa4, 0x6a, 0x4d, 0x3f, 0x34, 0xdb, 0xec, 0xde, 0x37, 0xbe, 0x10, 0xa0,
-	0xb3, 0x18, 0xa3, 0x8b, 0x0a, 0x90, 0x0f, 0xd1, 0x11, 0x34, 0xcb, 0x4e, 0x7c, 0xaf, 0xac, 0x58,
-	0x1f, 0x43, 0x9e, 0x69, 0x8d, 0x73, 0xee, 0xe1, 0x74, 0xc2, 0x1a, 0x05, 0x35, 0xf5, 0xe8, 0x5b,
-	0x38, 0x12, 0x3c, 0xf6, 0x5d, 0xb5, 0xa6, 0x13, 0xb3, 0x73, 0x76, 0x6c, 0xed, 0x36, 0x6b, 0x9d,
-	0x3b, 0x21, 0xa6, 0xb1, 0xe3, 0x62, 0x61, 0x8c, 0xeb, 0xb7, 0x99, 0x76, 0xc0, 0xaa, 0x0c, 0xaa,
-	0x41, 0x27, 0x40, 0xc7, 0xc3, 0xc4, 0xe6, 0x51, 0xb0, 0x56, 0x5d, 0x9d, 0x98, 0x2d, 0x06, 0x15,
-	0x34, 0x8b, 0x82, 0xb5, 0xf1, 0x11, 0x9e, 0xee, 0xc8, 0x92, 0xfd, 0xbe, 0x02, 0x90, 0xd2, 0x37,
-	0xd2, 0x94, 0x3c, 0xd3, 0xda, 0x32, 0x70, 0x3a, 0x61, 0x6d, 0x19, 0x50, 0x0a, 0x7c, 0x14, 0x27,
-	0x7e, 0xe8, 0x24, 0x6b, 0xfb, 0xae, 0x9b, 0x5a, 0x99, 0xf2, 0x24, 0xcf, 0x34, 0x65, 0x5e, 0x51,
-	0xb2, 0x29, 0x25, 0xde, 0x72, 0x3d, 0xe3, 0x2b, 0x81, 0x3e, 0xe3, 0xc5, 0xf8, 0x1e, 0x32, 0x99,
-	0x37, 0xd0, 0xe3, 0x81, 0x67, 0x6f, 0x49, 0xad, 0xde, 0x7d, 0x9c, 0x67, 0x5a, 0x77, 0x16, 0x78,
-	0x1b, 0xb5, 0x5d, 0xbe, 0xf1, 0x3c, 0xfa, 0x1c, 0x5a, 0x65, 0x9e, 0x7f, 0x83, 0xea, 0x61, 0x91,
-	0xc1, 0x9a, 0x05, 0xef, 0xdf, 0xe0, 0x3d, 0x75, 0xed, 0x9c, 0xaa, 0x75, 0x9d, 0x98, 0xdd, 0x8a,
-	0xba, 0x76, 0x4e, 0xff, 0x39, 0xcc, 0xb3, 0x4f, 0x35, 0x68, 0x16, 0x0a, 0xd9, 0xfc, 0x1d, 0x9d,
-	0xc0, 0x51, 0x79, 0x42, 0xf4, 0xc5, 0xfe, 0xba, 0xb6, 0x2f, 0x6d, 0x70, 0xfc, 0x07, 0x56, 0xee,
-	0xe1, 0x3d, 0x74, 0xb6, 0xd6, 0x43, 0x8d, 0xfd, 0xe8, 0x5f, 0x4f, 0x6a, 0x30, 0xfa, 0x6b, 0x8c,
-	0xac, 0x7b, 0x09, 0xca, 0xce, 0xd4, 0xe9, 0xcb, 0xfd, 0xac, 0xdf, 0x2d, 0xe5, 0xbf, 0x6a, 0x8f,
-	0xfb, 0xb7, 0xf9, 0x90, 0x7c, 0xcb, 0x87, 0xe4, 0x7b, 0x3e, 0x24, 0x9f, 0x7f, 0x0c, 0x0f, 0x2e,
-	0x6b, 0xe1, 0xf2, 0xaa, 0x51, 0xfe, 0xb4, 0xd7, 0x3f, 0x03, 0x00, 0x00, 0xff, 0xff, 0x42, 0xf6,
-	0x39, 0x8d, 0xba, 0x03, 0x00, 0x00,
+var fileDescriptor_node_rpc_b325ee32d6c319d8 = []byte{
+	// 535 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x54, 0xcd, 0x6e, 0xd3, 0x40,
+	0x10, 0xee, 0xa6, 0x69, 0x9b, 0x4c, 0xe2, 0x00, 0x4b, 0x00, 0x63, 0xd1, 0xd8, 0x72, 0x00, 0xf9,
+	0x50, 0xa5, 0x6a, 0x91, 0x90, 0xb8, 0x86, 0x20, 0x94, 0x4b, 0x13, 0xb9, 0x12, 0x87, 0x5e, 0x2c,
+	0xd7, 0x1e, 0xa5, 0x96, 0x6c, 0xaf, 0x63, 0x3b, 0x48, 0xe9, 0x81, 0x67, 0xe0, 0xc2, 0x3b, 0x55,
+	0x9c, 0x78, 0x82, 0x08, 0x19, 0x1e, 0x04, 0x79, 0xbd, 0x69, 0xe2, 0xa0, 0x50, 0x7a, 0x9b, 0xff,
+	0xf9, 0xe6, 0xdb, 0x4f, 0x0b, 0xad, 0x90, 0xb9, 0x68, 0xc5, 0x91, 0xd3, 0x8b, 0x62, 0x96, 0x32,
+	0xda, 0xf2, 0x58, 0x0f, 0x3f, 0x63, 0x98, 0xa6, 0x18, 0xf7, 0x82, 0xa9, 0xf2, 0xcc, 0xf1, 0x3d,
+	0x0c, 0xd3, 0xe3, 0x65, 0x2c, 0x98, 0x16, 0x85, 0x4a, 0x7b, 0xc2, 0x26, 0x8c, 0x9b, 0xc7, 0xb9,
+	0x55, 0x44, 0xf5, 0x16, 0x34, 0x07, 0x78, 0x39, 0x9b, 0x98, 0x38, 0x9d, 0x61, 0x92, 0xea, 0x63,
+	0x90, 0x84, 0x9f, 0x44, 0x2c, 0x4c, 0x90, 0x76, 0x41, 0x72, 0xfc, 0x59, 0x92, 0x62, 0x6c, 0x25,
+	0xa9, 0x9d, 0xa2, 0x4c, 0x34, 0x62, 0xd4, 0xcd, 0xa6, 0x08, 0x9e, 0xe7, 0x31, 0xaa, 0x40, 0x2d,
+	0xc1, 0x49, 0x80, 0x61, 0x9a, 0xc8, 0x15, 0x6d, 0xd7, 0xa8, 0x9b, 0xb7, 0xbe, 0xfe, 0x8d, 0x00,
+	0x3d, 0x2f, 0x9c, 0x51, 0x84, 0xa1, 0x58, 0x44, 0xbb, 0x70, 0xc0, 0x2f, 0xf1, 0x5c, 0x3e, 0xb1,
+	0xda, 0x87, 0x6c, 0xa1, 0xee, 0x9f, 0x31, 0x17, 0x87, 0x03, 0x73, 0x3f, 0x4f, 0x0d, 0x5d, 0xfa,
+	0x0e, 0xf6, 0x52, 0x16, 0x79, 0x8e, 0x5c, 0xd1, 0x88, 0xd1, 0x38, 0x3d, 0xec, 0x95, 0x8f, 0xed,
+	0x9d, 0xd9, 0x01, 0x26, 0x91, 0xed, 0x60, 0x6e, 0xf4, 0xab, 0x37, 0x0b, 0x75, 0xc7, 0x2c, 0x3a,
+	0xa8, 0x0a, 0x0d, 0x1f, 0x6d, 0x17, 0x63, 0x8b, 0x85, 0xfe, 0x5c, 0x76, 0x34, 0x62, 0xd4, 0x4c,
+	0x28, 0x42, 0xa3, 0xd0, 0x9f, 0xeb, 0x5f, 0xe0, 0x71, 0x09, 0x96, 0xb8, 0xf7, 0x08, 0x40, 0x40,
+	0x5f, 0x41, 0x93, 0xb2, 0x85, 0x5a, 0x17, 0xc5, 0xc3, 0x81, 0x59, 0x17, 0x05, 0x1c, 0xe0, 0x83,
+	0x28, 0xf6, 0x02, 0x3b, 0x9e, 0x5b, 0xcb, 0x6b, 0x2a, 0xbc, 0xe5, 0x51, 0xb6, 0x50, 0xa5, 0x71,
+	0x91, 0x12, 0x47, 0x49, 0xd1, 0x9a, 0xeb, 0xea, 0xdf, 0x09, 0xb4, 0xc5, 0x4c, 0x93, 0xe5, 0x2c,
+	0xde, 0x8b, 0x99, 0xb7, 0xd0, 0x62, 0xbe, 0x6b, 0xad, 0x41, 0x2d, 0xf6, 0x3e, 0xcc, 0x16, 0x6a,
+	0x73, 0xe4, 0xbb, 0x2b, 0xb4, 0x4d, 0xb6, 0xf2, 0x5c, 0xfa, 0x1c, 0x6a, 0xbc, 0xcf, 0xbb, 0x46,
+	0x79, 0x57, 0x23, 0xc6, 0xae, 0x79, 0x90, 0xe7, 0xbd, 0x6b, 0xbc, 0x4d, 0x5d, 0xd9, 0x27, 0x72,
+	0x55, 0x23, 0x46, 0xb3, 0x48, 0x5d, 0xd9, 0x27, 0x77, 0x93, 0xf9, 0x01, 0x9e, 0x88, 0x1d, 0x1f,
+	0x31, 0xcd, 0xa7, 0x2d, 0x8f, 0xb9, 0x17, 0x9d, 0xfa, 0x11, 0x3c, 0xdd, 0x1c, 0x23, 0x9e, 0x85,
+	0x42, 0x95, 0x63, 0x26, 0x1c, 0x33, 0xb7, 0x4f, 0x7f, 0x57, 0xe0, 0x20, 0xa7, 0xc5, 0x1c, 0xbf,
+	0xa7, 0x03, 0xd8, 0xe3, 0xba, 0xa5, 0x2f, 0x36, 0x35, 0xb2, 0x2e, 0x6f, 0xe5, 0x70, 0x4b, 0x56,
+	0x6c, 0xf9, 0x04, 0x8d, 0x35, 0x4d, 0x50, 0x7d, 0xb3, 0xfa, 0x6f, 0x1d, 0x2b, 0xdd, 0x7f, 0xd6,
+	0x88, 0xb9, 0x17, 0x20, 0x95, 0x9e, 0x9a, 0xbe, 0xdc, 0xd2, 0x55, 0x52, 0xc2, 0xff, 0xcd, 0xb6,
+	0xa0, 0x55, 0xe6, 0x8c, 0xbe, 0xda, 0xd2, 0x56, 0x7e, 0x1a, 0xe5, 0xf5, 0x5d, 0x65, 0xc5, 0x82,
+	0x7e, 0xfb, 0x26, 0xeb, 0x90, 0x1f, 0x59, 0x87, 0xfc, 0xcc, 0x3a, 0xe4, 0xeb, 0xaf, 0xce, 0xce,
+	0x45, 0x25, 0x98, 0x5e, 0xee, 0xf3, 0xff, 0xe3, 0xcd, 0x9f, 0x00, 0x00, 0x00, 0xff, 0xff, 0x02,
+	0x1b, 0x40, 0x9e, 0x90, 0x04, 0x00, 0x00,
 }

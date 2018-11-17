@@ -1,6 +1,7 @@
 package mq
 
 import (
+	"context"
 	"log"
 	"time"
 )
@@ -70,11 +71,11 @@ func (r *Reconciler) reconcileOpenSegmentWithAlivePrimary(segment *ClusterSegmen
 
 		_, err := r.delegate.Apply(cmd)
 		if err != nil {
-			log.Printf("could not remove segment replica(r): %v", err)
+			log.Printf("could not remove segment replica(s): %v", err)
 			return
 		}
 		log.Printf(
-			"open segment %d (of topic %s/%s) was over-replicated, removed replica(r)",
+			"open segment %d (of topic %s/%s) was over-replicated, removed replica(s)",
 			segment.ID,
 			segment.Topic.Namespace,
 			segment.Topic.Name,
@@ -127,11 +128,11 @@ func (r *Reconciler) reconcileOpenSegmentWithAlivePrimary(segment *ClusterSegmen
 		if added {
 			_, err := r.delegate.Apply(cmd)
 			if err != nil {
-				log.Printf("could not add segment replica(r): %v", err)
+				log.Printf("could not add segment replica(s): %v", err)
 				return
 			}
 			log.Printf(
-				"open segment %d (of topic %s/%s) was under-replicated, added replica(r)",
+				"open segment %d (of topic %s/%s) was under-replicated, added replica(s)",
 				segment.ID,
 				segment.Topic.Namespace,
 				segment.Topic.Name,
@@ -151,7 +152,73 @@ func (r *Reconciler) reconcileOpenSegmentWithDeadPrimary(segment *ClusterSegment
 		return
 	}
 
-	// TODO
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	var newPrimaryNodeID uint64 = 0
+	var newPrimarySegmentSize int64 = -1
+	for _, replicaNodeID := range segment.Nodes.ReplicatingNodeIDs {
+		replica := nodeMap[replicaNodeID]
+		if replica.State != ClusterNode_ALIVE {
+			continue
+		}
+
+		replicaSegmentSize, err := r.delegate.GetSegmentSizeFromNode(ctx, segment.ID, replicaNodeID, replica.Address)
+		if err != nil {
+			log.Printf(
+				"could not get size of segment %d from node %d: %v",
+				segment.ID,
+				replicaNodeID,
+				err,
+			)
+			return
+		}
+
+		if replicaSegmentSize > newPrimarySegmentSize {
+			newPrimaryNodeID = replicaNodeID
+			newPrimarySegmentSize = replicaSegmentSize
+		}
+	}
+
+	if newPrimaryNodeID == 0 {
+		log.Printf(
+			"open segment %d (of topic %s/%s) has dead primary and no suitable replica",
+			segment.ID,
+			segment.Topic.Namespace,
+			segment.Topic.Name,
+		)
+		return
+	}
+
+	replicatingNodeIDs := make([]uint64, 0, len(segment.Nodes.ReplicatingNodeIDs)-1)
+	for _, nodeID := range segment.Nodes.ReplicatingNodeIDs {
+		if nodeID != newPrimaryNodeID && nodeMap[nodeID].State == ClusterNode_ALIVE {
+			replicatingNodeIDs = append(replicatingNodeIDs, nodeID)
+		}
+	}
+
+	cmd := &UpdateSegmentNodesCommand{
+		ID:    segment.ID,
+		Which: UpdateSegmentNodesCommand_OPEN,
+		Nodes: ClusterSegment_Nodes{
+			PrimaryNodeID:      newPrimaryNodeID,
+			ReplicatingNodeIDs: replicatingNodeIDs,
+		},
+	}
+
+	_, err := r.delegate.Apply(cmd)
+	if err != nil {
+		log.Printf("could not change primary of segment %d: %v", segment.ID, err)
+		return
+	}
+	log.Printf(
+		"open segment %d (of topic %s/%s) changed primary from %d to %d",
+		segment.ID,
+		segment.Topic.Namespace,
+		segment.Topic.Name,
+		segment.Nodes.PrimaryNodeID,
+		newPrimaryNodeID,
+	)
 }
 
 func (r *Reconciler) reconcileClosedSegments(state *ClusterState, nodeSegmentCounts map[uint64]int, nodeMap map[uint64]*ClusterNode, allCandidateNodeIDs []uint64) {
@@ -239,11 +306,11 @@ func (r *Reconciler) reconcileClosedSegment(segment *ClusterSegment, state *Clus
 
 		_, err := r.delegate.Apply(cmd)
 		if err != nil {
-			log.Printf("could not add segment replica(r): %v", err)
+			log.Printf("could not add segment replica(s): %v", err)
 			return
 		}
 		log.Printf(
-			"closed segment %d (of topic %s/%s) was over-replicated, removed replica(r)",
+			"closed segment %d (of topic %s/%s) was over-replicated, removed replica(s)",
 			segment.ID,
 			segment.Topic.Namespace,
 			segment.Topic.Name,
@@ -313,11 +380,11 @@ func (r *Reconciler) reconcileClosedSegment(segment *ClusterSegment, state *Clus
 		if added {
 			_, err := r.delegate.Apply(cmd)
 			if err != nil {
-				log.Printf("could not add segment replica(r): %v", err)
+				log.Printf("could not add segment replica(s): %v", err)
 				return
 			}
 			log.Printf(
-				"closed segment %d (of topic %s/%s) was under-replicated, added replica(r)",
+				"closed segment %d (of topic %s/%s) was under-replicated, added replica(s)",
 				segment.ID,
 				segment.Topic.Namespace,
 				segment.Topic.Name,

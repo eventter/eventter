@@ -42,9 +42,10 @@ func (s *Server) ListTopics(ctx context.Context, request *client.ListTopicsReque
 				Namespace: request.Topic.Namespace,
 				Name:      t.Name,
 			},
-			Type:      t.Type,
-			Shards:    t.Shards,
-			Retention: t.Retention,
+			Type:              t.Type,
+			Shards:            t.Shards,
+			ReplicationFactor: t.ReplicationFactor,
+			Retention:         t.Retention,
 		})
 	}
 

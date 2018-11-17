@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"sync"
+	"time"
 
 	"github.com/gogo/protobuf/proto"
 	"github.com/pkg/errors"
@@ -22,13 +23,18 @@ const (
 )
 
 type File struct {
-	id      uint64
 	path    string
 	maxSize int64
 	offset  int64
 	file    *os.File
 	mutex   sync.Mutex
 	cond    *sync.Cond
+
+	// Following properties are used by Dir.
+
+	id   uint64    // Segment ID.
+	rc   int       // Reference count.
+	idle time.Time // Time when reference count decreased to zero.
 }
 
 func Open(path string, filePerm os.FileMode, maxSize int64) (f *File, err error) {
@@ -151,15 +157,7 @@ func (f *File) Size() int64 {
 }
 
 func (f *File) Read(wait bool) *Iterator {
-	f.mutex.Lock()
-	defer f.mutex.Unlock()
-
-	return &Iterator{
-		file:   f,
-		offset: f.offset,
-		wait:   wait,
-		reader: bufio.NewReader(io.NewSectionReader(f.file, 1, f.offset-1)),
-	}
+	return f.ReadAt(1, wait)
 }
 
 func (f *File) ReadAt(offset int64, wait bool) *Iterator {

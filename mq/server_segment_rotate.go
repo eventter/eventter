@@ -8,7 +8,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (s *Server) RotateSegment(ctx context.Context, request *RotateSegmentRequest) (*OpenSegmentResponse, error) {
+func (s *Server) SegmentRotate(ctx context.Context, request *SegmentRotateRequest) (*SegmentOpenResponse, error) {
 	if s.raftNode.State() != raft.Leader {
 		if request.LeaderOnly {
 			return nil, errNotALeader
@@ -25,7 +25,7 @@ func (s *Server) RotateSegment(ctx context.Context, request *RotateSegmentReques
 		defer s.pool.Put(conn)
 
 		request.LeaderOnly = true
-		return NewNodeRPCClient(conn).RotateSegment(ctx, request)
+		return NewNodeRPCClient(conn).SegmentRotate(ctx, request)
 	}
 
 	if err := s.beginTransaction(); err != nil {

@@ -45,7 +45,7 @@ func (s *Server) Publish(ctx context.Context, request *client.PublishRequest) (*
 			goto FORWARD
 
 		} else {
-			response, err := s.OpenSegment(ctx, &OpenSegmentRequest{
+			response, err := s.SegmentOpen(ctx, &SegmentOpenRequest{
 				NodeID: s.nodeID,
 				Topic:  request.Topic,
 			})
@@ -76,10 +76,10 @@ WRITE:
 			if err != nil {
 				return nil, err
 			}
-			response, err := s.RotateSegment(ctx, &RotateSegmentRequest{
+			response, err := s.SegmentRotate(ctx, &SegmentRotateRequest{
 				NodeID:       s.nodeID,
 				OldSegmentID: localSegmentID,
-				OldSize:      uint64(size),
+				OldSize:      size,
 				OldSha1:      sha1Sum,
 			})
 			if err != nil {

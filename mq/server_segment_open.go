@@ -9,7 +9,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (s *Server) OpenSegment(ctx context.Context, request *OpenSegmentRequest) (*OpenSegmentResponse, error) {
+func (s *Server) SegmentOpen(ctx context.Context, request *SegmentOpenRequest) (*SegmentOpenResponse, error) {
 	if s.raftNode.State() != raft.Leader {
 		if request.LeaderOnly {
 			return nil, errNotALeader
@@ -26,7 +26,7 @@ func (s *Server) OpenSegment(ctx context.Context, request *OpenSegmentRequest) (
 		defer s.pool.Put(conn)
 
 		request.LeaderOnly = true
-		return NewNodeRPCClient(conn).OpenSegment(ctx, request)
+		return NewNodeRPCClient(conn).SegmentOpen(ctx, request)
 	}
 
 	if err := s.beginTransaction(); err != nil {
@@ -37,7 +37,7 @@ func (s *Server) OpenSegment(ctx context.Context, request *OpenSegmentRequest) (
 	return s.txOpenSegment(s.clusterState.Current(), request.NodeID, request.Topic)
 }
 
-func (s *Server) txOpenSegment(state *ClusterState, primaryNodeID uint64, topicName client.NamespaceName) (*OpenSegmentResponse, error) {
+func (s *Server) txOpenSegment(state *ClusterState, primaryNodeID uint64, topicName client.NamespaceName) (*SegmentOpenResponse, error) {
 	node := state.GetNode(primaryNodeID)
 	if node == nil {
 		return nil, errors.Errorf("node %d not found", primaryNodeID)
@@ -53,7 +53,7 @@ func (s *Server) txOpenSegment(state *ClusterState, primaryNodeID uint64, topicN
 	// return node's existing segment if it exists
 	for _, segment := range openSegments {
 		if segment.Nodes.PrimaryNodeID == primaryNodeID {
-			return &OpenSegmentResponse{
+			return &SegmentOpenResponse{
 				SegmentID:     segment.ID,
 				PrimaryNodeID: primaryNodeID,
 			}, nil
@@ -63,7 +63,7 @@ func (s *Server) txOpenSegment(state *ClusterState, primaryNodeID uint64, topicN
 	// return random segment from another node if there would be more shards than configured
 	if topic.Shards > 0 && uint32(len(openSegments)) >= topic.Shards {
 		segment := openSegments[s.rng.Intn(len(openSegments))]
-		return &OpenSegmentResponse{
+		return &SegmentOpenResponse{
 			SegmentID:     segment.ID,
 			PrimaryNodeID: segment.Nodes.PrimaryNodeID,
 		}, nil
@@ -109,7 +109,7 @@ func (s *Server) txOpenSegment(state *ClusterState, primaryNodeID uint64, topicN
 		return nil, err
 	}
 
-	return &OpenSegmentResponse{
+	return &SegmentOpenResponse{
 		SegmentID:     segmentID,
 		PrimaryNodeID: primaryNodeID,
 	}, nil

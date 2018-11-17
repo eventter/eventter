@@ -13,7 +13,7 @@ import (
 )
 
 func TestOpen(t *testing.T) {
-	tmpDir, err := ioutil.TempDir("", "segmentfile")
+	tmpDir, err := ioutil.TempDir("", "")
 	if err != nil {
 		t.Error(err)
 	}
@@ -41,7 +41,7 @@ func TestOpen(t *testing.T) {
 }
 
 func TestFile_Write(t *testing.T) {
-	tmpDir, err := ioutil.TempDir("", "segmentfile")
+	tmpDir, err := ioutil.TempDir("", "")
 	if err != nil {
 		t.Error(err)
 	}
@@ -90,7 +90,7 @@ func TestFile_Write(t *testing.T) {
 }
 
 func TestFile_Sum(t *testing.T) {
-	tmpDir, err := ioutil.TempDir("", "segmentfile")
+	tmpDir, err := ioutil.TempDir("", "")
 	if err != nil {
 		t.Error(err)
 	}

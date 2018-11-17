@@ -48,7 +48,7 @@ message ClusterSegment {
     google.protobuf.Timestamp opened_at = 3 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
     google.protobuf.Timestamp closed_at = 4 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
     Nodes nodes = 5 [(gogoproto.nullable) = false];
-    uint64 size = 6;
+    int64 size = 6;
     bytes sha1 = 7;
 
     message Nodes {
@@ -82,7 +82,7 @@ message CloseSegmentCommand {
     uint64 id = 1 [(gogoproto.customname) = "ID"];
     uint64 done_node_id = 2 [(gogoproto.customname) = "DoneNodeID"];
     google.protobuf.Timestamp closed_at = 4 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
-    uint64 size = 5;
+    int64 size = 5;
     bytes sha1 = 6;
 }
 

@@ -41,7 +41,8 @@ message Topic {
     NamespaceName topic = 1 [(gogoproto.nullable) = false];
     string type = 2;
     uint32 shards = 3;
-    google.protobuf.Duration retention = 4 [(gogoproto.nullable) = false, (gogoproto.stdduration) = true];
+    uint32 replication_factor = 4;
+    google.protobuf.Duration retention = 5 [(gogoproto.nullable) = false, (gogoproto.stdduration) = true];
 }
 
 message ListTopicsRequest {

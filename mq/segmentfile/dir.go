@@ -11,17 +11,17 @@ import (
 	"github.com/pkg/errors"
 )
 
+const dirBuckets = 64
+
 type Dir struct {
-	dirName         string
-	dirPerm         os.FileMode
-	filePerm        os.FileMode
-	maxSize         int64
-	idleTimeout     time.Duration
-	mutex           sync.Mutex
-	fileMap         map[uint64]*File
-	referenceCounts map[*File]int
-	idlingSince     map[*File]time.Time
-	closeC          chan struct{}
+	dirName     string
+	dirPerm     os.FileMode
+	filePerm    os.FileMode
+	maxSize     int64
+	idleTimeout time.Duration
+	locks       [dirBuckets]sync.Mutex
+	fileMaps    [dirBuckets]map[uint64]*File
+	closeC      chan struct{}
 }
 
 func NewDir(dirName string, dirPerm os.FileMode, filePerm os.FileMode, maxSize int64, idleTimeout time.Duration) (*Dir, error) {
@@ -34,15 +34,16 @@ func NewDir(dirName string, dirPerm os.FileMode, filePerm os.FileMode, maxSize i
 	}
 
 	d := &Dir{
-		dirName:         dirName,
-		dirPerm:         dirPerm,
-		filePerm:        filePerm,
-		maxSize:         maxSize,
-		idleTimeout:     idleTimeout,
-		fileMap:         make(map[uint64]*File),
-		referenceCounts: make(map[*File]int),
-		idlingSince:     make(map[*File]time.Time),
-		closeC:          make(chan struct{}),
+		dirName:     dirName,
+		dirPerm:     dirPerm,
+		filePerm:    filePerm,
+		maxSize:     maxSize,
+		idleTimeout: idleTimeout,
+		closeC:      make(chan struct{}),
+	}
+
+	for i := 0; i < dirBuckets; i++ {
+		d.fileMaps[i] = make(map[uint64]*File)
 	}
 
 	if idleTimeout > 0 {
@@ -59,18 +60,20 @@ func (d *Dir) closeIdle() {
 	for {
 		select {
 		case <-ticker.C:
-			d.mutex.Lock()
-			t := time.Now().Add(-d.idleTimeout)
-			var files []*File
-			for file, since := range d.idlingSince {
-				if since.Before(t) {
-					files = append(files, file)
+			for bucket := uint64(0); bucket < dirBuckets; bucket++ {
+				d.locks[bucket].Lock()
+				t := time.Now().Add(-d.idleTimeout)
+				var filesToClose []*File
+				for _, file := range d.fileMaps[bucket] {
+					if !file.idle.IsZero() && file.idle.Before(t) {
+						filesToClose = append(filesToClose, file)
+					}
 				}
+				for _, file := range filesToClose {
+					d.closeFile(bucket, file)
+				}
+				d.locks[bucket].Unlock()
 			}
-			for _, file := range files {
-				d.closeFile(file)
-			}
-			d.mutex.Unlock()
 		case <-d.closeC:
 			return
 		}
@@ -78,82 +81,103 @@ func (d *Dir) closeIdle() {
 }
 
 func (d *Dir) Open(id uint64) (*File, error) {
-	d.mutex.Lock()
-	defer d.mutex.Unlock()
+	bucket := id % dirBuckets
 
-	if file, ok := d.fileMap[id]; ok {
-		d.referenceCounts[file] += 1
-		delete(d.idlingSince, file)
+	d.locks[bucket].Lock()
+	defer d.locks[bucket].Unlock()
+
+	if file, ok := d.fileMaps[bucket][id]; ok {
+		file.rc += 1
+		file.idle = time.Time{}
 		return file, nil
 	}
 
-	name := strconv.FormatUint(id, 16)
-	if l := len(name); l < 16 {
-		name = strings.Repeat("0", 16-l) + name
-	}
-	path := filepath.Join(d.dirName, name[14:16], name)
-	pathDir := filepath.Dir(path)
-	if err := os.MkdirAll(pathDir, d.dirPerm); err != nil {
+	path := d.getPath(id)
+	if err := os.MkdirAll(filepath.Dir(path), d.dirPerm); err != nil {
 		return nil, errors.Wrap(err, "mkdir failed")
 	}
 	file, err := Open(path, d.filePerm, d.maxSize)
 	if err != nil {
 		return nil, errors.Wrap(err, "creating segment file failed")
 	}
-	file.id = id
 
-	d.fileMap[id] = file
-	d.referenceCounts[file] = 1
-	delete(d.idlingSince, file)
+	file.id = id
+	file.rc = 1
+	file.idle = time.Time{}
+
+	d.fileMaps[bucket][id] = file
 
 	return file, nil
 }
 
-func (d *Dir) Release(file *File) error {
-	d.mutex.Lock()
-	defer d.mutex.Unlock()
+func (d *Dir) getPath(id uint64) string {
+	name := strconv.FormatUint(id, 16)
+	if l := len(name); l < 16 {
+		name = strings.Repeat("0", 16-l) + name
+	}
+	return filepath.Join(d.dirName, name[14:16], name)
+}
 
-	rc, ok := d.referenceCounts[file]
-	if !ok {
-		return errors.New("segment file does not belong to this pool")
+func (d *Dir) Exists(id uint64) bool {
+	bucket := id % dirBuckets
+
+	d.locks[bucket].Lock()
+	defer d.locks[bucket].Unlock()
+
+	if _, ok := d.fileMaps[bucket][id]; ok {
+		return true
 	}
 
-	rc -= 1
+	path := d.getPath(id)
+	_, err := os.Stat(path + dataFileSuffix)
+	return err == nil
+}
 
-	if rc > 0 {
-		d.referenceCounts[file] = rc
+func (d *Dir) Release(file *File) error {
+	bucket := file.id % dirBuckets
+
+	d.locks[bucket].Lock()
+	defer d.locks[bucket].Unlock()
+
+	if _, ok := d.fileMaps[bucket][file.id]; !ok {
+		return errors.New("file does not belong to this pool")
+	}
+
+	file.rc -= 1
+
+	if file.rc > 0 {
 		return nil
 
 	} else if d.idleTimeout > 0 {
-		d.referenceCounts[file] = rc
-		d.idlingSince[file] = time.Now()
+		file.idle = time.Now()
 		return nil
 
 	} else {
-		return d.closeFile(file)
+		return d.closeFile(bucket, file)
 	}
 }
 
-func (d *Dir) closeFile(file *File) error {
-	delete(d.fileMap, file.id)
-	delete(d.referenceCounts, file)
-	delete(d.idlingSince, file)
+func (d *Dir) closeFile(bucket uint64, file *File) error {
+	delete(d.fileMaps[bucket], file.id)
 	return file.Close()
 }
 
 func (d *Dir) Close() error {
-	d.mutex.Lock()
-	defer d.mutex.Unlock()
-
-	var files []*File
-	for _, file := range d.fileMap {
-		files = append(files, file)
-	}
-	for _, file := range files {
-		d.closeFile(file)
-	}
-
 	close(d.closeC)
+
+	for bucket := uint64(0); bucket < dirBuckets; bucket++ {
+		d.locks[bucket].Lock()
+
+		var files []*File
+		for _, file := range d.fileMaps[bucket] {
+			files = append(files, file)
+		}
+		for _, file := range files {
+			d.closeFile(bucket, file)
+		}
+
+		d.locks[bucket].Unlock()
+	}
 
 	return nil
 }
