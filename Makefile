@@ -11,7 +11,7 @@ proto:
 	cd mq; protoc -I. -I./client -I$$(go list -m -f '{{ .Dir }}' github.com/gogo/protobuf) --gogofaster_out=plugins=grpc,Mgoogle/protobuf/any.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/duration.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/struct.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/timestamp.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/wrappers.proto=github.com/gogo/protobuf/types,Mclient/eventtermq.proto=eventter.io/mq/client:. cluster_state.proto discovery_rpc.proto node_rpc.proto raft_rpc.proto
 
 fmt:
-	go fmt ./cmd/... ./livereload/... ./mq/...
+	go fmt $$(go list ./... | grep -v vendor)
 
 download-proto:
 	cd mq/client ; \
@@ -21,5 +21,12 @@ download-proto:
 		cp googleapis-master/google/api/{annotations,http}.proto google/api/ ; \
 		rm -rf googleapis-master
 
+vet:
+	go vet $$(go list ./... | grep -v vendor)
+
 test:
-	go test -v -race ./mq/...
+	go test -v -race $$(go list ./... | grep -v vendor)
+
+install:
+	go install -v ./cmd/livereload-example
+	go install -v ./cmd/eventtermq

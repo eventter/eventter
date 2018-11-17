@@ -1,11 +1,19 @@
 image: golang:1.11
 
+stages:
+- test
+
 vet:
   stage: test
   script:
-  - go vet $(go list ./... | grep -v vendor)
+  - make vet
 
 test:
   stage: test
   script:
-  - go test -race -v $(go list ./... | grep -v vendor)
+  - make test
+
+test-build:
+  stage: test
+  script:
+  - make install
