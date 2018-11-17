@@ -22,7 +22,8 @@ func configureTopicCmd() *cobra.Command {
 				rootConfig.BindHost = "localhost"
 			}
 
-			ctx, _ := context.WithTimeout(context.Background(), 1*time.Minute)
+			ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
+			defer cancel()
 			c, err := newClient(ctx)
 			if err != nil {
 				return err

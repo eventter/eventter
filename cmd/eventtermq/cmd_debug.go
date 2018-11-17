@@ -23,7 +23,8 @@ func debugCmd() *cobra.Command {
 				rootConfig.BindHost = "localhost"
 			}
 
-			ctx, _ := context.WithTimeout(context.Background(), 1*time.Minute)
+			ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
+			defer cancel()
 			conn, err := grpc.DialContext(ctx, fmt.Sprintf("%s:%d", rootConfig.BindHost, rootConfig.Port), grpc.WithInsecure())
 			if err != nil {
 				return err

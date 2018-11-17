@@ -34,7 +34,7 @@ func main() {
 				Live:      live != "",
 				Address:   live,
 				Package:   "eventter.io/cmd/livereload-example",
-				Listeners: []livereload.ListenerDefinition{{"tcp", ":8080"}},
+				Listeners: []livereload.ListenerDefinition{{Network: "tcp", Address: ":8080"}},
 			})
 			if err != nil {
 				return err

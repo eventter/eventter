@@ -113,7 +113,8 @@ func (t *DiscoveryRPCTransport) PacketCh() <-chan *memberlist.Packet {
 }
 
 func (t *DiscoveryRPCTransport) DialTimeout(addr string, timeout time.Duration) (conn net.Conn, err error) {
-	ctx, _ := context.WithTimeout(context.Background(), timeout)
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
 	grpcConn, err := t.pool.Get(ctx, addr)
 	if err != nil {
 		return nil, err

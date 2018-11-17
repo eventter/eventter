@@ -268,7 +268,10 @@ func (t *RaftRPCTransport) InstallSnapshot(id raft.ServerID, target raft.ServerA
 	for {
 		buf = buf[:cap(buf)]
 		n, err := data.Read(buf)
-		if err != nil {
+		eof := false
+		if err == io.EOF {
+			eof = true
+		} else if err != nil {
 			return err
 		}
 		err = stream.Send(&InstallSnapshotRequest{
@@ -278,6 +281,9 @@ func (t *RaftRPCTransport) InstallSnapshot(id raft.ServerID, target raft.ServerA
 		})
 		if err != nil {
 			return err
+		}
+		if eof {
+			break
 		}
 	}
 

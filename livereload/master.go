@@ -98,7 +98,8 @@ func (m *master) Run() (err error) {
 
 	srv := &http.Server{Handler: m}
 	defer func() {
-		ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
 		if err := srv.Shutdown(ctx); err != nil {
 			m.config.Logger.Errorf("could not shutdown HTTP server: %s", err)
 		}
@@ -234,7 +235,8 @@ LOOP:
 		case sig := <-interrupt:
 			func() {
 				m.config.Logger.Infof("received signal [%s], shutting down", sig)
-				ctx, _ := context.WithTimeout(context.Background(), 3*time.Second)
+				ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+				defer cancel()
 				if err := srv.Shutdown(ctx); err != nil {
 					m.config.Logger.Errorf("could not shutdown HTTP server: %s", err)
 				}
@@ -282,7 +284,8 @@ LOOP:
 					f.Close()
 				}
 
-				ctx, _ := context.WithTimeout(context.Background(), 0)
+				ctx, cancel := context.WithTimeout(context.Background(), 0)
+				defer cancel()
 				srv.Shutdown(ctx)
 				masterListener.Close()
 
