@@ -1,0 +1,11 @@
+image: golang:1.11
+
+vet:
+  stage: test
+  script:
+  - go vet $(go list ./... | grep -v vendor)
+
+test:
+  stage: test
+  script:
+  - go test -race -v $(go list ./... | grep -v vendor)
