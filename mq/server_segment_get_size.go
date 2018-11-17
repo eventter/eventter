@@ -9,7 +9,8 @@ import (
 func (s *Server) SegmentGetSize(ctx context.Context, request *SegmentGetSizeRequest) (*SegmentGetSizeResponse, error) {
 	if !s.segmentDir.Exists(request.SegmentID) {
 		return &SegmentGetSizeResponse{
-			Size_: -1,
+			SegmentID: request.SegmentID,
+			Size_:     -1,
 		}, nil
 	}
 
@@ -20,6 +21,7 @@ func (s *Server) SegmentGetSize(ctx context.Context, request *SegmentGetSizeRequ
 	defer s.segmentDir.Release(segment)
 
 	return &SegmentGetSizeResponse{
-		Size_: segment.Size(),
+		SegmentID: request.SegmentID,
+		Size_:     segment.Size(),
 	}, nil
 }

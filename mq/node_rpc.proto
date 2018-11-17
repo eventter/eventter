@@ -43,7 +43,8 @@ message SegmentGetSizeRequest {
 }
 
 message SegmentGetSizeResponse {
-    int64 size = 1;
+    uint64 segment_id = 1 [(gogoproto.customname) = "SegmentID"];
+    int64 size = 2;
 }
 
 message SegmentReadRequest {

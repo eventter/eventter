@@ -1,5 +1,4 @@
-all:
-	# nothing
+all: generate fmt vet test install
 
 dependencies:
 	go install -v github.com/gogo/protobuf/protoc-gen-gogofaster
