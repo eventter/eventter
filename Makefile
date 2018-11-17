@@ -1,4 +1,6 @@
-all: generate fmt vet test install
+DOCKER_TAG=latest
+
+all: generate fmt vet test
 
 dependencies:
 	go install -v github.com/gogo/protobuf/protoc-gen-gogofaster

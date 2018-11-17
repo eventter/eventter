@@ -2,6 +2,7 @@ image: golang:1.11
 
 stages:
 - test
+- build
 
 vet:
   stage: test
@@ -13,7 +14,14 @@ test:
   script:
   - make test
 
-test-build:
-  stage: test
+build:
+  stage: build
+  tags:
+  - docker
+  image: docker:stable
+  services:
+  - docker:dind
   script:
-  - make install
+  - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
+  - docker build --pull -t eventter/mq -f mq/Dockerfile .
+  - docker push eventter/mq

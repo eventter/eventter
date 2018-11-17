@@ -32,8 +32,8 @@ message SegmentOpenResponse {
 message SegmentCloseRequest {
     // If true and node is not a leader, request will fail.
     bool leader_only = 99;
-    uint64 node_id = 1 [(gogoproto.customname) = "NodeID"];
-    uint64 segment_id = 2 [(gogoproto.customname) = "SegmentID"];
+    uint64 segment_id = 1 [(gogoproto.customname) = "SegmentID"];
+    uint64 node_id = 2 [(gogoproto.customname) = "NodeID"];
     int64 size = 3;
     bytes sha1 = 4;
 }
@@ -52,8 +52,9 @@ message SegmentGetSizeResponse {
 
 message SegmentReadRequest {
     uint64 segment_id = 1 [(gogoproto.customname) = "SegmentID"];
+    // Read will start at this offset.
     int64 offset = 2;
-    // If true, will wait for more messages.
+    // If true, will wait for new messages written to segment.
     bool wait = 3;
 }
 
