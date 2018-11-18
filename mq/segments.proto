@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package io.eventter.mq;
+
+import "client/eventtermq.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "mq";
+
+message Publishing {
+    Message message = 1 [(gogoproto.nullable) = false];
+    // Delta from time the segment was opened.
+    int64 delta = 2;
+}

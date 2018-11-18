@@ -4,10 +4,10 @@ package io.eventter.mq;
 
 option go_package = "mq";
 
-service DiscoveryRPC {
-    rpc Tunnel (stream TunnelData) returns (stream TunnelData);
+message DiscoveryTunnelledData {
+    bytes data = 1;
 }
 
-message TunnelData {
-    bytes data = 1;
+service DiscoveryRPC {
+    rpc Tunnel (stream DiscoveryTunnelledData) returns (stream DiscoveryTunnelledData);
 }

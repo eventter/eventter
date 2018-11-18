@@ -23,24 +23,24 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 
-type TunnelData struct {
+type DiscoveryTunnelledData struct {
 	Data                 []byte   `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *TunnelData) Reset()         { *m = TunnelData{} }
-func (m *TunnelData) String() string { return proto.CompactTextString(m) }
-func (*TunnelData) ProtoMessage()    {}
-func (*TunnelData) Descriptor() ([]byte, []int) {
-	return fileDescriptor_discovery_rpc_c8723c15dfa903d5, []int{0}
+func (m *DiscoveryTunnelledData) Reset()         { *m = DiscoveryTunnelledData{} }
+func (m *DiscoveryTunnelledData) String() string { return proto.CompactTextString(m) }
+func (*DiscoveryTunnelledData) ProtoMessage()    {}
+func (*DiscoveryTunnelledData) Descriptor() ([]byte, []int) {
+	return fileDescriptor_discovery_rpc_95fade601b414461, []int{0}
 }
-func (m *TunnelData) XXX_Unmarshal(b []byte) error {
+func (m *DiscoveryTunnelledData) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *TunnelData) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *DiscoveryTunnelledData) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_TunnelData.Marshal(b, m, deterministic)
+		return xxx_messageInfo_DiscoveryTunnelledData.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalTo(b)
@@ -50,19 +50,19 @@ func (m *TunnelData) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 		return b[:n], nil
 	}
 }
-func (dst *TunnelData) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_TunnelData.Merge(dst, src)
+func (dst *DiscoveryTunnelledData) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DiscoveryTunnelledData.Merge(dst, src)
 }
-func (m *TunnelData) XXX_Size() int {
+func (m *DiscoveryTunnelledData) XXX_Size() int {
 	return m.Size()
 }
-func (m *TunnelData) XXX_DiscardUnknown() {
-	xxx_messageInfo_TunnelData.DiscardUnknown(m)
+func (m *DiscoveryTunnelledData) XXX_DiscardUnknown() {
+	xxx_messageInfo_DiscoveryTunnelledData.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_TunnelData proto.InternalMessageInfo
+var xxx_messageInfo_DiscoveryTunnelledData proto.InternalMessageInfo
 
-func (m *TunnelData) GetData() []byte {
+func (m *DiscoveryTunnelledData) GetData() []byte {
 	if m != nil {
 		return m.Data
 	}
@@ -70,7 +70,7 @@ func (m *TunnelData) GetData() []byte {
 }
 
 func init() {
-	proto.RegisterType((*TunnelData)(nil), "io.eventter.mq.TunnelData")
+	proto.RegisterType((*DiscoveryTunnelledData)(nil), "io.eventter.mq.DiscoveryTunnelledData")
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -105,8 +105,8 @@ func (c *discoveryRPCClient) Tunnel(ctx context.Context, opts ...grpc.CallOption
 }
 
 type DiscoveryRPC_TunnelClient interface {
-	Send(*TunnelData) error
-	Recv() (*TunnelData, error)
+	Send(*DiscoveryTunnelledData) error
+	Recv() (*DiscoveryTunnelledData, error)
 	grpc.ClientStream
 }
 
@@ -114,12 +114,12 @@ type discoveryRPCTunnelClient struct {
 	grpc.ClientStream
 }
 
-func (x *discoveryRPCTunnelClient) Send(m *TunnelData) error {
+func (x *discoveryRPCTunnelClient) Send(m *DiscoveryTunnelledData) error {
 	return x.ClientStream.SendMsg(m)
 }
 
-func (x *discoveryRPCTunnelClient) Recv() (*TunnelData, error) {
-	m := new(TunnelData)
+func (x *discoveryRPCTunnelClient) Recv() (*DiscoveryTunnelledData, error) {
+	m := new(DiscoveryTunnelledData)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -141,8 +141,8 @@ func _DiscoveryRPC_Tunnel_Handler(srv interface{}, stream grpc.ServerStream) err
 }
 
 type DiscoveryRPC_TunnelServer interface {
-	Send(*TunnelData) error
-	Recv() (*TunnelData, error)
+	Send(*DiscoveryTunnelledData) error
+	Recv() (*DiscoveryTunnelledData, error)
 	grpc.ServerStream
 }
 
@@ -150,12 +150,12 @@ type discoveryRPCTunnelServer struct {
 	grpc.ServerStream
 }
 
-func (x *discoveryRPCTunnelServer) Send(m *TunnelData) error {
+func (x *discoveryRPCTunnelServer) Send(m *DiscoveryTunnelledData) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func (x *discoveryRPCTunnelServer) Recv() (*TunnelData, error) {
-	m := new(TunnelData)
+func (x *discoveryRPCTunnelServer) Recv() (*DiscoveryTunnelledData, error) {
+	m := new(DiscoveryTunnelledData)
 	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -177,7 +177,7 @@ var _DiscoveryRPC_serviceDesc = grpc.ServiceDesc{
 	Metadata: "discovery_rpc.proto",
 }
 
-func (m *TunnelData) Marshal() (dAtA []byte, err error) {
+func (m *DiscoveryTunnelledData) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalTo(dAtA)
@@ -187,7 +187,7 @@ func (m *TunnelData) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *TunnelData) MarshalTo(dAtA []byte) (int, error) {
+func (m *DiscoveryTunnelledData) MarshalTo(dAtA []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
@@ -210,7 +210,7 @@ func encodeVarintDiscoveryRpc(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return offset + 1
 }
-func (m *TunnelData) Size() (n int) {
+func (m *DiscoveryTunnelledData) Size() (n int) {
 	var l int
 	_ = l
 	l = len(m.Data)
@@ -233,7 +233,7 @@ func sovDiscoveryRpc(x uint64) (n int) {
 func sozDiscoveryRpc(x uint64) (n int) {
 	return sovDiscoveryRpc(uint64((x << 1) ^ uint64((int64(x) >> 63))))
 }
-func (m *TunnelData) Unmarshal(dAtA []byte) error {
+func (m *DiscoveryTunnelledData) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -256,10 +256,10 @@ func (m *TunnelData) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: TunnelData: wiretype end group for non-group")
+			return fmt.Errorf("proto: DiscoveryTunnelledData: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: TunnelData: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: DiscoveryTunnelledData: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -419,18 +419,18 @@ var (
 	ErrIntOverflowDiscoveryRpc   = fmt.Errorf("proto: integer overflow")
 )
 
-func init() { proto.RegisterFile("discovery_rpc.proto", fileDescriptor_discovery_rpc_c8723c15dfa903d5) }
+func init() { proto.RegisterFile("discovery_rpc.proto", fileDescriptor_discovery_rpc_95fade601b414461) }
 
-var fileDescriptor_discovery_rpc_c8723c15dfa903d5 = []byte{
-	// 152 bytes of a gzipped FileDescriptorProto
+var fileDescriptor_discovery_rpc_95fade601b414461 = []byte{
+	// 157 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0x4e, 0xc9, 0x2c, 0x4e,
 	0xce, 0x2f, 0x4b, 0x2d, 0xaa, 0x8c, 0x2f, 0x2a, 0x48, 0xd6, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17,
 	0xe2, 0xcb, 0xcc, 0xd7, 0x4b, 0x2d, 0x4b, 0xcd, 0x2b, 0x29, 0x49, 0x2d, 0xd2, 0xcb, 0x2d, 0x54,
-	0x52, 0xe0, 0xe2, 0x0a, 0x29, 0xcd, 0xcb, 0x4b, 0xcd, 0x71, 0x49, 0x2c, 0x49, 0x14, 0x12, 0xe2,
-	0x62, 0x49, 0x49, 0x2c, 0x49, 0x94, 0x60, 0x54, 0x60, 0xd4, 0xe0, 0x09, 0x02, 0xb3, 0x8d, 0x42,
-	0xb8, 0x78, 0x5c, 0x60, 0x06, 0x05, 0x05, 0x38, 0x0b, 0xb9, 0x70, 0xb1, 0x41, 0x74, 0x08, 0x49,
-	0xe9, 0xa1, 0x1a, 0xa6, 0x87, 0x30, 0x49, 0x0a, 0x8f, 0x9c, 0x06, 0xa3, 0x01, 0xa3, 0x93, 0xc8,
-	0x89, 0x47, 0x72, 0x8c, 0x17, 0x1e, 0xc9, 0x31, 0x3e, 0x78, 0x24, 0xc7, 0x38, 0xe1, 0xb1, 0x1c,
-	0x43, 0x14, 0x53, 0x6e, 0x61, 0x12, 0x1b, 0xd8, 0x91, 0xc6, 0x80, 0x00, 0x00, 0x00, 0xff, 0xff,
-	0x10, 0x83, 0x12, 0xdf, 0xbb, 0x00, 0x00, 0x00,
+	0xd2, 0xe1, 0x12, 0x73, 0x81, 0x29, 0x0b, 0x29, 0xcd, 0xcb, 0x4b, 0xcd, 0xc9, 0x49, 0x4d, 0x71,
+	0x49, 0x2c, 0x49, 0x14, 0x12, 0xe2, 0x62, 0x49, 0x49, 0x2c, 0x49, 0x94, 0x60, 0x54, 0x60, 0xd4,
+	0xe0, 0x09, 0x02, 0xb3, 0x8d, 0x72, 0xb8, 0x78, 0xe0, 0xaa, 0x83, 0x02, 0x9c, 0x85, 0x62, 0xb8,
+	0xd8, 0x20, 0x9a, 0x84, 0xd4, 0xf4, 0x50, 0x0d, 0xd6, 0xc3, 0x6e, 0xaa, 0x14, 0x91, 0xea, 0x34,
+	0x18, 0x0d, 0x18, 0x9d, 0x44, 0x4e, 0x3c, 0x92, 0x63, 0xbc, 0xf0, 0x48, 0x8e, 0xf1, 0xc1, 0x23,
+	0x39, 0xc6, 0x09, 0x8f, 0xe5, 0x18, 0xa2, 0x98, 0x72, 0x0b, 0x93, 0xd8, 0xc0, 0x1e, 0x31, 0x06,
+	0x04, 0x00, 0x00, 0xff, 0xff, 0x64, 0xf5, 0xc4, 0x40, 0xdf, 0x00, 0x00, 0x00,
 }

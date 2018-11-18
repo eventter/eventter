@@ -5,6 +5,7 @@ import (
 	"crypto/sha1"
 	"runtime"
 	"sync/atomic"
+	"time"
 
 	"eventter.io/mq/client"
 	"eventter.io/mq/segmentfile"
@@ -65,20 +66,43 @@ func (s *Server) Publish(ctx context.Context, request *client.PublishRequest) (*
 
 WRITE:
 	{
-		segment, err := s.segmentDir.Open(localSegmentID)
+		segment := state.GetOpenSegment(localSegmentID)
+		// cluster state from leader wasn't applied yet to this node => busy wait for new state
+		for segment == nil {
+			select {
+			case <-ctx.Done():
+				return nil, ctx.Err()
+			default:
+				runtime.Gosched()
+			}
+			state = s.clusterState.Current()
+			segment = state.GetOpenSegment(localSegmentID)
+		}
+
+		segmentHandle, err := s.segmentDir.Open(localSegmentID)
 		if err != nil {
 			return nil, err
 		}
-		defer s.segmentDir.Release(segment)
+		defer s.segmentDir.Release(segmentHandle)
 
-		buf, err := proto.Marshal(&request.Message)
+		publishing := Publishing{
+			Message: request.Message,
+			Delta:   int64(time.Now().Sub(segment.OpenedAt)),
+		}
+
+		// possible clock skew => move time to segment open time
+		if publishing.Delta < 0 {
+			publishing.Delta = 0
+		}
+
+		buf, err := proto.Marshal(&publishing)
 		if err != nil {
 			return nil, err
 		}
 
-		err = segment.Write(buf)
+		err = segmentHandle.Write(buf)
 		if err == segmentfile.ErrFull {
-			sha1Sum, size, err := segment.Sum(sha1.New(), segmentfile.SumAll)
+			sha1Sum, size, err := segmentHandle.Sum(sha1.New(), segmentfile.SumAll)
 			if err != nil {
 				return nil, err
 			}
@@ -104,8 +128,8 @@ WRITE:
 			return nil, err
 		}
 
-		if segment.IsFull() {
-			sha1Sum, size, err := segment.Sum(sha1.New(), segmentfile.SumAll)
+		if segmentHandle.IsFull() {
+			sha1Sum, size, err := segmentHandle.Sum(sha1.New(), segmentfile.SumAll)
 			if err != nil {
 				return nil, err
 			}
@@ -132,18 +156,16 @@ FORWARD:
 		}
 
 		node := state.GetNode(forwardNodeID)
-		if node == nil {
-			// raft log from leader wasn't applied yet to this node => busy wait for new state
-			for node == nil {
-				select {
-				case <-ctx.Done():
-					return nil, ctx.Err()
-				default:
-					runtime.Gosched()
-				}
-				state = s.clusterState.Current()
-				node = state.GetNode(forwardNodeID)
+		// cluster state from leader wasn't applied yet to this node => busy wait for new state
+		for node == nil {
+			select {
+			case <-ctx.Done():
+				return nil, ctx.Err()
+			default:
+				runtime.Gosched()
 			}
+			state = s.clusterState.Current()
+			node = state.GetNode(forwardNodeID)
 		}
 
 		if node.State != ClusterNode_ALIVE {

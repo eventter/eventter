@@ -29,6 +29,7 @@ func (s *Server) taskSegmentReplicate(ctx context.Context, completed func(), seg
 		log.Printf("cannot replicate segment %d from node %d - open failed: %v", segmentID, nodeID, err)
 		return
 	}
+	defer s.segmentDir.Release(segment)
 
 	cc, err := s.pool.Get(ctx, node.Address)
 	if err != nil {

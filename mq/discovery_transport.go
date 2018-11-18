@@ -168,7 +168,7 @@ func (t *DiscoveryRPCTransport) DialTimeout(addr string, timeout time.Duration) 
 			if err != nil {
 				return
 			}
-			err = tunnel.Send(&TunnelData{Data: buf[:n]})
+			err = tunnel.Send(&DiscoveryTunnelledData{Data: buf[:n]})
 			if err != nil {
 				return
 			}
@@ -219,7 +219,7 @@ func (t *DiscoveryRPCTransport) Tunnel(stream DiscoveryRPC_TunnelServer) error {
 			if err != nil {
 				return
 			}
-			err = stream.Send(&TunnelData{Data: buf[:n]})
+			err = stream.Send(&DiscoveryTunnelledData{Data: buf[:n]})
 			if err != nil {
 				return
 			}

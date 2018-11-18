@@ -125,6 +125,7 @@ LOOP:
 
 			for segmentID, task := range runningOpenSegmentReplications {
 				if !replicatingOpenSegmentIDs[segmentID] {
+					log.Printf("stopping replication of open segment %d", segmentID)
 					task.cancel()
 				}
 			}
@@ -159,6 +160,7 @@ LOOP:
 
 			for segmentID, task := range runningClosedSegmentReplications {
 				if !replicatingClosedSegmentIDs[segmentID] {
+					log.Printf("stopping replication of closed segment %d", segmentID)
 					task.cancel()
 				}
 			}
