@@ -206,7 +206,7 @@ LOOP:
 				continue
 			}
 
-			cmd := &UpdateNodeCommand{
+			cmd := &ClusterUpdateNodeCommand{
 				ID:      MustIDFromString(ev.Node.Name),
 				Address: ev.Node.Address(),
 			}

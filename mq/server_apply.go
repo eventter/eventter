@@ -7,26 +7,26 @@ import (
 )
 
 func (s *Server) Apply(cmd interface{}) (index uint64, err error) {
-	outer := &Command{}
+	outer := &ClusterCommand{}
 	switch cmd := cmd.(type) {
 	case *client.ConfigureTopicRequest:
-		outer.Command = &Command_ConfigureTopic{cmd}
+		outer.Command = &ClusterCommand_ConfigureTopic{cmd}
 	case *client.DeleteTopicRequest:
-		outer.Command = &Command_DeleteTopic{cmd}
+		outer.Command = &ClusterCommand_DeleteTopic{cmd}
 	case *client.ConfigureConsumerGroupRequest:
-		outer.Command = &Command_ConfigureConsumerGroup{cmd}
+		outer.Command = &ClusterCommand_ConfigureConsumerGroup{cmd}
 	case *client.DeleteConsumerGroupRequest:
-		outer.Command = &Command_DeleteConsumerGroup{cmd}
-	case *OpenSegmentCommand:
-		outer.Command = &Command_OpenSegment{cmd}
-	case *CloseSegmentCommand:
-		outer.Command = &Command_CloseSegment{cmd}
-	case *UpdateNodeCommand:
-		outer.Command = &Command_UpdateNode{cmd}
-	case *UpdateSegmentNodesCommand:
-		outer.Command = &Command_UpdateSegmentNodes{cmd}
-	case *DeleteSegmentCommand:
-		outer.Command = &Command_DeleteSegment{cmd}
+		outer.Command = &ClusterCommand_DeleteConsumerGroup{cmd}
+	case *ClusterOpenSegmentCommand:
+		outer.Command = &ClusterCommand_OpenSegment{cmd}
+	case *ClusterCloseSegmentCommand:
+		outer.Command = &ClusterCommand_CloseSegment{cmd}
+	case *ClusterUpdateNodeCommand:
+		outer.Command = &ClusterCommand_UpdateNode{cmd}
+	case *ClusterUpdateSegmentNodesCommand:
+		outer.Command = &ClusterCommand_UpdateSegmentNodes{cmd}
+	case *ClusterDeleteSegmentCommand:
+		outer.Command = &ClusterCommand_DeleteSegment{cmd}
 	default:
 		return 0, errors.Errorf("unhandled command of type: %T", cmd)
 	}

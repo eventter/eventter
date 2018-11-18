@@ -98,7 +98,7 @@ func (s *Server) txSegmentOpen(state *ClusterState, primaryNodeID uint64, topicN
 		}
 	}
 
-	cmd := &OpenSegmentCommand{
+	cmd := &ClusterOpenSegmentCommand{
 		ID:                 segmentID,
 		Topic:              topicName,
 		OpenedAt:           time.Now(),

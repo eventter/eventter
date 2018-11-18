@@ -20,7 +20,7 @@ func (r *Reconciler) ReconcileNodes(state *ClusterState) {
 		}
 
 		if node == nil || node.Address != member.Address() || node.State != ClusterNode_ALIVE {
-			cmd := &UpdateNodeCommand{
+			cmd := &ClusterUpdateNodeCommand{
 				ID:      id,
 				Address: member.Address(),
 				State:   ClusterNode_ALIVE,
@@ -49,7 +49,7 @@ func (r *Reconciler) ReconcileNodes(state *ClusterState) {
 
 		now := time.Now()
 
-		cmd := &UpdateNodeCommand{
+		cmd := &ClusterUpdateNodeCommand{
 			ID:            node.ID,
 			Address:       node.Address,
 			State:         ClusterNode_DEAD,

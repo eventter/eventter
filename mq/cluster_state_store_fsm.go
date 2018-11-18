@@ -13,9 +13,9 @@ import (
 var _ raft.FSM = (*ClusterStateStore)(nil)
 
 func (s *ClusterStateStore) Apply(entry *raft.Log) interface{} {
-	var cmd *Command = nil
+	var cmd *ClusterCommand = nil
 	if entry.Type == raft.LogCommand {
-		cmd = &Command{}
+		cmd = &ClusterCommand{}
 		if err := proto.Unmarshal(entry.Data, cmd); err != nil {
 			panic(err)
 		}

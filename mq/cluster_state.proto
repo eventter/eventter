@@ -70,7 +70,7 @@ message ClusterNode {
     }
 }
 
-message OpenSegmentCommand {
+message ClusterOpenSegmentCommand {
     uint64 id = 1 [(gogoproto.customname) = "ID"];
     NamespaceName topic = 2 [(gogoproto.nullable) = false];
     google.protobuf.Timestamp opened_at = 3 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
@@ -78,7 +78,7 @@ message OpenSegmentCommand {
     repeated uint64 replicating_node_ids = 5 [(gogoproto.customname) = "ReplicatingNodeIDs"];
 }
 
-message CloseSegmentCommand {
+message ClusterCloseSegmentCommand {
     uint64 id = 1 [(gogoproto.customname) = "ID"];
     uint64 done_node_id = 2 [(gogoproto.customname) = "DoneNodeID"];
     google.protobuf.Timestamp closed_at = 4 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
@@ -86,14 +86,14 @@ message CloseSegmentCommand {
     bytes sha1 = 6;
 }
 
-message UpdateNodeCommand {
+message ClusterUpdateNodeCommand {
     uint64 id = 1 [(gogoproto.customname) = "ID"];
     string address = 2;
     ClusterNode.State state = 3;
     google.protobuf.Timestamp last_seen_alive = 4 [(gogoproto.stdtime) = true];
 }
 
-message UpdateSegmentNodesCommand {
+message ClusterUpdateSegmentNodesCommand {
     uint64 id = 1 [(gogoproto.customname) = "ID"];
     Which which = 2;
     ClusterSegment.Nodes nodes = 3 [(gogoproto.nullable) = false];
@@ -104,7 +104,7 @@ message UpdateSegmentNodesCommand {
     }
 }
 
-message DeleteSegmentCommand {
+message ClusterDeleteSegmentCommand {
     uint64 id = 1 [(gogoproto.customname) = "ID"];
     Which which = 2;
 
@@ -114,16 +114,16 @@ message DeleteSegmentCommand {
     }
 }
 
-message Command {
+message ClusterCommand {
     oneof command {
         ConfigureTopicRequest configure_topic = 1;
         DeleteTopicRequest delete_topic = 2;
         ConfigureConsumerGroupRequest configure_consumer_group = 3;
         DeleteConsumerGroupRequest delete_consumer_group = 4;
-        OpenSegmentCommand open_segment = 5;
-        CloseSegmentCommand close_segment = 6;
-        UpdateNodeCommand update_node = 7;
-        UpdateSegmentNodesCommand update_segment_nodes = 8;
-        DeleteSegmentCommand delete_segment = 9;
+        ClusterOpenSegmentCommand open_segment = 5;
+        ClusterCloseSegmentCommand close_segment = 6;
+        ClusterUpdateNodeCommand update_node = 7;
+        ClusterUpdateSegmentNodesCommand update_segment_nodes = 8;
+        ClusterDeleteSegmentCommand delete_segment = 9;
     }
 }

@@ -53,7 +53,7 @@ func (s *Server) txSegmentClose(state *ClusterState, request *SegmentCloseReques
 			return errors.Errorf("node %d is not primary for segment %d", request.NodeID, request.SegmentID)
 		}
 
-		cmd := &CloseSegmentCommand{
+		cmd := &ClusterCloseSegmentCommand{
 			ID:         oldSegment.ID,
 			DoneNodeID: request.NodeID,
 			ClosedAt:   time.Now(),

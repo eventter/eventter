@@ -41,7 +41,7 @@ func (s *ClusterStateStore) String() string {
 	return proto.MarshalTextString(state)
 }
 
-func (s *ClusterStateStore) Do(index uint64, cmd *Command) {
+func (s *ClusterStateStore) Do(index uint64, cmd *ClusterCommand) {
 	for {
 		state := (*ClusterState)(atomic.LoadPointer(&s.ptr))
 
@@ -50,23 +50,23 @@ func (s *ClusterStateStore) Do(index uint64, cmd *Command) {
 			next = state
 		} else {
 			switch cmd := cmd.Command.(type) {
-			case *Command_ConfigureTopic:
+			case *ClusterCommand_ConfigureTopic:
 				next = state.doConfigureTopic(cmd.ConfigureTopic)
-			case *Command_DeleteTopic:
+			case *ClusterCommand_DeleteTopic:
 				next = state.doDeleteTopic(cmd.DeleteTopic)
-			case *Command_ConfigureConsumerGroup:
+			case *ClusterCommand_ConfigureConsumerGroup:
 				next = state.doConfigureConsumerGroup(cmd.ConfigureConsumerGroup)
-			case *Command_DeleteConsumerGroup:
+			case *ClusterCommand_DeleteConsumerGroup:
 				next = state.doDeleteConsumerGroup(cmd.DeleteConsumerGroup)
-			case *Command_OpenSegment:
+			case *ClusterCommand_OpenSegment:
 				next = state.doOpenSegment(cmd.OpenSegment)
-			case *Command_CloseSegment:
+			case *ClusterCommand_CloseSegment:
 				next = state.doCloseSegment(cmd.CloseSegment)
-			case *Command_UpdateNode:
+			case *ClusterCommand_UpdateNode:
 				next = state.doUpdateNode(cmd.UpdateNode)
-			case *Command_UpdateSegmentNodes:
+			case *ClusterCommand_UpdateSegmentNodes:
 				next = state.doUpdateSegmentNodes(cmd.UpdateSegmentNodes)
-			case *Command_DeleteSegment:
+			case *ClusterCommand_DeleteSegment:
 				next = state.doDeleteSegment(cmd.DeleteSegment)
 			default:
 				panic(errors.Errorf("unhandled command of type [%T]", cmd))
