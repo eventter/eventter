@@ -1,7 +1,8 @@
-package main
+package cmd
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"math/rand"
 	"net"
@@ -23,7 +24,13 @@ import (
 	"google.golang.org/grpc"
 )
 
-func rootCmd() *cobra.Command {
+var rootConfig = &mq.Config{}
+
+func newClient(ctx context.Context) (client.Client, error) {
+	return client.DialContext(ctx, fmt.Sprintf("%s:%d", rootConfig.BindHost, rootConfig.Port), grpc.WithInsecure())
+}
+
+func Cmd() *cobra.Command {
 	var join []string
 
 	cmd := &cobra.Command{

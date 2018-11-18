@@ -1,4 +1,4 @@
-package main
+package cmd
 
 import (
 	"context"
@@ -10,13 +10,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func listTopicsCmd() *cobra.Command {
-	request := &client.ListTopicsRequest{}
+func deleteTopicCmd() *cobra.Command {
+	request := &client.DeleteTopicRequest{}
 
 	cmd := &cobra.Command{
-		Use:     "list-topics",
-		Short:   "List topics.",
-		Aliases: []string{"topics", "tps"},
+		Use:   "delete-topic",
+		Short: "Delete topic.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if rootConfig.BindHost == "" {
 				rootConfig.BindHost = "localhost"
@@ -30,7 +29,7 @@ func listTopicsCmd() *cobra.Command {
 			}
 			defer c.Close()
 
-			response, err := c.ListTopics(ctx, request)
+			response, err := c.DeleteTopic(ctx, request)
 			if err != nil {
 				return err
 			}
@@ -41,8 +40,9 @@ func listTopicsCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVar(&request.Topic.Namespace, "namespace", "default", "Topics namespace.")
-	cmd.Flags().StringVar(&request.Topic.Name, "name", "", "Topic name.")
+	cmd.Flags().StringVar(&request.Topic.Namespace, "namespace", "default", "Topic namespace.")
+	cmd.Flags().StringVarP(&request.Topic.Name, "name", "n", "", "Topic name.")
+	cmd.Flags().BoolVar(&request.IfUnused, "if-unused", false, "If unused.")
 
 	return cmd
 }

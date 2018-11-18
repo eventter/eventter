@@ -29,5 +29,5 @@ test:
 	go test -v -race $$(go list ./... | grep -v vendor)
 
 install:
-	go install -v ./cmd/livereload-example
-	go install -v ./cmd/eventtermq
+	go install -v ./bin/livereload-example
+	go install -v ./bin/eventtermq

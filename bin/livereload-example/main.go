@@ -33,7 +33,7 @@ func main() {
 			master, worker, err := livereload.New(&livereload.Config{
 				Live:      live != "",
 				Address:   live,
-				Package:   "eventter.io/cmd/livereload-example",
+				Package:   "eventter.io/bin/livereload-example",
 				Listeners: []livereload.ListenerDefinition{{Network: "tcp", Address: ":8080"}},
 			})
 			if err != nil {

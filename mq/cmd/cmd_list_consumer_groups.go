@@ -1,4 +1,4 @@
-package main
+package cmd
 
 import (
 	"context"
@@ -10,12 +10,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func deleteTopicCmd() *cobra.Command {
-	request := &client.DeleteTopicRequest{}
+func listConsumerGroupsCmd() *cobra.Command {
+	request := &client.ListConsumerGroupsRequest{}
 
 	cmd := &cobra.Command{
-		Use:   "delete-topic",
-		Short: "Delete topic.",
+		Use:     "list-consumer-groups",
+		Short:   "List consumer groups.",
+		Aliases: []string{"cgs"},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if rootConfig.BindHost == "" {
 				rootConfig.BindHost = "localhost"
@@ -29,7 +30,7 @@ func deleteTopicCmd() *cobra.Command {
 			}
 			defer c.Close()
 
-			response, err := c.DeleteTopic(ctx, request)
+			response, err := c.ListConsumerGroups(ctx, request)
 			if err != nil {
 				return err
 			}
@@ -40,9 +41,8 @@ func deleteTopicCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVar(&request.Topic.Namespace, "namespace", "default", "Topic namespace.")
-	cmd.Flags().StringVarP(&request.Topic.Name, "name", "n", "", "Topic name.")
-	cmd.Flags().BoolVar(&request.IfUnused, "if-unused", false, "If unused.")
+	cmd.Flags().StringVar(&request.ConsumerGroup.Namespace, "namespace", "default", "Consumer groups namespace.")
+	cmd.Flags().StringVar(&request.ConsumerGroup.Name, "name", "", "Consumer group name.")
 
 	return cmd
 }

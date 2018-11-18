@@ -1,4 +1,4 @@
-package main
+package cmd
 
 import (
 	"context"
@@ -10,13 +10,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func listConsumerGroupsCmd() *cobra.Command {
-	request := &client.ListConsumerGroupsRequest{}
+func listTopicsCmd() *cobra.Command {
+	request := &client.ListTopicsRequest{}
 
 	cmd := &cobra.Command{
-		Use:     "list-consumer-groups",
-		Short:   "List consumer groups.",
-		Aliases: []string{"cgs"},
+		Use:     "list-topics",
+		Short:   "List topics.",
+		Aliases: []string{"topics", "tps"},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if rootConfig.BindHost == "" {
 				rootConfig.BindHost = "localhost"
@@ -30,7 +30,7 @@ func listConsumerGroupsCmd() *cobra.Command {
 			}
 			defer c.Close()
 
-			response, err := c.ListConsumerGroups(ctx, request)
+			response, err := c.ListTopics(ctx, request)
 			if err != nil {
 				return err
 			}
@@ -41,8 +41,8 @@ func listConsumerGroupsCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVar(&request.ConsumerGroup.Namespace, "namespace", "default", "Consumer groups namespace.")
-	cmd.Flags().StringVar(&request.ConsumerGroup.Name, "name", "", "Consumer group name.")
+	cmd.Flags().StringVar(&request.Topic.Namespace, "namespace", "default", "Topics namespace.")
+	cmd.Flags().StringVar(&request.Topic.Name, "name", "", "Topic name.")
 
 	return cmd
 }

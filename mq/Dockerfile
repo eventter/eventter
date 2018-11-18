@@ -4,7 +4,7 @@ COPY . /src
 
 RUN set -ex \
     && cd /src \
-    && CGO_ENABLED=0 GOOS=linux go build -ldflags '-extldflags "-static"' -v -o /bin/eventtermq ./cmd/eventtermq
+    && CGO_ENABLED=0 GOOS=linux go build -ldflags '-extldflags "-static"' -v -o /bin/eventtermq ./bin/eventtermq
 
 FROM scratch
 COPY --from=0 /bin/eventtermq /eventtermq
