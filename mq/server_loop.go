@@ -2,6 +2,7 @@ package mq
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"math/rand"
 	"time"
@@ -13,6 +14,7 @@ import (
 
 type task struct {
 	id     uint64
+	name   string
 	ctx    context.Context
 	cancel func()
 }
@@ -33,15 +35,32 @@ func (s *Server) Loop(memberEventsC chan memberlist.NodeEvent) {
 
 	var currentID uint64
 
-	makeCompletedFunc := func(task *task) func() {
-		return func() {
-			task.cancel()
-			select {
-			case taskCompletedC <- task.id:
-			default:
-				log.Printf("could not send completion of task %d", task.id)
-			}
+	startTask := func(name string, run func(ctx context.Context) error) *task {
+		ctx, cancel := context.WithCancel(context.Background())
+		currentID++
+		t := &task{
+			id:     currentID,
+			name:   name,
+			ctx:    ctx,
+			cancel: cancel,
 		}
+
+		go func() {
+			defer func() {
+				t.cancel()
+				select {
+				case taskCompletedC <- t.id:
+				default:
+					log.Printf("could not send completion of task %d", t.id)
+				}
+			}()
+			err := run(ctx)
+			if err != nil {
+				log.Printf("task %d (%s) failed: %v", t.id, t.name, err)
+			}
+		}()
+
+		return t
 	}
 
 	garbageCollectionTicker := time.NewTicker(10 * time.Second)
@@ -103,20 +122,16 @@ LOOP:
 						replicatingOpenSegmentIDs[segment.ID] = true
 
 						if _, ok := runningOpenSegmentReplications[segment.ID]; !ok {
-							ctx, cancel := context.WithCancel(context.Background())
-							currentID++
-							t := &task{
-								id:     currentID,
-								ctx:    ctx,
-								cancel: cancel,
-							}
-							runningOpenSegmentReplications[segment.ID] = t
-							go s.taskSegmentReplicate(
-								ctx,
-								makeCompletedFunc(t),
-								segment.ID,
-								segment.Nodes.PrimaryNodeID,
-								true,
+							runningOpenSegmentReplications[segment.ID] = startTask(
+								fmt.Sprintf("replication of open segment %d from node %d", segment.ID, segment.Nodes.PrimaryNodeID),
+								func(ctx context.Context) error {
+									return s.taskSegmentReplicate(
+										ctx,
+										segment.ID,
+										segment.Nodes.PrimaryNodeID,
+										true,
+									)
+								},
 							)
 						}
 					}
@@ -138,20 +153,16 @@ LOOP:
 						replicatingClosedSegmentIDs[segment.ID] = true
 
 						if _, ok := runningClosedSegmentReplications[segment.ID]; !ok {
-							ctx, cancel := context.WithCancel(context.Background())
-							currentID++
-							t := &task{
-								id:     currentID,
-								ctx:    ctx,
-								cancel: cancel,
-							}
-							runningClosedSegmentReplications[segment.ID] = t
-							go s.taskSegmentReplicate(
-								ctx,
-								makeCompletedFunc(t),
-								segment.ID,
-								segment.Nodes.DoneNodeIDs[rand.Intn(len(segment.Nodes.DoneNodeIDs))], // select random node that is done
-								false,
+							runningClosedSegmentReplications[segment.ID] = startTask(
+								fmt.Sprintf("replication of closed segment %d from node %d", segment.ID, segment.Nodes.PrimaryNodeID),
+								func(ctx context.Context) error {
+									return s.taskSegmentReplicate(
+										ctx,
+										segment.ID,
+										segment.Nodes.DoneNodeIDs[rand.Intn(len(segment.Nodes.DoneNodeIDs))], // select random node that is done
+										false,
+									)
+								},
 							)
 						}
 					}

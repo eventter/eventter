@@ -10,38 +10,33 @@ import (
 	"runtime"
 
 	"eventter.io/mq/segmentfile"
+	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 )
 
-func (s *Server) taskSegmentReplicate(ctx context.Context, completed func(), segmentID uint64, nodeID uint64, wait bool) {
-	defer completed()
-
+func (s *Server) taskSegmentReplicate(ctx context.Context, segmentID uint64, nodeID uint64, wait bool) error {
 	log.Printf("starting to replicate segment %d from node %d", segmentID, nodeID)
 
 	node := s.clusterState.Current().GetNode(nodeID)
 	if node == nil {
-		log.Printf("cannot replicate segment %d from node %d - node not found", segmentID, nodeID)
-		return
+		return errors.New("node not found")
 	}
 
 	segment, err := s.segmentDir.Open(segmentID)
 	if err != nil {
-		log.Printf("cannot replicate segment %d from node %d - open failed: %v", segmentID, nodeID, err)
-		return
+		return errors.Wrap(err, "open failed")
 	}
 	defer s.segmentDir.Release(segment)
 
 	cc, err := s.pool.Get(ctx, node.Address)
 	if err != nil {
-		log.Printf("cannot replicate segment %d from node %d - dial failed: %v", segmentID, nodeID, err)
-		return
+		return errors.Wrap(err, "dial failed")
 	}
 	defer s.pool.Put(cc)
 
 	sha1Sum, size, err := segment.Sum(sha1.New(), segmentfile.SumAll)
 	if err != nil {
-		log.Printf("cannot replicate segment %d from node %d - local sum failed: %v", segmentID, nodeID, err)
-		return
+		return errors.Wrap(err, "local sum failed")
 	}
 
 	client := NewNodeRPCClient(cc)
@@ -51,8 +46,7 @@ func (s *Server) taskSegmentReplicate(ctx context.Context, completed func(), seg
 		Size_:     size,
 	})
 	if err != nil {
-		log.Printf("cannot replicate segment %d from node %d - remote sum failed: %v", segmentID, nodeID, err)
-		return
+		return errors.Wrap(err, "remote sum failed")
 	}
 
 	if !bytes.Equal(sha1Sum, sumResponse.Sha1) {
@@ -60,8 +54,7 @@ func (s *Server) taskSegmentReplicate(ctx context.Context, completed func(), seg
 	}
 
 	if err := segment.Truncate(size); err != nil {
-		log.Printf("cannot replicate segment %d from node %d - truncate failed: %v", segmentID, nodeID, err)
-		return
+		return errors.Wrap(err, "truncate failed")
 	}
 
 	stream, err := client.SegmentRead(ctx, &SegmentReadRequest{
@@ -70,8 +63,7 @@ func (s *Server) taskSegmentReplicate(ctx context.Context, completed func(), seg
 		Wait:      wait,
 	}, grpc.MaxCallRecvMsgSize(math.MaxUint32))
 	if err != nil {
-		log.Printf("cannot replicate segment %d from node %d - read failed: %v", segmentID, nodeID, err)
-		return
+		return errors.Wrap(err, "read failed")
 	}
 
 	go func() {
@@ -84,13 +76,11 @@ func (s *Server) taskSegmentReplicate(ctx context.Context, completed func(), seg
 		if err == io.EOF {
 			break
 		} else if err != nil {
-			log.Printf("cannot replicate segment %d from node %d - receive failed: %v", segmentID, nodeID, err)
-			return
+			return errors.Wrap(err, "receive failed")
 		}
 
 		if err := segment.Write(response.Data); err != nil {
-			log.Printf("cannot replicate segment %d from node %d - write failed: %v", segmentID, nodeID, err)
-			return
+			return errors.Wrap(err, "write failed")
 		}
 	}
 
@@ -105,7 +95,7 @@ func (s *Server) taskSegmentReplicate(ctx context.Context, completed func(), seg
 		for closedSegment == nil {
 			select {
 			case <-ctx.Done():
-				return
+				return ctx.Err()
 			default:
 				runtime.Gosched()
 			}
@@ -116,8 +106,7 @@ func (s *Server) taskSegmentReplicate(ctx context.Context, completed func(), seg
 
 	finalSha1Sum, finalSize, err := segment.Sum(sha1.New(), segmentfile.SumAll)
 	if err != nil {
-		log.Printf("cannot sum segment %d: %v", segmentID, err)
-		return
+		return errors.Wrap(err, "final sum failed")
 	}
 
 	_, err = s.SegmentReplicaClose(ctx, &SegmentCloseRequest{
@@ -127,9 +116,10 @@ func (s *Server) taskSegmentReplicate(ctx context.Context, completed func(), seg
 		Sha1:      finalSha1Sum,
 	})
 	if err != nil {
-		log.Printf("cannot close replica of segment %d: %v", segmentID, err)
-		return
+		return errors.Wrap(err, "close replica failed")
 	}
 
 	log.Printf("closed replica of segment %d", segmentID)
+
+	return nil
 }
