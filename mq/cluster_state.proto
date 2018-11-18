@@ -44,17 +44,23 @@ message ClusterConsumerGroup {
 
 message ClusterSegment {
     uint64 id = 1 [(gogoproto.customname) = "ID"];
-    NamespaceName topic = 2 [(gogoproto.nullable) = false];
-    google.protobuf.Timestamp opened_at = 3 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
-    google.protobuf.Timestamp closed_at = 4 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
-    Nodes nodes = 5 [(gogoproto.nullable) = false];
-    int64 size = 6;
-    bytes sha1 = 7;
+    NamespaceName owner = 2 [(gogoproto.nullable) = false];
+    OwnerType owner_type = 3;
+    google.protobuf.Timestamp opened_at = 4 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
+    google.protobuf.Timestamp closed_at = 5 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
+    Nodes nodes = 6 [(gogoproto.nullable) = false];
+    int64 size = 7;
+    bytes sha1 = 8;
 
     message Nodes {
         uint64 primary_node_id = 1 [(gogoproto.customname) = "PrimaryNodeID"];
         repeated uint64 done_node_ids = 2 [(gogoproto.customname) = "DoneNodeIDs"];
         repeated uint64 replicating_node_ids = 3 [(gogoproto.customname) = "ReplicatingNodeIDs"];
+    }
+
+    enum OwnerType {
+        INVALID = 0;
+        TOPIC = 1;
     }
 }
 
@@ -72,10 +78,11 @@ message ClusterNode {
 
 message ClusterOpenSegmentCommand {
     uint64 id = 1 [(gogoproto.customname) = "ID"];
-    NamespaceName topic = 2 [(gogoproto.nullable) = false];
-    google.protobuf.Timestamp opened_at = 3 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
-    uint64 primary_node_id = 4 [(gogoproto.customname) = "PrimaryNodeID"];
-    repeated uint64 replicating_node_ids = 5 [(gogoproto.customname) = "ReplicatingNodeIDs"];
+    NamespaceName owner = 2 [(gogoproto.nullable) = false];
+    ClusterSegment.OwnerType owner_type = 3;
+    google.protobuf.Timestamp opened_at = 4 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
+    uint64 primary_node_id = 5 [(gogoproto.customname) = "PrimaryNodeID"];
+    repeated uint64 replicating_node_ids = 6 [(gogoproto.customname) = "ReplicatingNodeIDs"];
 }
 
 message ClusterCloseSegmentCommand {

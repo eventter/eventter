@@ -35,21 +35,30 @@ func (s *Server) SegmentOpen(ctx context.Context, request *SegmentOpenRequest) (
 	}
 	defer s.releaseTransaction()
 
-	return s.txSegmentOpen(s.clusterState.Current(), request.NodeID, request.Topic)
+	return s.txSegmentOpen(s.clusterState.Current(), request.NodeID, request.Owner, request.OwnerType)
 }
 
-func (s *Server) txSegmentOpen(state *ClusterState, primaryNodeID uint64, topicName client.NamespaceName) (*SegmentOpenResponse, error) {
+func (s *Server) txSegmentOpen(state *ClusterState, primaryNodeID uint64, owner client.NamespaceName, ownerType ClusterSegment_OwnerType) (*SegmentOpenResponse, error) {
 	node := state.GetNode(primaryNodeID)
 	if node == nil {
 		return nil, errors.Errorf("node %d not found", primaryNodeID)
 	}
 
-	topic := state.GetTopic(topicName.Namespace, topicName.Name)
-	if topic == nil {
-		return nil, errors.Errorf(notFoundErrorFormat, entityTopic, topicName.Namespace, topicName.Name)
+	var (
+		shards            uint32 = 0
+		replicationFactor uint32 = 1
+	)
+	if ownerType == ClusterSegment_TOPIC {
+		topic := state.GetTopic(owner.Namespace, owner.Name)
+		if topic == nil {
+			return nil, errors.Errorf(notFoundErrorFormat, entityTopic, owner.Namespace, owner.Name)
+		}
+
+		shards = topic.Shards
+		replicationFactor = topic.ReplicationFactor
 	}
 
-	openSegments := state.FindOpenSegmentsFor(topicName.Namespace, topicName.Name)
+	openSegments := state.FindOpenSegmentsFor(owner.Namespace, owner.Name)
 
 	// return node's existing segment if it exists
 	for _, segment := range openSegments {
@@ -62,7 +71,7 @@ func (s *Server) txSegmentOpen(state *ClusterState, primaryNodeID uint64, topicN
 	}
 
 	// return random segment from another node if there would be more shards than configured
-	if topic.Shards > 0 && uint32(len(openSegments)) >= topic.Shards {
+	if shards > 0 && uint32(len(openSegments)) >= shards {
 		segment := openSegments[rand.Intn(len(openSegments))]
 		return &SegmentOpenResponse{
 			SegmentID:     segment.ID,
@@ -71,10 +80,8 @@ func (s *Server) txSegmentOpen(state *ClusterState, primaryNodeID uint64, topicN
 	}
 
 	// open new segment
-	segmentID := s.clusterState.NextSegmentID()
-
 	var replicatingNodeIDs []uint64
-	if topic.ReplicationFactor > 1 {
+	if replicationFactor > 1 {
 		nodeSegmentCounts := state.CountSegmentsPerNode()
 		var candidateNodeIDs []uint64
 
@@ -84,7 +91,7 @@ func (s *Server) txSegmentOpen(state *ClusterState, primaryNodeID uint64, topicN
 			}
 		}
 
-		for len(candidateNodeIDs) > 0 && uint32(len(replicatingNodeIDs)) < topic.ReplicationFactor-1 {
+		for len(candidateNodeIDs) > 0 && uint32(len(replicatingNodeIDs)) < replicationFactor-1 {
 			var candidateIndex = -1
 			for i, candidateNodeID := range candidateNodeIDs {
 				if candidateIndex == -1 || nodeSegmentCounts[candidateNodeID] < nodeSegmentCounts[candidateNodeIDs[candidateIndex]] {
@@ -98,9 +105,12 @@ func (s *Server) txSegmentOpen(state *ClusterState, primaryNodeID uint64, topicN
 		}
 	}
 
+	segmentID := s.clusterState.NextSegmentID()
+
 	cmd := &ClusterOpenSegmentCommand{
 		ID:                 segmentID,
-		Topic:              topicName,
+		Owner:              owner,
+		OwnerType:          ClusterSegment_TOPIC,
 		OpenedAt:           time.Now(),
 		PrimaryNodeID:      primaryNodeID,
 		ReplicatingNodeIDs: replicatingNodeIDs,

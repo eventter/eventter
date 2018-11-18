@@ -83,11 +83,11 @@ func (s *ClusterState) ConsumerGroupExists(namespaceName string, consumerGroupNa
 	return consumerGroup != nil
 }
 
-func (s *ClusterState) FindOpenSegmentsFor(namespaceName string, topicName string) []*ClusterSegment {
+func (s *ClusterState) FindOpenSegmentsFor(namespaceName string, name string) []*ClusterSegment {
 	var segments []*ClusterSegment
 
 	for _, segment := range s.OpenSegments {
-		if segment.Topic.Namespace == namespaceName && segment.Topic.Name == topicName {
+		if segment.Owner.Namespace == namespaceName && segment.Owner.Name == name {
 			segments = append(segments, segment)
 		}
 	}

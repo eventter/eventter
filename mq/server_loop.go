@@ -45,6 +45,8 @@ func (s *Server) Loop(memberEventsC chan memberlist.NodeEvent) {
 			cancel: cancel,
 		}
 
+		log.Printf("task %d (%s) started", t.id, t.name)
+
 		go func() {
 			defer func() {
 				t.cancel()
@@ -124,14 +126,11 @@ LOOP:
 						if _, ok := runningOpenSegmentReplications[segment.ID]; !ok {
 							runningOpenSegmentReplications[segment.ID] = startTask(
 								fmt.Sprintf("replication of open segment %d from node %d", segment.ID, segment.Nodes.PrimaryNodeID),
-								func(ctx context.Context) error {
-									return s.taskSegmentReplicate(
-										ctx,
-										segment.ID,
-										segment.Nodes.PrimaryNodeID,
-										true,
-									)
-								},
+								func(segmentID uint64, nodeID uint64) func(context.Context) error {
+									return func(ctx context.Context) error {
+										return s.taskSegmentReplicate(ctx, segmentID, nodeID, true)
+									}
+								}(segment.ID, segment.Nodes.PrimaryNodeID),
 							)
 						}
 					}
@@ -155,14 +154,11 @@ LOOP:
 						if _, ok := runningClosedSegmentReplications[segment.ID]; !ok {
 							runningClosedSegmentReplications[segment.ID] = startTask(
 								fmt.Sprintf("replication of closed segment %d from node %d", segment.ID, segment.Nodes.PrimaryNodeID),
-								func(ctx context.Context) error {
-									return s.taskSegmentReplicate(
-										ctx,
-										segment.ID,
-										segment.Nodes.DoneNodeIDs[rand.Intn(len(segment.Nodes.DoneNodeIDs))], // select random node that is done
-										false,
-									)
-								},
+								func(segmentID uint64, nodeID uint64) func(context.Context) error {
+									return func(ctx context.Context) error {
+										return s.taskSegmentReplicate(ctx, segmentID, nodeID, false)
+									}
+								}(segment.ID, segment.Nodes.DoneNodeIDs[rand.Intn(len(segment.Nodes.DoneNodeIDs))]), // select random node that is done
 							)
 						}
 					}

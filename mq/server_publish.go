@@ -48,8 +48,9 @@ func (s *Server) Publish(ctx context.Context, request *client.PublishRequest) (*
 
 		} else {
 			response, err := s.SegmentOpen(ctx, &SegmentOpenRequest{
-				NodeID: s.nodeID,
-				Topic:  request.Topic,
+				NodeID:    s.nodeID,
+				Owner:     request.Topic,
+				OwnerType: ClusterSegment_TOPIC,
 			})
 			if err != nil {
 				return nil, err

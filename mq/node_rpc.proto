@@ -3,6 +3,7 @@ syntax = "proto3";
 package io.eventter.mq;
 
 import "client/eventtermq.proto";
+import "cluster_state.proto";
 import "gogoproto/gogo.proto";
 
 option go_package = "mq";
@@ -21,7 +22,8 @@ message SegmentOpenRequest {
     // If true and node is not a leader, request will fail.
     bool leader_only = 99;
     uint64 node_id = 1 [(gogoproto.customname) = "NodeID"];
-    NamespaceName topic = 2 [(gogoproto.nullable) = false];
+    NamespaceName owner = 2 [(gogoproto.nullable) = false];
+    ClusterSegment.OwnerType owner_type = 3;
 }
 
 message SegmentOpenResponse {

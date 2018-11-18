@@ -28,29 +28,34 @@ func (r *Reconciler) reconcileOpenSegments(state *ClusterState, nodeSegmentCount
 }
 
 func (r *Reconciler) reconcileOpenSegment(segment *ClusterSegment, state *ClusterState, nodeSegmentCounts map[uint64]int, nodeMap map[uint64]*ClusterNode, allCandidateNodeIDs []uint64) {
-	topic := state.GetTopic(segment.Topic.Namespace, segment.Topic.Name)
+	var replicationFactor uint32 = 1
+	if segment.OwnerType == ClusterSegment_TOPIC {
+		topic := state.GetTopic(segment.Owner.Namespace, segment.Owner.Name)
 
-	if topic == nil {
-		_, err := r.delegate.Apply(&ClusterDeleteSegmentCommand{
-			ID:    segment.ID,
-			Which: ClusterDeleteSegmentCommand_OPEN,
-		})
-		if err != nil {
-			log.Printf("could not delete open segment with non-existent topic: %v", err)
+		if topic == nil {
+			_, err := r.delegate.Apply(&ClusterDeleteSegmentCommand{
+				ID:    segment.ID,
+				Which: ClusterDeleteSegmentCommand_OPEN,
+			})
+			if err != nil {
+				log.Printf("could not delete open segment with non-existent topic: %v", err)
+				return
+			}
+			log.Printf(
+				"topic %s/%s does not exist, open segment %d deleted",
+				segment.Owner.Namespace,
+				segment.Owner.Name,
+				segment.ID,
+			)
 			return
 		}
-		log.Printf(
-			"topic %s/%s does not exist, open segment %d deleted",
-			segment.Topic.Namespace,
-			segment.Topic.Name,
-			segment.ID,
-		)
-		return
+
+		replicationFactor = topic.ReplicationFactor
 	}
 
 	primaryNode := nodeMap[segment.Nodes.PrimaryNodeID]
 	if primaryNode.State == ClusterNode_ALIVE {
-		r.reconcileOpenSegmentWithAlivePrimary(segment, topic, state, nodeSegmentCounts, nodeMap, allCandidateNodeIDs)
+		r.reconcileOpenSegmentWithAlivePrimary(segment, replicationFactor, state, nodeSegmentCounts, nodeMap, allCandidateNodeIDs)
 	} else if primaryNode.State == ClusterNode_DEAD {
 		r.reconcileOpenSegmentWithDeadPrimary(segment, state, nodeSegmentCounts, nodeMap, allCandidateNodeIDs)
 	} else {
@@ -58,8 +63,8 @@ func (r *Reconciler) reconcileOpenSegment(segment *ClusterSegment, state *Cluste
 	}
 }
 
-func (r *Reconciler) reconcileOpenSegmentWithAlivePrimary(segment *ClusterSegment, topic *ClusterTopic, state *ClusterState, nodeSegmentCounts map[uint64]int, nodeMap map[uint64]*ClusterNode, allCandidateNodeIDs []uint64) {
-	if topic.ReplicationFactor < 1 {
+func (r *Reconciler) reconcileOpenSegmentWithAlivePrimary(segment *ClusterSegment, replicationFactor uint32, state *ClusterState, nodeSegmentCounts map[uint64]int, nodeMap map[uint64]*ClusterNode, allCandidateNodeIDs []uint64) {
+	if replicationFactor < 1 {
 		panic("replication factor is zero")
 	}
 
@@ -70,18 +75,18 @@ func (r *Reconciler) reconcileOpenSegmentWithAlivePrimary(segment *ClusterSegmen
 		}
 	}
 
-	if aliveReplicas > topic.ReplicationFactor {
+	if aliveReplicas > replicationFactor {
 		cmd := &ClusterUpdateSegmentNodesCommand{
 			ID:    segment.ID,
 			Which: ClusterUpdateSegmentNodesCommand_OPEN,
 		}
 		cmd.Nodes.PrimaryNodeID = segment.Nodes.PrimaryNodeID
-		if topic.ReplicationFactor-1 > 0 {
-			cmd.Nodes.ReplicatingNodeIDs = make([]uint64, 0, topic.ReplicationFactor-1)
+		if replicationFactor-1 > 0 {
+			cmd.Nodes.ReplicatingNodeIDs = make([]uint64, 0, replicationFactor-1)
 			for _, nodeID := range segment.Nodes.ReplicatingNodeIDs {
 				if nodeMap[nodeID].State == ClusterNode_ALIVE {
 					cmd.Nodes.ReplicatingNodeIDs = append(cmd.Nodes.ReplicatingNodeIDs, nodeID)
-					if uint32(1+len(cmd.Nodes.ReplicatingNodeIDs)) >= topic.ReplicationFactor {
+					if uint32(1+len(cmd.Nodes.ReplicatingNodeIDs)) >= replicationFactor {
 						break
 					}
 				}
@@ -96,17 +101,17 @@ func (r *Reconciler) reconcileOpenSegmentWithAlivePrimary(segment *ClusterSegmen
 		log.Printf(
 			"open segment %d (of topic %s/%s) was over-replicated, removed replica(s)",
 			segment.ID,
-			segment.Topic.Namespace,
-			segment.Topic.Name,
+			segment.Owner.Namespace,
+			segment.Owner.Name,
 		)
 
-	} else if aliveReplicas < topic.ReplicationFactor {
+	} else if aliveReplicas < replicationFactor {
 		cmd := &ClusterUpdateSegmentNodesCommand{
 			ID:    segment.ID,
 			Which: ClusterUpdateSegmentNodesCommand_OPEN,
 		}
 		cmd.Nodes.PrimaryNodeID = segment.Nodes.PrimaryNodeID
-		cmd.Nodes.ReplicatingNodeIDs = make([]uint64, 0, topic.ReplicationFactor-1)
+		cmd.Nodes.ReplicatingNodeIDs = make([]uint64, 0, replicationFactor-1)
 		for _, nodeID := range segment.Nodes.ReplicatingNodeIDs {
 			if nodeMap[nodeID].State == ClusterNode_ALIVE {
 				cmd.Nodes.ReplicatingNodeIDs = append(cmd.Nodes.ReplicatingNodeIDs, nodeID)
@@ -130,7 +135,7 @@ func (r *Reconciler) reconcileOpenSegmentWithAlivePrimary(segment *ClusterSegmen
 
 		added := false
 
-		for len(candidateNodeIDs) > 0 && uint32(len(cmd.Nodes.ReplicatingNodeIDs)) < topic.ReplicationFactor-1 {
+		for len(candidateNodeIDs) > 0 && uint32(len(cmd.Nodes.ReplicatingNodeIDs)) < replicationFactor-1 {
 			var candidateIndex = -1
 			for i, candidateNodeID := range candidateNodeIDs {
 				if candidateIndex == -1 || nodeSegmentCounts[candidateNodeID] < nodeSegmentCounts[candidateNodeIDs[candidateIndex]] {
@@ -153,8 +158,8 @@ func (r *Reconciler) reconcileOpenSegmentWithAlivePrimary(segment *ClusterSegmen
 			log.Printf(
 				"open segment %d (of topic %s/%s) was under-replicated, added replica(s)",
 				segment.ID,
-				segment.Topic.Namespace,
-				segment.Topic.Name,
+				segment.Owner.Namespace,
+				segment.Owner.Name,
 			)
 		}
 	}
@@ -165,8 +170,8 @@ func (r *Reconciler) reconcileOpenSegmentWithDeadPrimary(segment *ClusterSegment
 		log.Printf(
 			"open segment %d (of topic %s/%s) has dead primary and no replica to promote to primary",
 			segment.ID,
-			segment.Topic.Namespace,
-			segment.Topic.Name,
+			segment.Owner.Namespace,
+			segment.Owner.Name,
 		)
 		return
 	}
@@ -203,8 +208,8 @@ func (r *Reconciler) reconcileOpenSegmentWithDeadPrimary(segment *ClusterSegment
 		log.Printf(
 			"open segment %d (of topic %s/%s) has dead primary and no suitable replica",
 			segment.ID,
-			segment.Topic.Namespace,
-			segment.Topic.Name,
+			segment.Owner.Namespace,
+			segment.Owner.Name,
 		)
 		return
 	}
@@ -233,8 +238,8 @@ func (r *Reconciler) reconcileOpenSegmentWithDeadPrimary(segment *ClusterSegment
 	log.Printf(
 		"open segment %d (of topic %s/%s) changed primary from %d to %d",
 		segment.ID,
-		segment.Topic.Namespace,
-		segment.Topic.Name,
+		segment.Owner.Namespace,
+		segment.Owner.Name,
 		segment.Nodes.PrimaryNodeID,
 		newPrimaryNodeID,
 	)
@@ -247,45 +252,51 @@ func (r *Reconciler) reconcileClosedSegments(state *ClusterState, nodeSegmentCou
 }
 
 func (r *Reconciler) reconcileClosedSegment(segment *ClusterSegment, state *ClusterState, nodeSegmentCounts map[uint64]int, nodeMap map[uint64]*ClusterNode, allCandidateNodeIDs []uint64) {
-	topic := state.GetTopic(segment.Topic.Namespace, segment.Topic.Name)
+	var replicationFactor uint32 = 1
 
-	if topic == nil {
-		_, err := r.delegate.Apply(&ClusterDeleteSegmentCommand{
-			ID:    segment.ID,
-			Which: ClusterDeleteSegmentCommand_CLOSED,
-		})
-		if err != nil {
-			log.Printf("could not delete closed segment with non-existent topic: %v", err)
-			return
-		}
+	if segment.OwnerType == ClusterSegment_TOPIC {
+		topic := state.GetTopic(segment.Owner.Namespace, segment.Owner.Name)
 
-		log.Printf(
-			"topic %s/%s does not exist, closed segment %d deleted",
-			segment.Topic.Namespace,
-			segment.Topic.Name,
-			segment.ID,
-		)
-		return
-
-	} else if topic.Retention > 0 {
-		retainTill := time.Now().Add(-topic.Retention)
-		if segment.ClosedAt.Before(retainTill) {
+		if topic == nil {
 			_, err := r.delegate.Apply(&ClusterDeleteSegmentCommand{
 				ID:    segment.ID,
 				Which: ClusterDeleteSegmentCommand_CLOSED,
 			})
 			if err != nil {
-				log.Printf("could not delete closed segment after retention period: %v", err)
+				log.Printf("could not delete closed segment with non-existent topic: %v", err)
 				return
 			}
+
 			log.Printf(
-				"closed segment %d (of topic %s/%s) fell off retention period, deleted",
+				"topic %s/%s does not exist, closed segment %d deleted",
+				segment.Owner.Namespace,
+				segment.Owner.Name,
 				segment.ID,
-				segment.Topic.Namespace,
-				segment.Topic.Name,
 			)
 			return
+
+		} else if topic.Retention > 0 {
+			retainTill := time.Now().Add(-topic.Retention)
+			if segment.ClosedAt.Before(retainTill) {
+				_, err := r.delegate.Apply(&ClusterDeleteSegmentCommand{
+					ID:    segment.ID,
+					Which: ClusterDeleteSegmentCommand_CLOSED,
+				})
+				if err != nil {
+					log.Printf("could not delete closed segment after retention period: %v", err)
+					return
+				}
+				log.Printf(
+					"closed segment %d (of topic %s/%s) fell off retention period, deleted",
+					segment.ID,
+					segment.Owner.Namespace,
+					segment.Owner.Name,
+				)
+				return
+			}
 		}
+
+		replicationFactor = topic.ReplicationFactor
 	}
 
 	aliveReplicas := uint32(0)
@@ -302,17 +313,17 @@ func (r *Reconciler) reconcileClosedSegment(segment *ClusterSegment, state *Clus
 		}
 	}
 
-	if topic.ReplicationFactor < 1 {
+	if replicationFactor < 1 {
 		panic("replication factor is zero")
 	}
 
-	if aliveReplicas > topic.ReplicationFactor {
+	if aliveReplicas > replicationFactor {
 		if aliveDone == 0 {
 			log.Printf(
 				"closed segment %d (of topic %s/%s) over-replicated, but none alive done replica found, won't do anything for now",
 				segment.ID,
-				segment.Topic.Namespace,
-				segment.Topic.Name,
+				segment.Owner.Namespace,
+				segment.Owner.Name,
 			)
 			return
 		}
@@ -325,17 +336,17 @@ func (r *Reconciler) reconcileClosedSegment(segment *ClusterSegment, state *Clus
 		for _, nodeID := range segment.Nodes.DoneNodeIDs {
 			if nodeMap[nodeID].State == ClusterNode_ALIVE {
 				cmd.Nodes.DoneNodeIDs = append(cmd.Nodes.DoneNodeIDs, nodeID)
-				if uint32(len(cmd.Nodes.DoneNodeIDs)) >= topic.ReplicationFactor {
+				if uint32(len(cmd.Nodes.DoneNodeIDs)) >= replicationFactor {
 					break
 				}
 			}
 		}
-		if uint32(len(cmd.Nodes.DoneNodeIDs)) < topic.ReplicationFactor {
-			cmd.Nodes.ReplicatingNodeIDs = make([]uint64, 0, topic.ReplicationFactor-uint32(len(cmd.Nodes.DoneNodeIDs)))
+		if uint32(len(cmd.Nodes.DoneNodeIDs)) < replicationFactor {
+			cmd.Nodes.ReplicatingNodeIDs = make([]uint64, 0, replicationFactor-uint32(len(cmd.Nodes.DoneNodeIDs)))
 			for _, nodeID := range segment.Nodes.ReplicatingNodeIDs {
 				if nodeMap[nodeID].State == ClusterNode_ALIVE {
 					cmd.Nodes.ReplicatingNodeIDs = append(cmd.Nodes.ReplicatingNodeIDs, nodeID)
-					if uint32(len(cmd.Nodes.DoneNodeIDs)+len(cmd.Nodes.ReplicatingNodeIDs)) >= topic.ReplicationFactor {
+					if uint32(len(cmd.Nodes.DoneNodeIDs)+len(cmd.Nodes.ReplicatingNodeIDs)) >= replicationFactor {
 						break
 					}
 				}
@@ -350,17 +361,17 @@ func (r *Reconciler) reconcileClosedSegment(segment *ClusterSegment, state *Clus
 		log.Printf(
 			"closed segment %d (of topic %s/%s) was over-replicated, removed replica(s)",
 			segment.ID,
-			segment.Topic.Namespace,
-			segment.Topic.Name,
+			segment.Owner.Namespace,
+			segment.Owner.Name,
 		)
 
-	} else if aliveReplicas < topic.ReplicationFactor {
+	} else if aliveReplicas < replicationFactor {
 		if aliveDone == 0 {
 			log.Printf(
 				"closed segment %d (of topic %s/%s) under-replicated, but none alive done replica found, won't do anything for now",
 				segment.ID,
-				segment.Topic.Namespace,
-				segment.Topic.Name,
+				segment.Owner.Namespace,
+				segment.Owner.Name,
 			)
 			return
 		}
@@ -375,7 +386,7 @@ func (r *Reconciler) reconcileClosedSegment(segment *ClusterSegment, state *Clus
 				cmd.Nodes.DoneNodeIDs = append(cmd.Nodes.DoneNodeIDs, nodeID)
 			}
 		}
-		cmd.Nodes.ReplicatingNodeIDs = make([]uint64, 0, topic.ReplicationFactor-uint32(len(cmd.Nodes.DoneNodeIDs)))
+		cmd.Nodes.ReplicatingNodeIDs = make([]uint64, 0, replicationFactor-uint32(len(cmd.Nodes.DoneNodeIDs)))
 		for _, nodeID := range segment.Nodes.ReplicatingNodeIDs {
 			if nodeMap[nodeID].State == ClusterNode_ALIVE {
 				cmd.Nodes.ReplicatingNodeIDs = append(cmd.Nodes.ReplicatingNodeIDs, nodeID)
@@ -401,7 +412,7 @@ func (r *Reconciler) reconcileClosedSegment(segment *ClusterSegment, state *Clus
 
 		added := false
 
-		for len(candidateNodeIDs) > 0 && uint32(len(cmd.Nodes.DoneNodeIDs)+len(cmd.Nodes.ReplicatingNodeIDs)) < topic.ReplicationFactor {
+		for len(candidateNodeIDs) > 0 && uint32(len(cmd.Nodes.DoneNodeIDs)+len(cmd.Nodes.ReplicatingNodeIDs)) < replicationFactor {
 			var candidateIndex = -1
 			for i, candidateNodeID := range candidateNodeIDs {
 				if candidateIndex == -1 || nodeSegmentCounts[candidateNodeID] < nodeSegmentCounts[candidateNodeIDs[candidateIndex]] {
@@ -424,8 +435,8 @@ func (r *Reconciler) reconcileClosedSegment(segment *ClusterSegment, state *Clus
 			log.Printf(
 				"closed segment %d (of topic %s/%s) was under-replicated, added replica(s)",
 				segment.ID,
-				segment.Topic.Namespace,
-				segment.Topic.Name,
+				segment.Owner.Namespace,
+				segment.Owner.Name,
 			)
 		}
 	}
