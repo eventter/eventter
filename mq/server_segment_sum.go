@@ -2,13 +2,14 @@ package mq
 
 import (
 	"context"
+	"crypto/sha1"
 
 	"github.com/pkg/errors"
 )
 
-func (s *Server) SegmentGetSize(ctx context.Context, request *SegmentGetSizeRequest) (*SegmentGetSizeResponse, error) {
+func (s *Server) SegmentSum(ctx context.Context, request *SegmentSumRequest) (*SegmentSumResponse, error) {
 	if !s.segmentDir.Exists(request.SegmentID) {
-		return &SegmentGetSizeResponse{
+		return &SegmentSumResponse{
 			SegmentID: request.SegmentID,
 			Size_:     -1,
 		}, nil
@@ -20,8 +21,14 @@ func (s *Server) SegmentGetSize(ctx context.Context, request *SegmentGetSizeRequ
 	}
 	defer s.segmentDir.Release(segment)
 
-	return &SegmentGetSizeResponse{
+	sha1Sum, size, err := segment.Sum(sha1.New(), request.Size_)
+	if err != nil {
+		return nil, err
+	}
+
+	return &SegmentSumResponse{
 		SegmentID: request.SegmentID,
-		Size_:     segment.Size(),
+		Size_:     size,
+		Sha1:      sha1Sum,
 	}, nil
 }

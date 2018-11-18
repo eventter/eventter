@@ -11,8 +11,14 @@ import (
 
 const invalidOffset = -1
 
+var (
+	ErrIteratorClosed  = errors.New("iterator is closed")
+	ErrIteratorInvalid = errors.New("iterator is invalid (segment term changed)")
+)
+
 type Iterator struct {
 	file      *File
+	term      uint32
 	offset    int64
 	endOffset int64
 	wait      bool
@@ -22,7 +28,11 @@ type Iterator struct {
 
 func (i *Iterator) Next() (data []byte, offset int64, err error) {
 	if atomic.LoadUint32(&i.closed) == 1 {
-		return nil, invalidOffset, io.EOF
+		return nil, invalidOffset, ErrIteratorClosed
+	}
+
+	if atomic.LoadUint32(&i.file.term) != i.term {
+		return nil, invalidOffset, ErrIteratorInvalid
 	}
 
 	defer func() {
@@ -75,11 +85,15 @@ func (i *Iterator) nextWait() error {
 	i.file.mutex.Lock()
 	defer i.file.mutex.Unlock()
 
-	for i.file.offset == i.endOffset {
+	for i.file.offset == i.endOffset && atomic.LoadUint32(&i.file.term) == i.term {
 		i.file.cond.Wait()
 		if atomic.LoadUint32(&i.closed) == 1 {
-			return io.EOF
+			return ErrIteratorClosed
 		}
+	}
+
+	if atomic.LoadUint32(&i.file.term) != i.term {
+		return ErrIteratorInvalid
 	}
 
 	i.reader.Reset(io.NewSectionReader(i.file.file, i.endOffset, i.file.offset-i.endOffset))

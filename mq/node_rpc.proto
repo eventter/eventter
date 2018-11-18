@@ -41,13 +41,15 @@ message SegmentCloseRequest {
 message SegmentCloseResponse {
 }
 
-message SegmentGetSizeRequest {
-    uint64 segment_id = 1 [(gogoproto.customname) = "SegmentID"];
-}
-
-message SegmentGetSizeResponse {
+message SegmentSumRequest {
     uint64 segment_id = 1 [(gogoproto.customname) = "SegmentID"];
     int64 size = 2;
+}
+
+message SegmentSumResponse {
+    uint64 segment_id = 1 [(gogoproto.customname) = "SegmentID"];
+    int64 size = 2;
+    bytes sha1 = 3;
 }
 
 message SegmentReadRequest {
@@ -70,6 +72,6 @@ service NodeRPC {
     rpc SegmentRotate (SegmentCloseRequest) returns (SegmentOpenResponse);
     rpc SegmentClose (SegmentCloseRequest) returns (SegmentCloseResponse);
     rpc SegmentReplicaClose (SegmentCloseRequest) returns (SegmentCloseResponse);
-    rpc SegmentGetSize (SegmentGetSizeRequest) returns (SegmentGetSizeResponse);
+    rpc SegmentSum (SegmentSumRequest) returns (SegmentSumResponse);
     rpc SegmentRead (SegmentReadRequest) returns (stream SegmentReadResponse);
 }

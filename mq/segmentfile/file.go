@@ -8,23 +8,30 @@ import (
 	"io"
 	"os"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/pkg/errors"
 )
 
-var ErrFull = errors.New("segment is full")
+var (
+	ErrFull   = errors.New("segment is full")
+	ErrExtend = errors.New("truncate would extend segment")
+)
+
+const SumAll = -1
+const TruncateAll = 0
 
 const (
-	dataFileSuffix  = ".seg"
-	indexFileSuffix = ".ind"
-	version         = 1
+	dataFileSuffix = ".seg"
+	version        = 1
 )
 
 type File struct {
 	path    string
 	maxSize int64
 	offset  int64
+	term    uint32
 	file    *os.File
 	mutex   sync.Mutex
 	cond    *sync.Cond
@@ -108,6 +115,7 @@ func Open(path string, filePerm os.FileMode, maxSize int64) (f *File, err error)
 		file:    file,
 		maxSize: maxSize,
 		offset:  offset,
+		term:    1,
 	}
 
 	f.cond = sync.NewCond(&f.mutex)
@@ -150,11 +158,28 @@ func (f *File) IsFull() bool {
 	return f.offset >= f.maxSize
 }
 
-func (f *File) Size() int64 {
+func (f *File) Truncate(size int64) error {
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
 
-	return f.offset
+	if size < 0 {
+		return errors.New("size must not be negative")
+	} else if size == TruncateAll {
+		size = 1 // version byte
+	}
+
+	if size > f.offset {
+		return ErrExtend
+	} else if size < f.offset {
+		if err := f.file.Truncate(size); err != nil {
+			return errors.Wrap(err, "truncate failed")
+		}
+	}
+
+	atomic.AddUint32(&f.term, 1)
+	f.cond.Broadcast()
+
+	return nil
 }
 
 func (f *File) Read(wait bool) (*Iterator, error) {
@@ -175,6 +200,7 @@ func (f *File) ReadAt(offset int64, wait bool) (*Iterator, error) {
 
 	return &Iterator{
 		file:      f,
+		term:      atomic.LoadUint32(&f.term),
 		offset:    offset,
 		endOffset: f.offset,
 		wait:      wait,
@@ -182,16 +208,19 @@ func (f *File) ReadAt(offset int64, wait bool) (*Iterator, error) {
 	}, nil
 }
 
-func (f *File) Sum(h hash.Hash) (sum []byte, size int64, err error) {
+func (f *File) Sum(h hash.Hash, size int64) (sum []byte, actualSize int64, err error) {
 	f.mutex.Lock()
-	r := io.NewSectionReader(f.file, 0, f.offset)
+	if size < 1 {
+		size = f.offset
+	}
+	r := io.NewSectionReader(f.file, 0, size)
 	f.mutex.Unlock()
 
 	if _, err := io.Copy(h, r); err != nil {
 		return nil, 0, err
 	}
 
-	return h.Sum(nil), f.offset, nil
+	return h.Sum(nil), size, nil
 }
 
 func (f *File) String() string {
@@ -210,6 +239,9 @@ func (f *File) String() string {
 func (f *File) Close() error {
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
+
+	atomic.AddUint32(&f.term, 1)
+	f.cond.Broadcast()
 
 	return f.file.Close()
 }

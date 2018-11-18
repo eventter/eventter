@@ -1,6 +1,7 @@
 package mq
 
 import (
+	"bytes"
 	"context"
 	"crypto/sha1"
 	"io"
@@ -8,6 +9,7 @@ import (
 	"math"
 	"runtime"
 
+	"eventter.io/mq/segmentfile"
 	"google.golang.org/grpc"
 )
 
@@ -35,9 +37,35 @@ func (s *Server) taskSegmentReplicate(ctx context.Context, completed func(), seg
 	}
 	defer s.pool.Put(cc)
 
-	stream, err := NewNodeRPCClient(cc).SegmentRead(ctx, &SegmentReadRequest{
+	sha1Sum, size, err := segment.Sum(sha1.New(), segmentfile.SumAll)
+	if err != nil {
+		log.Printf("cannot replicate segment %d from node %d - local sum failed: %v", segmentID, nodeID, err)
+		return
+	}
+
+	client := NewNodeRPCClient(cc)
+
+	sumResponse, err := client.SegmentSum(ctx, &SegmentSumRequest{
 		SegmentID: segmentID,
-		Offset:    segment.Size(),
+		Size_:     size,
+	})
+	if err != nil {
+		log.Printf("cannot replicate segment %d from node %d - remote sum failed: %v", segmentID, nodeID, err)
+		return
+	}
+
+	if !bytes.Equal(sha1Sum, sumResponse.Sha1) {
+		size = segmentfile.TruncateAll
+	}
+
+	if err := segment.Truncate(size); err != nil {
+		log.Printf("cannot replicate segment %d from node %d - truncate failed: %v", segmentID, nodeID, err)
+		return
+	}
+
+	stream, err := client.SegmentRead(ctx, &SegmentReadRequest{
+		SegmentID: segmentID,
+		Offset:    size,
 		Wait:      wait,
 	}, grpc.MaxCallRecvMsgSize(math.MaxUint32))
 	if err != nil {
@@ -85,7 +113,7 @@ func (s *Server) taskSegmentReplicate(ctx context.Context, completed func(), seg
 		}
 	}
 
-	sha1Sum, size, err := segment.Sum(sha1.New())
+	finalSha1Sum, finalSize, err := segment.Sum(sha1.New(), segmentfile.SumAll)
 	if err != nil {
 		log.Printf("cannot sum segment %d: %v", segmentID, err)
 		return
@@ -94,8 +122,8 @@ func (s *Server) taskSegmentReplicate(ctx context.Context, completed func(), seg
 	_, err = s.SegmentReplicaClose(ctx, &SegmentCloseRequest{
 		NodeID:    s.nodeID,
 		SegmentID: segmentID,
-		Size_:     size,
-		Sha1:      sha1Sum,
+		Size_:     finalSize,
+		Sha1:      finalSha1Sum,
 	})
 	if err != nil {
 		log.Printf("cannot close replica of segment %d: %v", segmentID, err)

@@ -78,7 +78,7 @@ WRITE:
 
 		err = segment.Write(buf)
 		if err == segmentfile.ErrFull {
-			sha1Sum, size, err := segment.Sum(sha1.New())
+			sha1Sum, size, err := segment.Sum(sha1.New(), segmentfile.SumAll)
 			if err != nil {
 				return nil, err
 			}
@@ -105,7 +105,7 @@ WRITE:
 		}
 
 		if segment.IsFull() {
-			sha1Sum, size, err := segment.Sum(sha1.New())
+			sha1Sum, size, err := segment.Sum(sha1.New(), segmentfile.SumAll)
 			if err != nil {
 				return nil, err
 			}

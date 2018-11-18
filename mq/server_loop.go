@@ -224,10 +224,10 @@ func (s *Server) AddVoter(id string, addr string) error {
 }
 
 func (s *Server) GetSegmentSizeFromNode(ctx context.Context, segmentID uint64, nodeID uint64, nodeAddr string) (size int64, err error) {
-	request := &SegmentGetSizeRequest{SegmentID: segmentID}
-	var response *SegmentGetSizeResponse
+	request := &SegmentSumRequest{SegmentID: segmentID}
+	var response *SegmentSumResponse
 	if nodeID == s.nodeID {
-		response, err = s.SegmentGetSize(ctx, request)
+		response, err = s.SegmentSum(ctx, request)
 	} else {
 		conn, err := s.pool.Get(ctx, nodeAddr)
 		if err != nil {
@@ -235,7 +235,7 @@ func (s *Server) GetSegmentSizeFromNode(ctx context.Context, segmentID uint64, n
 		}
 		defer s.pool.Put(conn)
 
-		response, err = NewNodeRPCClient(conn).SegmentGetSize(ctx, request)
+		response, err = NewNodeRPCClient(conn).SegmentSum(ctx, request)
 	}
 
 	if err != nil {

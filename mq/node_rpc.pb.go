@@ -34,7 +34,7 @@ func (m *DebugRequest) Reset()         { *m = DebugRequest{} }
 func (m *DebugRequest) String() string { return proto.CompactTextString(m) }
 func (*DebugRequest) ProtoMessage()    {}
 func (*DebugRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_node_rpc_9ce64362ab389fe9, []int{0}
+	return fileDescriptor_node_rpc_1b1ac246237c2e1b, []int{0}
 }
 func (m *DebugRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -76,7 +76,7 @@ func (m *DebugResponse) Reset()         { *m = DebugResponse{} }
 func (m *DebugResponse) String() string { return proto.CompactTextString(m) }
 func (*DebugResponse) ProtoMessage()    {}
 func (*DebugResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_node_rpc_9ce64362ab389fe9, []int{1}
+	return fileDescriptor_node_rpc_1b1ac246237c2e1b, []int{1}
 }
 func (m *DebugResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -132,7 +132,7 @@ func (m *SegmentOpenRequest) Reset()         { *m = SegmentOpenRequest{} }
 func (m *SegmentOpenRequest) String() string { return proto.CompactTextString(m) }
 func (*SegmentOpenRequest) ProtoMessage()    {}
 func (*SegmentOpenRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_node_rpc_9ce64362ab389fe9, []int{2}
+	return fileDescriptor_node_rpc_1b1ac246237c2e1b, []int{2}
 }
 func (m *SegmentOpenRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -193,7 +193,7 @@ func (m *SegmentOpenResponse) Reset()         { *m = SegmentOpenResponse{} }
 func (m *SegmentOpenResponse) String() string { return proto.CompactTextString(m) }
 func (*SegmentOpenResponse) ProtoMessage()    {}
 func (*SegmentOpenResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_node_rpc_9ce64362ab389fe9, []int{3}
+	return fileDescriptor_node_rpc_1b1ac246237c2e1b, []int{3}
 }
 func (m *SegmentOpenResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -251,7 +251,7 @@ func (m *SegmentCloseRequest) Reset()         { *m = SegmentCloseRequest{} }
 func (m *SegmentCloseRequest) String() string { return proto.CompactTextString(m) }
 func (*SegmentCloseRequest) ProtoMessage()    {}
 func (*SegmentCloseRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_node_rpc_9ce64362ab389fe9, []int{4}
+	return fileDescriptor_node_rpc_1b1ac246237c2e1b, []int{4}
 }
 func (m *SegmentCloseRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -324,7 +324,7 @@ func (m *SegmentCloseResponse) Reset()         { *m = SegmentCloseResponse{} }
 func (m *SegmentCloseResponse) String() string { return proto.CompactTextString(m) }
 func (*SegmentCloseResponse) ProtoMessage()    {}
 func (*SegmentCloseResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_node_rpc_9ce64362ab389fe9, []int{5}
+	return fileDescriptor_node_rpc_1b1ac246237c2e1b, []int{5}
 }
 func (m *SegmentCloseResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -353,71 +353,25 @@ func (m *SegmentCloseResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_SegmentCloseResponse proto.InternalMessageInfo
 
-type SegmentGetSizeRequest struct {
-	SegmentID            uint64   `protobuf:"varint,1,opt,name=segment_id,json=segmentId,proto3" json:"segment_id,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *SegmentGetSizeRequest) Reset()         { *m = SegmentGetSizeRequest{} }
-func (m *SegmentGetSizeRequest) String() string { return proto.CompactTextString(m) }
-func (*SegmentGetSizeRequest) ProtoMessage()    {}
-func (*SegmentGetSizeRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_node_rpc_9ce64362ab389fe9, []int{6}
-}
-func (m *SegmentGetSizeRequest) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *SegmentGetSizeRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_SegmentGetSizeRequest.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalTo(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (dst *SegmentGetSizeRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_SegmentGetSizeRequest.Merge(dst, src)
-}
-func (m *SegmentGetSizeRequest) XXX_Size() int {
-	return m.Size()
-}
-func (m *SegmentGetSizeRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_SegmentGetSizeRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_SegmentGetSizeRequest proto.InternalMessageInfo
-
-func (m *SegmentGetSizeRequest) GetSegmentID() uint64 {
-	if m != nil {
-		return m.SegmentID
-	}
-	return 0
-}
-
-type SegmentGetSizeResponse struct {
+type SegmentSumRequest struct {
 	SegmentID            uint64   `protobuf:"varint,1,opt,name=segment_id,json=segmentId,proto3" json:"segment_id,omitempty"`
 	Size_                int64    `protobuf:"varint,2,opt,name=size,proto3" json:"size,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *SegmentGetSizeResponse) Reset()         { *m = SegmentGetSizeResponse{} }
-func (m *SegmentGetSizeResponse) String() string { return proto.CompactTextString(m) }
-func (*SegmentGetSizeResponse) ProtoMessage()    {}
-func (*SegmentGetSizeResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_node_rpc_9ce64362ab389fe9, []int{7}
+func (m *SegmentSumRequest) Reset()         { *m = SegmentSumRequest{} }
+func (m *SegmentSumRequest) String() string { return proto.CompactTextString(m) }
+func (*SegmentSumRequest) ProtoMessage()    {}
+func (*SegmentSumRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_node_rpc_1b1ac246237c2e1b, []int{6}
 }
-func (m *SegmentGetSizeResponse) XXX_Unmarshal(b []byte) error {
+func (m *SegmentSumRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *SegmentGetSizeResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *SegmentSumRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_SegmentGetSizeResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_SegmentSumRequest.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalTo(b)
@@ -427,30 +381,92 @@ func (m *SegmentGetSizeResponse) XXX_Marshal(b []byte, deterministic bool) ([]by
 		return b[:n], nil
 	}
 }
-func (dst *SegmentGetSizeResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_SegmentGetSizeResponse.Merge(dst, src)
+func (dst *SegmentSumRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SegmentSumRequest.Merge(dst, src)
 }
-func (m *SegmentGetSizeResponse) XXX_Size() int {
+func (m *SegmentSumRequest) XXX_Size() int {
 	return m.Size()
 }
-func (m *SegmentGetSizeResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_SegmentGetSizeResponse.DiscardUnknown(m)
+func (m *SegmentSumRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_SegmentSumRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_SegmentGetSizeResponse proto.InternalMessageInfo
+var xxx_messageInfo_SegmentSumRequest proto.InternalMessageInfo
 
-func (m *SegmentGetSizeResponse) GetSegmentID() uint64 {
+func (m *SegmentSumRequest) GetSegmentID() uint64 {
 	if m != nil {
 		return m.SegmentID
 	}
 	return 0
 }
 
-func (m *SegmentGetSizeResponse) GetSize_() int64 {
+func (m *SegmentSumRequest) GetSize_() int64 {
 	if m != nil {
 		return m.Size_
 	}
 	return 0
+}
+
+type SegmentSumResponse struct {
+	SegmentID            uint64   `protobuf:"varint,1,opt,name=segment_id,json=segmentId,proto3" json:"segment_id,omitempty"`
+	Size_                int64    `protobuf:"varint,2,opt,name=size,proto3" json:"size,omitempty"`
+	Sha1                 []byte   `protobuf:"bytes,3,opt,name=sha1,proto3" json:"sha1,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *SegmentSumResponse) Reset()         { *m = SegmentSumResponse{} }
+func (m *SegmentSumResponse) String() string { return proto.CompactTextString(m) }
+func (*SegmentSumResponse) ProtoMessage()    {}
+func (*SegmentSumResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_node_rpc_1b1ac246237c2e1b, []int{7}
+}
+func (m *SegmentSumResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *SegmentSumResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_SegmentSumResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (dst *SegmentSumResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SegmentSumResponse.Merge(dst, src)
+}
+func (m *SegmentSumResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *SegmentSumResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_SegmentSumResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SegmentSumResponse proto.InternalMessageInfo
+
+func (m *SegmentSumResponse) GetSegmentID() uint64 {
+	if m != nil {
+		return m.SegmentID
+	}
+	return 0
+}
+
+func (m *SegmentSumResponse) GetSize_() int64 {
+	if m != nil {
+		return m.Size_
+	}
+	return 0
+}
+
+func (m *SegmentSumResponse) GetSha1() []byte {
+	if m != nil {
+		return m.Sha1
+	}
+	return nil
 }
 
 type SegmentReadRequest struct {
@@ -467,7 +483,7 @@ func (m *SegmentReadRequest) Reset()         { *m = SegmentReadRequest{} }
 func (m *SegmentReadRequest) String() string { return proto.CompactTextString(m) }
 func (*SegmentReadRequest) ProtoMessage()    {}
 func (*SegmentReadRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_node_rpc_9ce64362ab389fe9, []int{8}
+	return fileDescriptor_node_rpc_1b1ac246237c2e1b, []int{8}
 }
 func (m *SegmentReadRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -529,7 +545,7 @@ func (m *SegmentReadResponse) Reset()         { *m = SegmentReadResponse{} }
 func (m *SegmentReadResponse) String() string { return proto.CompactTextString(m) }
 func (*SegmentReadResponse) ProtoMessage()    {}
 func (*SegmentReadResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_node_rpc_9ce64362ab389fe9, []int{9}
+	return fileDescriptor_node_rpc_1b1ac246237c2e1b, []int{9}
 }
 func (m *SegmentReadResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -586,8 +602,8 @@ func init() {
 	proto.RegisterType((*SegmentOpenResponse)(nil), "io.eventter.mq.SegmentOpenResponse")
 	proto.RegisterType((*SegmentCloseRequest)(nil), "io.eventter.mq.SegmentCloseRequest")
 	proto.RegisterType((*SegmentCloseResponse)(nil), "io.eventter.mq.SegmentCloseResponse")
-	proto.RegisterType((*SegmentGetSizeRequest)(nil), "io.eventter.mq.SegmentGetSizeRequest")
-	proto.RegisterType((*SegmentGetSizeResponse)(nil), "io.eventter.mq.SegmentGetSizeResponse")
+	proto.RegisterType((*SegmentSumRequest)(nil), "io.eventter.mq.SegmentSumRequest")
+	proto.RegisterType((*SegmentSumResponse)(nil), "io.eventter.mq.SegmentSumResponse")
 	proto.RegisterType((*SegmentReadRequest)(nil), "io.eventter.mq.SegmentReadRequest")
 	proto.RegisterType((*SegmentReadResponse)(nil), "io.eventter.mq.SegmentReadResponse")
 }
@@ -608,7 +624,7 @@ type NodeRPCClient interface {
 	SegmentRotate(ctx context.Context, in *SegmentCloseRequest, opts ...grpc.CallOption) (*SegmentOpenResponse, error)
 	SegmentClose(ctx context.Context, in *SegmentCloseRequest, opts ...grpc.CallOption) (*SegmentCloseResponse, error)
 	SegmentReplicaClose(ctx context.Context, in *SegmentCloseRequest, opts ...grpc.CallOption) (*SegmentCloseResponse, error)
-	SegmentGetSize(ctx context.Context, in *SegmentGetSizeRequest, opts ...grpc.CallOption) (*SegmentGetSizeResponse, error)
+	SegmentSum(ctx context.Context, in *SegmentSumRequest, opts ...grpc.CallOption) (*SegmentSumResponse, error)
 	SegmentRead(ctx context.Context, in *SegmentReadRequest, opts ...grpc.CallOption) (NodeRPC_SegmentReadClient, error)
 }
 
@@ -665,9 +681,9 @@ func (c *nodeRPCClient) SegmentReplicaClose(ctx context.Context, in *SegmentClos
 	return out, nil
 }
 
-func (c *nodeRPCClient) SegmentGetSize(ctx context.Context, in *SegmentGetSizeRequest, opts ...grpc.CallOption) (*SegmentGetSizeResponse, error) {
-	out := new(SegmentGetSizeResponse)
-	err := c.cc.Invoke(ctx, "/io.eventter.mq.NodeRPC/SegmentGetSize", in, out, opts...)
+func (c *nodeRPCClient) SegmentSum(ctx context.Context, in *SegmentSumRequest, opts ...grpc.CallOption) (*SegmentSumResponse, error) {
+	out := new(SegmentSumResponse)
+	err := c.cc.Invoke(ctx, "/io.eventter.mq.NodeRPC/SegmentSum", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -714,7 +730,7 @@ type NodeRPCServer interface {
 	SegmentRotate(context.Context, *SegmentCloseRequest) (*SegmentOpenResponse, error)
 	SegmentClose(context.Context, *SegmentCloseRequest) (*SegmentCloseResponse, error)
 	SegmentReplicaClose(context.Context, *SegmentCloseRequest) (*SegmentCloseResponse, error)
-	SegmentGetSize(context.Context, *SegmentGetSizeRequest) (*SegmentGetSizeResponse, error)
+	SegmentSum(context.Context, *SegmentSumRequest) (*SegmentSumResponse, error)
 	SegmentRead(*SegmentReadRequest, NodeRPC_SegmentReadServer) error
 }
 
@@ -812,20 +828,20 @@ func _NodeRPC_SegmentReplicaClose_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
-func _NodeRPC_SegmentGetSize_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SegmentGetSizeRequest)
+func _NodeRPC_SegmentSum_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SegmentSumRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(NodeRPCServer).SegmentGetSize(ctx, in)
+		return srv.(NodeRPCServer).SegmentSum(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/io.eventter.mq.NodeRPC/SegmentGetSize",
+		FullMethod: "/io.eventter.mq.NodeRPC/SegmentSum",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(NodeRPCServer).SegmentGetSize(ctx, req.(*SegmentGetSizeRequest))
+		return srv.(NodeRPCServer).SegmentSum(ctx, req.(*SegmentSumRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -876,8 +892,8 @@ var _NodeRPC_serviceDesc = grpc.ServiceDesc{
 			Handler:    _NodeRPC_SegmentReplicaClose_Handler,
 		},
 		{
-			MethodName: "SegmentGetSize",
-			Handler:    _NodeRPC_SegmentGetSize_Handler,
+			MethodName: "SegmentSum",
+			Handler:    _NodeRPC_SegmentSum_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
@@ -1087,7 +1103,7 @@ func (m *SegmentCloseResponse) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
-func (m *SegmentGetSizeRequest) Marshal() (dAtA []byte, err error) {
+func (m *SegmentSumRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalTo(dAtA)
@@ -1097,30 +1113,7 @@ func (m *SegmentGetSizeRequest) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *SegmentGetSizeRequest) MarshalTo(dAtA []byte) (int, error) {
-	var i int
-	_ = i
-	var l int
-	_ = l
-	if m.SegmentID != 0 {
-		dAtA[i] = 0x8
-		i++
-		i = encodeVarintNodeRpc(dAtA, i, uint64(m.SegmentID))
-	}
-	return i, nil
-}
-
-func (m *SegmentGetSizeResponse) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalTo(dAtA)
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *SegmentGetSizeResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *SegmentSumRequest) MarshalTo(dAtA []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
@@ -1134,6 +1127,40 @@ func (m *SegmentGetSizeResponse) MarshalTo(dAtA []byte) (int, error) {
 		dAtA[i] = 0x10
 		i++
 		i = encodeVarintNodeRpc(dAtA, i, uint64(m.Size_))
+	}
+	return i, nil
+}
+
+func (m *SegmentSumResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *SegmentSumResponse) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.SegmentID != 0 {
+		dAtA[i] = 0x8
+		i++
+		i = encodeVarintNodeRpc(dAtA, i, uint64(m.SegmentID))
+	}
+	if m.Size_ != 0 {
+		dAtA[i] = 0x10
+		i++
+		i = encodeVarintNodeRpc(dAtA, i, uint64(m.Size_))
+	}
+	if len(m.Sha1) > 0 {
+		dAtA[i] = 0x1a
+		i++
+		i = encodeVarintNodeRpc(dAtA, i, uint64(len(m.Sha1)))
+		i += copy(dAtA[i:], m.Sha1)
 	}
 	return i, nil
 }
@@ -1295,16 +1322,7 @@ func (m *SegmentCloseResponse) Size() (n int) {
 	return n
 }
 
-func (m *SegmentGetSizeRequest) Size() (n int) {
-	var l int
-	_ = l
-	if m.SegmentID != 0 {
-		n += 1 + sovNodeRpc(uint64(m.SegmentID))
-	}
-	return n
-}
-
-func (m *SegmentGetSizeResponse) Size() (n int) {
+func (m *SegmentSumRequest) Size() (n int) {
 	var l int
 	_ = l
 	if m.SegmentID != 0 {
@@ -1312,6 +1330,22 @@ func (m *SegmentGetSizeResponse) Size() (n int) {
 	}
 	if m.Size_ != 0 {
 		n += 1 + sovNodeRpc(uint64(m.Size_))
+	}
+	return n
+}
+
+func (m *SegmentSumResponse) Size() (n int) {
+	var l int
+	_ = l
+	if m.SegmentID != 0 {
+		n += 1 + sovNodeRpc(uint64(m.SegmentID))
+	}
+	if m.Size_ != 0 {
+		n += 1 + sovNodeRpc(uint64(m.Size_))
+	}
+	l = len(m.Sha1)
+	if l > 0 {
+		n += 1 + l + sovNodeRpc(uint64(l))
 	}
 	return n
 }
@@ -1933,7 +1967,7 @@ func (m *SegmentCloseResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *SegmentGetSizeRequest) Unmarshal(dAtA []byte) error {
+func (m *SegmentSumRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1956,79 +1990,10 @@ func (m *SegmentGetSizeRequest) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: SegmentGetSizeRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: SegmentSumRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: SegmentGetSizeRequest: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field SegmentID", wireType)
-			}
-			m.SegmentID = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowNodeRpc
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.SegmentID |= (uint64(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		default:
-			iNdEx = preIndex
-			skippy, err := skipNodeRpc(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthNodeRpc
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *SegmentGetSizeResponse) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowNodeRpc
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: SegmentGetSizeResponse: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: SegmentGetSizeResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: SegmentSumRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -2069,6 +2034,125 @@ func (m *SegmentGetSizeResponse) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipNodeRpc(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthNodeRpc
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *SegmentSumResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowNodeRpc
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: SegmentSumResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: SegmentSumResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SegmentID", wireType)
+			}
+			m.SegmentID = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowNodeRpc
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.SegmentID |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Size_", wireType)
+			}
+			m.Size_ = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowNodeRpc
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Size_ |= (int64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Sha1", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowNodeRpc
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthNodeRpc
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Sha1 = append(m.Sha1[:0], dAtA[iNdEx:postIndex]...)
+			if m.Sha1 == nil {
+				m.Sha1 = []byte{}
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipNodeRpc(dAtA[iNdEx:])
@@ -2422,46 +2506,46 @@ var (
 	ErrIntOverflowNodeRpc   = fmt.Errorf("proto: integer overflow")
 )
 
-func init() { proto.RegisterFile("node_rpc.proto", fileDescriptor_node_rpc_9ce64362ab389fe9) }
+func init() { proto.RegisterFile("node_rpc.proto", fileDescriptor_node_rpc_1b1ac246237c2e1b) }
 
-var fileDescriptor_node_rpc_9ce64362ab389fe9 = []byte{
+var fileDescriptor_node_rpc_1b1ac246237c2e1b = []byte{
 	// 608 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x55, 0xcf, 0x6e, 0xd3, 0x4c,
-	0x10, 0xef, 0xa6, 0x69, 0xda, 0x4c, 0xe3, 0x7c, 0xfa, 0x96, 0x52, 0x2c, 0x8b, 0x26, 0x96, 0x0b,
-	0xc8, 0x07, 0x94, 0x42, 0x39, 0x71, 0x6d, 0x83, 0x50, 0x2f, 0x6d, 0xb5, 0x95, 0x10, 0xf4, 0x12,
-	0x5c, 0x7b, 0x1a, 0x2c, 0xd9, 0x5e, 0xc7, 0xde, 0x82, 0xda, 0x03, 0xcf, 0xc0, 0x85, 0x07, 0xe1,
-	0x2d, 0x7a, 0xe4, 0x09, 0x22, 0x64, 0xde, 0x82, 0x13, 0xf2, 0x7a, 0x93, 0x3a, 0x45, 0x6e, 0x4b,
-	0xc4, 0x6d, 0x66, 0x76, 0xfe, 0xfd, 0x7e, 0x33, 0x63, 0x43, 0x3b, 0xe2, 0x1e, 0x0e, 0x92, 0xd8,
-	0xed, 0xc5, 0x09, 0x17, 0x9c, 0xb6, 0x7d, 0xde, 0xc3, 0x8f, 0x18, 0x09, 0x81, 0x49, 0x2f, 0x1c,
-	0x19, 0x0f, 0xdc, 0xc0, 0xc7, 0x48, 0x6c, 0x4d, 0x6c, 0xe1, 0xa8, 0x70, 0x34, 0xd6, 0x86, 0x7c,
-	0xc8, 0xa5, 0xb8, 0x95, 0x4b, 0x85, 0xd5, 0x6a, 0x43, 0xab, 0x8f, 0x27, 0x67, 0x43, 0x86, 0xa3,
-	0x33, 0x4c, 0x85, 0x75, 0x08, 0x9a, 0xd2, 0xd3, 0x98, 0x47, 0x29, 0xd2, 0x4d, 0xd0, 0xdc, 0xe0,
-	0x2c, 0x15, 0x98, 0x0c, 0x52, 0xe1, 0x08, 0xd4, 0x89, 0x49, 0xec, 0x26, 0x6b, 0x29, 0xe3, 0x51,
-	0x6e, 0xa3, 0x06, 0xac, 0xa4, 0x38, 0x0c, 0x31, 0x12, 0xa9, 0x5e, 0x33, 0x17, 0xed, 0x26, 0x9b,
-	0xea, 0xd6, 0x57, 0x02, 0xf4, 0xa8, 0x50, 0x0e, 0x62, 0x8c, 0x54, 0x21, 0xba, 0x09, 0xcb, 0x12,
-	0x89, 0xef, 0xc9, 0x8c, 0xf5, 0x1d, 0xc8, 0xc6, 0xdd, 0xc6, 0x3e, 0xf7, 0x70, 0xaf, 0xcf, 0x1a,
-	0xf9, 0xd3, 0x9e, 0x47, 0x5f, 0xc2, 0x92, 0xe0, 0xb1, 0xef, 0xea, 0x35, 0x93, 0xd8, 0xab, 0xdb,
-	0x1b, 0xbd, 0x59, 0xb0, 0xbd, 0x7d, 0x27, 0xc4, 0x34, 0x76, 0x5c, 0xcc, 0x85, 0x9d, 0xfa, 0xe5,
-	0xb8, 0xbb, 0xc0, 0x8a, 0x08, 0xda, 0x85, 0xd5, 0x00, 0x1d, 0x0f, 0x93, 0x01, 0x8f, 0x82, 0x73,
-	0xdd, 0x35, 0x89, 0xbd, 0xc2, 0xa0, 0x30, 0x1d, 0x44, 0xc1, 0xb9, 0xf5, 0x19, 0xee, 0xcd, 0xb4,
-	0xa5, 0xf0, 0x3e, 0x05, 0x50, 0xad, 0x5f, 0xb5, 0xa6, 0x65, 0xe3, 0x6e, 0x53, 0x39, 0xef, 0xf5,
-	0x59, 0x53, 0x39, 0xc8, 0x06, 0xff, 0x8b, 0x13, 0x3f, 0x74, 0x92, 0xf3, 0xc1, 0x04, 0x4d, 0x4d,
-	0x86, 0xfc, 0x9f, 0x8d, 0xbb, 0xda, 0x61, 0xf1, 0xa4, 0x40, 0x69, 0x71, 0x49, 0xf5, 0xac, 0x6f,
-	0x64, 0xda, 0xc0, 0x6e, 0xc0, 0x53, 0x9c, 0x10, 0xf3, 0x77, 0x0d, 0x94, 0x68, 0xac, 0x55, 0xd2,
-	0x48, 0xa1, 0x9e, 0xfa, 0x17, 0xa8, 0x2f, 0x9a, 0xc4, 0x5e, 0x64, 0x52, 0x96, 0xb6, 0x0f, 0xce,
-	0x73, 0xbd, 0x6e, 0x12, 0xbb, 0xc5, 0xa4, 0x7c, 0x3b, 0x67, 0xeb, 0xb0, 0x36, 0xdb, 0x72, 0x41,
-	0x9a, 0xf5, 0x0a, 0xee, 0x2b, 0xfb, 0x6b, 0x14, 0x47, 0xfe, 0xc5, 0x7c, 0x60, 0xac, 0x63, 0x58,
-	0xbf, 0x9e, 0x66, 0xae, 0xa9, 0x4c, 0xf0, 0xd6, 0xae, 0xf0, 0x5a, 0xd1, 0x74, 0x0b, 0x19, 0x3a,
-	0xde, 0x7c, 0x64, 0xaf, 0x43, 0x83, 0x9f, 0x9e, 0xa6, 0x28, 0x54, 0x66, 0xa5, 0xe5, 0xf5, 0x3e,
-	0x39, 0xbe, 0x90, 0xfc, 0xae, 0x30, 0x29, 0x5b, 0x7c, 0x3a, 0xdd, 0xa2, 0xde, 0x5c, 0x40, 0x6e,
-	0x28, 0xe8, 0x39, 0xc2, 0x91, 0x05, 0x5b, 0x4c, 0xca, 0xdb, 0xbf, 0xea, 0xb0, 0x9c, 0xcf, 0x9d,
-	0x1d, 0xee, 0xd2, 0x3e, 0x2c, 0xc9, 0x2b, 0xa6, 0x0f, 0xaf, 0x5f, 0x4c, 0xf9, 0xd8, 0x8d, 0x8d,
-	0x8a, 0x57, 0xd5, 0xeb, 0x1b, 0x58, 0x2d, 0x5d, 0x08, 0xb5, 0xae, 0x7b, 0xff, 0x79, 0xd5, 0xc6,
-	0xe6, 0x8d, 0x3e, 0x2a, 0xef, 0x3b, 0xd0, 0x26, 0xd4, 0x70, 0xf9, 0xf9, 0xa8, 0x8a, 0x2a, 0xdf,
-	0xc5, 0x5d, 0x53, 0xb7, 0xca, 0xb1, 0x77, 0xcb, 0xfc, 0xe8, 0x66, 0x27, 0x95, 0xfa, 0x7d, 0x69,
-	0xa0, 0x71, 0xe0, 0xbb, 0xce, 0x3f, 0xaf, 0x30, 0x80, 0xf6, 0xec, 0xfa, 0xd3, 0xc7, 0x15, 0x71,
-	0xb3, 0x57, 0x66, 0x3c, 0xb9, 0xcd, 0x4d, 0x15, 0x78, 0x3b, 0x1d, 0x68, 0xbe, 0x93, 0x95, 0x03,
-	0x2d, 0x1d, 0x48, 0x25, 0xeb, 0xe5, 0xa5, 0x7e, 0x46, 0x76, 0xd6, 0x2e, 0xb3, 0x0e, 0xf9, 0x9e,
-	0x75, 0xc8, 0x8f, 0xac, 0x43, 0xbe, 0xfc, 0xec, 0x2c, 0x1c, 0xd7, 0xc2, 0xd1, 0x49, 0x43, 0xfe,
-	0x63, 0x5e, 0xfc, 0x0e, 0x00, 0x00, 0xff, 0xff, 0x3d, 0xa0, 0x9b, 0x9b, 0xb4, 0x06, 0x00, 0x00,
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x55, 0xcd, 0x6e, 0xd3, 0x40,
+	0x10, 0xee, 0x3a, 0x69, 0xda, 0x4c, 0xe3, 0xa2, 0x2e, 0x55, 0xb1, 0x2c, 0x9a, 0x18, 0x97, 0x83,
+	0x0f, 0x28, 0x85, 0x72, 0xe2, 0xda, 0xe6, 0xd2, 0x4b, 0x5b, 0x6d, 0x04, 0x02, 0x2e, 0xc1, 0xb5,
+	0xb7, 0xc1, 0xc8, 0xf6, 0x3a, 0xf6, 0x06, 0x54, 0x0e, 0x3c, 0x03, 0x17, 0x1e, 0x84, 0xb7, 0xe8,
+	0x91, 0x27, 0x88, 0x90, 0xb9, 0xf3, 0x0c, 0xc8, 0xeb, 0xb5, 0xe3, 0x16, 0x1c, 0x4a, 0xc4, 0x6d,
+	0x66, 0x76, 0x7e, 0xbe, 0x6f, 0x7e, 0x6c, 0xd8, 0x0c, 0x99, 0x4b, 0x47, 0x71, 0xe4, 0xf4, 0xa3,
+	0x98, 0x71, 0x86, 0x37, 0x3d, 0xd6, 0xa7, 0xef, 0x69, 0xc8, 0x39, 0x8d, 0xfb, 0xc1, 0x44, 0xbf,
+	0xe7, 0xf8, 0x1e, 0x0d, 0xf9, 0x7e, 0x61, 0x0b, 0x26, 0xb9, 0xa3, 0xbe, 0x3d, 0x66, 0x63, 0x26,
+	0xc4, 0xfd, 0x4c, 0xca, 0xad, 0xe6, 0x26, 0x74, 0x06, 0xf4, 0x7c, 0x3a, 0x26, 0x74, 0x32, 0xa5,
+	0x09, 0x37, 0xcf, 0x40, 0x95, 0x7a, 0x12, 0xb1, 0x30, 0xa1, 0x78, 0x0f, 0x54, 0xc7, 0x9f, 0x26,
+	0x9c, 0xc6, 0xa3, 0x84, 0xdb, 0x9c, 0x6a, 0xc8, 0x40, 0x56, 0x9b, 0x74, 0xa4, 0x71, 0x98, 0xd9,
+	0xb0, 0x0e, 0xeb, 0x09, 0x1d, 0x07, 0x34, 0xe4, 0x89, 0xa6, 0x18, 0x0d, 0xab, 0x4d, 0x4a, 0xdd,
+	0xfc, 0x82, 0x00, 0x0f, 0x73, 0xe5, 0x34, 0xa2, 0xa1, 0x2c, 0x84, 0xf7, 0x60, 0x4d, 0x30, 0xf1,
+	0x5c, 0x91, 0xb1, 0x79, 0x08, 0xe9, 0xac, 0xd7, 0x3a, 0x61, 0x2e, 0x3d, 0x1e, 0x90, 0x56, 0xf6,
+	0x74, 0xec, 0xe2, 0x67, 0xb0, 0xca, 0x59, 0xe4, 0x39, 0x9a, 0x62, 0x20, 0x6b, 0xe3, 0x60, 0xb7,
+	0x7f, 0x9d, 0x6c, 0xff, 0xc4, 0x0e, 0x68, 0x12, 0xd9, 0x0e, 0xcd, 0x84, 0xc3, 0xe6, 0xd5, 0xac,
+	0xb7, 0x42, 0xf2, 0x08, 0xdc, 0x83, 0x0d, 0x9f, 0xda, 0x2e, 0x8d, 0x47, 0x2c, 0xf4, 0x2f, 0x35,
+	0xc7, 0x40, 0xd6, 0x3a, 0x81, 0xdc, 0x74, 0x1a, 0xfa, 0x97, 0xe6, 0x27, 0xb8, 0x7b, 0x0d, 0x96,
+	0xe4, 0xfb, 0x08, 0x40, 0x42, 0x9f, 0x43, 0x53, 0xd3, 0x59, 0xaf, 0x2d, 0x9d, 0x8f, 0x07, 0xa4,
+	0x2d, 0x1d, 0x04, 0xc0, 0x3b, 0x51, 0xec, 0x05, 0x76, 0x7c, 0x39, 0x2a, 0xd8, 0x28, 0x22, 0x64,
+	0x2b, 0x9d, 0xf5, 0xd4, 0xb3, 0xfc, 0x49, 0x92, 0x52, 0xa3, 0x8a, 0xea, 0x9a, 0x5f, 0x51, 0x09,
+	0xe0, 0xc8, 0x67, 0x09, 0x2d, 0x1a, 0xf3, 0x6f, 0x00, 0x2a, 0x6d, 0x54, 0x6a, 0xdb, 0x88, 0xa1,
+	0x99, 0x78, 0x1f, 0xa9, 0xd6, 0x30, 0x90, 0xd5, 0x20, 0x42, 0x16, 0xb6, 0xb7, 0xf6, 0x13, 0xad,
+	0x69, 0x20, 0xab, 0x43, 0x84, 0xfc, 0xf7, 0x9e, 0xed, 0xc0, 0xf6, 0x75, 0xc8, 0x79, 0xd3, 0xcc,
+	0xe7, 0xb0, 0x25, 0xed, 0xc3, 0x69, 0xb0, 0x1c, 0x91, 0x02, 0xa3, 0x32, 0xc7, 0x68, 0xbe, 0x2b,
+	0x37, 0x47, 0xa4, 0x5d, 0x6a, 0x42, 0x7f, 0xc8, 0x5b, 0x72, 0x6f, 0xcc, 0xb9, 0x9b, 0x61, 0x59,
+	0x8b, 0x50, 0xdb, 0x5d, 0x8e, 0xc3, 0x0e, 0xb4, 0xd8, 0xc5, 0x45, 0x42, 0xb9, 0xac, 0x26, 0xb5,
+	0xac, 0xde, 0x07, 0xdb, 0xe3, 0xa2, 0xde, 0x3a, 0x11, 0xb2, 0xc9, 0xca, 0xe9, 0xe7, 0xf5, 0x96,
+	0x22, 0xb7, 0xa0, 0xa0, 0x6b, 0x73, 0xbb, 0x20, 0x98, 0xc9, 0x07, 0x3f, 0x9b, 0xb0, 0x96, 0xed,
+	0x05, 0x39, 0x3b, 0xc2, 0x03, 0x58, 0x15, 0x57, 0x8e, 0xef, 0xdf, 0xbc, 0xa8, 0xea, 0xc7, 0x40,
+	0xdf, 0xad, 0x79, 0x95, 0x58, 0x5f, 0xc0, 0x46, 0xe5, 0x82, 0xb0, 0x79, 0xd3, 0xfb, 0xf7, 0xab,
+	0xd7, 0xf7, 0x16, 0xfa, 0xc8, 0xbc, 0xaf, 0x40, 0x2d, 0x5a, 0xc3, 0xc4, 0xe7, 0xa5, 0x2e, 0xaa,
+	0x7a, 0x37, 0xb7, 0x4d, 0xdd, 0xa9, 0xc6, 0xde, 0x2e, 0xf3, 0xc3, 0xc5, 0x4e, 0x32, 0xf5, 0x9b,
+	0xca, 0x40, 0x23, 0xdf, 0x73, 0xec, 0xff, 0x5e, 0x61, 0x08, 0x30, 0x3f, 0x07, 0xfc, 0xa0, 0x26,
+	0x66, 0x7e, 0x81, 0xba, 0xb9, 0xc8, 0x45, 0x26, 0x7d, 0x59, 0x0e, 0x31, 0xdb, 0xc3, 0xda, 0x21,
+	0x56, 0x8e, 0xa2, 0xb6, 0xd3, 0xd5, 0x45, 0x7e, 0x8c, 0x0e, 0xb7, 0xaf, 0xd2, 0x2e, 0xfa, 0x96,
+	0x76, 0xd1, 0xf7, 0xb4, 0x8b, 0x3e, 0xff, 0xe8, 0xae, 0xbc, 0x56, 0x82, 0xc9, 0x79, 0x4b, 0xfc,
+	0x77, 0x9e, 0xfe, 0x0a, 0x00, 0x00, 0xff, 0xff, 0xcd, 0xc8, 0xf0, 0x96, 0xc8, 0x06, 0x00, 0x00,
 }
