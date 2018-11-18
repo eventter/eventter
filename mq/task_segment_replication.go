@@ -14,7 +14,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-func (s *Server) taskSegmentReplicate(ctx context.Context, segmentID uint64, nodeID uint64, wait bool) error {
+func (s *Server) taskSegmentReplication(ctx context.Context, segmentID uint64, nodeID uint64, wait bool) error {
 	log.Printf("starting to replicate segment %d from node %d", segmentID, nodeID)
 
 	node := s.clusterState.Current().GetNode(nodeID)

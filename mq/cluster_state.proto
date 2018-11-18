@@ -35,10 +35,15 @@ message ClusterTopic {
 message ClusterConsumerGroup {
     string name = 1;
     repeated Binding bindings = 2;
+    repeated OffsetCommit offset_commits = 3;
 
     message Binding {
         string topic_name = 1;
         string routing_key = 2;
+    }
+    message OffsetCommit {
+        uint64 segment_id = 1 [(gogoproto.customname) = "SegmentID"];
+        int64 offset = 2;
     }
 }
 
@@ -122,6 +127,11 @@ message ClusterDeleteSegmentCommand {
     }
 }
 
+message ClusterUpdateOffsetCommitsCommand {
+    NamespaceName consumer_group = 1 [(gogoproto.nullable) = false];
+    repeated ClusterConsumerGroup.OffsetCommit offset_commits = 3;
+}
+
 message ClusterCommand {
     oneof command {
         ConfigureTopicRequest configure_topic = 1;
@@ -133,5 +143,6 @@ message ClusterCommand {
         ClusterUpdateNodeCommand update_node = 7;
         ClusterUpdateSegmentNodesCommand update_segment_nodes = 8;
         ClusterDeleteSegmentCommand delete_segment = 9;
+        ClusterUpdateOffsetCommitsCommand update_offset_commits = 10;
     }
 }

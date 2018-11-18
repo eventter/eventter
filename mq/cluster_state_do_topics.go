@@ -8,7 +8,7 @@ func (s *ClusterState) doConfigureTopic(cmd *client.ConfigureTopicRequest) *Clus
 	next := &ClusterState{}
 	*next = *s
 
-	namespace, namespaceIndex := s.findNamespace(cmd.Topic.Namespace)
+	namespace, namespaceIndex := s.FindNamespace(cmd.Topic.Namespace)
 	var (
 		nextNamespace *ClusterNamespace
 		nextTopic     *ClusterTopic
@@ -67,7 +67,7 @@ func (s *ClusterState) doConfigureTopic(cmd *client.ConfigureTopicRequest) *Clus
 }
 
 func (s *ClusterState) doDeleteTopic(cmd *client.DeleteTopicRequest) *ClusterState {
-	namespace, namespaceIndex := s.findNamespace(cmd.Topic.Namespace)
+	namespace, namespaceIndex := s.FindNamespace(cmd.Topic.Namespace)
 	if namespace == nil {
 		return s
 	}

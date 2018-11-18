@@ -152,7 +152,7 @@ LOOP:
 								fmt.Sprintf("replication of open segment %d from node %d", segment.ID, segment.Nodes.PrimaryNodeID),
 								func(segmentID uint64, nodeID uint64) func(context.Context) error {
 									return func(ctx context.Context) error {
-										return s.taskSegmentReplicate(ctx, segmentID, nodeID, true)
+										return s.taskSegmentReplication(ctx, segmentID, nodeID, true)
 									}
 								}(segment.ID, segment.Nodes.PrimaryNodeID),
 							)
@@ -187,7 +187,7 @@ LOOP:
 								fmt.Sprintf("replication of closed segment %d from node %d", segment.ID, segment.Nodes.PrimaryNodeID),
 								func(segmentID uint64, nodeID uint64) func(context.Context) error {
 									return func(ctx context.Context) error {
-										return s.taskSegmentReplicate(ctx, segmentID, nodeID, false)
+										return s.taskSegmentReplication(ctx, segmentID, nodeID, false)
 									}
 								}(segment.ID, segment.Nodes.DoneNodeIDs[rand.Intn(len(segment.Nodes.DoneNodeIDs))]), // select random node that is done
 							)

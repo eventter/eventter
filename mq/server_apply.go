@@ -27,6 +27,8 @@ func (s *Server) Apply(cmd interface{}) (index uint64, err error) {
 		outer.Command = &ClusterCommand_UpdateSegmentNodes{cmd}
 	case *ClusterDeleteSegmentCommand:
 		outer.Command = &ClusterCommand_DeleteSegment{cmd}
+	case *ClusterUpdateOffsetCommitsCommand:
+		outer.Command = &ClusterCommand_UpdateOffsetCommits{cmd}
 	default:
 		return 0, errors.Errorf("unhandled command of type: %T", cmd)
 	}

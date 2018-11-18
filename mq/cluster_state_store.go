@@ -68,6 +68,8 @@ func (s *ClusterStateStore) Do(index uint64, cmd *ClusterCommand) {
 				next = state.doUpdateSegmentNodes(cmd.UpdateSegmentNodes)
 			case *ClusterCommand_DeleteSegment:
 				next = state.doDeleteSegment(cmd.DeleteSegment)
+			case *ClusterCommand_UpdateOffsetCommits:
+				next = state.doUpdateOffsetCommits(cmd.UpdateOffsetCommits)
 			default:
 				panic(errors.Errorf("unhandled command of type [%T]", cmd))
 			}

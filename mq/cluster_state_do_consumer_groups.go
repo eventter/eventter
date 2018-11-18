@@ -1,6 +1,8 @@
 package mq
 
 import (
+	"sort"
+
 	"eventter.io/mq/client"
 )
 
@@ -8,7 +10,7 @@ func (s *ClusterState) doConfigureConsumerGroup(cmd *client.ConfigureConsumerGro
 	next := &ClusterState{}
 	*next = *s
 
-	namespace, namespaceIndex := s.findNamespace(cmd.ConsumerGroup.Namespace)
+	namespace, namespaceIndex := s.FindNamespace(cmd.ConsumerGroup.Namespace)
 	var (
 		nextNamespace     *ClusterNamespace
 		nextConsumerGroup *ClusterConsumerGroup
@@ -72,7 +74,7 @@ func (s *ClusterState) doConfigureConsumerGroup(cmd *client.ConfigureConsumerGro
 }
 
 func (s *ClusterState) doDeleteConsumerGroup(cmd *client.DeleteConsumerGroupRequest) *ClusterState {
-	namespace, namespaceIndex := s.findNamespace(cmd.ConsumerGroup.Namespace)
+	namespace, namespaceIndex := s.FindNamespace(cmd.ConsumerGroup.Namespace)
 	if namespace == nil {
 		return s
 	}
@@ -101,6 +103,41 @@ func (s *ClusterState) doDeleteConsumerGroup(cmd *client.DeleteConsumerGroupRequ
 		copy(next.Namespaces, s.Namespaces)
 		next.Namespaces[namespaceIndex] = nextNamespace
 	}
+
+	return next
+}
+
+func (s *ClusterState) doUpdateOffsetCommits(cmd *ClusterUpdateOffsetCommitsCommand) *ClusterState {
+	namespace, namespaceIndex := s.FindNamespace(cmd.ConsumerGroup.Namespace)
+	if namespace == nil {
+		return s
+	}
+
+	consumerGroup, consumerGroupIndex := namespace.findConsumerGroup(cmd.ConsumerGroup.Name)
+	if consumerGroupIndex == -1 {
+		return s
+	}
+
+	next := &ClusterState{}
+	*next = *s
+
+	nextNamespace := &ClusterNamespace{}
+	*nextNamespace = *namespace
+	next.Namespaces = make([]*ClusterNamespace, len(s.Namespaces))
+	copy(next.Namespaces, s.Namespaces)
+	next.Namespaces[namespaceIndex] = nextNamespace
+
+	nextConsumerGroup := &ClusterConsumerGroup{}
+	*nextConsumerGroup = *consumerGroup
+	nextNamespace.ConsumerGroups = make([]*ClusterConsumerGroup, len(namespace.ConsumerGroups))
+	copy(nextNamespace.ConsumerGroups, namespace.ConsumerGroups)
+	nextNamespace.ConsumerGroups[consumerGroupIndex] = nextConsumerGroup
+
+	nextConsumerGroup.OffsetCommits = cmd.OffsetCommits
+
+	sort.Slice(nextConsumerGroup.OffsetCommits, func(i, j int) bool {
+		return nextConsumerGroup.OffsetCommits[i].SegmentID < nextConsumerGroup.OffsetCommits[j].SegmentID
+	})
 
 	return next
 }

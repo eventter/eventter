@@ -2,6 +2,7 @@ package mq
 
 import (
 	"context"
+	"log"
 	"math/rand"
 	"time"
 
@@ -56,6 +57,12 @@ func (s *Server) txSegmentOpen(state *ClusterState, primaryNodeID uint64, owner 
 
 		shards = topic.Shards
 		replicationFactor = topic.ReplicationFactor
+
+	} else if segmentType == ClusterSegment_CONSUMER_GROUP_OFFSETS {
+		consumerGroup := state.GetConsumerGroup(owner.Namespace, owner.Name)
+		if consumerGroup == nil {
+			return nil, errors.Errorf(notFoundErrorFormat, entityConsumerGroup, owner.Namespace, owner.Name)
+		}
 	}
 
 	openSegments := state.FindOpenSegmentsFor(segmentType, owner.Namespace, owner.Name)
@@ -80,6 +87,8 @@ func (s *Server) txSegmentOpen(state *ClusterState, primaryNodeID uint64, owner 
 	}
 
 	// open new segment
+
+	// a) find nodes for replicas
 	var replicatingNodeIDs []uint64
 	if replicationFactor > 1 {
 		nodeSegmentCounts := state.CountSegmentsPerNode()
@@ -105,8 +114,8 @@ func (s *Server) txSegmentOpen(state *ClusterState, primaryNodeID uint64, owner 
 		}
 	}
 
+	// b) create segment
 	segmentID := s.clusterState.NextSegmentID()
-
 	cmd := &ClusterOpenSegmentCommand{
 		ID:                 segmentID,
 		Owner:              owner,
@@ -117,7 +126,49 @@ func (s *Server) txSegmentOpen(state *ClusterState, primaryNodeID uint64, owner 
 	}
 	_, err := s.Apply(cmd)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "open segment failed")
+	}
+
+	// c) update consumer group offset commits if topic segment
+	if segmentType == ClusterSegment_TOPIC {
+		namespace, _ := state.FindNamespace(owner.Namespace)
+		// namespace must not be nil as topic was found earlier and this method is called with tx mutex
+		for _, consumerGroup := range namespace.ConsumerGroups {
+			bound := false
+			for _, binding := range consumerGroup.Bindings {
+				if binding.TopicName == owner.Name {
+					bound = true
+					break
+				}
+			}
+			if !bound {
+				continue
+			}
+
+			nextCommits := make([]*ClusterConsumerGroup_OffsetCommit, len(consumerGroup.OffsetCommits)+1)
+			copy(nextCommits, consumerGroup.OffsetCommits)
+			nextCommits[len(consumerGroup.OffsetCommits)] = &ClusterConsumerGroup_OffsetCommit{
+				SegmentID: segmentID,
+				Offset:    0,
+			}
+
+			cmd := &ClusterUpdateOffsetCommitsCommand{
+				ConsumerGroup: client.NamespaceName{
+					Namespace: namespace.Name,
+					Name:      consumerGroup.Name,
+				},
+				OffsetCommits: nextCommits,
+			}
+			if _, err := s.Apply(cmd); err != nil {
+				log.Printf(
+					"could not update offset commits of consumer group %s/%s for newly created segment %d: %v",
+					namespace.Name,
+					consumerGroup.Name,
+					segmentID,
+					err,
+				)
+			}
+		}
 	}
 
 	return &SegmentOpenResponse{

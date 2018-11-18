@@ -1,7 +1,7 @@
 package mq
 
 func (s *ClusterState) ListTopics(namespaceName string, topicName string) (uint64, []*ClusterTopic) {
-	namespace, _ := s.findNamespace(namespaceName)
+	namespace, _ := s.FindNamespace(namespaceName)
 	if namespace == nil {
 		return s.Index, nil
 	}
@@ -19,7 +19,7 @@ func (s *ClusterState) ListTopics(namespaceName string, topicName string) (uint6
 }
 
 func (s *ClusterState) ListConsumerGroups(namespaceName string, consumerGroupName string) (uint64, []*ClusterConsumerGroup) {
-	namespace, _ := s.findNamespace(namespaceName)
+	namespace, _ := s.FindNamespace(namespaceName)
 	if namespace == nil {
 		return s.Index, nil
 	}
@@ -37,7 +37,7 @@ func (s *ClusterState) ListConsumerGroups(namespaceName string, consumerGroupNam
 }
 
 func (s *ClusterState) AnyConsumerGroupReferencesTopic(namespaceName string, topicName string) bool {
-	namespace, _ := s.findNamespace(namespaceName)
+	namespace, _ := s.FindNamespace(namespaceName)
 	if namespace == nil {
 		return false
 	}
@@ -54,7 +54,7 @@ func (s *ClusterState) AnyConsumerGroupReferencesTopic(namespaceName string, top
 }
 
 func (s *ClusterState) TopicExists(namespaceName string, topicName string) bool {
-	namespace, _ := s.findNamespace(namespaceName)
+	namespace, _ := s.FindNamespace(namespaceName)
 	if namespace == nil {
 		return false
 	}
@@ -64,7 +64,7 @@ func (s *ClusterState) TopicExists(namespaceName string, topicName string) bool 
 }
 
 func (s *ClusterState) GetTopic(namespaceName string, topicName string) *ClusterTopic {
-	namespace, _ := s.findNamespace(namespaceName)
+	namespace, _ := s.FindNamespace(namespaceName)
 	if namespace == nil {
 		return nil
 	}
@@ -74,7 +74,7 @@ func (s *ClusterState) GetTopic(namespaceName string, topicName string) *Cluster
 }
 
 func (s *ClusterState) ConsumerGroupExists(namespaceName string, consumerGroupName string) bool {
-	namespace, _ := s.findNamespace(namespaceName)
+	namespace, _ := s.FindNamespace(namespaceName)
 	if namespace == nil {
 		return false
 	}
@@ -84,7 +84,7 @@ func (s *ClusterState) ConsumerGroupExists(namespaceName string, consumerGroupNa
 }
 
 func (s *ClusterState) GetConsumerGroup(namespaceName string, consumerGroupName string) *ClusterConsumerGroup {
-	namespace, _ := s.findNamespace(namespaceName)
+	namespace, _ := s.FindNamespace(namespaceName)
 	if namespace == nil {
 		return nil
 	}
@@ -167,7 +167,7 @@ func (s *ClusterState) GetNode(nodeID uint64) *ClusterNode {
 	return nil
 }
 
-func (s *ClusterState) findNamespace(name string) (*ClusterNamespace, int) {
+func (s *ClusterState) FindNamespace(name string) (*ClusterNamespace, int) {
 	for index, namespace := range s.Namespaces {
 		if namespace.Name == name {
 			return namespace, index
