@@ -14,17 +14,15 @@ import (
 	"github.com/pkg/errors"
 )
 
+const (
+	SumAll      = -1
+	TruncateAll = 0
+	version     = 1
+)
+
 var (
 	ErrFull   = errors.New("segment is full")
 	ErrExtend = errors.New("truncate would extend segment")
-)
-
-const SumAll = -1
-const TruncateAll = 0
-
-const (
-	dataFileSuffix = ".seg"
-	version        = 1
 )
 
 type File struct {
@@ -44,7 +42,7 @@ type File struct {
 }
 
 func Open(path string, filePerm os.FileMode, maxSize int64) (f *File, err error) {
-	file, err := os.OpenFile(path+dataFileSuffix, os.O_CREATE|os.O_RDWR|os.O_APPEND|openSync, filePerm)
+	file, err := os.OpenFile(path, os.O_CREATE|os.O_RDWR|os.O_APPEND|openSync, filePerm)
 	if err != nil {
 		return nil, errors.Wrap(err, "open failed")
 	}

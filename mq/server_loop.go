@@ -44,6 +44,8 @@ func (s *Server) Loop(memberEventsC chan memberlist.NodeEvent) {
 		}
 	}
 
+	garbageCollectionTicker := time.NewTicker(10 * time.Second)
+
 LOOP:
 	for {
 		select {
@@ -217,6 +219,55 @@ LOOP:
 				if err := future.Error(); err != nil {
 					log.Printf("could not add peer: %v", err)
 					continue
+				}
+			}
+
+		case <-garbageCollectionTicker.C:
+			state := s.clusterState.Current()
+
+			active := make(map[uint64]bool)
+			for _, segments := range [][]*ClusterSegment{state.OpenSegments, state.ClosedSegments} {
+			SEGMENT:
+				for _, segment := range segments {
+					if segment.Nodes.PrimaryNodeID == s.nodeID {
+						active[segment.ID] = true
+						continue
+					}
+					for _, nodeID := range segment.Nodes.ReplicatingNodeIDs {
+						if nodeID == s.nodeID {
+							active[segment.ID] = true
+							continue SEGMENT
+						}
+					}
+					for _, nodeID := range segment.Nodes.DoneNodeIDs {
+						if nodeID == s.nodeID {
+							active[segment.ID] = true
+							continue SEGMENT
+						}
+					}
+				}
+			}
+
+			segmentInfos, err := s.segmentDir.List()
+			if err != nil {
+				log.Printf("could not list local segments: %v", err)
+				continue
+			}
+
+			for _, segmentInfo := range segmentInfos {
+				if active[segmentInfo.ID] {
+					continue
+				}
+
+				if segmentInfo.ReferenceCount > 0 {
+					log.Printf("segment %d cannot be garbage collected, someone is still using it", segmentInfo.ID)
+					continue
+				}
+
+				if err := s.segmentDir.Remove(segmentInfo.ID); err != nil {
+					log.Printf("remove of segment %d failed: %v", segmentInfo.ID, err)
+				} else {
+					log.Printf("segment %d garbage collected", segmentInfo.ID)
 				}
 			}
 

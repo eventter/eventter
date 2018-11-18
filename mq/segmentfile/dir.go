@@ -11,7 +11,15 @@ import (
 	"github.com/pkg/errors"
 )
 
-const dirBuckets = 64
+const (
+	dirBuckets = 64
+	fileExt    = ".seg"
+)
+
+var (
+	ErrInvalidID = errors.New("segment ID must not be zero")
+	ErrInUse     = errors.New("segment still in use")
+)
 
 type Dir struct {
 	dirName     string
@@ -22,6 +30,13 @@ type Dir struct {
 	locks       [dirBuckets]sync.Mutex
 	fileMaps    [dirBuckets]map[uint64]*File
 	closeC      chan struct{}
+}
+
+type FileInfo struct {
+	ID             uint64
+	Path           string
+	Size           int64
+	ReferenceCount int
 }
 
 func NewDir(dirName string, dirPerm os.FileMode, filePerm os.FileMode, maxSize int64, idleTimeout time.Duration) (*Dir, error) {
@@ -81,6 +96,10 @@ func (d *Dir) closeIdle() {
 }
 
 func (d *Dir) Open(id uint64) (*File, error) {
+	if id == 0 {
+		return nil, ErrInvalidID
+	}
+
 	bucket := id % dirBuckets
 
 	d.locks[bucket].Lock()
@@ -115,10 +134,14 @@ func (d *Dir) getPath(id uint64) string {
 	if l := len(name); l < 16 {
 		name = strings.Repeat("0", 16-l) + name
 	}
-	return filepath.Join(d.dirName, name[14:16], name)
+	return filepath.Join(d.dirName, name[14:16], name+fileExt)
 }
 
 func (d *Dir) Exists(id uint64) bool {
+	if id == 0 {
+		return false
+	}
+
 	bucket := id % dirBuckets
 
 	d.locks[bucket].Lock()
@@ -129,11 +152,15 @@ func (d *Dir) Exists(id uint64) bool {
 	}
 
 	path := d.getPath(id)
-	_, err := os.Stat(path + dataFileSuffix)
+	_, err := os.Stat(path)
 	return err == nil
 }
 
 func (d *Dir) Release(file *File) error {
+	if file.id == 0 {
+		return ErrInvalidID
+	}
+
 	bucket := file.id % dirBuckets
 
 	d.locks[bucket].Lock()
@@ -155,6 +182,71 @@ func (d *Dir) Release(file *File) error {
 	} else {
 		return d.closeFile(bucket, file)
 	}
+}
+
+func (d *Dir) List() ([]*FileInfo, error) {
+	var infos []*FileInfo
+
+	err := filepath.Walk(d.dirName, func(path string, fileInfo os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if filepath.Ext(path) != fileExt {
+			return nil
+		}
+
+		baseName := filepath.Base(path)
+		id, err := strconv.ParseUint(baseName[:len(baseName)-len(fileExt)], 16, 64)
+		if err != nil {
+			return err
+		}
+
+		bucket := id % dirBuckets
+		d.locks[bucket].Lock()
+		rc := -1
+		if file, ok := d.fileMaps[bucket][id]; ok {
+			rc = file.rc
+		}
+		d.locks[bucket].Unlock()
+
+		infos = append(infos, &FileInfo{
+			ID:             id,
+			Path:           path,
+			Size:           fileInfo.Size(),
+			ReferenceCount: rc,
+		})
+
+		return nil
+	})
+
+	return infos, err
+}
+
+func (d *Dir) Remove(id uint64) error {
+	if id == 0 {
+		return ErrInvalidID
+	}
+
+	bucket := id % dirBuckets
+	d.locks[bucket].Lock()
+	defer d.locks[bucket].Unlock()
+
+	if file, ok := d.fileMaps[bucket][id]; ok {
+		if file.rc > 0 {
+			return ErrInUse
+		}
+
+		if err := d.closeFile(bucket, file); err != nil {
+			return errors.Wrap(err, "file close failed")
+		}
+	}
+
+	if err := os.Remove(d.getPath(id)); err != nil {
+		return errors.Wrap(err, "remove failed")
+	}
+
+	return nil
 }
 
 func (d *Dir) closeFile(bucket uint64, file *File) error {
