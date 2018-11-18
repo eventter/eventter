@@ -8,4 +8,7 @@ RUN set -ex \
 
 FROM scratch
 COPY --from=0 /bin/eventtermq /eventtermq
+VOLUME ["/data"]
+EXPOSE 16000/tcp 16000/udp
 ENTRYPOINT ["/eventtermq"]
+CMD ["--dir", "/data"]
