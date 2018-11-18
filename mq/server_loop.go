@@ -28,7 +28,8 @@ func (s *Server) Loop(memberEventsC chan memberlist.NodeEvent) {
 	reconciler := NewReconciler(s)
 
 	taskCompletedC := make(chan uint64, 128)
-	runningSegmentReplicationTasks := make(map[uint64]*task)
+	runningOpenSegmentReplications := make(map[uint64]*task)
+	runningClosedSegmentReplications := make(map[uint64]*task)
 
 	var currentID uint64
 
@@ -92,14 +93,14 @@ LOOP:
 
 			state = newState
 
-			replicatingSegmentIDs := make(map[uint64]bool)
+			replicatingOpenSegmentIDs := make(map[uint64]bool)
 
 			for _, segment := range state.OpenSegments {
 				for _, nodeID := range segment.Nodes.ReplicatingNodeIDs {
 					if nodeID == s.nodeID {
-						replicatingSegmentIDs[segment.ID] = true
+						replicatingOpenSegmentIDs[segment.ID] = true
 
-						if _, ok := runningSegmentReplicationTasks[segment.ID]; !ok {
+						if _, ok := runningOpenSegmentReplications[segment.ID]; !ok {
 							ctx, cancel := context.WithCancel(context.Background())
 							currentID++
 							t := &task{
@@ -107,7 +108,7 @@ LOOP:
 								ctx:    ctx,
 								cancel: cancel,
 							}
-							runningSegmentReplicationTasks[segment.ID] = t
+							runningOpenSegmentReplications[segment.ID] = t
 							go s.taskSegmentReplicate(
 								ctx,
 								makeCompletedFunc(t),
@@ -120,12 +121,20 @@ LOOP:
 				}
 			}
 
+			for segmentID, task := range runningOpenSegmentReplications {
+				if !replicatingOpenSegmentIDs[segmentID] {
+					task.cancel()
+				}
+			}
+
+			replicatingClosedSegmentIDs := make(map[uint64]bool)
+
 			for _, segment := range state.ClosedSegments {
 				for _, nodeID := range segment.Nodes.ReplicatingNodeIDs {
 					if nodeID == s.nodeID {
-						replicatingSegmentIDs[segment.ID] = true
+						replicatingClosedSegmentIDs[segment.ID] = true
 
-						if _, ok := runningSegmentReplicationTasks[segment.ID]; !ok {
+						if _, ok := runningClosedSegmentReplications[segment.ID]; !ok {
 							ctx, cancel := context.WithCancel(context.Background())
 							currentID++
 							t := &task{
@@ -133,7 +142,7 @@ LOOP:
 								ctx:    ctx,
 								cancel: cancel,
 							}
-							runningSegmentReplicationTasks[segment.ID] = t
+							runningClosedSegmentReplications[segment.ID] = t
 							go s.taskSegmentReplicate(
 								ctx,
 								makeCompletedFunc(t),
@@ -146,23 +155,35 @@ LOOP:
 				}
 			}
 
-			for segmentID, task := range runningSegmentReplicationTasks {
-				if !replicatingSegmentIDs[segmentID] {
+			for segmentID, task := range runningClosedSegmentReplications {
+				if !replicatingClosedSegmentIDs[segmentID] {
 					task.cancel()
 				}
 			}
 
 		case taskID := <-taskCompletedC:
 			var segmentID uint64
-			for candidateSegmentID, task := range runningSegmentReplicationTasks {
+
+			segmentID = 0
+			for candidateSegmentID, task := range runningOpenSegmentReplications {
 				if task.id == taskID {
 					segmentID = candidateSegmentID
 					break
 				}
 			}
-
 			if segmentID > 0 {
-				delete(runningSegmentReplicationTasks, segmentID)
+				delete(runningOpenSegmentReplications, segmentID)
+			}
+
+			segmentID = 0
+			for candidateSegmentID, task := range runningClosedSegmentReplications {
+				if task.id == taskID {
+					segmentID = candidateSegmentID
+					break
+				}
+			}
+			if segmentID > 0 {
+				delete(runningClosedSegmentReplications, segmentID)
 			}
 
 		case ev := <-memberEventsC:
@@ -204,7 +225,7 @@ LOOP:
 		}
 	}
 
-	for _, task := range runningSegmentReplicationTasks {
+	for _, task := range runningOpenSegmentReplications {
 		task.cancel()
 	}
 }
