@@ -15,6 +15,7 @@ type ReconcilerDelegate interface {
 	Members() []*memberlist.Node
 	AddVoter(id string, addr string) error
 	GetSegmentSizeFromNode(ctx context.Context, segmentID uint64, nodeID uint64, nodeAddr string) (size int64, err error)
+	NextSegmentID() uint64
 }
 
 func NewReconciler(delegate ReconcilerDelegate) *Reconciler {

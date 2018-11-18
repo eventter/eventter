@@ -83,11 +83,21 @@ func (s *ClusterState) ConsumerGroupExists(namespaceName string, consumerGroupNa
 	return consumerGroup != nil
 }
 
-func (s *ClusterState) FindOpenSegmentsFor(namespaceName string, name string) []*ClusterSegment {
+func (s *ClusterState) GetConsumerGroup(namespaceName string, consumerGroupName string) *ClusterConsumerGroup {
+	namespace, _ := s.findNamespace(namespaceName)
+	if namespace == nil {
+		return nil
+	}
+
+	consumerGroup, _ := namespace.findConsumerGroup(consumerGroupName)
+	return consumerGroup
+}
+
+func (s *ClusterState) FindOpenSegmentsFor(segmentType ClusterSegment_Type, namespaceName string, name string) []*ClusterSegment {
 	var segments []*ClusterSegment
 
 	for _, segment := range s.OpenSegments {
-		if segment.Owner.Namespace == namespaceName && segment.Owner.Name == name {
+		if segment.Type == segmentType && segment.Owner.Namespace == namespaceName && segment.Owner.Name == name {
 			segments = append(segments, segment)
 		}
 	}

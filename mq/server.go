@@ -12,11 +12,12 @@ import (
 )
 
 const (
-	notFoundErrorFormat     = "%s %s/%s not found"
-	couldNotDialLeaderError = "could not dial leader"
-	entityTopic             = "topic"
-	entityConsumerGroup     = "consumer group"
-	applyTimeout            = 10 * time.Second
+	notFoundErrorFormat             = "%s %s/%s not found"
+	couldNotDialLeaderError         = "could not dial leader"
+	entityTopic                     = "topic"
+	entityConsumerGroup             = "consumer group"
+	applyTimeout                    = 10 * time.Second
+	defaultSegmentReplicationFactor = 3
 )
 
 var (

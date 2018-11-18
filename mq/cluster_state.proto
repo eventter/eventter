@@ -45,7 +45,7 @@ message ClusterConsumerGroup {
 message ClusterSegment {
     uint64 id = 1 [(gogoproto.customname) = "ID"];
     NamespaceName owner = 2 [(gogoproto.nullable) = false];
-    OwnerType owner_type = 3;
+    Type type = 3;
     google.protobuf.Timestamp opened_at = 4 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
     google.protobuf.Timestamp closed_at = 5 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
     Nodes nodes = 6 [(gogoproto.nullable) = false];
@@ -58,9 +58,10 @@ message ClusterSegment {
         repeated uint64 replicating_node_ids = 3 [(gogoproto.customname) = "ReplicatingNodeIDs"];
     }
 
-    enum OwnerType {
+    enum Type {
         INVALID = 0;
         TOPIC = 1;
+        CONSUMER_GROUP_OFFSETS = 2;
     }
 }
 
@@ -79,7 +80,7 @@ message ClusterNode {
 message ClusterOpenSegmentCommand {
     uint64 id = 1 [(gogoproto.customname) = "ID"];
     NamespaceName owner = 2 [(gogoproto.nullable) = false];
-    ClusterSegment.OwnerType owner_type = 3;
+    ClusterSegment.Type type = 3;
     google.protobuf.Timestamp opened_at = 4 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
     uint64 primary_node_id = 5 [(gogoproto.customname) = "PrimaryNodeID"];
     repeated uint64 replicating_node_ids = 6 [(gogoproto.customname) = "ReplicatingNodeIDs"];

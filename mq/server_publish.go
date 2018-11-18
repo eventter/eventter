@@ -30,7 +30,7 @@ func (s *Server) Publish(ctx context.Context, request *client.PublishRequest) (*
 		forwardNodeID  uint64
 	)
 
-	openSegments := state.FindOpenSegmentsFor(request.Topic.Namespace, request.Topic.Name)
+	openSegments := state.FindOpenSegmentsFor(ClusterSegment_TOPIC, request.Topic.Namespace, request.Topic.Name)
 	for _, openSegment := range openSegments {
 		if openSegment.Nodes.PrimaryNodeID == s.nodeID {
 			localSegmentID = openSegment.ID
@@ -48,9 +48,9 @@ func (s *Server) Publish(ctx context.Context, request *client.PublishRequest) (*
 
 		} else {
 			response, err := s.SegmentOpen(ctx, &SegmentOpenRequest{
-				NodeID:    s.nodeID,
-				Owner:     request.Topic,
-				OwnerType: ClusterSegment_TOPIC,
+				NodeID: s.nodeID,
+				Owner:  request.Topic,
+				Type:   ClusterSegment_TOPIC,
 			})
 			if err != nil {
 				return nil, err

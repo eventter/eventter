@@ -121,6 +121,10 @@ func (s *ClusterState) doDeleteTopic(cmd *client.DeleteTopicRequest) *ClusterSta
 		next.Namespaces = make([]*ClusterNamespace, len(s.Namespaces)-1)
 		copy(next.Namespaces[:namespaceIndex], s.Namespaces[:namespaceIndex])
 		copy(next.Namespaces[namespaceIndex:], s.Namespaces[namespaceIndex+1:])
+	} else {
+		next.Namespaces = make([]*ClusterNamespace, len(s.Namespaces))
+		copy(next.Namespaces, s.Namespaces)
+		next.Namespaces[namespaceIndex] = nextNamespace
 	}
 
 	return next

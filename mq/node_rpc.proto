@@ -23,7 +23,7 @@ message SegmentOpenRequest {
     bool leader_only = 99;
     uint64 node_id = 1 [(gogoproto.customname) = "NodeID"];
     NamespaceName owner = 2 [(gogoproto.nullable) = false];
-    ClusterSegment.OwnerType owner_type = 3;
+    ClusterSegment.Type type = 3;
 }
 
 message SegmentOpenResponse {

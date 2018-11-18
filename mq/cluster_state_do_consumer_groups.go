@@ -82,10 +82,6 @@ func (s *ClusterState) doDeleteConsumerGroup(cmd *client.DeleteConsumerGroupRequ
 		return s
 	}
 
-	copy(namespace.ConsumerGroups[consumerGroupIndex:], namespace.ConsumerGroups[consumerGroupIndex+1:])
-	namespace.ConsumerGroups[len(namespace.ConsumerGroups)-1] = nil
-	namespace.ConsumerGroups = namespace.ConsumerGroups[:len(namespace.ConsumerGroups)-1]
-
 	next := &ClusterState{}
 	*next = *s
 
@@ -100,6 +96,10 @@ func (s *ClusterState) doDeleteConsumerGroup(cmd *client.DeleteConsumerGroupRequ
 		next.Namespaces = make([]*ClusterNamespace, len(s.Namespaces)-1)
 		copy(next.Namespaces[:namespaceIndex], s.Namespaces[:namespaceIndex])
 		copy(next.Namespaces[namespaceIndex:], s.Namespaces[namespaceIndex+1:])
+	} else {
+		next.Namespaces = make([]*ClusterNamespace, len(s.Namespaces))
+		copy(next.Namespaces, s.Namespaces)
+		next.Namespaces[namespaceIndex] = nextNamespace
 	}
 
 	return next

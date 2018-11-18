@@ -2,6 +2,7 @@ package mq
 
 import (
 	"context"
+	"math"
 
 	"eventter.io/mq/client"
 	"github.com/hashicorp/raft"
@@ -48,6 +49,36 @@ func (s *Server) ConfigureConsumerGroup(ctx context.Context, request *client.Con
 	index, err := s.Apply(request)
 	if err != nil {
 		return nil, err
+	}
+
+	openSegments := state.FindOpenSegmentsFor(
+		ClusterSegment_CONSUMER_GROUP_OFFSETS,
+		request.ConsumerGroup.Namespace,
+		request.ConsumerGroup.Name,
+	)
+
+	if len(openSegments) == 0 {
+		nodeSegmentCounts := state.CountSegmentsPerNode()
+		var (
+			primaryNodeID       uint64
+			primarySegmentCount = math.MaxInt32
+		)
+		for _, node := range state.Nodes {
+			if segmentCount := nodeSegmentCounts[node.ID]; node.State == ClusterNode_ALIVE && segmentCount < primarySegmentCount {
+				primaryNodeID = node.ID
+				primarySegmentCount = segmentCount
+			}
+		}
+
+		if primaryNodeID > 0 {
+			_, err = s.txSegmentOpen(state, primaryNodeID, request.ConsumerGroup, ClusterSegment_CONSUMER_GROUP_OFFSETS)
+			if err != nil {
+				return nil, errors.Wrap(err, "segment open failed")
+			}
+		}
+
+	} else if len(openSegments) > 1 {
+		panic("there must be at most one open segment per consumer group")
 	}
 
 	return &client.ConfigureConsumerGroupResponse{

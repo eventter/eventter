@@ -30,6 +30,7 @@ func (s *Server) Loop(memberEventsC chan memberlist.NodeEvent) {
 	reconciler := NewReconciler(s)
 
 	taskCompletedC := make(chan uint64, 128)
+	runningConsumerGroups := make(map[string]*task)
 	runningOpenSegmentReplications := make(map[uint64]*task)
 	runningClosedSegmentReplications := make(map[uint64]*task)
 
@@ -99,7 +100,13 @@ LOOP:
 
 				reconciler.ReconcileNodes(s.clusterState.Current())
 
-				// barrier before segments reconciliation
+				if err := s.raftNode.Barrier(10 * time.Second).Error(); err != nil {
+					log.Printf("could not add barrier: %v", err)
+					return
+				}
+
+				reconciler.ReconcileConsumerGroups(s.clusterState.Current())
+
 				if err := s.raftNode.Barrier(10 * time.Second).Error(); err != nil {
 					log.Printf("could not add barrier: %v", err)
 					return
@@ -117,8 +124,25 @@ LOOP:
 			state = newState
 
 			replicatingOpenSegmentIDs := make(map[uint64]bool)
+			consumerGroups := make(map[string]bool)
 
 			for _, segment := range state.OpenSegments {
+				if segment.Type == ClusterSegment_CONSUMER_GROUP_OFFSETS && segment.Nodes.PrimaryNodeID == s.nodeID {
+					name := segment.Owner.Namespace + "/" + segment.Owner.Name
+					consumerGroups[name] = true
+
+					if _, ok := runningConsumerGroups[name]; !ok {
+						runningConsumerGroups[name] = startTask(
+							fmt.Sprintf("consumer group %s", name),
+							func(namespace string, name string) func(context.Context) error {
+								return func(ctx context.Context) error {
+									return s.taskConsumerGroup(ctx, namespace, name)
+								}
+							}(segment.Owner.Namespace, segment.Owner.Name),
+						)
+					}
+				}
+
 				for _, nodeID := range segment.Nodes.ReplicatingNodeIDs {
 					if nodeID == s.nodeID {
 						replicatingOpenSegmentIDs[segment.ID] = true
@@ -140,6 +164,13 @@ LOOP:
 			for segmentID, task := range runningOpenSegmentReplications {
 				if !replicatingOpenSegmentIDs[segmentID] {
 					log.Printf("stopping replication of open segment %d", segmentID)
+					task.cancel()
+				}
+			}
+
+			for name, task := range runningConsumerGroups {
+				if !consumerGroups[name] {
+					log.Printf("stopping consumer group %s", name)
 					task.cancel()
 				}
 			}
@@ -288,6 +319,9 @@ LOOP:
 	for _, task := range runningOpenSegmentReplications {
 		task.cancel()
 	}
+	for _, task := range runningClosedSegmentReplications {
+		task.cancel()
+	}
 }
 
 func (s *Server) Members() []*memberlist.Node {
@@ -324,4 +358,8 @@ func (s *Server) GetSegmentSizeFromNode(ctx context.Context, segmentID uint64, n
 	}
 
 	return response.Size_, nil
+}
+
+func (s *Server) NextSegmentID() uint64 {
+	return s.clusterState.NextSegmentID()
 }
