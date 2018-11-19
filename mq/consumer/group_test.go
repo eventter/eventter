@@ -1,7 +1,6 @@
 package consumer
 
 import (
-	"bytes"
 	"strconv"
 	"testing"
 
@@ -32,9 +31,12 @@ func TestGroup_Offer(t *testing.T) {
 			break
 		}
 
-		expected := []byte(strconv.Itoa(i))
-		if !bytes.Equal(expected, m.Message.Data) {
-			t.Fatalf("expected %s, got %s", expected, m.Message.Data)
+		if strconv.Itoa(i) != string(m.Message.Data) {
+			t.Fatalf("expected %d, got %s", i, m.Message.Data)
+		}
+
+		if err := subscription.Ack(m); err != nil {
+			t.Fatal(err)
 		}
 	}
 }

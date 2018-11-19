@@ -1,10 +1,16 @@
 package consumer
 
 import (
+	"math"
 	"sync"
 	"sync/atomic"
 
 	"github.com/pkg/errors"
+)
+
+const (
+	ready = 0
+	ack   = math.MaxUint64
 )
 
 var (
@@ -15,6 +21,7 @@ type Group struct {
 	mutex               sync.Mutex
 	cond                *sync.Cond
 	messages            []*Message
+	leases              []uint64
 	read                int
 	write               int
 	closed              uint32
@@ -28,6 +35,7 @@ func NewGroup(size int) (*Group, error) {
 
 	g := &Group{
 		messages: make([]*Message, size),
+		leases:   make([]uint64, size),
 	}
 
 	g.cond = sync.NewCond(&g.mutex)
@@ -36,6 +44,10 @@ func NewGroup(size int) (*Group, error) {
 }
 
 func (g *Group) Offer(message *Message) error {
+	if atomic.LoadUint32(&g.closed) == 1 {
+		return ErrGroupClosed
+	}
+
 	g.mutex.Lock()
 	defer g.mutex.Unlock()
 
@@ -47,6 +59,7 @@ func (g *Group) Offer(message *Message) error {
 	}
 
 	g.messages[g.write] = message
+	g.leases[g.write] = ready
 	g.write = (g.write + 1) % len(g.messages)
 
 	g.cond.Broadcast()
