@@ -125,7 +125,7 @@ func (f *File) Write(message []byte) error {
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
 
-	currentOffset := f.offset
+	currentOffset := atomic.LoadInt64(&f.offset)
 	if currentOffset >= f.maxSize {
 		return ErrFull
 	}
@@ -136,13 +136,13 @@ func (f *File) Write(message []byte) error {
 	buf = buf[:n+len(message)]
 
 	if n, err := f.file.Write(buf); err != nil || n < len(buf) {
-		if err := f.file.Truncate(f.offset); err != nil {
+		if err := f.file.Truncate(currentOffset); err != nil {
 			panic("segment file " + f.path + " might be corrupted, truncate failed: " + err.Error())
 		}
 		return errors.Wrap(err, "write failed")
 	}
 
-	f.offset += int64(len(buf))
+	atomic.AddInt64(&f.offset, int64(len(buf)))
 
 	f.cond.Broadcast()
 
@@ -150,10 +150,7 @@ func (f *File) Write(message []byte) error {
 }
 
 func (f *File) IsFull() bool {
-	f.mutex.Lock()
-	defer f.mutex.Unlock()
-
-	return f.offset >= f.maxSize
+	return atomic.LoadInt64(&f.offset) >= f.maxSize
 }
 
 func (f *File) Truncate(size int64) error {
@@ -166,15 +163,18 @@ func (f *File) Truncate(size int64) error {
 		size = 1 // version byte
 	}
 
-	if size > f.offset {
+	currentOffset := atomic.LoadInt64(&f.offset)
+	if size > currentOffset {
 		return ErrExtend
-	} else if size < f.offset {
+	} else if size < currentOffset {
 		if err := f.file.Truncate(size); err != nil {
 			return errors.Wrap(err, "truncate failed")
 		}
+		atomic.StoreInt64(&f.offset, size)
 	}
 
 	atomic.AddUint32(&f.term, 1)
+
 	f.cond.Broadcast()
 
 	return nil
@@ -185,14 +185,15 @@ func (f *File) Read(wait bool) (*Iterator, error) {
 }
 
 func (f *File) ReadAt(offset int64, wait bool) (*Iterator, error) {
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+
 	if offset < 1 {
 		return nil, errors.New("offset must be positive")
 	}
 
-	f.mutex.Lock()
-	defer f.mutex.Unlock()
-
-	if offset > f.offset {
+	currentOffset := atomic.LoadInt64(&f.offset)
+	if offset > currentOffset {
 		return nil, errors.New("offset out of bounds")
 	}
 
@@ -200,19 +201,17 @@ func (f *File) ReadAt(offset int64, wait bool) (*Iterator, error) {
 		file:      f,
 		term:      atomic.LoadUint32(&f.term),
 		offset:    offset,
-		endOffset: f.offset,
+		endOffset: currentOffset,
 		wait:      wait,
-		reader:    bufio.NewReader(io.NewSectionReader(f.file, offset, f.offset-offset)),
+		reader:    bufio.NewReader(io.NewSectionReader(f.file, offset, currentOffset-offset)),
 	}, nil
 }
 
 func (f *File) Sum(h hash.Hash, size int64) (sum []byte, actualSize int64, err error) {
-	f.mutex.Lock()
 	if size < 1 {
-		size = f.offset
+		size = atomic.LoadInt64(&f.offset)
 	}
 	r := io.NewSectionReader(f.file, 0, size)
-	f.mutex.Unlock()
 
 	if _, err := io.Copy(h, r); err != nil {
 		return nil, 0, err
@@ -222,15 +221,12 @@ func (f *File) Sum(h hash.Hash, size int64) (sum []byte, actualSize int64, err e
 }
 
 func (f *File) String() string {
-	f.mutex.Lock()
-	defer f.mutex.Unlock()
-
 	return fmt.Sprintf(
-		"segment %d: path=%s maxSize=%d endOffset=%d",
+		"segment %d: path=%s maxSize=%d size=%d",
 		f.id,
 		f.path,
 		f.maxSize,
-		f.offset,
+		atomic.LoadInt64(&f.offset),
 	)
 }
 
@@ -239,6 +235,7 @@ func (f *File) Close() error {
 	defer f.mutex.Unlock()
 
 	atomic.AddUint32(&f.term, 1)
+
 	f.cond.Broadcast()
 
 	return f.file.Close()

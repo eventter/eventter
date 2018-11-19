@@ -85,19 +85,21 @@ func (i *Iterator) nextWait() error {
 	i.file.mutex.Lock()
 	defer i.file.mutex.Unlock()
 
-	for i.file.offset == i.endOffset && atomic.LoadUint32(&i.file.term) == i.term {
+	currentOffset := atomic.LoadInt64(&i.file.offset)
+	for currentOffset == i.endOffset && atomic.LoadUint32(&i.file.term) == i.term {
 		i.file.cond.Wait()
 		if atomic.LoadUint32(&i.closed) == 1 {
 			return ErrIteratorClosed
 		}
+		currentOffset = atomic.LoadInt64(&i.file.offset)
 	}
 
 	if atomic.LoadUint32(&i.file.term) != i.term {
 		return ErrIteratorInvalid
 	}
 
-	i.reader.Reset(io.NewSectionReader(i.file.file, i.endOffset, i.file.offset-i.endOffset))
-	i.endOffset = i.file.offset
+	i.reader.Reset(io.NewSectionReader(i.file.file, i.endOffset, currentOffset-i.endOffset))
+	i.endOffset = currentOffset
 
 	return nil
 }

@@ -49,7 +49,7 @@ func (g *Group) Offer(message *Message) error {
 	g.messages[g.write] = message
 	g.write = (g.write + 1) % len(g.messages)
 
-	g.cond.Signal()
+	g.cond.Broadcast()
 
 	return nil
 }
