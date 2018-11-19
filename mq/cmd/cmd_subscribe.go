@@ -12,12 +12,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func consumeCmd() *cobra.Command {
-	request := &client.ConsumeRequest_Request{}
+func subscribeCmd() *cobra.Command {
+	request := &client.SubscribeRequest{}
 
 	cmd := &cobra.Command{
-		Use:   "consume",
-		Short: "Consume messages from consumer group.",
+		Use:     "subscribe",
+		Short:   "Consume messages from consumer group.",
+		Aliases: []string{"sub"},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if rootConfig.BindHost == "" {
 				rootConfig.BindHost = "localhost"
@@ -31,16 +32,7 @@ func consumeCmd() *cobra.Command {
 			}
 			defer c.Close()
 
-			stream, err := c.Consume(ctx)
-			if err != nil {
-				return err
-			}
-
-			err = stream.Send(&client.ConsumeRequest{
-				Body: &client.ConsumeRequest_Request_{
-					Request: request,
-				},
-			})
+			stream, err := c.Subscribe(ctx, request)
 			if err != nil {
 				return err
 			}
@@ -49,22 +41,20 @@ func consumeCmd() *cobra.Command {
 			encoder.SetIndent("", "  ")
 
 			for {
-				in, err := stream.Recv()
+				response, err := stream.Recv()
 				if err == io.EOF {
 					break
 				} else if err != nil {
 					return err
 				}
 
-				encoder.Encode(in)
+				encoder.Encode(response)
 
 				if !request.NoAck {
-					err = stream.Send(&client.ConsumeRequest{
-						Body: &client.ConsumeRequest_Ack_{
-							Ack: &client.ConsumeRequest_Ack{
-								DeliveryTag: in.DeliveryTag,
-							},
-						},
+					_, err = c.Ack(ctx, &client.AckRequest{
+						ConsumerGroup:  request.ConsumerGroup,
+						SubscriptionID: response.SubscriptionID,
+						DeliveryTag:    response.DeliveryTag,
 					})
 					if err != nil {
 						return err
@@ -72,7 +62,7 @@ func consumeCmd() *cobra.Command {
 				}
 			}
 
-			return stream.CloseSend()
+			return nil
 		},
 	}
 

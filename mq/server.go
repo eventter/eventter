@@ -65,11 +65,7 @@ func (s *Server) beginTransaction() (err error) {
 	}()
 
 	future := s.raftNode.Barrier(10 * time.Second)
-	if err := future.Error(); err != nil {
-		return err
-	}
-
-	return nil
+	return future.Error()
 }
 
 func (s *Server) releaseTransaction() {

@@ -63,7 +63,7 @@ func (s *Server) taskSegmentReplication(ctx context.Context, segmentID uint64, n
 		Wait:      wait,
 	}, grpc.MaxCallRecvMsgSize(math.MaxUint32))
 	if err != nil {
-		return errors.Wrap(err, "read failed")
+		return errors.Wrap(err, "request failed")
 	}
 
 	go func() {

@@ -328,25 +328,23 @@ func (r *Reconciler) reconcileClosedSegment(segment *ClusterSegment, state *Clus
 		replicationFactor = topic.ReplicationFactor
 
 	} else if segment.Type == ClusterSegment_CONSUMER_GROUP_OFFSETS {
-		consumerGroup := state.GetConsumerGroup(segment.Owner.Namespace, segment.Owner.Name)
+		// segment is closed only after offsets were saved to cluster state => delete closed offset commits segment right away
 
-		if consumerGroup == nil {
-			_, err := r.delegate.Apply(&ClusterDeleteSegmentCommand{
-				ID:    segment.ID,
-				Which: ClusterDeleteSegmentCommand_CLOSED,
-			})
-			if err != nil {
-				log.Printf("could not delete open segment with non-existent consumer group: %v", err)
-				return
-			}
-			log.Printf(
-				"consumer group %s/%s does not exist, open segment %d deleted",
-				segment.Owner.Namespace,
-				segment.Owner.Namespace,
-				segment.ID,
-			)
+		_, err := r.delegate.Apply(&ClusterDeleteSegmentCommand{
+			ID:    segment.ID,
+			Which: ClusterDeleteSegmentCommand_CLOSED,
+		})
+		if err != nil {
+			log.Printf("could not delete closed consumer group offset commits segment: %v", err)
 			return
 		}
+		log.Printf(
+			"closed segment %d for consumer group %s/%s offset commits deleted",
+			segment.ID,
+			segment.Owner.Namespace,
+			segment.Owner.Namespace,
+		)
+		return
 	}
 
 	aliveReplicas := uint32(0)

@@ -42,7 +42,7 @@ func (m *NamespaceName) Reset()         { *m = NamespaceName{} }
 func (m *NamespaceName) String() string { return proto.CompactTextString(m) }
 func (*NamespaceName) ProtoMessage()    {}
 func (*NamespaceName) Descriptor() ([]byte, []int) {
-	return fileDescriptor_eventtermq_fb83e6966d26bbe2, []int{0}
+	return fileDescriptor_eventtermq_3a1954b40eda73fc, []int{0}
 }
 func (m *NamespaceName) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -107,7 +107,7 @@ func (m *ConfigureTopicRequest) Reset()         { *m = ConfigureTopicRequest{} }
 func (m *ConfigureTopicRequest) String() string { return proto.CompactTextString(m) }
 func (*ConfigureTopicRequest) ProtoMessage()    {}
 func (*ConfigureTopicRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_eventtermq_fb83e6966d26bbe2, []int{1}
+	return fileDescriptor_eventtermq_3a1954b40eda73fc, []int{1}
 }
 func (m *ConfigureTopicRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -189,7 +189,7 @@ func (m *ConfigureTopicResponse) Reset()         { *m = ConfigureTopicResponse{}
 func (m *ConfigureTopicResponse) String() string { return proto.CompactTextString(m) }
 func (*ConfigureTopicResponse) ProtoMessage()    {}
 func (*ConfigureTopicResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_eventtermq_fb83e6966d26bbe2, []int{2}
+	return fileDescriptor_eventtermq_3a1954b40eda73fc, []int{2}
 }
 func (m *ConfigureTopicResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -246,7 +246,7 @@ func (m *Topic) Reset()         { *m = Topic{} }
 func (m *Topic) String() string { return proto.CompactTextString(m) }
 func (*Topic) ProtoMessage()    {}
 func (*Topic) Descriptor() ([]byte, []int) {
-	return fileDescriptor_eventtermq_fb83e6966d26bbe2, []int{3}
+	return fileDescriptor_eventtermq_3a1954b40eda73fc, []int{3}
 }
 func (m *Topic) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -322,7 +322,7 @@ func (m *ListTopicsRequest) Reset()         { *m = ListTopicsRequest{} }
 func (m *ListTopicsRequest) String() string { return proto.CompactTextString(m) }
 func (*ListTopicsRequest) ProtoMessage()    {}
 func (*ListTopicsRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_eventtermq_fb83e6966d26bbe2, []int{4}
+	return fileDescriptor_eventtermq_3a1954b40eda73fc, []int{4}
 }
 func (m *ListTopicsRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -377,7 +377,7 @@ func (m *ListTopicsResponse) Reset()         { *m = ListTopicsResponse{} }
 func (m *ListTopicsResponse) String() string { return proto.CompactTextString(m) }
 func (*ListTopicsResponse) ProtoMessage()    {}
 func (*ListTopicsResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_eventtermq_fb83e6966d26bbe2, []int{5}
+	return fileDescriptor_eventtermq_3a1954b40eda73fc, []int{5}
 }
 func (m *ListTopicsResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -441,7 +441,7 @@ func (m *DeleteTopicRequest) Reset()         { *m = DeleteTopicRequest{} }
 func (m *DeleteTopicRequest) String() string { return proto.CompactTextString(m) }
 func (*DeleteTopicRequest) ProtoMessage()    {}
 func (*DeleteTopicRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_eventtermq_fb83e6966d26bbe2, []int{6}
+	return fileDescriptor_eventtermq_3a1954b40eda73fc, []int{6}
 }
 func (m *DeleteTopicRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -502,7 +502,7 @@ func (m *DeleteTopicResponse) Reset()         { *m = DeleteTopicResponse{} }
 func (m *DeleteTopicResponse) String() string { return proto.CompactTextString(m) }
 func (*DeleteTopicResponse) ProtoMessage()    {}
 func (*DeleteTopicResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_eventtermq_fb83e6966d26bbe2, []int{7}
+	return fileDescriptor_eventtermq_3a1954b40eda73fc, []int{7}
 }
 func (m *DeleteTopicResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -558,7 +558,7 @@ func (m *ConfigureConsumerGroupRequest) Reset()         { *m = ConfigureConsumer
 func (m *ConfigureConsumerGroupRequest) String() string { return proto.CompactTextString(m) }
 func (*ConfigureConsumerGroupRequest) ProtoMessage()    {}
 func (*ConfigureConsumerGroupRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_eventtermq_fb83e6966d26bbe2, []int{8}
+	return fileDescriptor_eventtermq_3a1954b40eda73fc, []int{8}
 }
 func (m *ConfigureConsumerGroupRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -619,7 +619,7 @@ func (m *ConfigureConsumerGroupRequest_Binding) Reset()         { *m = Configure
 func (m *ConfigureConsumerGroupRequest_Binding) String() string { return proto.CompactTextString(m) }
 func (*ConfigureConsumerGroupRequest_Binding) ProtoMessage()    {}
 func (*ConfigureConsumerGroupRequest_Binding) Descriptor() ([]byte, []int) {
-	return fileDescriptor_eventtermq_fb83e6966d26bbe2, []int{8, 0}
+	return fileDescriptor_eventtermq_3a1954b40eda73fc, []int{8, 0}
 }
 func (m *ConfigureConsumerGroupRequest_Binding) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -673,7 +673,7 @@ func (m *ConfigureConsumerGroupResponse) Reset()         { *m = ConfigureConsume
 func (m *ConfigureConsumerGroupResponse) String() string { return proto.CompactTextString(m) }
 func (*ConfigureConsumerGroupResponse) ProtoMessage()    {}
 func (*ConfigureConsumerGroupResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_eventtermq_fb83e6966d26bbe2, []int{9}
+	return fileDescriptor_eventtermq_3a1954b40eda73fc, []int{9}
 }
 func (m *ConfigureConsumerGroupResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -728,7 +728,7 @@ func (m *ConsumerGroup) Reset()         { *m = ConsumerGroup{} }
 func (m *ConsumerGroup) String() string { return proto.CompactTextString(m) }
 func (*ConsumerGroup) ProtoMessage()    {}
 func (*ConsumerGroup) Descriptor() ([]byte, []int) {
-	return fileDescriptor_eventtermq_fb83e6966d26bbe2, []int{10}
+	return fileDescriptor_eventtermq_3a1954b40eda73fc, []int{10}
 }
 func (m *ConsumerGroup) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -789,7 +789,7 @@ func (m *ConsumerGroup_Binding) Reset()         { *m = ConsumerGroup_Binding{} }
 func (m *ConsumerGroup_Binding) String() string { return proto.CompactTextString(m) }
 func (*ConsumerGroup_Binding) ProtoMessage()    {}
 func (*ConsumerGroup_Binding) Descriptor() ([]byte, []int) {
-	return fileDescriptor_eventtermq_fb83e6966d26bbe2, []int{10, 0}
+	return fileDescriptor_eventtermq_3a1954b40eda73fc, []int{10, 0}
 }
 func (m *ConsumerGroup_Binding) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -844,7 +844,7 @@ func (m *ListConsumerGroupsRequest) Reset()         { *m = ListConsumerGroupsReq
 func (m *ListConsumerGroupsRequest) String() string { return proto.CompactTextString(m) }
 func (*ListConsumerGroupsRequest) ProtoMessage()    {}
 func (*ListConsumerGroupsRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_eventtermq_fb83e6966d26bbe2, []int{11}
+	return fileDescriptor_eventtermq_3a1954b40eda73fc, []int{11}
 }
 func (m *ListConsumerGroupsRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -899,7 +899,7 @@ func (m *ListConsumerGroupsResponse) Reset()         { *m = ListConsumerGroupsRe
 func (m *ListConsumerGroupsResponse) String() string { return proto.CompactTextString(m) }
 func (*ListConsumerGroupsResponse) ProtoMessage()    {}
 func (*ListConsumerGroupsResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_eventtermq_fb83e6966d26bbe2, []int{12}
+	return fileDescriptor_eventtermq_3a1954b40eda73fc, []int{12}
 }
 func (m *ListConsumerGroupsResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -965,7 +965,7 @@ func (m *DeleteConsumerGroupRequest) Reset()         { *m = DeleteConsumerGroupR
 func (m *DeleteConsumerGroupRequest) String() string { return proto.CompactTextString(m) }
 func (*DeleteConsumerGroupRequest) ProtoMessage()    {}
 func (*DeleteConsumerGroupRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_eventtermq_fb83e6966d26bbe2, []int{13}
+	return fileDescriptor_eventtermq_3a1954b40eda73fc, []int{13}
 }
 func (m *DeleteConsumerGroupRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1033,7 +1033,7 @@ func (m *DeleteConsumerGroupResponse) Reset()         { *m = DeleteConsumerGroup
 func (m *DeleteConsumerGroupResponse) String() string { return proto.CompactTextString(m) }
 func (*DeleteConsumerGroupResponse) ProtoMessage()    {}
 func (*DeleteConsumerGroupResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_eventtermq_fb83e6966d26bbe2, []int{14}
+	return fileDescriptor_eventtermq_3a1954b40eda73fc, []int{14}
 }
 func (m *DeleteConsumerGroupResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1089,7 +1089,7 @@ func (m *Message) Reset()         { *m = Message{} }
 func (m *Message) String() string { return proto.CompactTextString(m) }
 func (*Message) ProtoMessage()    {}
 func (*Message) Descriptor() ([]byte, []int) {
-	return fileDescriptor_eventtermq_fb83e6966d26bbe2, []int{15}
+	return fileDescriptor_eventtermq_3a1954b40eda73fc, []int{15}
 }
 func (m *Message) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1167,7 +1167,7 @@ func (m *Message_Properties) Reset()         { *m = Message_Properties{} }
 func (m *Message_Properties) String() string { return proto.CompactTextString(m) }
 func (*Message_Properties) ProtoMessage()    {}
 func (*Message_Properties) Descriptor() ([]byte, []int) {
-	return fileDescriptor_eventtermq_fb83e6966d26bbe2, []int{15, 0}
+	return fileDescriptor_eventtermq_3a1954b40eda73fc, []int{15, 0}
 }
 func (m *Message_Properties) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1284,7 +1284,7 @@ type PublishRequest struct {
 	// If true and node cannot write message to segment, request will fail.
 	DoNotForward         bool          `protobuf:"varint,98,opt,name=do_not_forward,json=doNotForward,proto3" json:"do_not_forward,omitempty"`
 	Topic                NamespaceName `protobuf:"bytes,1,opt,name=topic" json:"topic"`
-	Message              Message       `protobuf:"bytes,2,opt,name=message" json:"message"`
+	Message              *Message      `protobuf:"bytes,2,opt,name=message" json:"message,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
 	XXX_sizecache        int32         `json:"-"`
 }
@@ -1293,7 +1293,7 @@ func (m *PublishRequest) Reset()         { *m = PublishRequest{} }
 func (m *PublishRequest) String() string { return proto.CompactTextString(m) }
 func (*PublishRequest) ProtoMessage()    {}
 func (*PublishRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_eventtermq_fb83e6966d26bbe2, []int{16}
+	return fileDescriptor_eventtermq_3a1954b40eda73fc, []int{16}
 }
 func (m *PublishRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1336,11 +1336,11 @@ func (m *PublishRequest) GetTopic() NamespaceName {
 	return NamespaceName{}
 }
 
-func (m *PublishRequest) GetMessage() Message {
+func (m *PublishRequest) GetMessage() *Message {
 	if m != nil {
 		return m.Message
 	}
-	return Message{}
+	return nil
 }
 
 type PublishResponse struct {
@@ -1353,7 +1353,7 @@ func (m *PublishResponse) Reset()         { *m = PublishResponse{} }
 func (m *PublishResponse) String() string { return proto.CompactTextString(m) }
 func (*PublishResponse) ProtoMessage()    {}
 func (*PublishResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_eventtermq_fb83e6966d26bbe2, []int{17}
+	return fileDescriptor_eventtermq_3a1954b40eda73fc, []int{17}
 }
 func (m *PublishResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1389,191 +1389,9 @@ func (m *PublishResponse) GetOK() bool {
 	return false
 }
 
-type ConsumeRequest struct {
-	// Types that are valid to be assigned to Body:
-	//	*ConsumeRequest_Request_
-	//	*ConsumeRequest_Ack_
-	//	*ConsumeRequest_Nack_
-	Body                 isConsumeRequest_Body `protobuf_oneof:"body"`
-	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
-	XXX_sizecache        int32                 `json:"-"`
-}
-
-func (m *ConsumeRequest) Reset()         { *m = ConsumeRequest{} }
-func (m *ConsumeRequest) String() string { return proto.CompactTextString(m) }
-func (*ConsumeRequest) ProtoMessage()    {}
-func (*ConsumeRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_eventtermq_fb83e6966d26bbe2, []int{18}
-}
-func (m *ConsumeRequest) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *ConsumeRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_ConsumeRequest.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalTo(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (dst *ConsumeRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ConsumeRequest.Merge(dst, src)
-}
-func (m *ConsumeRequest) XXX_Size() int {
-	return m.Size()
-}
-func (m *ConsumeRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_ConsumeRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_ConsumeRequest proto.InternalMessageInfo
-
-type isConsumeRequest_Body interface {
-	isConsumeRequest_Body()
-	MarshalTo([]byte) (int, error)
-	Size() int
-}
-
-type ConsumeRequest_Request_ struct {
-	Request *ConsumeRequest_Request `protobuf:"bytes,1,opt,name=request,oneof"`
-}
-type ConsumeRequest_Ack_ struct {
-	Ack *ConsumeRequest_Ack `protobuf:"bytes,2,opt,name=ack,oneof"`
-}
-type ConsumeRequest_Nack_ struct {
-	Nack *ConsumeRequest_Nack `protobuf:"bytes,3,opt,name=nack,oneof"`
-}
-
-func (*ConsumeRequest_Request_) isConsumeRequest_Body() {}
-func (*ConsumeRequest_Ack_) isConsumeRequest_Body()     {}
-func (*ConsumeRequest_Nack_) isConsumeRequest_Body()    {}
-
-func (m *ConsumeRequest) GetBody() isConsumeRequest_Body {
-	if m != nil {
-		return m.Body
-	}
-	return nil
-}
-
-func (m *ConsumeRequest) GetRequest() *ConsumeRequest_Request {
-	if x, ok := m.GetBody().(*ConsumeRequest_Request_); ok {
-		return x.Request
-	}
-	return nil
-}
-
-func (m *ConsumeRequest) GetAck() *ConsumeRequest_Ack {
-	if x, ok := m.GetBody().(*ConsumeRequest_Ack_); ok {
-		return x.Ack
-	}
-	return nil
-}
-
-func (m *ConsumeRequest) GetNack() *ConsumeRequest_Nack {
-	if x, ok := m.GetBody().(*ConsumeRequest_Nack_); ok {
-		return x.Nack
-	}
-	return nil
-}
-
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*ConsumeRequest) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _ConsumeRequest_OneofMarshaler, _ConsumeRequest_OneofUnmarshaler, _ConsumeRequest_OneofSizer, []interface{}{
-		(*ConsumeRequest_Request_)(nil),
-		(*ConsumeRequest_Ack_)(nil),
-		(*ConsumeRequest_Nack_)(nil),
-	}
-}
-
-func _ConsumeRequest_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*ConsumeRequest)
-	// body
-	switch x := m.Body.(type) {
-	case *ConsumeRequest_Request_:
-		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.Request); err != nil {
-			return err
-		}
-	case *ConsumeRequest_Ack_:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.Ack); err != nil {
-			return err
-		}
-	case *ConsumeRequest_Nack_:
-		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.Nack); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("ConsumeRequest.Body has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _ConsumeRequest_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*ConsumeRequest)
-	switch tag {
-	case 1: // body.request
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(ConsumeRequest_Request)
-		err := b.DecodeMessage(msg)
-		m.Body = &ConsumeRequest_Request_{msg}
-		return true, err
-	case 2: // body.ack
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(ConsumeRequest_Ack)
-		err := b.DecodeMessage(msg)
-		m.Body = &ConsumeRequest_Ack_{msg}
-		return true, err
-	case 3: // body.nack
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(ConsumeRequest_Nack)
-		err := b.DecodeMessage(msg)
-		m.Body = &ConsumeRequest_Nack_{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _ConsumeRequest_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*ConsumeRequest)
-	// body
-	switch x := m.Body.(type) {
-	case *ConsumeRequest_Request_:
-		s := proto.Size(x.Request)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *ConsumeRequest_Ack_:
-		s := proto.Size(x.Ack)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *ConsumeRequest_Nack_:
-		s := proto.Size(x.Nack)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
-}
-
-type ConsumeRequest_Request struct {
+type SubscribeRequest struct {
+	// If true and node does not manage consumer group, request will fail.
+	DoNotForward         bool          `protobuf:"varint,98,opt,name=do_not_forward,json=doNotForward,proto3" json:"do_not_forward,omitempty"`
 	ConsumerGroup        NamespaceName `protobuf:"bytes,1,opt,name=consumer_group,json=consumerGroup" json:"consumer_group"`
 	NoAck                bool          `protobuf:"varint,2,opt,name=no_ack,json=noAck,proto3" json:"no_ack,omitempty"`
 	Exclusive            bool          `protobuf:"varint,3,opt,name=exclusive,proto3" json:"exclusive,omitempty"`
@@ -1581,18 +1399,18 @@ type ConsumeRequest_Request struct {
 	XXX_sizecache        int32         `json:"-"`
 }
 
-func (m *ConsumeRequest_Request) Reset()         { *m = ConsumeRequest_Request{} }
-func (m *ConsumeRequest_Request) String() string { return proto.CompactTextString(m) }
-func (*ConsumeRequest_Request) ProtoMessage()    {}
-func (*ConsumeRequest_Request) Descriptor() ([]byte, []int) {
-	return fileDescriptor_eventtermq_fb83e6966d26bbe2, []int{18, 0}
+func (m *SubscribeRequest) Reset()         { *m = SubscribeRequest{} }
+func (m *SubscribeRequest) String() string { return proto.CompactTextString(m) }
+func (*SubscribeRequest) ProtoMessage()    {}
+func (*SubscribeRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_eventtermq_3a1954b40eda73fc, []int{18}
 }
-func (m *ConsumeRequest_Request) XXX_Unmarshal(b []byte) error {
+func (m *SubscribeRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *ConsumeRequest_Request) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *SubscribeRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_ConsumeRequest_Request.Marshal(b, m, deterministic)
+		return xxx_messageInfo_SubscribeRequest.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalTo(b)
@@ -1602,175 +1420,67 @@ func (m *ConsumeRequest_Request) XXX_Marshal(b []byte, deterministic bool) ([]by
 		return b[:n], nil
 	}
 }
-func (dst *ConsumeRequest_Request) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ConsumeRequest_Request.Merge(dst, src)
+func (dst *SubscribeRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SubscribeRequest.Merge(dst, src)
 }
-func (m *ConsumeRequest_Request) XXX_Size() int {
+func (m *SubscribeRequest) XXX_Size() int {
 	return m.Size()
 }
-func (m *ConsumeRequest_Request) XXX_DiscardUnknown() {
-	xxx_messageInfo_ConsumeRequest_Request.DiscardUnknown(m)
+func (m *SubscribeRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_SubscribeRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_ConsumeRequest_Request proto.InternalMessageInfo
+var xxx_messageInfo_SubscribeRequest proto.InternalMessageInfo
 
-func (m *ConsumeRequest_Request) GetConsumerGroup() NamespaceName {
+func (m *SubscribeRequest) GetDoNotForward() bool {
+	if m != nil {
+		return m.DoNotForward
+	}
+	return false
+}
+
+func (m *SubscribeRequest) GetConsumerGroup() NamespaceName {
 	if m != nil {
 		return m.ConsumerGroup
 	}
 	return NamespaceName{}
 }
 
-func (m *ConsumeRequest_Request) GetNoAck() bool {
+func (m *SubscribeRequest) GetNoAck() bool {
 	if m != nil {
 		return m.NoAck
 	}
 	return false
 }
 
-func (m *ConsumeRequest_Request) GetExclusive() bool {
+func (m *SubscribeRequest) GetExclusive() bool {
 	if m != nil {
 		return m.Exclusive
 	}
 	return false
 }
 
-type ConsumeRequest_Ack struct {
-	DeliveryTag          uint64   `protobuf:"varint,1,opt,name=delivery_tag,json=deliveryTag,proto3" json:"delivery_tag,omitempty"`
-	Multiple             bool     `protobuf:"varint,2,opt,name=multiple,proto3" json:"multiple,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *ConsumeRequest_Ack) Reset()         { *m = ConsumeRequest_Ack{} }
-func (m *ConsumeRequest_Ack) String() string { return proto.CompactTextString(m) }
-func (*ConsumeRequest_Ack) ProtoMessage()    {}
-func (*ConsumeRequest_Ack) Descriptor() ([]byte, []int) {
-	return fileDescriptor_eventtermq_fb83e6966d26bbe2, []int{18, 1}
-}
-func (m *ConsumeRequest_Ack) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *ConsumeRequest_Ack) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_ConsumeRequest_Ack.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalTo(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (dst *ConsumeRequest_Ack) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ConsumeRequest_Ack.Merge(dst, src)
-}
-func (m *ConsumeRequest_Ack) XXX_Size() int {
-	return m.Size()
-}
-func (m *ConsumeRequest_Ack) XXX_DiscardUnknown() {
-	xxx_messageInfo_ConsumeRequest_Ack.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_ConsumeRequest_Ack proto.InternalMessageInfo
-
-func (m *ConsumeRequest_Ack) GetDeliveryTag() uint64 {
-	if m != nil {
-		return m.DeliveryTag
-	}
-	return 0
-}
-
-func (m *ConsumeRequest_Ack) GetMultiple() bool {
-	if m != nil {
-		return m.Multiple
-	}
-	return false
-}
-
-type ConsumeRequest_Nack struct {
-	DeliveryTag          uint64   `protobuf:"varint,1,opt,name=delivery_tag,json=deliveryTag,proto3" json:"delivery_tag,omitempty"`
-	Multiple             bool     `protobuf:"varint,2,opt,name=multiple,proto3" json:"multiple,omitempty"`
-	Requeue              bool     `protobuf:"varint,3,opt,name=requeue,proto3" json:"requeue,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *ConsumeRequest_Nack) Reset()         { *m = ConsumeRequest_Nack{} }
-func (m *ConsumeRequest_Nack) String() string { return proto.CompactTextString(m) }
-func (*ConsumeRequest_Nack) ProtoMessage()    {}
-func (*ConsumeRequest_Nack) Descriptor() ([]byte, []int) {
-	return fileDescriptor_eventtermq_fb83e6966d26bbe2, []int{18, 2}
-}
-func (m *ConsumeRequest_Nack) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *ConsumeRequest_Nack) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_ConsumeRequest_Nack.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalTo(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (dst *ConsumeRequest_Nack) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ConsumeRequest_Nack.Merge(dst, src)
-}
-func (m *ConsumeRequest_Nack) XXX_Size() int {
-	return m.Size()
-}
-func (m *ConsumeRequest_Nack) XXX_DiscardUnknown() {
-	xxx_messageInfo_ConsumeRequest_Nack.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_ConsumeRequest_Nack proto.InternalMessageInfo
-
-func (m *ConsumeRequest_Nack) GetDeliveryTag() uint64 {
-	if m != nil {
-		return m.DeliveryTag
-	}
-	return 0
-}
-
-func (m *ConsumeRequest_Nack) GetMultiple() bool {
-	if m != nil {
-		return m.Multiple
-	}
-	return false
-}
-
-func (m *ConsumeRequest_Nack) GetRequeue() bool {
-	if m != nil {
-		return m.Requeue
-	}
-	return false
-}
-
-type ConsumeResponse struct {
-	DeliveryTag          uint64        `protobuf:"varint,1,opt,name=delivery_tag,json=deliveryTag,proto3" json:"delivery_tag,omitempty"`
-	Topic                NamespaceName `protobuf:"bytes,2,opt,name=topic" json:"topic"`
-	Message              Message       `protobuf:"bytes,3,opt,name=message" json:"message"`
+type SubscribeResponse struct {
+	Topic                NamespaceName `protobuf:"bytes,1,opt,name=topic" json:"topic"`
+	SubscriptionID       uint64        `protobuf:"varint,2,opt,name=subscription_id,json=subscriptionId,proto3" json:"subscription_id,omitempty"`
+	DeliveryTag          uint64        `protobuf:"varint,3,opt,name=delivery_tag,json=deliveryTag,proto3" json:"delivery_tag,omitempty"`
+	Message              *Message      `protobuf:"bytes,4,opt,name=message" json:"message,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
 	XXX_sizecache        int32         `json:"-"`
 }
 
-func (m *ConsumeResponse) Reset()         { *m = ConsumeResponse{} }
-func (m *ConsumeResponse) String() string { return proto.CompactTextString(m) }
-func (*ConsumeResponse) ProtoMessage()    {}
-func (*ConsumeResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_eventtermq_fb83e6966d26bbe2, []int{19}
+func (m *SubscribeResponse) Reset()         { *m = SubscribeResponse{} }
+func (m *SubscribeResponse) String() string { return proto.CompactTextString(m) }
+func (*SubscribeResponse) ProtoMessage()    {}
+func (*SubscribeResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_eventtermq_3a1954b40eda73fc, []int{19}
 }
-func (m *ConsumeResponse) XXX_Unmarshal(b []byte) error {
+func (m *SubscribeResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *ConsumeResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *SubscribeResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_ConsumeResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_SubscribeResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalTo(b)
@@ -1780,37 +1490,294 @@ func (m *ConsumeResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, err
 		return b[:n], nil
 	}
 }
-func (dst *ConsumeResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ConsumeResponse.Merge(dst, src)
+func (dst *SubscribeResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SubscribeResponse.Merge(dst, src)
 }
-func (m *ConsumeResponse) XXX_Size() int {
+func (m *SubscribeResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *ConsumeResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_ConsumeResponse.DiscardUnknown(m)
+func (m *SubscribeResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_SubscribeResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_ConsumeResponse proto.InternalMessageInfo
+var xxx_messageInfo_SubscribeResponse proto.InternalMessageInfo
 
-func (m *ConsumeResponse) GetDeliveryTag() uint64 {
-	if m != nil {
-		return m.DeliveryTag
-	}
-	return 0
-}
-
-func (m *ConsumeResponse) GetTopic() NamespaceName {
+func (m *SubscribeResponse) GetTopic() NamespaceName {
 	if m != nil {
 		return m.Topic
 	}
 	return NamespaceName{}
 }
 
-func (m *ConsumeResponse) GetMessage() Message {
+func (m *SubscribeResponse) GetSubscriptionID() uint64 {
+	if m != nil {
+		return m.SubscriptionID
+	}
+	return 0
+}
+
+func (m *SubscribeResponse) GetDeliveryTag() uint64 {
+	if m != nil {
+		return m.DeliveryTag
+	}
+	return 0
+}
+
+func (m *SubscribeResponse) GetMessage() *Message {
 	if m != nil {
 		return m.Message
 	}
-	return Message{}
+	return nil
+}
+
+type AckRequest struct {
+	// If true and node does not manage consumer group, request will fail.
+	DoNotForward         bool          `protobuf:"varint,98,opt,name=do_not_forward,json=doNotForward,proto3" json:"do_not_forward,omitempty"`
+	ConsumerGroup        NamespaceName `protobuf:"bytes,1,opt,name=consumer_group,json=consumerGroup" json:"consumer_group"`
+	SubscriptionID       uint64        `protobuf:"varint,2,opt,name=subscription_id,json=subscriptionId,proto3" json:"subscription_id,omitempty"`
+	DeliveryTag          uint64        `protobuf:"varint,3,opt,name=delivery_tag,json=deliveryTag,proto3" json:"delivery_tag,omitempty"`
+	Multiple             bool          `protobuf:"varint,4,opt,name=multiple,proto3" json:"multiple,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
+	XXX_sizecache        int32         `json:"-"`
+}
+
+func (m *AckRequest) Reset()         { *m = AckRequest{} }
+func (m *AckRequest) String() string { return proto.CompactTextString(m) }
+func (*AckRequest) ProtoMessage()    {}
+func (*AckRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_eventtermq_3a1954b40eda73fc, []int{20}
+}
+func (m *AckRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *AckRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_AckRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (dst *AckRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AckRequest.Merge(dst, src)
+}
+func (m *AckRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *AckRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_AckRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_AckRequest proto.InternalMessageInfo
+
+func (m *AckRequest) GetDoNotForward() bool {
+	if m != nil {
+		return m.DoNotForward
+	}
+	return false
+}
+
+func (m *AckRequest) GetConsumerGroup() NamespaceName {
+	if m != nil {
+		return m.ConsumerGroup
+	}
+	return NamespaceName{}
+}
+
+func (m *AckRequest) GetSubscriptionID() uint64 {
+	if m != nil {
+		return m.SubscriptionID
+	}
+	return 0
+}
+
+func (m *AckRequest) GetDeliveryTag() uint64 {
+	if m != nil {
+		return m.DeliveryTag
+	}
+	return 0
+}
+
+func (m *AckRequest) GetMultiple() bool {
+	if m != nil {
+		return m.Multiple
+	}
+	return false
+}
+
+type AckResponse struct {
+	OK                   bool     `protobuf:"varint,1,opt,name=ok,proto3" json:"ok,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *AckResponse) Reset()         { *m = AckResponse{} }
+func (m *AckResponse) String() string { return proto.CompactTextString(m) }
+func (*AckResponse) ProtoMessage()    {}
+func (*AckResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_eventtermq_3a1954b40eda73fc, []int{21}
+}
+func (m *AckResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *AckResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_AckResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (dst *AckResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AckResponse.Merge(dst, src)
+}
+func (m *AckResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *AckResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_AckResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_AckResponse proto.InternalMessageInfo
+
+func (m *AckResponse) GetOK() bool {
+	if m != nil {
+		return m.OK
+	}
+	return false
+}
+
+type NackRequest struct {
+	// If true and node does not manage consumer group, request will fail.
+	DoNotForward         bool          `protobuf:"varint,98,opt,name=do_not_forward,json=doNotForward,proto3" json:"do_not_forward,omitempty"`
+	ConsumerGroup        NamespaceName `protobuf:"bytes,1,opt,name=consumer_group,json=consumerGroup" json:"consumer_group"`
+	SubscriptionID       uint64        `protobuf:"varint,2,opt,name=subscription_id,json=subscriptionId,proto3" json:"subscription_id,omitempty"`
+	DeliveryTag          uint64        `protobuf:"varint,3,opt,name=delivery_tag,json=deliveryTag,proto3" json:"delivery_tag,omitempty"`
+	Multiple             bool          `protobuf:"varint,4,opt,name=multiple,proto3" json:"multiple,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
+	XXX_sizecache        int32         `json:"-"`
+}
+
+func (m *NackRequest) Reset()         { *m = NackRequest{} }
+func (m *NackRequest) String() string { return proto.CompactTextString(m) }
+func (*NackRequest) ProtoMessage()    {}
+func (*NackRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_eventtermq_3a1954b40eda73fc, []int{22}
+}
+func (m *NackRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *NackRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_NackRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (dst *NackRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_NackRequest.Merge(dst, src)
+}
+func (m *NackRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *NackRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_NackRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_NackRequest proto.InternalMessageInfo
+
+func (m *NackRequest) GetDoNotForward() bool {
+	if m != nil {
+		return m.DoNotForward
+	}
+	return false
+}
+
+func (m *NackRequest) GetConsumerGroup() NamespaceName {
+	if m != nil {
+		return m.ConsumerGroup
+	}
+	return NamespaceName{}
+}
+
+func (m *NackRequest) GetSubscriptionID() uint64 {
+	if m != nil {
+		return m.SubscriptionID
+	}
+	return 0
+}
+
+func (m *NackRequest) GetDeliveryTag() uint64 {
+	if m != nil {
+		return m.DeliveryTag
+	}
+	return 0
+}
+
+func (m *NackRequest) GetMultiple() bool {
+	if m != nil {
+		return m.Multiple
+	}
+	return false
+}
+
+type NackResponse struct {
+	OK                   bool     `protobuf:"varint,1,opt,name=ok,proto3" json:"ok,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *NackResponse) Reset()         { *m = NackResponse{} }
+func (m *NackResponse) String() string { return proto.CompactTextString(m) }
+func (*NackResponse) ProtoMessage()    {}
+func (*NackResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_eventtermq_3a1954b40eda73fc, []int{23}
+}
+func (m *NackResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *NackResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_NackResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (dst *NackResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_NackResponse.Merge(dst, src)
+}
+func (m *NackResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *NackResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_NackResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_NackResponse proto.InternalMessageInfo
+
+func (m *NackResponse) GetOK() bool {
+	if m != nil {
+		return m.OK
+	}
+	return false
 }
 
 func init() {
@@ -1835,11 +1802,12 @@ func init() {
 	proto.RegisterType((*Message_Properties)(nil), "io.eventter.mq.Message.Properties")
 	proto.RegisterType((*PublishRequest)(nil), "io.eventter.mq.PublishRequest")
 	proto.RegisterType((*PublishResponse)(nil), "io.eventter.mq.PublishResponse")
-	proto.RegisterType((*ConsumeRequest)(nil), "io.eventter.mq.ConsumeRequest")
-	proto.RegisterType((*ConsumeRequest_Request)(nil), "io.eventter.mq.ConsumeRequest.Request")
-	proto.RegisterType((*ConsumeRequest_Ack)(nil), "io.eventter.mq.ConsumeRequest.Ack")
-	proto.RegisterType((*ConsumeRequest_Nack)(nil), "io.eventter.mq.ConsumeRequest.Nack")
-	proto.RegisterType((*ConsumeResponse)(nil), "io.eventter.mq.ConsumeResponse")
+	proto.RegisterType((*SubscribeRequest)(nil), "io.eventter.mq.SubscribeRequest")
+	proto.RegisterType((*SubscribeResponse)(nil), "io.eventter.mq.SubscribeResponse")
+	proto.RegisterType((*AckRequest)(nil), "io.eventter.mq.AckRequest")
+	proto.RegisterType((*AckResponse)(nil), "io.eventter.mq.AckResponse")
+	proto.RegisterType((*NackRequest)(nil), "io.eventter.mq.NackRequest")
+	proto.RegisterType((*NackResponse)(nil), "io.eventter.mq.NackResponse")
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -1860,7 +1828,9 @@ type EventterMQClient interface {
 	ListConsumerGroups(ctx context.Context, in *ListConsumerGroupsRequest, opts ...grpc.CallOption) (*ListConsumerGroupsResponse, error)
 	DeleteConsumerGroup(ctx context.Context, in *DeleteConsumerGroupRequest, opts ...grpc.CallOption) (*DeleteConsumerGroupResponse, error)
 	Publish(ctx context.Context, in *PublishRequest, opts ...grpc.CallOption) (*PublishResponse, error)
-	Consume(ctx context.Context, opts ...grpc.CallOption) (EventterMQ_ConsumeClient, error)
+	Subscribe(ctx context.Context, in *SubscribeRequest, opts ...grpc.CallOption) (EventterMQ_SubscribeClient, error)
+	Ack(ctx context.Context, in *AckRequest, opts ...grpc.CallOption) (*AckResponse, error)
+	Nack(ctx context.Context, in *NackRequest, opts ...grpc.CallOption) (*NackResponse, error)
 }
 
 type eventterMQClient struct {
@@ -1934,35 +1904,54 @@ func (c *eventterMQClient) Publish(ctx context.Context, in *PublishRequest, opts
 	return out, nil
 }
 
-func (c *eventterMQClient) Consume(ctx context.Context, opts ...grpc.CallOption) (EventterMQ_ConsumeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_EventterMQ_serviceDesc.Streams[0], "/io.eventter.mq.EventterMQ/Consume", opts...)
+func (c *eventterMQClient) Subscribe(ctx context.Context, in *SubscribeRequest, opts ...grpc.CallOption) (EventterMQ_SubscribeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_EventterMQ_serviceDesc.Streams[0], "/io.eventter.mq.EventterMQ/Subscribe", opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &eventterMQConsumeClient{stream}
+	x := &eventterMQSubscribeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
 	return x, nil
 }
 
-type EventterMQ_ConsumeClient interface {
-	Send(*ConsumeRequest) error
-	Recv() (*ConsumeResponse, error)
+type EventterMQ_SubscribeClient interface {
+	Recv() (*SubscribeResponse, error)
 	grpc.ClientStream
 }
 
-type eventterMQConsumeClient struct {
+type eventterMQSubscribeClient struct {
 	grpc.ClientStream
 }
 
-func (x *eventterMQConsumeClient) Send(m *ConsumeRequest) error {
-	return x.ClientStream.SendMsg(m)
-}
-
-func (x *eventterMQConsumeClient) Recv() (*ConsumeResponse, error) {
-	m := new(ConsumeResponse)
+func (x *eventterMQSubscribeClient) Recv() (*SubscribeResponse, error) {
+	m := new(SubscribeResponse)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
 	return m, nil
+}
+
+func (c *eventterMQClient) Ack(ctx context.Context, in *AckRequest, opts ...grpc.CallOption) (*AckResponse, error) {
+	out := new(AckResponse)
+	err := c.cc.Invoke(ctx, "/io.eventter.mq.EventterMQ/Ack", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *eventterMQClient) Nack(ctx context.Context, in *NackRequest, opts ...grpc.CallOption) (*NackResponse, error) {
+	out := new(NackResponse)
+	err := c.cc.Invoke(ctx, "/io.eventter.mq.EventterMQ/Nack", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 // Server API for EventterMQ service
@@ -1975,7 +1964,9 @@ type EventterMQServer interface {
 	ListConsumerGroups(context.Context, *ListConsumerGroupsRequest) (*ListConsumerGroupsResponse, error)
 	DeleteConsumerGroup(context.Context, *DeleteConsumerGroupRequest) (*DeleteConsumerGroupResponse, error)
 	Publish(context.Context, *PublishRequest) (*PublishResponse, error)
-	Consume(EventterMQ_ConsumeServer) error
+	Subscribe(*SubscribeRequest, EventterMQ_SubscribeServer) error
+	Ack(context.Context, *AckRequest) (*AckResponse, error)
+	Nack(context.Context, *NackRequest) (*NackResponse, error)
 }
 
 func RegisterEventterMQServer(s *grpc.Server, srv EventterMQServer) {
@@ -2108,30 +2099,61 @@ func _EventterMQ_Publish_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
-func _EventterMQ_Consume_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(EventterMQServer).Consume(&eventterMQConsumeServer{stream})
+func _EventterMQ_Subscribe_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SubscribeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(EventterMQServer).Subscribe(m, &eventterMQSubscribeServer{stream})
 }
 
-type EventterMQ_ConsumeServer interface {
-	Send(*ConsumeResponse) error
-	Recv() (*ConsumeRequest, error)
+type EventterMQ_SubscribeServer interface {
+	Send(*SubscribeResponse) error
 	grpc.ServerStream
 }
 
-type eventterMQConsumeServer struct {
+type eventterMQSubscribeServer struct {
 	grpc.ServerStream
 }
 
-func (x *eventterMQConsumeServer) Send(m *ConsumeResponse) error {
+func (x *eventterMQSubscribeServer) Send(m *SubscribeResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func (x *eventterMQConsumeServer) Recv() (*ConsumeRequest, error) {
-	m := new(ConsumeRequest)
-	if err := x.ServerStream.RecvMsg(m); err != nil {
+func _EventterMQ_Ack_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AckRequest)
+	if err := dec(in); err != nil {
 		return nil, err
 	}
-	return m, nil
+	if interceptor == nil {
+		return srv.(EventterMQServer).Ack(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/io.eventter.mq.EventterMQ/Ack",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EventterMQServer).Ack(ctx, req.(*AckRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _EventterMQ_Nack_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(NackRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EventterMQServer).Nack(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/io.eventter.mq.EventterMQ/Nack",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EventterMQServer).Nack(ctx, req.(*NackRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 var _EventterMQ_serviceDesc = grpc.ServiceDesc{
@@ -2166,13 +2188,20 @@ var _EventterMQ_serviceDesc = grpc.ServiceDesc{
 			MethodName: "Publish",
 			Handler:    _EventterMQ_Publish_Handler,
 		},
+		{
+			MethodName: "Ack",
+			Handler:    _EventterMQ_Ack_Handler,
+		},
+		{
+			MethodName: "Nack",
+			Handler:    _EventterMQ_Nack_Handler,
+		},
 	},
 	Streams: []grpc.StreamDesc{
 		{
-			StreamName:    "Consume",
-			Handler:       _EventterMQ_Consume_Handler,
+			StreamName:    "Subscribe",
+			Handler:       _EventterMQ_Subscribe_Handler,
 			ServerStreams: true,
-			ClientStreams: true,
 		},
 	},
 	Metadata: "eventtermq.proto",
@@ -3040,14 +3069,16 @@ func (m *PublishRequest) MarshalTo(dAtA []byte) (int, error) {
 		return 0, err
 	}
 	i += n14
-	dAtA[i] = 0x12
-	i++
-	i = encodeVarintEventtermq(dAtA, i, uint64(m.Message.Size()))
-	n15, err := m.Message.MarshalTo(dAtA[i:])
-	if err != nil {
-		return 0, err
+	if m.Message != nil {
+		dAtA[i] = 0x12
+		i++
+		i = encodeVarintEventtermq(dAtA, i, uint64(m.Message.Size()))
+		n15, err := m.Message.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n15
 	}
-	i += n15
 	if m.DoNotForward {
 		dAtA[i] = 0x90
 		i++
@@ -3091,7 +3122,7 @@ func (m *PublishResponse) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
-func (m *ConsumeRequest) Marshal() (dAtA []byte, err error) {
+func (m *SubscribeRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalTo(dAtA)
@@ -3101,74 +3132,7 @@ func (m *ConsumeRequest) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *ConsumeRequest) MarshalTo(dAtA []byte) (int, error) {
-	var i int
-	_ = i
-	var l int
-	_ = l
-	if m.Body != nil {
-		nn16, err := m.Body.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += nn16
-	}
-	return i, nil
-}
-
-func (m *ConsumeRequest_Request_) MarshalTo(dAtA []byte) (int, error) {
-	i := 0
-	if m.Request != nil {
-		dAtA[i] = 0xa
-		i++
-		i = encodeVarintEventtermq(dAtA, i, uint64(m.Request.Size()))
-		n17, err := m.Request.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n17
-	}
-	return i, nil
-}
-func (m *ConsumeRequest_Ack_) MarshalTo(dAtA []byte) (int, error) {
-	i := 0
-	if m.Ack != nil {
-		dAtA[i] = 0x12
-		i++
-		i = encodeVarintEventtermq(dAtA, i, uint64(m.Ack.Size()))
-		n18, err := m.Ack.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n18
-	}
-	return i, nil
-}
-func (m *ConsumeRequest_Nack_) MarshalTo(dAtA []byte) (int, error) {
-	i := 0
-	if m.Nack != nil {
-		dAtA[i] = 0x1a
-		i++
-		i = encodeVarintEventtermq(dAtA, i, uint64(m.Nack.Size()))
-		n19, err := m.Nack.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n19
-	}
-	return i, nil
-}
-func (m *ConsumeRequest_Request) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalTo(dAtA)
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *ConsumeRequest_Request) MarshalTo(dAtA []byte) (int, error) {
+func (m *SubscribeRequest) MarshalTo(dAtA []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
@@ -3176,11 +3140,11 @@ func (m *ConsumeRequest_Request) MarshalTo(dAtA []byte) (int, error) {
 	dAtA[i] = 0xa
 	i++
 	i = encodeVarintEventtermq(dAtA, i, uint64(m.ConsumerGroup.Size()))
-	n20, err := m.ConsumerGroup.MarshalTo(dAtA[i:])
+	n16, err := m.ConsumerGroup.MarshalTo(dAtA[i:])
 	if err != nil {
 		return 0, err
 	}
-	i += n20
+	i += n16
 	if m.NoAck {
 		dAtA[i] = 0x10
 		i++
@@ -3201,33 +3165,12 @@ func (m *ConsumeRequest_Request) MarshalTo(dAtA []byte) (int, error) {
 		}
 		i++
 	}
-	return i, nil
-}
-
-func (m *ConsumeRequest_Ack) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalTo(dAtA)
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *ConsumeRequest_Ack) MarshalTo(dAtA []byte) (int, error) {
-	var i int
-	_ = i
-	var l int
-	_ = l
-	if m.DeliveryTag != 0 {
-		dAtA[i] = 0x8
+	if m.DoNotForward {
+		dAtA[i] = 0x90
 		i++
-		i = encodeVarintEventtermq(dAtA, i, uint64(m.DeliveryTag))
-	}
-	if m.Multiple {
-		dAtA[i] = 0x10
+		dAtA[i] = 0x6
 		i++
-		if m.Multiple {
+		if m.DoNotForward {
 			dAtA[i] = 1
 		} else {
 			dAtA[i] = 0
@@ -3237,7 +3180,7 @@ func (m *ConsumeRequest_Ack) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
-func (m *ConsumeRequest_Nack) Marshal() (dAtA []byte, err error) {
+func (m *SubscribeResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalTo(dAtA)
@@ -3247,75 +3190,211 @@ func (m *ConsumeRequest_Nack) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *ConsumeRequest_Nack) MarshalTo(dAtA []byte) (int, error) {
+func (m *SubscribeResponse) MarshalTo(dAtA []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
 	_ = l
-	if m.DeliveryTag != 0 {
-		dAtA[i] = 0x8
-		i++
-		i = encodeVarintEventtermq(dAtA, i, uint64(m.DeliveryTag))
-	}
-	if m.Multiple {
-		dAtA[i] = 0x10
-		i++
-		if m.Multiple {
-			dAtA[i] = 1
-		} else {
-			dAtA[i] = 0
-		}
-		i++
-	}
-	if m.Requeue {
-		dAtA[i] = 0x18
-		i++
-		if m.Requeue {
-			dAtA[i] = 1
-		} else {
-			dAtA[i] = 0
-		}
-		i++
-	}
-	return i, nil
-}
-
-func (m *ConsumeResponse) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalTo(dAtA)
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *ConsumeResponse) MarshalTo(dAtA []byte) (int, error) {
-	var i int
-	_ = i
-	var l int
-	_ = l
-	if m.DeliveryTag != 0 {
-		dAtA[i] = 0x8
-		i++
-		i = encodeVarintEventtermq(dAtA, i, uint64(m.DeliveryTag))
-	}
-	dAtA[i] = 0x12
+	dAtA[i] = 0xa
 	i++
 	i = encodeVarintEventtermq(dAtA, i, uint64(m.Topic.Size()))
-	n21, err := m.Topic.MarshalTo(dAtA[i:])
+	n17, err := m.Topic.MarshalTo(dAtA[i:])
 	if err != nil {
 		return 0, err
 	}
-	i += n21
-	dAtA[i] = 0x1a
+	i += n17
+	if m.SubscriptionID != 0 {
+		dAtA[i] = 0x10
+		i++
+		i = encodeVarintEventtermq(dAtA, i, uint64(m.SubscriptionID))
+	}
+	if m.DeliveryTag != 0 {
+		dAtA[i] = 0x18
+		i++
+		i = encodeVarintEventtermq(dAtA, i, uint64(m.DeliveryTag))
+	}
+	if m.Message != nil {
+		dAtA[i] = 0x22
+		i++
+		i = encodeVarintEventtermq(dAtA, i, uint64(m.Message.Size()))
+		n18, err := m.Message.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n18
+	}
+	return i, nil
+}
+
+func (m *AckRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *AckRequest) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	dAtA[i] = 0xa
 	i++
-	i = encodeVarintEventtermq(dAtA, i, uint64(m.Message.Size()))
-	n22, err := m.Message.MarshalTo(dAtA[i:])
+	i = encodeVarintEventtermq(dAtA, i, uint64(m.ConsumerGroup.Size()))
+	n19, err := m.ConsumerGroup.MarshalTo(dAtA[i:])
 	if err != nil {
 		return 0, err
 	}
-	i += n22
+	i += n19
+	if m.SubscriptionID != 0 {
+		dAtA[i] = 0x10
+		i++
+		i = encodeVarintEventtermq(dAtA, i, uint64(m.SubscriptionID))
+	}
+	if m.DeliveryTag != 0 {
+		dAtA[i] = 0x18
+		i++
+		i = encodeVarintEventtermq(dAtA, i, uint64(m.DeliveryTag))
+	}
+	if m.Multiple {
+		dAtA[i] = 0x20
+		i++
+		if m.Multiple {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i++
+	}
+	if m.DoNotForward {
+		dAtA[i] = 0x90
+		i++
+		dAtA[i] = 0x6
+		i++
+		if m.DoNotForward {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i++
+	}
+	return i, nil
+}
+
+func (m *AckResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *AckResponse) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.OK {
+		dAtA[i] = 0x8
+		i++
+		if m.OK {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i++
+	}
+	return i, nil
+}
+
+func (m *NackRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *NackRequest) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	dAtA[i] = 0xa
+	i++
+	i = encodeVarintEventtermq(dAtA, i, uint64(m.ConsumerGroup.Size()))
+	n20, err := m.ConsumerGroup.MarshalTo(dAtA[i:])
+	if err != nil {
+		return 0, err
+	}
+	i += n20
+	if m.SubscriptionID != 0 {
+		dAtA[i] = 0x10
+		i++
+		i = encodeVarintEventtermq(dAtA, i, uint64(m.SubscriptionID))
+	}
+	if m.DeliveryTag != 0 {
+		dAtA[i] = 0x18
+		i++
+		i = encodeVarintEventtermq(dAtA, i, uint64(m.DeliveryTag))
+	}
+	if m.Multiple {
+		dAtA[i] = 0x20
+		i++
+		if m.Multiple {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i++
+	}
+	if m.DoNotForward {
+		dAtA[i] = 0x90
+		i++
+		dAtA[i] = 0x6
+		i++
+		if m.DoNotForward {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i++
+	}
+	return i, nil
+}
+
+func (m *NackResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *NackResponse) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.OK {
+		dAtA[i] = 0x8
+		i++
+		if m.OK {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i++
+	}
 	return i, nil
 }
 
@@ -3661,8 +3740,10 @@ func (m *PublishRequest) Size() (n int) {
 	_ = l
 	l = m.Topic.Size()
 	n += 1 + l + sovEventtermq(uint64(l))
-	l = m.Message.Size()
-	n += 1 + l + sovEventtermq(uint64(l))
+	if m.Message != nil {
+		l = m.Message.Size()
+		n += 1 + l + sovEventtermq(uint64(l))
+	}
 	if m.DoNotForward {
 		n += 3
 	}
@@ -3678,43 +3759,7 @@ func (m *PublishResponse) Size() (n int) {
 	return n
 }
 
-func (m *ConsumeRequest) Size() (n int) {
-	var l int
-	_ = l
-	if m.Body != nil {
-		n += m.Body.Size()
-	}
-	return n
-}
-
-func (m *ConsumeRequest_Request_) Size() (n int) {
-	var l int
-	_ = l
-	if m.Request != nil {
-		l = m.Request.Size()
-		n += 1 + l + sovEventtermq(uint64(l))
-	}
-	return n
-}
-func (m *ConsumeRequest_Ack_) Size() (n int) {
-	var l int
-	_ = l
-	if m.Ack != nil {
-		l = m.Ack.Size()
-		n += 1 + l + sovEventtermq(uint64(l))
-	}
-	return n
-}
-func (m *ConsumeRequest_Nack_) Size() (n int) {
-	var l int
-	_ = l
-	if m.Nack != nil {
-		l = m.Nack.Size()
-		n += 1 + l + sovEventtermq(uint64(l))
-	}
-	return n
-}
-func (m *ConsumeRequest_Request) Size() (n int) {
+func (m *SubscribeRequest) Size() (n int) {
 	var l int
 	_ = l
 	l = m.ConsumerGroup.Size()
@@ -3725,46 +3770,85 @@ func (m *ConsumeRequest_Request) Size() (n int) {
 	if m.Exclusive {
 		n += 2
 	}
-	return n
-}
-
-func (m *ConsumeRequest_Ack) Size() (n int) {
-	var l int
-	_ = l
-	if m.DeliveryTag != 0 {
-		n += 1 + sovEventtermq(uint64(m.DeliveryTag))
-	}
-	if m.Multiple {
-		n += 2
+	if m.DoNotForward {
+		n += 3
 	}
 	return n
 }
 
-func (m *ConsumeRequest_Nack) Size() (n int) {
+func (m *SubscribeResponse) Size() (n int) {
 	var l int
 	_ = l
-	if m.DeliveryTag != 0 {
-		n += 1 + sovEventtermq(uint64(m.DeliveryTag))
-	}
-	if m.Multiple {
-		n += 2
-	}
-	if m.Requeue {
-		n += 2
-	}
-	return n
-}
-
-func (m *ConsumeResponse) Size() (n int) {
-	var l int
-	_ = l
-	if m.DeliveryTag != 0 {
-		n += 1 + sovEventtermq(uint64(m.DeliveryTag))
-	}
 	l = m.Topic.Size()
 	n += 1 + l + sovEventtermq(uint64(l))
-	l = m.Message.Size()
+	if m.SubscriptionID != 0 {
+		n += 1 + sovEventtermq(uint64(m.SubscriptionID))
+	}
+	if m.DeliveryTag != 0 {
+		n += 1 + sovEventtermq(uint64(m.DeliveryTag))
+	}
+	if m.Message != nil {
+		l = m.Message.Size()
+		n += 1 + l + sovEventtermq(uint64(l))
+	}
+	return n
+}
+
+func (m *AckRequest) Size() (n int) {
+	var l int
+	_ = l
+	l = m.ConsumerGroup.Size()
 	n += 1 + l + sovEventtermq(uint64(l))
+	if m.SubscriptionID != 0 {
+		n += 1 + sovEventtermq(uint64(m.SubscriptionID))
+	}
+	if m.DeliveryTag != 0 {
+		n += 1 + sovEventtermq(uint64(m.DeliveryTag))
+	}
+	if m.Multiple {
+		n += 2
+	}
+	if m.DoNotForward {
+		n += 3
+	}
+	return n
+}
+
+func (m *AckResponse) Size() (n int) {
+	var l int
+	_ = l
+	if m.OK {
+		n += 2
+	}
+	return n
+}
+
+func (m *NackRequest) Size() (n int) {
+	var l int
+	_ = l
+	l = m.ConsumerGroup.Size()
+	n += 1 + l + sovEventtermq(uint64(l))
+	if m.SubscriptionID != 0 {
+		n += 1 + sovEventtermq(uint64(m.SubscriptionID))
+	}
+	if m.DeliveryTag != 0 {
+		n += 1 + sovEventtermq(uint64(m.DeliveryTag))
+	}
+	if m.Multiple {
+		n += 2
+	}
+	if m.DoNotForward {
+		n += 3
+	}
+	return n
+}
+
+func (m *NackResponse) Size() (n int) {
+	var l int
+	_ = l
+	if m.OK {
+		n += 2
+	}
 	return n
 }
 
@@ -6436,6 +6520,9 @@ func (m *PublishRequest) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
+			if m.Message == nil {
+				m.Message = &Message{}
+			}
 			if err := m.Message.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -6551,7 +6638,7 @@ func (m *PublishResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *ConsumeRequest) Unmarshal(dAtA []byte) error {
+func (m *SubscribeRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -6574,156 +6661,10 @@ func (m *ConsumeRequest) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: ConsumeRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: SubscribeRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ConsumeRequest: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Request", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowEventtermq
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthEventtermq
-			}
-			postIndex := iNdEx + msglen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &ConsumeRequest_Request{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Body = &ConsumeRequest_Request_{v}
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Ack", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowEventtermq
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthEventtermq
-			}
-			postIndex := iNdEx + msglen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &ConsumeRequest_Ack{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Body = &ConsumeRequest_Ack_{v}
-			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Nack", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowEventtermq
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthEventtermq
-			}
-			postIndex := iNdEx + msglen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &ConsumeRequest_Nack{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Body = &ConsumeRequest_Nack_{v}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipEventtermq(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthEventtermq
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *ConsumeRequest_Request) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowEventtermq
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: Request: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: Request: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: SubscribeRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -6796,6 +6737,26 @@ func (m *ConsumeRequest_Request) Unmarshal(dAtA []byte) error {
 				}
 			}
 			m.Exclusive = bool(v != 0)
+		case 98:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field DoNotForward", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEventtermq
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.DoNotForward = bool(v != 0)
 		default:
 			iNdEx = preIndex
 			skippy, err := skipEventtermq(dAtA[iNdEx:])
@@ -6817,7 +6778,7 @@ func (m *ConsumeRequest_Request) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *ConsumeRequest_Ack) Unmarshal(dAtA []byte) error {
+func (m *SubscribeResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -6840,230 +6801,13 @@ func (m *ConsumeRequest_Ack) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: Ack: wiretype end group for non-group")
+			return fmt.Errorf("proto: SubscribeResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: Ack: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: SubscribeResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field DeliveryTag", wireType)
-			}
-			m.DeliveryTag = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowEventtermq
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.DeliveryTag |= (uint64(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 2:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Multiple", wireType)
-			}
-			var v int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowEventtermq
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				v |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			m.Multiple = bool(v != 0)
-		default:
-			iNdEx = preIndex
-			skippy, err := skipEventtermq(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthEventtermq
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *ConsumeRequest_Nack) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowEventtermq
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: Nack: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: Nack: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field DeliveryTag", wireType)
-			}
-			m.DeliveryTag = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowEventtermq
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.DeliveryTag |= (uint64(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 2:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Multiple", wireType)
-			}
-			var v int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowEventtermq
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				v |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			m.Multiple = bool(v != 0)
-		case 3:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Requeue", wireType)
-			}
-			var v int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowEventtermq
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				v |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			m.Requeue = bool(v != 0)
-		default:
-			iNdEx = preIndex
-			skippy, err := skipEventtermq(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthEventtermq
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *ConsumeResponse) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowEventtermq
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: ConsumeResponse: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ConsumeResponse: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field DeliveryTag", wireType)
-			}
-			m.DeliveryTag = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowEventtermq
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.DeliveryTag |= (uint64(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 2:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Topic", wireType)
 			}
@@ -7093,7 +6837,45 @@ func (m *ConsumeResponse) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SubscriptionID", wireType)
+			}
+			m.SubscriptionID = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEventtermq
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.SubscriptionID |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
 		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field DeliveryTag", wireType)
+			}
+			m.DeliveryTag = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEventtermq
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.DeliveryTag |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 4:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Message", wireType)
 			}
@@ -7119,10 +6901,469 @@ func (m *ConsumeResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
+			if m.Message == nil {
+				m.Message = &Message{}
+			}
 			if err := m.Message.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipEventtermq(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthEventtermq
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *AckRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowEventtermq
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: AckRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: AckRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ConsumerGroup", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEventtermq
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthEventtermq
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.ConsumerGroup.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SubscriptionID", wireType)
+			}
+			m.SubscriptionID = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEventtermq
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.SubscriptionID |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field DeliveryTag", wireType)
+			}
+			m.DeliveryTag = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEventtermq
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.DeliveryTag |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Multiple", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEventtermq
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.Multiple = bool(v != 0)
+		case 98:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field DoNotForward", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEventtermq
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.DoNotForward = bool(v != 0)
+		default:
+			iNdEx = preIndex
+			skippy, err := skipEventtermq(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthEventtermq
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *AckResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowEventtermq
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: AckResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: AckResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OK", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEventtermq
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.OK = bool(v != 0)
+		default:
+			iNdEx = preIndex
+			skippy, err := skipEventtermq(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthEventtermq
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *NackRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowEventtermq
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: NackRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: NackRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ConsumerGroup", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEventtermq
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthEventtermq
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.ConsumerGroup.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SubscriptionID", wireType)
+			}
+			m.SubscriptionID = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEventtermq
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.SubscriptionID |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field DeliveryTag", wireType)
+			}
+			m.DeliveryTag = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEventtermq
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.DeliveryTag |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Multiple", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEventtermq
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.Multiple = bool(v != 0)
+		case 98:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field DoNotForward", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEventtermq
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.DoNotForward = bool(v != 0)
+		default:
+			iNdEx = preIndex
+			skippy, err := skipEventtermq(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthEventtermq
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *NackResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowEventtermq
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: NackResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: NackResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OK", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEventtermq
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.OK = bool(v != 0)
 		default:
 			iNdEx = preIndex
 			skippy, err := skipEventtermq(dAtA[iNdEx:])
@@ -7249,104 +7490,105 @@ var (
 	ErrIntOverflowEventtermq   = fmt.Errorf("proto: integer overflow")
 )
 
-func init() { proto.RegisterFile("eventtermq.proto", fileDescriptor_eventtermq_fb83e6966d26bbe2) }
+func init() { proto.RegisterFile("eventtermq.proto", fileDescriptor_eventtermq_3a1954b40eda73fc) }
 
-var fileDescriptor_eventtermq_fb83e6966d26bbe2 = []byte{
-	// 1526 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xdc, 0x57, 0x4b, 0x6f, 0xdb, 0xc6,
-	0x16, 0x36, 0x65, 0x3d, 0x8f, 0x2c, 0x3b, 0x99, 0x9b, 0x87, 0xcc, 0xc4, 0x92, 0x4d, 0xdf, 0xe4,
-	0x3a, 0xbe, 0x37, 0xd2, 0x8d, 0x8b, 0x34, 0x4d, 0x81, 0x2e, 0x2c, 0x2b, 0x6e, 0xd4, 0x34, 0x4e,
-	0xc2, 0x3a, 0x9b, 0x6e, 0x08, 0x9a, 0x1c, 0x29, 0x84, 0x24, 0x0e, 0xcd, 0x87, 0x1b, 0x21, 0xc8,
-	0xa2, 0x0d, 0x50, 0x14, 0x05, 0x8a, 0xa6, 0x2f, 0xa0, 0x3f, 0xa1, 0x08, 0xd0, 0x6d, 0xf7, 0xdd,
-	0x65, 0x59, 0xa0, 0xeb, 0xba, 0x81, 0xda, 0xbf, 0xd0, 0x7d, 0x31, 0xc3, 0x21, 0x25, 0xea, 0x61,
-	0x39, 0x8e, 0xb3, 0xe9, 0x8a, 0x9c, 0xf3, 0x98, 0xf9, 0xe6, 0x9b, 0x73, 0x66, 0xce, 0x81, 0x13,
-	0x78, 0x0f, 0x9b, 0xae, 0x8b, 0xed, 0xf6, 0x6e, 0xc9, 0xb2, 0x89, 0x4b, 0xd0, 0xac, 0x41, 0x4a,
-	0x81, 0xb0, 0xd4, 0xde, 0x15, 0x4f, 0x35, 0x48, 0x83, 0x30, 0x55, 0x99, 0xfe, 0xf9, 0x56, 0xe2,
-	0xf9, 0x06, 0x21, 0x8d, 0x16, 0x2e, 0xab, 0x96, 0x51, 0x56, 0x4d, 0x93, 0xb8, 0xaa, 0x6b, 0x10,
-	0xd3, 0xe1, 0xda, 0x02, 0xd7, 0xb2, 0xd1, 0x8e, 0x57, 0x2f, 0xeb, 0x9e, 0xcd, 0x0c, 0x06, 0xbc,
-	0x43, 0xbd, 0xe3, 0xda, 0x9e, 0xe6, 0x72, 0x6d, 0x71, 0x50, 0xeb, 0x1a, 0x6d, 0xec, 0xb8, 0x6a,
-	0xdb, 0xf2, 0x0d, 0xa4, 0x75, 0xc8, 0x6d, 0xa9, 0x6d, 0xec, 0x58, 0xaa, 0x86, 0xe9, 0x0f, 0x3a,
-	0x0f, 0x19, 0x33, 0x10, 0xe4, 0x85, 0x45, 0x61, 0x25, 0x23, 0xf7, 0x04, 0x08, 0x41, 0x9c, 0x0e,
-	0xf2, 0x31, 0xa6, 0x60, 0xff, 0xd2, 0x57, 0x31, 0x38, 0xbd, 0x41, 0xcc, 0xba, 0xd1, 0xf0, 0x6c,
-	0xbc, 0x4d, 0x2c, 0x43, 0x93, 0xf1, 0xae, 0x87, 0x1d, 0x17, 0x5d, 0x87, 0x84, 0x4b, 0xc7, 0x6c,
-	0x9e, 0xec, 0xda, 0x42, 0x29, 0xca, 0x47, 0x29, 0xb2, 0x72, 0x25, 0xfe, 0x7c, 0xbf, 0x38, 0x25,
-	0xfb, 0x1e, 0x74, 0x21, 0xb7, 0x63, 0x85, 0x0b, 0xd1, 0x7f, 0x74, 0x06, 0x92, 0xce, 0x03, 0xd5,
-	0xd6, 0x9d, 0xfc, 0xf4, 0xa2, 0xb0, 0x92, 0x93, 0xf9, 0x08, 0x5d, 0x06, 0x64, 0x63, 0xab, 0x65,
-	0x68, 0x8c, 0x17, 0xa5, 0xae, 0x6a, 0x2e, 0xb1, 0xf3, 0x71, 0x66, 0x73, 0xb2, 0x4f, 0xb3, 0xc9,
-	0x14, 0x68, 0x1d, 0x32, 0x36, 0x76, 0xb1, 0x49, 0x45, 0xf9, 0x04, 0x43, 0x36, 0x5f, 0xf2, 0x79,
-	0x2a, 0x05, 0x3c, 0x95, 0xaa, 0x9c, 0xe5, 0x4a, 0x9a, 0xa2, 0xfa, 0xfe, 0xf7, 0xa2, 0x20, 0xf7,
-	0xbc, 0x50, 0x11, 0xb2, 0x2d, 0xac, 0xea, 0xd8, 0x56, 0x88, 0xd9, 0xea, 0xe4, 0xb5, 0x45, 0x61,
-	0x25, 0x2d, 0x83, 0x2f, 0xba, 0x63, 0xb6, 0x3a, 0xd2, 0x26, 0x9c, 0x19, 0xa4, 0xc4, 0xb1, 0x88,
-	0xe9, 0xd0, 0x4d, 0xc4, 0x48, 0x93, 0x11, 0x92, 0xae, 0x24, 0xbb, 0xfb, 0xc5, 0xd8, 0x9d, 0x5b,
-	0x72, 0x8c, 0x34, 0xd1, 0x29, 0x48, 0x18, 0xa6, 0x8e, 0x1f, 0xb2, 0x1d, 0xc7, 0x65, 0x7f, 0x20,
-	0xbd, 0x10, 0x20, 0xc1, 0xfc, 0xff, 0xb1, 0x5c, 0x4a, 0x04, 0x4e, 0xbe, 0x6f, 0x38, 0x2e, 0xdb,
-	0xa5, 0x73, 0x0c, 0x91, 0x33, 0xf1, 0x6c, 0x76, 0x01, 0xf5, 0x2f, 0x78, 0x94, 0x73, 0x41, 0x97,
-	0x21, 0xc9, 0x56, 0xa3, 0xf4, 0x4d, 0xaf, 0x64, 0xd7, 0x4e, 0x0f, 0x02, 0xf4, 0x0f, 0x9d, 0x1b,
-	0x49, 0x5f, 0x08, 0x80, 0xaa, 0xb8, 0x85, 0xdd, 0x63, 0xcb, 0x8f, 0x73, 0x90, 0x31, 0xea, 0x8a,
-	0x67, 0x7a, 0x0e, 0xd6, 0x19, 0xb4, 0xb4, 0x9c, 0x36, 0xea, 0xf7, 0xd9, 0x78, 0x32, 0x05, 0x1b,
-	0xf0, 0xaf, 0x08, 0x9c, 0x23, 0xc5, 0xe6, 0xb3, 0x18, 0x2c, 0x84, 0x41, 0xbe, 0x41, 0x4c, 0xc7,
-	0x6b, 0x63, 0xfb, 0x5d, 0x9b, 0x78, 0x56, 0xb0, 0xbf, 0xf7, 0x60, 0x56, 0xe3, 0x72, 0xa5, 0x41,
-	0x15, 0x2f, 0xb3, 0xd1, 0x9c, 0xd6, 0x3f, 0x25, 0xba, 0x07, 0xe9, 0x1d, 0xc3, 0xd4, 0x0d, 0xb3,
-	0xe1, 0xe4, 0x63, 0x8c, 0xf3, 0xab, 0x83, 0xb3, 0x1c, 0x08, 0xa6, 0x54, 0xf1, 0xbd, 0xe5, 0x70,
-	0x9a, 0x89, 0x34, 0x89, 0x35, 0x48, 0x71, 0x2f, 0xb4, 0x00, 0xc0, 0x88, 0x57, 0xd8, 0xf5, 0xc7,
-	0xef, 0x45, 0x26, 0x61, 0xb7, 0x66, 0x11, 0xb2, 0x36, 0xf1, 0x5c, 0xc3, 0x6c, 0x28, 0x4d, 0xdc,
-	0xe1, 0x99, 0x06, 0x5c, 0x74, 0x0b, 0x77, 0xa4, 0x2d, 0x28, 0x8c, 0x83, 0x77, 0x24, 0xf2, 0x3f,
-	0x8e, 0x41, 0x2e, 0x32, 0xcf, 0xb1, 0x92, 0xbd, 0x3e, 0x44, 0xf6, 0x85, 0x11, 0x64, 0xf7, 0x1c,
-	0x46, 0x90, 0x3b, 0xe6, 0x82, 0x39, 0x4e, 0x4e, 0x3f, 0x13, 0x60, 0x9e, 0x66, 0x72, 0x04, 0x8a,
-	0xf3, 0x3a, 0x82, 0x6f, 0x62, 0x42, 0x7d, 0x2d, 0x80, 0x38, 0x0a, 0xca, 0x91, 0x2e, 0x97, 0x4d,
-	0x98, 0x8b, 0x22, 0x0f, 0x6e, 0x99, 0x85, 0x03, 0x0f, 0x41, 0x9e, 0x8d, 0x80, 0x76, 0xa4, 0x9f,
-	0x05, 0x10, 0xfd, 0x34, 0x7f, 0xed, 0xd9, 0x79, 0xe0, 0x75, 0x34, 0x0f, 0x69, 0xa3, 0xae, 0xe0,
-	0xb6, 0xe5, 0x76, 0x58, 0x30, 0xa4, 0xe5, 0x94, 0x51, 0xbf, 0x41, 0x87, 0x93, 0x89, 0xbd, 0x05,
-	0xe7, 0x46, 0x6e, 0xe1, 0x48, 0x49, 0xf3, 0x5d, 0x02, 0x52, 0xb7, 0xb1, 0xe3, 0xa8, 0x8d, 0xa1,
-	0xe8, 0x12, 0x06, 0xa3, 0x0b, 0x55, 0x00, 0x2c, 0x9b, 0x58, 0xd8, 0x76, 0x0d, 0xec, 0xb0, 0x79,
-	0xb2, 0x6b, 0xd2, 0x20, 0x35, 0x7c, 0xb6, 0xd2, 0xdd, 0xd0, 0x52, 0xee, 0xf3, 0x42, 0x57, 0x20,
-	0xf5, 0x80, 0xed, 0xc5, 0xcf, 0x82, 0xec, 0xda, 0xd9, 0xa1, 0xc7, 0xf1, 0x03, 0x56, 0xae, 0xc9,
-	0x81, 0x1d, 0x7d, 0xac, 0x75, 0xd5, 0x55, 0xd9, 0x93, 0x3b, 0x23, 0xb3, 0x7f, 0xf1, 0xb7, 0x69,
-	0x80, 0xde, 0x0a, 0x68, 0x09, 0x66, 0x34, 0x62, 0xd2, 0xf7, 0x53, 0x61, 0xef, 0xba, 0x8f, 0x3d,
-	0xcb, 0x65, 0xdb, 0xf4, 0x79, 0xbf, 0x04, 0x27, 0x02, 0x13, 0x6c, 0x6a, 0x84, 0xa6, 0x1b, 0x4f,
-	0xa0, 0x39, 0x2e, 0xbf, 0xc1, 0xc5, 0x68, 0x19, 0x72, 0x3a, 0x6e, 0x19, 0x7b, 0xd8, 0xee, 0x28,
-	0x6d, 0xa2, 0x63, 0x86, 0x34, 0x21, 0xcf, 0x04, 0xc2, 0xdb, 0x44, 0xc7, 0x48, 0x84, 0xb4, 0x65,
-	0x1b, 0xc4, 0x36, 0xdc, 0x0e, 0x43, 0x96, 0x90, 0xc3, 0x31, 0x7a, 0x8b, 0xc6, 0x91, 0x6d, 0xe3,
-	0x96, 0x5f, 0x32, 0x18, 0x3a, 0x2b, 0x04, 0x32, 0x95, 0x93, 0xdd, 0xfd, 0x62, 0x6e, 0xa3, 0xa7,
-	0xa9, 0x55, 0x69, 0xd4, 0xf4, 0x86, 0x2c, 0x30, 0x68, 0x49, 0xd1, 0x51, 0x5c, 0x92, 0x4f, 0x32,
-	0x74, 0x29, 0x36, 0xde, 0x26, 0xa8, 0x00, 0x80, 0x1f, 0x5a, 0x86, 0x5f, 0x38, 0xe4, 0x53, 0xfe,
-	0xe9, 0xf4, 0x24, 0xe8, 0x7f, 0x00, 0x6d, 0x9f, 0x7b, 0xba, 0x60, 0x9a, 0x2d, 0x98, 0xeb, 0xee,
-	0x17, 0x33, 0xfc, 0x44, 0x6a, 0x55, 0x39, 0xc3, 0x0d, 0x6a, 0x3a, 0xaa, 0x40, 0x26, 0x2c, 0x7c,
-	0xf3, 0x19, 0x76, 0x12, 0xe2, 0xd0, 0x49, 0x6c, 0x07, 0x16, 0x7e, 0x9d, 0xf2, 0x94, 0xd5, 0x29,
-	0xa1, 0x5b, 0x58, 0x45, 0x41, 0x5f, 0x15, 0xb5, 0x0c, 0x29, 0xcf, 0xc1, 0x36, 0x85, 0x90, 0x65,
-	0x10, 0xa0, 0xbb, 0x5f, 0x4c, 0xde, 0x77, 0xb0, 0x5d, 0xab, 0xca, 0x49, 0xaa, 0xaa, 0xe9, 0x68,
-	0x11, 0x92, 0xaa, 0x65, 0x51, 0x9b, 0x19, 0x66, 0x93, 0xe9, 0xee, 0x17, 0x13, 0xeb, 0x96, 0x55,
-	0xab, 0xca, 0x09, 0xd5, 0xb2, 0x6a, 0xba, 0xf4, 0x4c, 0x80, 0xd9, 0xbb, 0xde, 0x4e, 0xcb, 0x70,
-	0x1e, 0x1c, 0x43, 0x69, 0x70, 0x0d, 0x52, 0x7c, 0xe7, 0x3c, 0x6a, 0xcf, 0x8e, 0x89, 0x5a, 0xee,
-	0x16, 0x58, 0xa3, 0x7f, 0xc3, 0xac, 0x4e, 0x14, 0x93, 0xb8, 0x4a, 0x9d, 0xd8, 0x1f, 0xa9, 0xb6,
-	0x9e, 0xdf, 0x61, 0xf9, 0x38, 0xa3, 0x93, 0x2d, 0xe2, 0x6e, 0xfa, 0x32, 0xe9, 0x12, 0xcc, 0x85,
-	0x58, 0x0f, 0xce, 0x42, 0xe9, 0x49, 0x1c, 0x66, 0x79, 0xde, 0x06, 0xfb, 0xaa, 0x40, 0xca, 0xf6,
-	0x7f, 0xf9, 0xce, 0x2e, 0x8e, 0xb9, 0xd3, 0x82, 0x67, 0x9b, 0x7f, 0x6f, 0x4e, 0xc9, 0x81, 0x23,
-	0x7a, 0x13, 0xa6, 0x55, 0xad, 0x39, 0x2e, 0x25, 0x07, 0xfc, 0xd7, 0xb5, 0xe6, 0xcd, 0x29, 0x99,
-	0x3a, 0xa0, 0xeb, 0xb4, 0x79, 0xd1, 0x9a, 0x3c, 0x15, 0x97, 0x27, 0x38, 0x6e, 0xa9, 0xcc, 0x93,
-	0xb9, 0x88, 0x9f, 0x0b, 0x90, 0x7a, 0x1d, 0xf7, 0xe6, 0x69, 0x48, 0x9a, 0x44, 0x09, 0x76, 0x93,
-	0x96, 0x13, 0x26, 0x59, 0xd7, 0x9a, 0xb4, 0x09, 0xc3, 0x0f, 0xb5, 0x96, 0xe7, 0x18, 0x7b, 0x98,
-	0x5f, 0x99, 0x3d, 0x81, 0x58, 0x85, 0x69, 0x6a, 0xb4, 0x04, 0x61, 0x8e, 0x2a, 0xae, 0xda, 0x60,
-	0x28, 0xe2, 0x72, 0x36, 0x90, 0x6d, 0xab, 0x0d, 0x9a, 0xb6, 0x6d, 0xaf, 0xe5, 0x1a, 0x56, 0x0b,
-	0x07, 0xb7, 0x72, 0x30, 0x16, 0x15, 0x88, 0xd3, 0x2d, 0xbe, 0xe2, 0x34, 0x28, 0xcf, 0x0f, 0xd4,
-	0x0b, 0x80, 0x06, 0xc3, 0x4a, 0x12, 0xe2, 0x3b, 0x44, 0xef, 0x48, 0x3f, 0x08, 0x30, 0x17, 0x72,
-	0xcb, 0x23, 0xe6, 0x10, 0x8b, 0x86, 0x19, 0x10, 0x7b, 0x95, 0x0c, 0x98, 0x7e, 0x99, 0x0c, 0x58,
-	0xfb, 0x2b, 0x0d, 0x70, 0x83, 0x9b, 0xdd, 0xbe, 0x87, 0xbe, 0x14, 0x58, 0xfc, 0xf6, 0xb5, 0x71,
-	0xe8, 0xc2, 0xd8, 0xa2, 0xb3, 0xbf, 0xb2, 0x17, 0x2f, 0x4e, 0x32, 0xf3, 0x79, 0x90, 0x4a, 0x9f,
-	0xfc, 0xfa, 0xe7, 0x37, 0xb1, 0x15, 0xf1, 0x62, 0xf9, 0x11, 0x83, 0x5e, 0x0a, 0x5b, 0xed, 0xc7,
-	0x65, 0xbf, 0x77, 0xe8, 0x57, 0x3c, 0x46, 0x7b, 0x00, 0xbd, 0xde, 0x05, 0x2d, 0x0d, 0xae, 0x32,
-	0xd4, 0x48, 0x89, 0xd2, 0x41, 0x26, 0x1c, 0xc4, 0x12, 0x03, 0x71, 0x0e, 0xcd, 0x8f, 0x05, 0x81,
-	0x3e, 0x15, 0x20, 0xdb, 0xd7, 0x31, 0xa0, 0xa1, 0x69, 0x87, 0xbb, 0x1b, 0x71, 0xf9, 0x40, 0x9b,
-	0x28, 0x01, 0xab, 0x87, 0x25, 0xe0, 0x27, 0xa1, 0xaf, 0xb3, 0x8e, 0x16, 0xc0, 0x97, 0x5f, 0xaa,
-	0x1f, 0x10, 0x4b, 0x87, 0x35, 0xe7, 0x48, 0xdf, 0x61, 0x48, 0xaf, 0x89, 0x57, 0xcb, 0x8f, 0xa2,
-	0xe9, 0xdf, 0x0f, 0x59, 0x6b, 0x38, 0x23, 0xd5, 0x8f, 0xd1, 0xb7, 0x82, 0xdf, 0x76, 0x46, 0x2b,
-	0x44, 0x74, 0x69, 0xd4, 0xf9, 0x8c, 0x2c, 0x68, 0xc5, 0xd5, 0xc3, 0x98, 0x72, 0xb0, 0xff, 0x61,
-	0x60, 0x97, 0x50, 0x71, 0x02, 0x58, 0xf4, 0xa3, 0x10, 0xb4, 0x82, 0x51, 0x32, 0x57, 0x47, 0x1f,
-	0xde, 0x48, 0x26, 0xff, 0x7b, 0x28, 0xdb, 0x28, 0x8d, 0xab, 0x47, 0xa4, 0xf1, 0x89, 0x00, 0x29,
-	0xfe, 0xfc, 0xa0, 0xc2, 0xe0, 0xba, 0xd1, 0x37, 0x54, 0x2c, 0x8e, 0xd5, 0x73, 0x2c, 0xd7, 0x18,
-	0x96, 0x2b, 0xd2, 0x21, 0x83, 0xef, 0xed, 0xf0, 0xa5, 0xdc, 0x82, 0x14, 0xdf, 0xdd, 0x30, 0x88,
-	0xe8, 0x33, 0x32, 0x0c, 0x62, 0xe0, 0x2a, 0x5c, 0x11, 0xfe, 0x2f, 0x54, 0xf2, 0xcf, 0xbb, 0x05,
-	0xe1, 0x97, 0x6e, 0x41, 0x78, 0xd1, 0x2d, 0x08, 0x4f, 0xff, 0x28, 0x4c, 0x7d, 0x98, 0xd4, 0x5a,
-	0x06, 0x36, 0xdd, 0x9d, 0x24, 0x2b, 0x4f, 0xde, 0xf8, 0x3b, 0x00, 0x00, 0xff, 0xff, 0x03, 0xf0,
-	0xff, 0xf7, 0x5d, 0x14, 0x00, 0x00,
+var fileDescriptor_eventtermq_3a1954b40eda73fc = []byte{
+	// 1545 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe4, 0x58, 0xcf, 0x6f, 0x1b, 0xc5,
+	0x17, 0xef, 0x3a, 0xf1, 0xaf, 0xe7, 0xc4, 0x69, 0xe6, 0xdb, 0x1f, 0xce, 0xa6, 0xb1, 0x93, 0xed,
+	0xb7, 0x25, 0x0d, 0xd4, 0xa1, 0x41, 0x55, 0xf9, 0x21, 0x90, 0xec, 0xb8, 0x41, 0xa6, 0x34, 0x6d,
+	0xb7, 0xe9, 0x85, 0x8b, 0xb5, 0xde, 0x1d, 0xbb, 0xab, 0xd8, 0x3b, 0x9b, 0xfd, 0x11, 0x6a, 0x55,
+	0x3d, 0x00, 0x12, 0xe2, 0x82, 0x28, 0xbf, 0x24, 0xfe, 0x00, 0x4e, 0x48, 0x5c, 0x91, 0x38, 0x72,
+	0xeb, 0x11, 0x89, 0x33, 0xa6, 0x18, 0xfe, 0x0a, 0xe0, 0x80, 0x66, 0x76, 0xbc, 0xde, 0xb5, 0x1d,
+	0xdb, 0x0d, 0xc9, 0x05, 0x6e, 0x3b, 0xef, 0xbd, 0x99, 0xf9, 0xbc, 0xcf, 0x9b, 0xf7, 0xe6, 0xcd,
+	0xc2, 0x49, 0xbc, 0x8f, 0x0d, 0xc7, 0xc1, 0x56, 0x73, 0x2f, 0x6f, 0x5a, 0xc4, 0x21, 0x28, 0xad,
+	0x93, 0x7c, 0x57, 0x98, 0x6f, 0xee, 0x89, 0xa7, 0xea, 0xa4, 0x4e, 0x98, 0x6a, 0x9d, 0x7e, 0x79,
+	0x56, 0xe2, 0xb9, 0x3a, 0x21, 0xf5, 0x06, 0x5e, 0x57, 0x4c, 0x7d, 0x5d, 0x31, 0x0c, 0xe2, 0x28,
+	0x8e, 0x4e, 0x0c, 0x9b, 0x6b, 0xb3, 0x5c, 0xcb, 0x46, 0x55, 0xb7, 0xb6, 0xae, 0xb9, 0x16, 0x33,
+	0xe8, 0x9b, 0xed, 0xeb, 0x6d, 0xc7, 0x72, 0x55, 0x87, 0x6b, 0x73, 0xfd, 0x5a, 0x47, 0x6f, 0x62,
+	0xdb, 0x51, 0x9a, 0xa6, 0x67, 0x20, 0x15, 0x60, 0x76, 0x5b, 0x69, 0x62, 0xdb, 0x54, 0x54, 0x4c,
+	0x3f, 0xd0, 0x39, 0x48, 0x1a, 0x5d, 0x41, 0x46, 0x58, 0x16, 0x56, 0x93, 0x72, 0x4f, 0x80, 0x10,
+	0x4c, 0xd3, 0x41, 0x26, 0xc2, 0x14, 0xec, 0x5b, 0xfa, 0x34, 0x02, 0xa7, 0x37, 0x89, 0x51, 0xd3,
+	0xeb, 0xae, 0x85, 0x77, 0x88, 0xa9, 0xab, 0x32, 0xde, 0x73, 0xb1, 0xed, 0xa0, 0x57, 0x20, 0xea,
+	0xd0, 0x31, 0x5b, 0x27, 0xb5, 0xb1, 0x94, 0x0f, 0xf3, 0x91, 0x0f, 0xed, 0x5c, 0x9c, 0x7e, 0xd2,
+	0xce, 0x9d, 0x90, 0xbd, 0x19, 0x74, 0x23, 0xa7, 0x65, 0xfa, 0x1b, 0xd1, 0x6f, 0x74, 0x06, 0x62,
+	0xf6, 0x7d, 0xc5, 0xd2, 0xec, 0xcc, 0xd4, 0xb2, 0xb0, 0x3a, 0x2b, 0xf3, 0x11, 0xba, 0x0c, 0xc8,
+	0xc2, 0x66, 0x43, 0x57, 0x19, 0x2f, 0x95, 0x9a, 0xa2, 0x3a, 0xc4, 0xca, 0x4c, 0x33, 0x9b, 0xf9,
+	0x80, 0x66, 0x8b, 0x29, 0x50, 0x01, 0x92, 0x16, 0x76, 0xb0, 0x41, 0x45, 0x99, 0x28, 0x43, 0xb6,
+	0x90, 0xf7, 0x78, 0xca, 0x77, 0x79, 0xca, 0x97, 0x38, 0xcb, 0xc5, 0x04, 0x45, 0xf5, 0xd5, 0x2f,
+	0x39, 0x41, 0xee, 0xcd, 0x42, 0x39, 0x48, 0x35, 0xb0, 0xa2, 0x61, 0xab, 0x42, 0x8c, 0x46, 0x2b,
+	0xa3, 0x2e, 0x0b, 0xab, 0x09, 0x19, 0x3c, 0xd1, 0x2d, 0xa3, 0xd1, 0x92, 0xb6, 0xe0, 0x4c, 0x3f,
+	0x25, 0xb6, 0x49, 0x0c, 0x9b, 0x3a, 0x11, 0x21, 0xbb, 0x8c, 0x90, 0x44, 0x31, 0xd6, 0x69, 0xe7,
+	0x22, 0xb7, 0x6e, 0xc8, 0x11, 0xb2, 0x8b, 0x4e, 0x41, 0x54, 0x37, 0x34, 0xfc, 0x80, 0x79, 0x3c,
+	0x2d, 0x7b, 0x03, 0xe9, 0xa9, 0x00, 0x51, 0x36, 0xff, 0x5f, 0xcb, 0xa5, 0x44, 0x60, 0xfe, 0x6d,
+	0xdd, 0x76, 0x98, 0x97, 0xf6, 0x11, 0x9c, 0x9c, 0xb1, 0xb1, 0xd9, 0x03, 0x14, 0xdc, 0xf0, 0x30,
+	0x71, 0x41, 0x97, 0x21, 0xc6, 0x76, 0xa3, 0xf4, 0x4d, 0xad, 0xa6, 0x36, 0x4e, 0xf7, 0x03, 0xf4,
+	0x82, 0xce, 0x8d, 0xa4, 0x8f, 0x05, 0x40, 0x25, 0xdc, 0xc0, 0xce, 0x91, 0xe5, 0xc7, 0x22, 0x24,
+	0xf5, 0x5a, 0xc5, 0x35, 0x5c, 0x1b, 0x6b, 0x0c, 0x5a, 0x42, 0x4e, 0xe8, 0xb5, 0x7b, 0x6c, 0x3c,
+	0x9e, 0x82, 0x4d, 0xf8, 0x5f, 0x08, 0xce, 0xa1, 0xce, 0xe6, 0x37, 0x11, 0x58, 0xf2, 0x0f, 0xf9,
+	0x26, 0x31, 0x6c, 0xb7, 0x89, 0xad, 0x37, 0x2d, 0xe2, 0x9a, 0x5d, 0xff, 0xde, 0x82, 0xb4, 0xca,
+	0xe5, 0x95, 0x3a, 0x55, 0x3c, 0x8b, 0xa3, 0xb3, 0x6a, 0x70, 0x49, 0x74, 0x07, 0x12, 0x55, 0xdd,
+	0xd0, 0x74, 0xa3, 0x6e, 0x67, 0x22, 0x8c, 0xf3, 0xab, 0xfd, 0xab, 0x8c, 0x04, 0x93, 0x2f, 0x7a,
+	0xb3, 0x65, 0x7f, 0x99, 0xb1, 0x34, 0x89, 0x65, 0x88, 0xf3, 0x59, 0x68, 0x09, 0x80, 0x11, 0x5f,
+	0x61, 0xe5, 0x8f, 0xd7, 0x45, 0x26, 0x61, 0x55, 0x33, 0x07, 0x29, 0x8b, 0xb8, 0x8e, 0x6e, 0xd4,
+	0x2b, 0xbb, 0xb8, 0xc5, 0x33, 0x0d, 0xb8, 0xe8, 0x06, 0x6e, 0x49, 0xdb, 0x90, 0x3d, 0x08, 0xde,
+	0xa1, 0xc8, 0x7f, 0x2f, 0x02, 0xb3, 0xa1, 0x75, 0x8e, 0x94, 0xec, 0xc2, 0x00, 0xd9, 0x17, 0x86,
+	0x90, 0xdd, 0x9b, 0x30, 0x84, 0xdc, 0x03, 0x0a, 0xcc, 0x51, 0x72, 0xfa, 0x91, 0x00, 0x0b, 0x34,
+	0x93, 0x43, 0x50, 0xec, 0xe3, 0x38, 0x7c, 0x63, 0x13, 0xea, 0x33, 0x01, 0xc4, 0x61, 0x50, 0x0e,
+	0x55, 0x5c, 0xb6, 0x60, 0x2e, 0x8c, 0xbc, 0x5b, 0x65, 0x96, 0x46, 0x06, 0x41, 0x4e, 0x87, 0x40,
+	0xdb, 0xd2, 0x0f, 0x02, 0x88, 0x5e, 0x9a, 0x1f, 0x7b, 0x76, 0x8e, 0x2c, 0x47, 0x0b, 0x90, 0xd0,
+	0x6b, 0x15, 0xdc, 0x34, 0x9d, 0x16, 0x3b, 0x0c, 0x09, 0x39, 0xae, 0xd7, 0xae, 0xd3, 0xe1, 0x78,
+	0x62, 0x6f, 0xc0, 0xe2, 0x50, 0x17, 0x0e, 0x95, 0x34, 0x5f, 0x46, 0x21, 0x7e, 0x13, 0xdb, 0xb6,
+	0x52, 0x1f, 0x38, 0x5d, 0x42, 0xff, 0xe9, 0x42, 0x45, 0x00, 0xd3, 0x22, 0x26, 0xb6, 0x1c, 0x1d,
+	0xdb, 0x6c, 0x9d, 0xd4, 0x86, 0xd4, 0x4f, 0x0d, 0x5f, 0x2d, 0x7f, 0xdb, 0xb7, 0x94, 0x03, 0xb3,
+	0xd0, 0x15, 0x88, 0xdf, 0x67, 0xbe, 0x78, 0x59, 0x90, 0xda, 0x38, 0x3b, 0x70, 0x39, 0xde, 0x65,
+	0xed, 0x9a, 0xdc, 0xb5, 0xa3, 0x97, 0xb5, 0xa6, 0x38, 0x0a, 0xbb, 0x72, 0x67, 0x64, 0xf6, 0x2d,
+	0xfe, 0x3c, 0x05, 0xd0, 0xdb, 0x01, 0xad, 0xc0, 0x8c, 0x4a, 0x0c, 0x7a, 0x7f, 0x56, 0xd8, 0xbd,
+	0xee, 0x61, 0x4f, 0x71, 0xd9, 0x0e, 0xbd, 0xde, 0x2f, 0xc1, 0xc9, 0xae, 0x09, 0x36, 0x54, 0x42,
+	0xd3, 0x8d, 0x27, 0xd0, 0x1c, 0x97, 0x5f, 0xe7, 0x62, 0x74, 0x1e, 0x66, 0x35, 0xdc, 0xd0, 0xf7,
+	0xb1, 0xd5, 0xaa, 0x34, 0x89, 0x86, 0x19, 0xd2, 0xa8, 0x3c, 0xd3, 0x15, 0xde, 0x24, 0x1a, 0x46,
+	0x22, 0x24, 0x4c, 0x4b, 0x27, 0x96, 0xee, 0xb4, 0x18, 0xb2, 0xa8, 0xec, 0x8f, 0xd1, 0xcb, 0xf4,
+	0x1c, 0x59, 0x16, 0x6e, 0x78, 0x2d, 0x83, 0xae, 0xb1, 0x46, 0x20, 0x59, 0x9c, 0xef, 0xb4, 0x73,
+	0xb3, 0x9b, 0x3d, 0x4d, 0xb9, 0x44, 0x4f, 0x4d, 0x6f, 0xc8, 0x0e, 0x06, 0x6d, 0x29, 0x5a, 0x15,
+	0x87, 0x64, 0x62, 0x0c, 0x5d, 0x9c, 0x8d, 0x77, 0x08, 0xca, 0x02, 0xe0, 0x07, 0xa6, 0xee, 0x35,
+	0x0e, 0x99, 0xb8, 0x17, 0x9d, 0x9e, 0x04, 0xbd, 0x00, 0xd0, 0xf4, 0xb8, 0xa7, 0x1b, 0x26, 0xd8,
+	0x86, 0xb3, 0x9d, 0x76, 0x2e, 0xc9, 0x23, 0x52, 0x2e, 0xc9, 0x49, 0x6e, 0x50, 0xd6, 0x50, 0x11,
+	0x92, 0x7e, 0xe3, 0x9b, 0x49, 0xb2, 0x48, 0x88, 0x03, 0x91, 0xd8, 0xe9, 0x5a, 0x78, 0x7d, 0xca,
+	0x63, 0xd6, 0xa7, 0xf8, 0xd3, 0xfc, 0x2e, 0x0a, 0x02, 0x5d, 0xd4, 0x79, 0x88, 0xbb, 0x36, 0xb6,
+	0x28, 0x84, 0x14, 0x83, 0x00, 0x9d, 0x76, 0x2e, 0x76, 0xcf, 0xc6, 0x56, 0xb9, 0x24, 0xc7, 0xa8,
+	0xaa, 0xac, 0xa1, 0x65, 0x88, 0x29, 0xa6, 0x49, 0x6d, 0x66, 0x98, 0x4d, 0xb2, 0xd3, 0xce, 0x45,
+	0x0b, 0xa6, 0x59, 0x2e, 0xc9, 0x51, 0xc5, 0x34, 0xcb, 0x9a, 0xf4, 0xb5, 0x00, 0xe9, 0xdb, 0x6e,
+	0xb5, 0xa1, 0xdb, 0xf7, 0x8f, 0xa0, 0x35, 0xb8, 0x02, 0x71, 0xee, 0x39, 0x3f, 0xb5, 0x67, 0x0f,
+	0x38, 0xb5, 0x72, 0xd7, 0x0e, 0xfd, 0x1f, 0xd2, 0x1a, 0xa9, 0x18, 0xc4, 0xa9, 0xd4, 0x88, 0xf5,
+	0xae, 0x62, 0x69, 0x99, 0x2a, 0xcb, 0xc4, 0x19, 0x8d, 0x6c, 0x13, 0x67, 0xcb, 0x93, 0x49, 0x97,
+	0x60, 0xce, 0x47, 0x39, 0x3a, 0xff, 0xa4, 0xef, 0x05, 0x38, 0x79, 0xd7, 0xad, 0xda, 0xaa, 0xa5,
+	0x57, 0xf1, 0x71, 0x14, 0x9c, 0xd3, 0x10, 0x33, 0x48, 0x45, 0x51, 0x77, 0x79, 0xb5, 0x89, 0x1a,
+	0xa4, 0xa0, 0xee, 0xd2, 0xd7, 0x0b, 0x7e, 0xa0, 0x36, 0x5c, 0x5b, 0xdf, 0xc7, 0xbc, 0xd6, 0xf4,
+	0x04, 0x13, 0xba, 0xf9, 0xab, 0x00, 0xf3, 0x01, 0xec, 0xdc, 0xd3, 0x7f, 0x10, 0x90, 0xd7, 0x60,
+	0xce, 0xf6, 0xd6, 0x33, 0xbb, 0x19, 0xc2, 0xca, 0x52, 0x11, 0x75, 0xda, 0xb9, 0xf4, 0xdd, 0x80,
+	0xaa, 0x5c, 0x92, 0xd3, 0x41, 0xd3, 0xb2, 0x46, 0x93, 0xdd, 0x4f, 0x4f, 0x47, 0xa9, 0x33, 0xa7,
+	0xa6, 0xe5, 0x54, 0x57, 0xb6, 0xa3, 0xd4, 0x83, 0x01, 0x9f, 0x9e, 0x2c, 0xe0, 0xd2, 0x1f, 0x02,
+	0x40, 0x41, 0xdd, 0x3d, 0x8e, 0xc8, 0x1c, 0xb7, 0xb7, 0x22, 0x24, 0x9a, 0x6e, 0xc3, 0xd1, 0xcd,
+	0x86, 0xe7, 0x6e, 0x42, 0xf6, 0xc7, 0x13, 0x06, 0xf8, 0x02, 0xa4, 0x98, 0xef, 0x63, 0xce, 0xf0,
+	0x9f, 0x02, 0xa4, 0xb6, 0x95, 0xff, 0x2a, 0x49, 0x17, 0x61, 0xc6, 0x73, 0x7e, 0x34, 0x4b, 0x1b,
+	0x7f, 0x25, 0x01, 0xae, 0x73, 0xe7, 0x6f, 0xde, 0x41, 0x9f, 0x08, 0x90, 0x0e, 0xbf, 0x7c, 0xd1,
+	0x85, 0x03, 0xfb, 0xf4, 0xe0, 0x63, 0x48, 0xbc, 0x38, 0xce, 0xcc, 0x03, 0x22, 0xe5, 0xdf, 0xff,
+	0xe9, 0xf7, 0xcf, 0x23, 0xab, 0xe2, 0xc5, 0xf5, 0x87, 0x2c, 0xbd, 0xf2, 0xfe, 0xdf, 0x89, 0x47,
+	0xeb, 0xde, 0x73, 0x2b, 0xa8, 0x78, 0x84, 0xf6, 0x01, 0x7a, 0xcf, 0x3d, 0xb4, 0xd2, 0xbf, 0xcb,
+	0xc0, 0xdb, 0x53, 0x94, 0x46, 0x99, 0x70, 0x10, 0x2b, 0x0c, 0xc4, 0x22, 0x5a, 0x38, 0x10, 0x04,
+	0xfa, 0x50, 0x80, 0x54, 0xe0, 0x91, 0x85, 0x06, 0x96, 0x1d, 0x7c, 0x10, 0x8a, 0xe7, 0x47, 0xda,
+	0x84, 0x09, 0x58, 0x9b, 0x94, 0x80, 0xef, 0x84, 0xc0, 0xcf, 0x88, 0xf0, 0x9b, 0xe1, 0xf2, 0x33,
+	0x3d, 0xa1, 0xc4, 0xfc, 0xa4, 0xe6, 0x1c, 0xe9, 0xeb, 0x0c, 0xe9, 0x35, 0xf1, 0xea, 0xfa, 0xc3,
+	0x70, 0xe6, 0x04, 0x21, 0xab, 0x75, 0x7b, 0xa8, 0xfa, 0x11, 0xfa, 0x42, 0xf0, 0x5e, 0xea, 0xe1,
+	0xa6, 0x1a, 0x5d, 0x1a, 0x16, 0x9f, 0xa1, 0x6f, 0x00, 0x71, 0x6d, 0x12, 0x53, 0x0e, 0xf6, 0x39,
+	0x06, 0x76, 0x05, 0xe5, 0xc6, 0x80, 0x45, 0xdf, 0x0a, 0xdd, 0xd7, 0x73, 0x98, 0xcc, 0xb5, 0xe1,
+	0xc1, 0x1b, 0xca, 0xe4, 0xf3, 0x13, 0xd9, 0x86, 0x69, 0x5c, 0x3b, 0x24, 0x8d, 0x1f, 0x08, 0x10,
+	0xe7, 0xf7, 0x36, 0xca, 0xf6, 0xef, 0x1b, 0x6e, 0x3b, 0xc4, 0xdc, 0x81, 0x7a, 0x8e, 0xe5, 0x1a,
+	0xc3, 0x72, 0x45, 0x9a, 0xf0, 0xf0, 0xbd, 0xea, 0xb7, 0x18, 0x32, 0x24, 0xfd, 0x4b, 0x15, 0x2d,
+	0xf7, 0x6f, 0xd3, 0xdf, 0x2b, 0x88, 0x2b, 0x23, 0x2c, 0x3c, 0x28, 0x2f, 0x0a, 0xe8, 0x0d, 0x98,
+	0xa2, 0x97, 0xbe, 0xd8, 0x6f, 0xdb, 0xbb, 0xd9, 0xc4, 0xc5, 0xa1, 0x3a, 0x5e, 0xd3, 0x0a, 0x30,
+	0x4d, 0x6b, 0x1c, 0x5a, 0x1c, 0xac, 0xe0, 0xbd, 0x15, 0xce, 0x0d, 0x57, 0x7a, 0x4b, 0x14, 0x33,
+	0x4f, 0x3a, 0x59, 0xe1, 0xc7, 0x4e, 0x56, 0x78, 0xda, 0xc9, 0x0a, 0x8f, 0x7f, 0xcb, 0x9e, 0x78,
+	0x27, 0xa6, 0x36, 0x74, 0x6c, 0x38, 0xd5, 0x18, 0x6b, 0x2c, 0x5f, 0xfa, 0x3b, 0x00, 0x00, 0xff,
+	0xff, 0xec, 0xde, 0xb5, 0x56, 0x17, 0x16, 0x00, 0x00,
 }

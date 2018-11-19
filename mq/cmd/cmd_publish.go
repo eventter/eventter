@@ -14,7 +14,7 @@ import (
 
 func publishCmd() *cobra.Command {
 	request := &client.PublishRequest{
-		Message: client.Message{
+		Message: &client.Message{
 			Properties: &client.Message_Properties{},
 		},
 	}

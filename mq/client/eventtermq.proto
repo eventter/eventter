@@ -151,42 +151,52 @@ message PublishRequest {
     // If true and node cannot write message to segment, request will fail.
     bool do_not_forward = 98;
     NamespaceName topic = 1 [(gogoproto.nullable) = false];
-    Message message = 2 [(gogoproto.nullable) = false];
+    Message message = 2;
 }
 
 message PublishResponse {
     bool ok = 1 [(gogoproto.customname) = "OK"];
 }
 
-message ConsumeRequest {
-    message Request {
-        NamespaceName consumer_group = 1 [(gogoproto.nullable) = false];
-        bool no_ack = 2;
-        bool exclusive = 3;
-    }
-
-    message Ack {
-        uint64 delivery_tag = 1;
-        bool multiple = 2;
-    }
-
-    message Nack {
-        uint64 delivery_tag = 1;
-        bool multiple = 2;
-        bool requeue = 3;
-    }
-
-    oneof body {
-        Request request = 1;
-        Ack ack = 2;
-        Nack nack = 3;
-    }
+message SubscribeRequest {
+    // If true and node does not manage consumer group, request will fail.
+    bool do_not_forward = 98;
+    NamespaceName consumer_group = 1 [(gogoproto.nullable) = false];
+    bool no_ack = 2;
+    bool exclusive = 3;
 }
 
-message ConsumeResponse {
-    uint64 delivery_tag = 1;
-    NamespaceName topic = 2 [(gogoproto.nullable) = false];
-    Message message = 3 [(gogoproto.nullable) = false];
+message SubscribeResponse {
+    NamespaceName topic = 1 [(gogoproto.nullable) = false];
+    uint64 subscription_id = 2 [(gogoproto.customname) = "SubscriptionID"];
+    uint64 delivery_tag = 3;
+    Message message = 4;
+}
+
+message AckRequest {
+    // If true and node does not manage consumer group, request will fail.
+    bool do_not_forward = 98;
+    NamespaceName consumer_group = 1 [(gogoproto.nullable) = false];
+    uint64 subscription_id = 2 [(gogoproto.customname) = "SubscriptionID"];
+    uint64 delivery_tag = 3;
+    bool multiple = 4;
+}
+
+message AckResponse {
+    bool ok = 1 [(gogoproto.customname) = "OK"];
+}
+
+message NackRequest {
+    // If true and node does not manage consumer group, request will fail.
+    bool do_not_forward = 98;
+    NamespaceName consumer_group = 1 [(gogoproto.nullable) = false];
+    uint64 subscription_id = 2 [(gogoproto.customname) = "SubscriptionID"];
+    uint64 delivery_tag = 3;
+    bool multiple = 4;
+}
+
+message NackResponse {
+    bool ok = 1 [(gogoproto.customname) = "OK"];
 }
 
 service EventterMQ {
@@ -234,6 +244,10 @@ service EventterMQ {
         };
     }
 
-    rpc Consume (stream ConsumeRequest) returns (stream ConsumeResponse);
+    rpc Subscribe (SubscribeRequest) returns (stream SubscribeResponse);
+
+    rpc Ack (AckRequest) returns (AckResponse);
+
+    rpc Nack (NackRequest) returns (NackResponse);
 
 }

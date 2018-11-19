@@ -134,11 +134,11 @@ LOOP:
 					if _, ok := runningConsumerGroups[name]; !ok {
 						runningConsumerGroups[name] = startTask(
 							fmt.Sprintf("consumer group %s", name),
-							func(namespace string, name string) func(context.Context) error {
+							func(namespace string, name string, segmentID uint64) func(context.Context) error {
 								return func(ctx context.Context) error {
-									return s.taskConsumerGroup(ctx, namespace, name)
+									return s.taskConsumerGroup(ctx, namespace, name, segmentID)
 								}
-							}(segment.Owner.Namespace, segment.Owner.Name),
+							}(segment.Owner.Namespace, segment.Owner.Name, segment.ID),
 						)
 					}
 				}
