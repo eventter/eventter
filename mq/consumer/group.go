@@ -52,10 +52,10 @@ func (g *Group) Offer(message *Message) error {
 	defer g.mutex.Unlock()
 
 	for (g.write+1)%len(g.messages) == g.read {
-		g.cond.Wait()
 		if atomic.LoadUint32(&g.closed) == 1 {
 			return ErrGroupClosed
 		}
+		g.cond.Wait()
 	}
 
 	g.messages[g.write] = message

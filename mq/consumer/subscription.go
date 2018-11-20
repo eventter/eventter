@@ -37,13 +37,13 @@ func (s *Subscription) Next() (*Message, error) {
 		if i != -1 {
 			break
 		}
+		if atomic.LoadUint32(&s.closed) == 1 {
+			return nil, ErrSubscriptionClosed
+		}
 		if s.group.read == s.group.write && atomic.LoadUint32(&s.group.closed) == 1 {
 			return nil, ErrGroupClosed
 		}
 		s.group.cond.Wait()
-		if atomic.LoadUint32(&s.closed) == 1 {
-			return nil, ErrSubscriptionClosed
-		}
 	}
 
 	s.group.leases[i] = s.ID

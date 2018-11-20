@@ -87,10 +87,10 @@ func (i *Iterator) nextWait() error {
 
 	currentOffset := atomic.LoadInt64(&i.file.offset)
 	for currentOffset == i.endOffset && atomic.LoadUint32(&i.file.term) == i.term {
-		i.file.cond.Wait()
 		if atomic.LoadUint32(&i.closed) == 1 {
 			return ErrIteratorClosed
 		}
+		i.file.cond.Wait()
 		currentOffset = atomic.LoadInt64(&i.file.offset)
 	}
 
