@@ -1,4 +1,4 @@
-package consumer
+package consumers
 
 import (
 	"fmt"
@@ -44,6 +44,8 @@ func TestGroup_Offer(t *testing.T) {
 }
 
 func TestGroup_Subscribe(t *testing.T) {
+	currentSubscriptionID = 0
+
 	g, err := NewGroup(8)
 	if err != nil {
 		t.Fatal(err)

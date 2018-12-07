@@ -149,7 +149,7 @@ message Message {
 
 message PublishRequest {
     // If true and node cannot write message to segment, request will fail.
-    bool do_not_forward = 98;
+    bool do_not_forward = 99;
     NamespaceName topic = 1 [(gogoproto.nullable) = false];
     Message message = 2;
 }
@@ -160,23 +160,24 @@ message PublishResponse {
 
 message SubscribeRequest {
     // If true and node does not manage consumer group, request will fail.
-    bool do_not_forward = 98;
+    bool do_not_forward = 99;
     NamespaceName consumer_group = 1 [(gogoproto.nullable) = false];
     bool no_ack = 2;
     bool exclusive = 3;
 }
 
 message SubscribeResponse {
-    NamespaceName topic = 1 [(gogoproto.nullable) = false];
+    uint64 node_id = 1 [(gogoproto.customname) = "NodeID"];
     uint64 subscription_id = 2 [(gogoproto.customname) = "SubscriptionID"];
     uint64 delivery_tag = 3;
-    Message message = 4;
+    NamespaceName topic = 4 [(gogoproto.nullable) = false];
+    Message message = 5;
 }
 
 message AckRequest {
     // If true and node does not manage consumer group, request will fail.
-    bool do_not_forward = 98;
-    NamespaceName consumer_group = 1 [(gogoproto.nullable) = false];
+    bool do_not_forward = 99;
+    uint64 node_id = 1 [(gogoproto.customname) = "NodeID"];
     uint64 subscription_id = 2 [(gogoproto.customname) = "SubscriptionID"];
     uint64 delivery_tag = 3;
     bool multiple = 4;
@@ -188,8 +189,8 @@ message AckResponse {
 
 message NackRequest {
     // If true and node does not manage consumer group, request will fail.
-    bool do_not_forward = 98;
-    NamespaceName consumer_group = 1 [(gogoproto.nullable) = false];
+    bool do_not_forward = 99;
+    uint64 node_id = 1 [(gogoproto.customname) = "NodeID"];
     uint64 subscription_id = 2 [(gogoproto.customname) = "SubscriptionID"];
     uint64 delivery_tag = 3;
     bool multiple = 4;

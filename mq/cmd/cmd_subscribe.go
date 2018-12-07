@@ -48,11 +48,13 @@ func subscribeCmd() *cobra.Command {
 					return err
 				}
 
-				encoder.Encode(response)
+				if err := encoder.Encode(response); err != nil {
+					return err
+				}
 
 				if !request.NoAck {
 					_, err = c.Ack(ctx, &client.AckRequest{
-						ConsumerGroup:  request.ConsumerGroup,
+						NodeID:         response.NodeID,
 						SubscriptionID: response.SubscriptionID,
 						DeliveryTag:    response.DeliveryTag,
 					})

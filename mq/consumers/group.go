@@ -1,4 +1,4 @@
-package consumer
+package consumers
 
 import (
 	"math"
@@ -14,18 +14,18 @@ const (
 )
 
 var (
-	ErrGroupClosed = errors.New("group is closed")
+	ErrGroupClosed               = errors.New("group is closed")
+	currentSubscriptionID uint64 = 0
 )
 
 type Group struct {
-	mutex               sync.Mutex
-	cond                *sync.Cond
-	messages            []*Message
-	leases              []uint64
-	read                int
-	write               int
-	closed              uint32
-	subscriptionCounter uint64
+	mutex    sync.Mutex
+	cond     *sync.Cond
+	messages []*Message
+	leases   []uint64
+	read     int
+	write    int
+	closed   uint32
 }
 
 func NewGroup(size int) (*Group, error) {
@@ -69,7 +69,7 @@ func (g *Group) Offer(message *Message) error {
 
 func (g *Group) Subscribe() *Subscription {
 	return &Subscription{
-		ID:    atomic.AddUint64(&g.subscriptionCounter, 1),
+		ID:    atomic.AddUint64(&currentSubscriptionID, 1),
 		group: g,
 	}
 }
