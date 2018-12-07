@@ -1,4 +1,4 @@
-package segmentfile
+package segments
 
 import (
 	"io"

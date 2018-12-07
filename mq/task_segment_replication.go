@@ -9,7 +9,7 @@ import (
 	"math"
 	"runtime"
 
-	"eventter.io/mq/segmentfile"
+	"eventter.io/mq/segments"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 )
@@ -34,7 +34,7 @@ func (s *Server) taskSegmentReplication(ctx context.Context, segmentID uint64, n
 	}
 	defer s.pool.Put(cc)
 
-	sha1Sum, size, err := segment.Sum(sha1.New(), segmentfile.SumAll)
+	sha1Sum, size, err := segment.Sum(sha1.New(), segments.SumAll)
 	if err != nil {
 		return errors.Wrap(err, "local sum failed")
 	}
@@ -50,7 +50,7 @@ func (s *Server) taskSegmentReplication(ctx context.Context, segmentID uint64, n
 	}
 
 	if !bytes.Equal(sha1Sum, sumResponse.Sha1) {
-		size = segmentfile.TruncateAll
+		size = segments.TruncateAll
 	}
 
 	if err := segment.Truncate(size); err != nil {
@@ -104,7 +104,7 @@ func (s *Server) taskSegmentReplication(ctx context.Context, segmentID uint64, n
 		}
 	}
 
-	finalSha1Sum, finalSize, err := segment.Sum(sha1.New(), segmentfile.SumAll)
+	finalSha1Sum, finalSize, err := segment.Sum(sha1.New(), segments.SumAll)
 	if err != nil {
 		return errors.Wrap(err, "final sum failed")
 	}

@@ -1,6 +1,6 @@
 // +build dragonfly freebsd windows
 
-package segmentfile
+package segments
 
 import (
 	"os"

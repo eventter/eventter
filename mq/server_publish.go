@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"eventter.io/mq/client"
-	"eventter.io/mq/segmentfile"
+	"eventter.io/mq/segments"
 	"github.com/gogo/protobuf/proto"
 	"github.com/pkg/errors"
 )
@@ -102,8 +102,8 @@ WRITE:
 		}
 
 		err = segmentHandle.Write(buf)
-		if err == segmentfile.ErrFull {
-			sha1Sum, size, err := segmentHandle.Sum(sha1.New(), segmentfile.SumAll)
+		if err == segments.ErrFull {
+			sha1Sum, size, err := segmentHandle.Sum(sha1.New(), segments.SumAll)
 			if err != nil {
 				return nil, err
 			}
@@ -130,7 +130,7 @@ WRITE:
 		}
 
 		if segmentHandle.IsFull() {
-			sha1Sum, size, err := segmentHandle.Sum(sha1.New(), segmentfile.SumAll)
+			sha1Sum, size, err := segmentHandle.Sum(sha1.New(), segments.SumAll)
 			if err != nil {
 				return nil, err
 			}

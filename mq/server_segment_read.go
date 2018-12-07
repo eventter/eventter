@@ -4,7 +4,7 @@ import (
 	"context"
 	"io"
 
-	"eventter.io/mq/segmentfile"
+	"eventter.io/mq/segments"
 	"github.com/pkg/errors"
 )
 
@@ -19,7 +19,7 @@ func (s *Server) SegmentRead(request *SegmentReadRequest, stream NodeRPC_Segment
 	}
 	defer s.segmentDir.Release(segment)
 
-	var iterator *segmentfile.Iterator
+	var iterator *segments.Iterator
 	if request.Offset > 0 {
 		iterator, err = segment.ReadAt(request.Offset, request.Wait)
 	} else {

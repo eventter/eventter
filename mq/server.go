@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"eventter.io/mq/client"
-	"eventter.io/mq/segmentfile"
+	"eventter.io/mq/segments"
 	"github.com/hashicorp/memberlist"
 	"github.com/hashicorp/raft"
 	"github.com/pkg/errors"
@@ -33,7 +33,7 @@ type Server struct {
 	raftNode         *raft.Raft
 	pool             *ClientConnPool
 	clusterState     *ClusterStateStore
-	segmentDir       *segmentfile.Dir
+	segmentDir       *segments.Dir
 	tx               sync.Mutex
 	publishForwardRR uint32
 	closeC           chan struct{}
@@ -44,7 +44,7 @@ var (
 	_ NodeRPCServer           = (*Server)(nil)
 )
 
-func NewServer(nodeID uint64, members *memberlist.Memberlist, raftNode *raft.Raft, pool *ClientConnPool, clusterState *ClusterStateStore, segmentDir *segmentfile.Dir) *Server {
+func NewServer(nodeID uint64, members *memberlist.Memberlist, raftNode *raft.Raft, pool *ClientConnPool, clusterState *ClusterStateStore, segmentDir *segments.Dir) *Server {
 	return &Server{
 		nodeID:       nodeID,
 		members:      members,

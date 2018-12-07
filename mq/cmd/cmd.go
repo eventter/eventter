@@ -15,7 +15,7 @@ import (
 
 	"eventter.io/mq"
 	"eventter.io/mq/client"
-	"eventter.io/mq/segmentfile"
+	"eventter.io/mq/segments"
 	"github.com/bbva/raft-badger"
 	"github.com/hashicorp/memberlist"
 	"github.com/hashicorp/raft"
@@ -114,7 +114,7 @@ func Cmd() *cobra.Command {
 				raftNode.Shutdown().Error()
 			}()
 
-			segmentDir, err := segmentfile.NewDir(
+			segmentDir, err := segments.NewDir(
 				filepath.Join(rootConfig.Dir, "segments"),
 				rootConfig.DirPerm,
 				0644,
