@@ -51,6 +51,10 @@ func (s *Server) ConfigureConsumerGroup(ctx context.Context, request *client.Con
 		return nil, err
 	}
 
+	if err := s.raftNode.Barrier(barrierTimeout).Error(); err != nil {
+		return nil, err
+	}
+
 	openSegments := state.FindOpenSegmentsFor(
 		ClusterSegment_CONSUMER_GROUP_OFFSETS,
 		request.ConsumerGroup.Namespace,

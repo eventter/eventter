@@ -100,14 +100,14 @@ LOOP:
 
 				reconciler.ReconcileNodes(s.clusterState.Current())
 
-				if err := s.raftNode.Barrier(10 * time.Second).Error(); err != nil {
+				if err := s.raftNode.Barrier(barrierTimeout).Error(); err != nil {
 					log.Printf("could not add barrier: %v", err)
 					return
 				}
 
 				reconciler.ReconcileConsumerGroups(s.clusterState.Current())
 
-				if err := s.raftNode.Barrier(10 * time.Second).Error(); err != nil {
+				if err := s.raftNode.Barrier(barrierTimeout).Error(); err != nil {
 					log.Printf("could not add barrier: %v", err)
 					return
 				}
@@ -316,6 +316,9 @@ LOOP:
 		}
 	}
 
+	for _, task := range runningConsumerGroups {
+		task.cancel()
+	}
 	for _, task := range runningOpenSegmentReplications {
 		task.cancel()
 	}

@@ -28,14 +28,14 @@ type Group struct {
 	closed   uint32
 }
 
-func NewGroup(size int) (*Group, error) {
-	if size < 1 {
-		return nil, errors.New("size must be positive")
+func NewGroup(n int) (*Group, error) {
+	if n < 1 {
+		return nil, errors.New("n must be positive")
 	}
 
 	g := &Group{
-		messages: make([]*Message, size),
-		leases:   make([]uint64, size),
+		messages: make([]*Message, n),
+		leases:   make([]uint64, n),
 	}
 
 	g.cond = sync.NewCond(&g.mutex)

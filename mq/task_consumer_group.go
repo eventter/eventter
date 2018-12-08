@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 
+	"eventter.io/mq/consumers"
 	"github.com/gogo/protobuf/proto"
 	"github.com/pkg/errors"
 )
@@ -37,6 +38,7 @@ func (s *Server) taskConsumerGroup(ctx context.Context, namespaceName string, co
 		return errors.Wrap(err, "segment read failed")
 	}
 
+	commit := ClusterConsumerGroup_OffsetCommit{}
 	for {
 		buf, _, err := iterator.Next()
 		if err == io.EOF {
@@ -45,7 +47,6 @@ func (s *Server) taskConsumerGroup(ctx context.Context, namespaceName string, co
 			return errors.Wrap(err, "segment next failed")
 		}
 
-		commit := ClusterConsumerGroup_OffsetCommit{}
 		if err := proto.Unmarshal(buf, &commit); err != nil {
 			return errors.Wrap(err, "unmarshal failed")
 		}
@@ -56,6 +57,22 @@ func (s *Server) taskConsumerGroup(ctx context.Context, namespaceName string, co
 	}
 
 	// 3) register as consumer group
+
+	group, err := consumers.NewGroup(1024) // FIXME: configurable consumer group size?
+	if err != nil {
+		return errors.Wrap(err, "group create failed")
+	}
+	defer group.Close()
+
+	s.groupMutex.Lock()
+	mapKey := namespaceName + "/" + consumerGroupName
+	s.groupMap[mapKey] = group
+	s.groupMutex.Unlock()
+	defer func() {
+		s.groupMutex.Lock()
+		delete(s.groupMap, mapKey)
+		s.groupMutex.Unlock()
+	}()
 
 	// 4) main loop
 

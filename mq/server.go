@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"eventter.io/mq/client"
+	"eventter.io/mq/consumers"
 	"eventter.io/mq/segments"
 	"github.com/hashicorp/memberlist"
 	"github.com/hashicorp/raft"
@@ -17,6 +18,7 @@ const (
 	entityTopic                     = "topic"
 	entityConsumerGroup             = "consumer group"
 	applyTimeout                    = 10 * time.Second
+	barrierTimeout                  = 10 * time.Second
 	defaultSegmentReplicationFactor = 3
 )
 
@@ -37,6 +39,9 @@ type Server struct {
 	tx               sync.Mutex
 	publishForwardRR uint32
 	closeC           chan struct{}
+	groupMutex       sync.RWMutex
+	groupMap         map[string]*consumers.Group
+	subscriptionMap  map[uint64]*consumers.Subscription
 }
 
 var (
@@ -46,13 +51,15 @@ var (
 
 func NewServer(nodeID uint64, members *memberlist.Memberlist, raftNode *raft.Raft, pool *ClientConnPool, clusterState *ClusterStateStore, segmentDir *segments.Dir) *Server {
 	return &Server{
-		nodeID:       nodeID,
-		members:      members,
-		raftNode:     raftNode,
-		pool:         pool,
-		clusterState: clusterState,
-		segmentDir:   segmentDir,
-		closeC:       make(chan struct{}),
+		nodeID:          nodeID,
+		members:         members,
+		raftNode:        raftNode,
+		pool:            pool,
+		clusterState:    clusterState,
+		segmentDir:      segmentDir,
+		closeC:          make(chan struct{}),
+		groupMap:        make(map[string]*consumers.Group),
+		subscriptionMap: make(map[uint64]*consumers.Subscription),
 	}
 }
 
@@ -64,8 +71,7 @@ func (s *Server) beginTransaction() (err error) {
 		}
 	}()
 
-	future := s.raftNode.Barrier(10 * time.Second)
-	return future.Error()
+	return s.raftNode.Barrier(barrierTimeout).Error()
 }
 
 func (s *Server) releaseTransaction() {

@@ -264,3 +264,33 @@ func (r *PublishRequest) Validate() error {
 
 	return nil
 }
+
+func (r *SubscribeRequest) Validate() error {
+	var errs []error
+
+	if r.ConsumerGroup.Namespace == "" {
+		errs = append(errs, errors.Errorf(blankErrorFormat, "namespace"))
+	} else if !nameRegex.MatchString(r.ConsumerGroup.Namespace) {
+		errs = append(errs, errors.Errorf(nameInvalidErrorFormat, "namespace"))
+	} else if reservedNameRegex.MatchString(r.ConsumerGroup.Namespace) {
+		errs = append(errs, errors.Errorf(reservedNameErrorFormat, "namespace"))
+	} else if len(r.ConsumerGroup.Namespace) > nameMaxLength {
+		errs = append(errs, errors.Errorf(stringLengthErrorFormat, "namespace", nameMaxLength))
+	}
+
+	if r.ConsumerGroup.Name == "" {
+		errs = append(errs, errors.Errorf(blankErrorFormat, "consumer group name"))
+	} else if !nameRegex.MatchString(r.ConsumerGroup.Name) {
+		errs = append(errs, errors.Errorf(nameInvalidErrorFormat, "consumer group name"))
+	} else if reservedNameRegex.MatchString(r.ConsumerGroup.Name) {
+		errs = append(errs, errors.Errorf(reservedNameErrorFormat, "consumer group name"))
+	} else if len(r.ConsumerGroup.Name) > nameMaxLength {
+		errs = append(errs, errors.Errorf(stringLengthErrorFormat, "consumer group name", nameMaxLength))
+	}
+
+	if len(errs) > 0 {
+		return &RequestValidationError{errs}
+	}
+
+	return nil
+}

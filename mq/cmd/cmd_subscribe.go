@@ -56,7 +56,7 @@ func subscribeCmd() *cobra.Command {
 					_, err = c.Ack(ctx, &client.AckRequest{
 						NodeID:         response.NodeID,
 						SubscriptionID: response.SubscriptionID,
-						DeliveryTag:    response.DeliveryTag,
+						SeqNo:          response.SeqNo,
 					})
 					if err != nil {
 						return err

@@ -5,5 +5,7 @@ import (
 )
 
 type Message struct {
+	Topic   client.NamespaceName
 	Message *client.Message
+	SeqNo   uint64
 }

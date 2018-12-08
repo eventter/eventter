@@ -37,7 +37,7 @@ func TestGroup_Offer(t *testing.T) {
 			t.Fatalf("expected %d, got %s", i, m.Message.Data)
 		}
 
-		if err := subscription.Ack(m); err != nil {
+		if err := subscription.Ack(m.SeqNo); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -54,7 +54,9 @@ func TestGroup_Subscribe(t *testing.T) {
 
 	for i := 1; i < 10; i++ {
 		subscription := g.Subscribe()
-		subscription.Close()
+		if err := subscription.Close(); err != nil {
+			t.Fatal(err)
+		}
 		if subscription.ID != uint64(i) {
 			t.Fatalf("expected subscription ID %d, got %d", i, subscription.ID)
 		}
@@ -133,7 +135,7 @@ func benchmarkGroup(b *testing.B, size int, messages int, producers int, consume
 					b.Fatal(err)
 				}
 
-				if err := subscription.Ack(m); err != nil {
+				if err := subscription.Ack(m.SeqNo); err != nil {
 					b.Fatal(err)
 				}
 			}

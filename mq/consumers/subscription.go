@@ -15,6 +15,7 @@ type Subscription struct {
 	ID     uint64
 	group  *Group
 	closed uint32
+	seq    uint64
 }
 
 func (s *Subscription) Next() (*Message, error) {
@@ -46,21 +47,20 @@ func (s *Subscription) Next() (*Message, error) {
 		s.group.cond.Wait()
 	}
 
+	s.seq++
 	s.group.leases[i] = s.ID
+	s.group.messages[i].SeqNo = s.seq
 
 	return s.group.messages[i], nil
 }
 
-func (s *Subscription) Ack(message *Message) error {
+func (s *Subscription) Ack(seqNo uint64) error {
 	s.group.mutex.Lock()
 	defer s.group.mutex.Unlock()
 
 	i := -1
 	for j := s.group.read; j != s.group.write; j = (j + 1) % len(s.group.messages) {
-		if s.group.messages[j] == message {
-			if s.group.leases[j] != s.ID {
-				return ErrNotLeased
-			}
+		if s.group.leases[j] == s.ID && s.group.messages[j].SeqNo == seqNo {
 			i = j
 			break
 		}
@@ -70,6 +70,7 @@ func (s *Subscription) Ack(message *Message) error {
 	}
 
 	s.group.leases[i] = ack
+	s.group.messages[i] = nil
 
 	i = s.group.read
 	for i != s.group.write && s.group.leases[i] == ack {
@@ -83,16 +84,13 @@ func (s *Subscription) Ack(message *Message) error {
 	return nil
 }
 
-func (s *Subscription) Nack(message *Message) error {
+func (s *Subscription) Nack(seqNo uint64) error {
 	s.group.mutex.Lock()
 	defer s.group.mutex.Unlock()
 
 	i := -1
 	for j := s.group.read; j != s.group.write; j = (j + 1) % len(s.group.messages) {
-		if s.group.messages[j] == message {
-			if s.group.leases[j] != s.ID {
-				return ErrNotLeased
-			}
+		if s.group.leases[j] == s.ID && s.group.messages[j].SeqNo == seqNo {
 			i = j
 			break
 		}
@@ -102,6 +100,7 @@ func (s *Subscription) Nack(message *Message) error {
 	}
 
 	s.group.leases[i] = ready
+	s.group.messages[i].SeqNo = 0
 
 	s.group.cond.Broadcast()
 
@@ -115,6 +114,7 @@ func (s *Subscription) Close() error {
 	for i := s.group.read; i != s.group.write; i = (i + 1) % len(s.group.messages) {
 		if s.group.leases[i] == s.ID {
 			s.group.leases[i] = ready
+			s.group.messages[i].SeqNo = 0
 		}
 	}
 

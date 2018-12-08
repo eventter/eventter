@@ -2,7 +2,6 @@ package mq
 
 import (
 	"context"
-	"time"
 
 	"github.com/hashicorp/raft"
 	"github.com/pkg/errors"
@@ -39,8 +38,7 @@ func (s *Server) SegmentRotate(ctx context.Context, request *SegmentCloseRequest
 		return nil, err
 	}
 
-	barrierFuture := s.raftNode.Barrier(10 * time.Second)
-	if err := barrierFuture.Error(); err != nil {
+	if err := s.raftNode.Barrier(barrierTimeout).Error(); err != nil {
 		return nil, err
 	}
 

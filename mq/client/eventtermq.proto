@@ -169,7 +169,7 @@ message SubscribeRequest {
 message SubscribeResponse {
     uint64 node_id = 1 [(gogoproto.customname) = "NodeID"];
     uint64 subscription_id = 2 [(gogoproto.customname) = "SubscriptionID"];
-    uint64 delivery_tag = 3;
+    uint64 seq_no = 3;
     NamespaceName topic = 4 [(gogoproto.nullable) = false];
     Message message = 5;
 }
@@ -179,8 +179,7 @@ message AckRequest {
     bool do_not_forward = 99;
     uint64 node_id = 1 [(gogoproto.customname) = "NodeID"];
     uint64 subscription_id = 2 [(gogoproto.customname) = "SubscriptionID"];
-    uint64 delivery_tag = 3;
-    bool multiple = 4;
+    uint64 seq_no = 3;
 }
 
 message AckResponse {
@@ -192,8 +191,7 @@ message NackRequest {
     bool do_not_forward = 99;
     uint64 node_id = 1 [(gogoproto.customname) = "NodeID"];
     uint64 subscription_id = 2 [(gogoproto.customname) = "SubscriptionID"];
-    uint64 delivery_tag = 3;
-    bool multiple = 4;
+    uint64 seq_no = 3;
 }
 
 message NackResponse {
@@ -245,7 +243,11 @@ service EventterMQ {
         };
     }
 
-    rpc Subscribe (SubscribeRequest) returns (stream SubscribeResponse);
+    rpc Subscribe (SubscribeRequest) returns (stream SubscribeResponse) {
+        option (google.api.http) = {
+            post: "/{consumer_group.namespace}/cgs/{consumer_group.name}"
+        };
+    }
 
     rpc Ack (AckRequest) returns (AckResponse);
 
