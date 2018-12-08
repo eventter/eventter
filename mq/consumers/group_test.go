@@ -27,6 +27,7 @@ func TestGroup_Offer(t *testing.T) {
 	subscription := g.Subscribe()
 	defer subscription.Close()
 
+	max := 0
 	for i := 1; ; i++ {
 		m, err := subscription.Next()
 		if err == ErrGroupClosed {
@@ -40,6 +41,12 @@ func TestGroup_Offer(t *testing.T) {
 		if err := subscription.Ack(m.SeqNo); err != nil {
 			t.Fatal(err)
 		}
+
+		max = i
+	}
+
+	if max != 50 {
+		t.Fatalf("expected %d, got %d", 50, max)
 	}
 }
 

@@ -62,13 +62,14 @@ func (s *Server) taskConsumerGroup(ctx context.Context, namespaceName string, co
 	if err != nil {
 		return errors.Wrap(err, "group create failed")
 	}
-	defer group.Close()
 
 	s.groupMutex.Lock()
 	mapKey := namespaceName + "/" + consumerGroupName
 	s.groupMap[mapKey] = group
 	s.groupMutex.Unlock()
 	defer func() {
+		group.Close()
+
 		s.groupMutex.Lock()
 		delete(s.groupMap, mapKey)
 		s.groupMutex.Unlock()

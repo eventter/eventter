@@ -34,8 +34,8 @@ func NewGroup(n int) (*Group, error) {
 	}
 
 	g := &Group{
-		messages: make([]*Message, n),
-		leases:   make([]uint64, n),
+		messages: make([]*Message, n+1),
+		leases:   make([]uint64, n+1),
 	}
 
 	g.cond = sync.NewCond(&g.mutex)
