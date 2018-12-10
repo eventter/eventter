@@ -1,5 +1,9 @@
 package mq
 
+import (
+	"sort"
+)
+
 func (s *ClusterState) ListTopics(namespaceName string, topicName string) (uint64, []*ClusterTopic) {
 	namespace, _ := s.FindNamespace(namespaceName)
 	if namespace == nil {
@@ -118,22 +122,32 @@ func (s *ClusterState) FindOpenSegmentsIn(nodeID uint64) []*ClusterSegment {
 }
 
 func (s *ClusterState) GetOpenSegment(id uint64) *ClusterSegment {
-	for _, segment := range s.OpenSegments {
-		if segment.ID == id {
-			return segment
-		}
+	i := sort.Search(len(s.OpenSegments), func(i int) bool { return s.OpenSegments[i].ID >= id })
+
+	if i < len(s.OpenSegments) && s.OpenSegments[i].ID == id {
+		return s.OpenSegments[i]
 	}
 
 	return nil
 }
 
 func (s *ClusterState) GetClosedSegment(id uint64) *ClusterSegment {
-	for _, segment := range s.ClosedSegments {
-		if segment.ID == id {
-			return segment
-		}
+	i := sort.Search(len(s.ClosedSegments), func(i int) bool { return s.ClosedSegments[i].ID >= id })
+
+	if i < len(s.ClosedSegments) && s.ClosedSegments[i].ID == id {
+		return s.ClosedSegments[i]
 	}
 
+	return nil
+}
+
+func (s *ClusterState) GetSegment(id uint64) *ClusterSegment {
+	if segment := s.GetOpenSegment(id); segment != nil {
+		return segment
+	}
+	if segment := s.GetClosedSegment(id); segment != nil {
+		return segment
+	}
 	return nil
 }
 

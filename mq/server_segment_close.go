@@ -33,6 +33,10 @@ func (s *Server) SegmentClose(ctx context.Context, request *SegmentCloseRequest)
 	}
 	defer s.releaseTransaction()
 
+	if request.OffsetCommitsUpdate != nil {
+		return nil, errors.New("cannot call SegmentClose with commits update, you have to call SegmentRotate")
+	}
+
 	if err := s.txSegmentClose(s.clusterState.Current(), request); err != nil {
 		return nil, err
 	}
@@ -66,7 +70,7 @@ func (s *Server) txSegmentClose(state *ClusterState, request *SegmentCloseReques
 		}
 		_, err := s.Apply(cmd)
 		if err != nil {
-			return err
+			return errors.Wrap(err, "apply close segment failed")
 		}
 	}
 

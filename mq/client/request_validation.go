@@ -34,7 +34,7 @@ type RequestValidationError struct {
 }
 
 func (e *RequestValidationError) Error() string {
-	s := "There are following validation errors:\n"
+	s := "there are following validation errors:\n"
 	for _, err := range e.Errors {
 		s += "- " + err.Error() + "\n"
 	}

@@ -17,8 +17,9 @@ const (
 )
 
 var (
-	ErrInvalidID = errors.New("segment ID must not be zero")
-	ErrInUse     = errors.New("segment still in use")
+	ErrInvalidID  = errors.New("segment ID must not be zero")
+	ErrInUse      = errors.New("segment still in use")
+	ErrNotBelongs = errors.New("segment file does not belong to this pool")
 )
 
 type Dir struct {
@@ -167,7 +168,7 @@ func (d *Dir) Release(file *File) error {
 	defer d.locks[bucket].Unlock()
 
 	if _, ok := d.fileMaps[bucket][file.id]; !ok {
-		return errors.New("file does not belong to this pool")
+		return ErrNotBelongs
 	}
 
 	file.rc -= 1

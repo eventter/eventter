@@ -38,6 +38,7 @@ message SegmentCloseRequest {
     uint64 node_id = 2 [(gogoproto.customname) = "NodeID"];
     int64 size = 3;
     bytes sha1 = 4;
+    ClusterUpdateOffsetCommitsCommand offset_commits_update = 5;
 }
 
 message SegmentCloseResponse {

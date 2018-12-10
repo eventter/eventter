@@ -32,6 +32,12 @@ func (s *Server) SegmentRotate(ctx context.Context, request *SegmentCloseRequest
 	}
 	defer s.releaseTransaction()
 
+	if request.OffsetCommitsUpdate != nil {
+		if _, err := s.Apply(request.OffsetCommitsUpdate); err != nil {
+			return nil, errors.Wrap(err, "offset commit failed")
+		}
+	}
+
 	state := s.clusterState.Current()
 
 	if err := s.txSegmentClose(state, request); err != nil {

@@ -1,6 +1,7 @@
 package consumers
 
 import (
+	"sync"
 	"sync/atomic"
 
 	"github.com/pkg/errors"
@@ -9,6 +10,11 @@ import (
 var (
 	ErrSubscriptionClosed = errors.New("subscription is closed")
 	ErrNotLeased          = errors.New("cannot (n)ack message, it is not leased to this subscription")
+	messageAcksPool       = sync.Pool{
+		New: func() interface{} {
+			return make([]MessageAck, 64)
+		},
+	}
 )
 
 type Subscription struct {
@@ -30,7 +36,7 @@ func (s *Subscription) Next() (*Message, error) {
 	for {
 		i = -1
 		for j := s.group.read; j != s.group.write; j = (j + 1) % len(s.group.messages) {
-			if s.group.leases[j] == ready {
+			if s.group.messages[j].SubscriptionID == ready {
 				i = j
 				break
 			}
@@ -48,38 +54,52 @@ func (s *Subscription) Next() (*Message, error) {
 	}
 
 	s.seq++
-	s.group.leases[i] = s.ID
+	s.group.messages[i].SubscriptionID = s.ID
 	s.group.messages[i].SeqNo = s.seq
 
-	return s.group.messages[i], nil
+	return &s.group.messages[i], nil
 }
 
 func (s *Subscription) Ack(seqNo uint64) error {
 	s.group.mutex.Lock()
-	defer s.group.mutex.Unlock()
 
 	i := -1
 	for j := s.group.read; j != s.group.write; j = (j + 1) % len(s.group.messages) {
-		if s.group.leases[j] == s.ID && s.group.messages[j].SeqNo == seqNo {
+		if s.group.messages[j].SubscriptionID == s.ID && s.group.messages[j].SeqNo == seqNo {
 			i = j
 			break
 		}
 	}
 	if i == -1 {
+		s.group.mutex.Unlock()
 		return ErrNotLeased
 	}
 
-	s.group.leases[i] = ack
-	s.group.messages[i] = nil
+	s.group.messages[i].SubscriptionID = ack
+	s.group.messages[i].SeqNo = zeroSeqNo
 
-	i = s.group.read
-	for i != s.group.write && s.group.leases[i] == ack {
-		i = (i + 1) % len(s.group.messages)
+	messageAcks := messageAcksPool.Get().([]MessageAck)[:0]
+
+	j := s.group.read
+	for ; j != s.group.write && s.group.messages[j].SubscriptionID == ack; j = (j + 1) % len(s.group.messages) {
+		messageAcks = append(messageAcks, MessageAck{
+			SegmentID: s.group.messages[j].SegmentID,
+			Offset:    s.group.messages[j].Offset,
+		})
+	}
+	s.group.read = j
+
+	c := s.group.sendAck
+	s.group.cond.Broadcast()
+	s.group.mutex.Unlock()
+
+	if c != nil {
+		for _, messageAck := range messageAcks {
+			s.group.sendAck <- messageAck
+		}
 	}
 
-	s.group.read = i
-
-	s.group.cond.Broadcast()
+	messageAcksPool.Put(messageAcks)
 
 	return nil
 }
@@ -90,7 +110,7 @@ func (s *Subscription) Nack(seqNo uint64) error {
 
 	i := -1
 	for j := s.group.read; j != s.group.write; j = (j + 1) % len(s.group.messages) {
-		if s.group.leases[j] == s.ID && s.group.messages[j].SeqNo == seqNo {
+		if s.group.messages[j].SubscriptionID == s.ID && s.group.messages[j].SeqNo == seqNo {
 			i = j
 			break
 		}
@@ -99,8 +119,8 @@ func (s *Subscription) Nack(seqNo uint64) error {
 		return ErrNotLeased
 	}
 
-	s.group.leases[i] = ready
-	s.group.messages[i].SeqNo = 0
+	s.group.messages[i].SubscriptionID = ready
+	s.group.messages[i].SeqNo = zeroSeqNo
 
 	s.group.cond.Broadcast()
 
@@ -112,9 +132,9 @@ func (s *Subscription) Close() error {
 	defer s.group.mutex.Unlock()
 
 	for i := s.group.read; i != s.group.write; i = (i + 1) % len(s.group.messages) {
-		if s.group.leases[i] == s.ID {
-			s.group.leases[i] = ready
-			s.group.messages[i].SeqNo = 0
+		if s.group.messages[i].SubscriptionID == s.ID {
+			s.group.messages[i].SubscriptionID = ready
+			s.group.messages[i].SeqNo = zeroSeqNo
 		}
 	}
 

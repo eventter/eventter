@@ -15,7 +15,7 @@ import (
 
 func (s *Server) Publish(ctx context.Context, request *client.PublishRequest) (*client.PublishResponse, error) {
 	if err := request.Validate(); err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "validation failed")
 	}
 
 	state := s.clusterState.Current()
@@ -53,7 +53,7 @@ func (s *Server) Publish(ctx context.Context, request *client.PublishRequest) (*
 				Type:   ClusterSegment_TOPIC,
 			})
 			if err != nil {
-				return nil, err
+				return nil, errors.Wrap(err, "segment open failed")
 			}
 
 			if response.PrimaryNodeID != s.nodeID {
@@ -65,7 +65,6 @@ func (s *Server) Publish(ctx context.Context, request *client.PublishRequest) (*
 		}
 	}
 
-WRITE:
 	{
 		segment := state.GetOpenSegment(localSegmentID)
 		// cluster state from leader wasn't applied yet to this node => busy wait for new state
@@ -82,9 +81,13 @@ WRITE:
 
 		segmentHandle, err := s.segmentDir.Open(localSegmentID)
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(err, "segment open failed")
 		}
-		defer s.segmentDir.Release(segmentHandle)
+		defer func() {
+			if segmentHandle != nil { // check to prevent double-free
+				s.segmentDir.Release(segmentHandle)
+			}
+		}()
 
 		publishing := Publishing{
 			Message: request.Message,
@@ -98,14 +101,14 @@ WRITE:
 
 		buf, err := proto.Marshal(&publishing)
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(err, "marshal failed")
 		}
 
-		err = segmentHandle.Write(buf)
-		if err == segments.ErrFull {
+	WRITE:
+		if err := segmentHandle.Write(buf); err == segments.ErrFull {
 			sha1Sum, size, err := segmentHandle.Sum(sha1.New(), segments.SumAll)
 			if err != nil {
-				return nil, err
+				return nil, errors.Wrap(err, "segment sum failed")
 			}
 			response, err := s.SegmentRotate(ctx, &SegmentCloseRequest{
 				NodeID:    s.nodeID,
@@ -114,7 +117,7 @@ WRITE:
 				Sha1:      sha1Sum,
 			})
 			if err != nil {
-				return nil, err
+				return nil, errors.Wrap(err, "segment rotate failed")
 			}
 
 			if response.PrimaryNodeID != s.nodeID {
@@ -122,17 +125,23 @@ WRITE:
 				goto FORWARD
 			}
 
+			s.segmentDir.Release(segmentHandle)
+			segmentHandle = nil // nilled to prevent double-free
 			localSegmentID = response.SegmentID
+			segmentHandle, err = s.segmentDir.Open(localSegmentID)
+			if err != nil {
+				return nil, errors.Wrap(err, "rotated segment open failed")
+			}
 			goto WRITE
 
 		} else if err != nil {
-			return nil, err
+			return nil, errors.Wrap(err, "segment write failed")
 		}
 
 		if segmentHandle.IsFull() {
 			sha1Sum, size, err := segmentHandle.Sum(sha1.New(), segments.SumAll)
 			if err != nil {
-				return nil, err
+				return nil, errors.Wrap(err, "segment sum failed")
 			}
 			_, err = s.SegmentClose(ctx, &SegmentCloseRequest{
 				NodeID:    s.nodeID,
@@ -141,7 +150,7 @@ WRITE:
 				Sha1:      sha1Sum,
 			})
 			if err != nil {
-				return nil, err
+				return nil, errors.Wrap(err, "segment close failed")
 			}
 		}
 

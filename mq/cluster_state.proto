@@ -130,7 +130,7 @@ message ClusterDeleteSegmentCommand {
 
 message ClusterUpdateOffsetCommitsCommand {
     NamespaceName consumer_group = 1 [(gogoproto.nullable) = false];
-    repeated ClusterConsumerGroup.OffsetCommit offset_commits = 3;
+    repeated ClusterConsumerGroup.OffsetCommit offset_commits = 2;
 }
 
 message ClusterCommand {
