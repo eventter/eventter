@@ -32,6 +32,10 @@ func (s *Server) ConfigureTopic(ctx context.Context, request *client.ConfigureTo
 		return nil, err
 	}
 
+	if request.ReplicationFactor == 0 {
+		request.ReplicationFactor = defaultReplicationFactor
+	}
+
 	index, err := s.Apply(request)
 	if err != nil {
 		return nil, err

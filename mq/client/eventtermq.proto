@@ -25,7 +25,7 @@ message ConfigureTopicRequest {
     // Shards limit max number of open segments at the time. Messages are ordered within the shard (segment), however,
     // ordering across shards is not guaranteed. Therefore, for strict ordering (and lower throughput) set shard to 1.
     uint32 shards = 3;
-    // Number of copies of data throughout the cluster.
+    // Number of copies of data throughout the cluster. Not specified / zero means that the server will choose sensible defaults.
     uint32 replication_factor = 4;
     // If retention is specified, segments will be deleted after they fall off retention period. Zero retention means
     // that segments WON'T be automatically deleted. For segments to be deleted ASAP, use very low retention, i.e. 1 nanosecond.
@@ -75,11 +75,12 @@ message ConfigureConsumerGroupRequest {
     bool leader_only = 99;
     NamespaceName consumer_group = 1 [(gogoproto.nullable) = false];
     repeated Binding bindings = 2;
-
     message Binding {
         string topic_name = 1;
         string routing_key = 2;
     }
+    // Max count of in-flight messages across all consumers. Not specified / zero means that the server will choose sensible defaults.
+    uint32 size = 3;
 }
 
 message ConfigureConsumerGroupResponse {
@@ -89,13 +90,12 @@ message ConfigureConsumerGroupResponse {
 
 message ConsumerGroup {
     NamespaceName consumer_group = 1 [(gogoproto.nullable) = false];
-    repeated Binding bindings = 2;
-    uint32 shards = 3;
-
     message Binding {
         string topic_name = 1;
         string routing_key = 2;
     }
+    repeated Binding bindings = 2;
+    uint32 size = 3;
 }
 
 message ListConsumerGroupsRequest {
@@ -128,9 +128,6 @@ message DeleteConsumerGroupResponse {
 message Message {
     string routing_key = 1;
     Properties properties = 2;
-    google.protobuf.Struct headers = 3;
-    bytes data = 4;
-
     message Properties {
         string content_type = 1;
         string content_encoding = 2;
@@ -145,6 +142,8 @@ message Message {
         string user_id = 11 [(gogoproto.customname) = "UserID"];
         string app_id = 12 [(gogoproto.customname) = "AppID"];
     }
+    google.protobuf.Struct headers = 3;
+    bytes data = 4;
 }
 
 message PublishRequest {
@@ -162,16 +161,14 @@ message SubscribeRequest {
     // If true and node does not manage consumer group, request will fail.
     bool do_not_forward = 99;
     NamespaceName consumer_group = 1 [(gogoproto.nullable) = false];
-    bool no_ack = 2;
-    bool exclusive = 3;
 }
 
 message SubscribeResponse {
-    uint64 node_id = 1 [(gogoproto.customname) = "NodeID"];
-    uint64 subscription_id = 2 [(gogoproto.customname) = "SubscriptionID"];
-    uint64 seq_no = 3;
-    NamespaceName topic = 4 [(gogoproto.nullable) = false];
-    Message message = 5;
+    NamespaceName topic = 1 [(gogoproto.nullable) = false];
+    Message message = 2;
+    uint64 node_id = 3 [(gogoproto.customname) = "NodeID"];
+    uint64 subscription_id = 4 [(gogoproto.customname) = "SubscriptionID"];
+    uint64 seq_no = 5;
 }
 
 message AckRequest {

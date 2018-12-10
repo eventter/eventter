@@ -30,11 +30,11 @@ func (s *Server) ConfigureConsumerGroup(ctx context.Context, request *client.Con
 	}
 
 	if err := request.Validate(); err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "validation failed")
 	}
 
 	if err := s.beginTransaction(); err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "tx begin failed")
 	}
 	defer s.releaseTransaction()
 
@@ -46,14 +46,21 @@ func (s *Server) ConfigureConsumerGroup(ctx context.Context, request *client.Con
 		}
 	}
 
+	if request.Size_ == 0 {
+		request.Size_ = defaultConsumerGroupSize
+	}
+
 	index, err := s.Apply(request)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "apply failed")
 	}
 
 	if err := s.raftNode.Barrier(barrierTimeout).Error(); err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "barrier failed")
 	}
+
+	// !!! reload state after barrier
+	state = s.clusterState.Current()
 
 	openSegments := state.FindOpenSegmentsFor(
 		ClusterSegment_CONSUMER_GROUP_OFFSETS,

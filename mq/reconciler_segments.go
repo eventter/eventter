@@ -28,7 +28,7 @@ func (r *Reconciler) reconcileOpenSegments(state *ClusterState, nodeSegmentCount
 }
 
 func (r *Reconciler) reconcileOpenSegment(segment *ClusterSegment, state *ClusterState, nodeSegmentCounts map[uint64]int, nodeMap map[uint64]*ClusterNode, allCandidateNodeIDs []uint64) {
-	var replicationFactor uint32 = defaultSegmentReplicationFactor
+	var replicationFactor uint32 = defaultReplicationFactor
 
 	if segment.Type == ClusterSegment_TOPIC {
 		topic := state.GetTopic(segment.Owner.Namespace, segment.Owner.Name)
@@ -280,7 +280,7 @@ func (r *Reconciler) reconcileClosedSegments(state *ClusterState, nodeSegmentCou
 }
 
 func (r *Reconciler) reconcileClosedSegment(segment *ClusterSegment, state *ClusterState, nodeSegmentCounts map[uint64]int, nodeMap map[uint64]*ClusterNode, allCandidateNodeIDs []uint64) {
-	var replicationFactor uint32 = defaultSegmentReplicationFactor
+	var replicationFactor uint32 = defaultReplicationFactor
 
 	if segment.Type == ClusterSegment_TOPIC {
 		topic := state.GetTopic(segment.Owner.Namespace, segment.Owner.Name)

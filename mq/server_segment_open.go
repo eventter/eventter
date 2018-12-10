@@ -47,7 +47,7 @@ func (s *Server) txSegmentOpen(state *ClusterState, primaryNodeID uint64, owner 
 
 	var (
 		shards            uint32 = 1
-		replicationFactor uint32 = defaultSegmentReplicationFactor
+		replicationFactor uint32 = defaultReplicationFactor
 	)
 	if segmentType == ClusterSegment_TOPIC {
 		topic := state.GetTopic(owner.Namespace, owner.Name)

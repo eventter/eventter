@@ -35,16 +35,17 @@ message ClusterTopic {
 message ClusterConsumerGroup {
     string name = 1;
     repeated Binding bindings = 2;
-    repeated OffsetCommit offset_commits = 3;
-
     message Binding {
         string topic_name = 1;
         string routing_key = 2;
     }
+    uint32 size = 3;
+    repeated OffsetCommit offset_commits = 4;
     message OffsetCommit {
         uint64 segment_id = 1 [(gogoproto.customname) = "SegmentID"];
         int64 offset = 2;
     }
+
 }
 
 message ClusterSegment {

@@ -16,9 +16,10 @@ func subscribeCmd() *cobra.Command {
 	request := &client.SubscribeRequest{}
 
 	cmd := &cobra.Command{
-		Use:     "subscribe",
+		Use:     "subscribe <consumer-group>",
 		Short:   "Consume messages from consumer group.",
 		Aliases: []string{"sub"},
+		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if rootConfig.BindHost == "" {
 				rootConfig.BindHost = "localhost"
@@ -32,6 +33,7 @@ func subscribeCmd() *cobra.Command {
 			}
 			defer c.Close()
 
+			request.ConsumerGroup.Name = args[0]
 			stream, err := c.Subscribe(ctx, request)
 			if err != nil {
 				return err
@@ -52,15 +54,13 @@ func subscribeCmd() *cobra.Command {
 					return err
 				}
 
-				if !request.NoAck {
-					_, err = c.Ack(ctx, &client.AckRequest{
-						NodeID:         response.NodeID,
-						SubscriptionID: response.SubscriptionID,
-						SeqNo:          response.SeqNo,
-					})
-					if err != nil {
-						return err
-					}
+				_, err = c.Ack(ctx, &client.AckRequest{
+					NodeID:         response.NodeID,
+					SubscriptionID: response.SubscriptionID,
+					SeqNo:          response.SeqNo,
+				})
+				if err != nil {
+					return err
 				}
 			}
 
@@ -72,10 +72,7 @@ func subscribeCmd() *cobra.Command {
 	buf := make([]byte, 16)
 	rand.Read(buf)
 
-	cmd.Flags().StringVar(&request.ConsumerGroup.Namespace, "namespace", "default", "Consumer group namespace.")
-	cmd.Flags().StringVarP(&request.ConsumerGroup.Name, "name", "n", "", "Consumer group name.")
-	cmd.Flags().BoolVar(&request.NoAck, "no-ack", false, "No ack.")
-	cmd.Flags().BoolVar(&request.Exclusive, "exclusive", false, "Exclusive.")
+	cmd.Flags().StringVarP(&request.ConsumerGroup.Namespace, "namespace", "n", defaultNamespace, "Consumer group namespace.")
 
 	return cmd
 }

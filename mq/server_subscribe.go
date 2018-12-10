@@ -14,6 +14,17 @@ func (s *Server) Subscribe(request *client.SubscribeRequest, stream client.Event
 	}
 
 	state := s.clusterState.Current()
+
+	consumerGroup := state.GetConsumerGroup(request.ConsumerGroup.Namespace, request.ConsumerGroup.Name)
+	if consumerGroup == nil {
+		return errors.Errorf(
+			notFoundErrorFormat,
+			entityConsumerGroup,
+			request.ConsumerGroup.Namespace,
+			request.ConsumerGroup.Name,
+		)
+	}
+
 	offsetSegments := state.FindOpenSegmentsFor(
 		ClusterSegment_CONSUMER_GROUP_OFFSETS,
 		request.ConsumerGroup.Namespace,

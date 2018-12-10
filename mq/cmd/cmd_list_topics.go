@@ -14,9 +14,10 @@ func listTopicsCmd() *cobra.Command {
 	request := &client.ListTopicsRequest{}
 
 	cmd := &cobra.Command{
-		Use:     "list-topics",
+		Use:     "list-topics [name]",
 		Short:   "List topics.",
 		Aliases: []string{"topics", "tps"},
+		Args:    cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if rootConfig.BindHost == "" {
 				rootConfig.BindHost = "localhost"
@@ -30,6 +31,9 @@ func listTopicsCmd() *cobra.Command {
 			}
 			defer c.Close()
 
+			if len(args) > 1 {
+				request.Topic.Name = args[0]
+			}
 			response, err := c.ListTopics(ctx, request)
 			if err != nil {
 				return err
@@ -41,8 +45,7 @@ func listTopicsCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVar(&request.Topic.Namespace, "namespace", "default", "Topics namespace.")
-	cmd.Flags().StringVar(&request.Topic.Name, "name", "", "Topic name.")
+	cmd.Flags().StringVarP(&request.Topic.Namespace, "namespace", "n", defaultNamespace, "Topics namespace.")
 
 	return cmd
 }

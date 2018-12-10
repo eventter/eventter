@@ -58,7 +58,7 @@ func (s *Server) taskConsumerGroup(ctx context.Context, namespaceName string, co
 
 	// 3) register as consumer group
 
-	group, err := consumers.NewGroup(1024) // FIXME: configurable consumer group size?
+	group, err := consumers.NewGroup(int(consumerGroup.Size_))
 	if err != nil {
 		return errors.Wrap(err, "group create failed")
 	}

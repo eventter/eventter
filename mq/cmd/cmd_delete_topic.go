@@ -14,8 +14,9 @@ func deleteTopicCmd() *cobra.Command {
 	request := &client.DeleteTopicRequest{}
 
 	cmd := &cobra.Command{
-		Use:   "delete-topic",
+		Use:   "delete-topic <name>",
 		Short: "Delete topic.",
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if rootConfig.BindHost == "" {
 				rootConfig.BindHost = "localhost"
@@ -29,6 +30,7 @@ func deleteTopicCmd() *cobra.Command {
 			}
 			defer c.Close()
 
+			request.Topic.Name = args[0]
 			response, err := c.DeleteTopic(ctx, request)
 			if err != nil {
 				return err
@@ -40,8 +42,7 @@ func deleteTopicCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVar(&request.Topic.Namespace, "namespace", "default", "Topic namespace.")
-	cmd.Flags().StringVarP(&request.Topic.Name, "name", "n", "", "Topic name.")
+	cmd.Flags().StringVarP(&request.Topic.Namespace, "namespace", "n", defaultNamespace, "Topic namespace.")
 	cmd.Flags().BoolVar(&request.IfUnused, "if-unused", false, "If unused.")
 
 	return cmd

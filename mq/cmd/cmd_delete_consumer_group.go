@@ -14,8 +14,9 @@ func deleteConsumerGroupCmd() *cobra.Command {
 	request := &client.DeleteConsumerGroupRequest{}
 
 	cmd := &cobra.Command{
-		Use:   "delete-consumer-group",
+		Use:   "delete-consumer-group <name>",
 		Short: "Delete consumer group.",
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if rootConfig.BindHost == "" {
 				rootConfig.BindHost = "localhost"
@@ -29,6 +30,7 @@ func deleteConsumerGroupCmd() *cobra.Command {
 			}
 			defer c.Close()
 
+			request.ConsumerGroup.Name = args[0]
 			response, err := c.DeleteConsumerGroup(ctx, request)
 			if err != nil {
 				return err
@@ -40,8 +42,7 @@ func deleteConsumerGroupCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVar(&request.ConsumerGroup.Namespace, "namespace", "default", "Consumer group namespace.")
-	cmd.Flags().StringVarP(&request.ConsumerGroup.Name, "name", "n", "", "Consumer group name.")
+	cmd.Flags().StringVarP(&request.ConsumerGroup.Namespace, "namespace", "n", defaultNamespace, "Consumer group namespace.")
 	cmd.Flags().BoolVar(&request.IfUnused, "if-unused", false, "If unused.")
 	cmd.Flags().BoolVar(&request.IfEmpty, "if-empty", false, "If empty.")
 
