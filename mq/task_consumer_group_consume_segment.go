@@ -7,7 +7,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (s *Server) taskConsumeSegment(ctx context.Context, group *consumers.Group, segmentID uint64, offset int64) error {
+func (s *Server) taskConsumerGroupConsumeSegment(ctx context.Context, group *consumers.Group, segmentID uint64, offset int64) error {
 	state := s.clusterState.Current()
 
 	segment := state.GetSegment(segmentID)
@@ -22,5 +22,5 @@ func (s *Server) taskConsumeSegment(ctx context.Context, group *consumers.Group,
 
 	<-ctx.Done()
 
-	return nil
+	return ctx.Err()
 }

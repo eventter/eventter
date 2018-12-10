@@ -370,7 +370,7 @@ func (t *RaftRPCTransport) DoAppendEntries(stream RaftRPC_DoAppendEntriesServer)
 
 		select {
 		case <-ctx.Done():
-			return context.Canceled
+			return ctx.Err()
 		case t.ch <- call:
 		}
 
@@ -378,7 +378,7 @@ func (t *RaftRPCTransport) DoAppendEntries(stream RaftRPC_DoAppendEntriesServer)
 		var responseOrError raft.RPCResponse
 		select {
 		case <-ctx.Done():
-			return context.Canceled
+			return ctx.Err()
 		case responseOrError = <-responseC:
 		}
 
@@ -421,7 +421,7 @@ func (t *RaftRPCTransport) DoRequestVote(ctx context.Context, request *RequestVo
 	var responseOrError raft.RPCResponse
 	select {
 	case <-ctx.Done():
-		return nil, context.Canceled
+		return nil, ctx.Err()
 	case responseOrError = <-responseC:
 	}
 

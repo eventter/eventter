@@ -25,7 +25,7 @@ func (s *Server) taskConsumerGroup(ctx context.Context, namespaceName string, co
 
 	consumerGroup := state.GetConsumerGroup(namespaceName, consumerGroupName)
 	if consumerGroup == nil {
-		return errors.Errorf("consumer group %s/%s not found", namespaceName, consumerGroupName)
+		return errors.Errorf(notFoundErrorFormat, entityConsumerGroup, namespaceName, consumerGroupName)
 	}
 	for _, commit := range consumerGroup.OffsetCommits {
 		committedOffsets[commit.SegmentID] = commit.Offset
@@ -126,7 +126,7 @@ func (s *Server) taskConsumerGroup(ctx context.Context, namespaceName string, co
 						fmt.Sprintf("consume segment %d", offsetSegmentID),
 						(func(segmentID uint64, offset int64) func(context.Context) error {
 							return func(ctx context.Context) error {
-								return s.taskConsumeSegment(ctx, group, segmentID, offset)
+								return s.taskConsumerGroupConsumeSegment(ctx, group, segmentID, offset)
 							}
 						})(offsetSegmentID, offset),
 						offsetSegmentID,
@@ -211,7 +211,7 @@ func (s *Server) taskConsumerGroup(ctx context.Context, namespaceName string, co
 			}
 
 		case <-ctx.Done():
-			return nil
+			return ctx.Err()
 		}
 	}
 }
