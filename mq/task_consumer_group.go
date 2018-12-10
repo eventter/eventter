@@ -3,6 +3,7 @@ package mq
 import (
 	"context"
 	"crypto/sha1"
+	"fmt"
 	"io"
 	"log"
 	"time"
@@ -10,6 +11,7 @@ import (
 	"eventter.io/mq/client"
 	"eventter.io/mq/consumers"
 	"eventter.io/mq/segments"
+	"eventter.io/mq/tasks"
 	"github.com/gogo/protobuf/proto"
 	"github.com/pkg/errors"
 )
@@ -85,31 +87,62 @@ func (s *Server) taskConsumerGroup(ctx context.Context, namespaceName string, co
 
 	// 4) main loop
 
+	taskManager := tasks.NewManager(ctx, fmt.Sprintf("consumer group %s/%s", namespaceName, consumerGroupName))
+	defer taskManager.Close()
+
 	ticker := time.NewTicker(100 * time.Millisecond)
-	state = nil
+	state = nil // !!! force re-read of state and start of consumption tasks
+	running := make(map[uint64]*tasks.Task)
 
 	for {
 		select {
 		case <-ticker.C:
 			newState := s.clusterState.Current()
-			if newState != state {
-				state = newState
-				consumerGroup = state.GetConsumerGroup(namespaceName, consumerGroupName)
-				for _, commit := range consumerGroup.OffsetCommits {
-					if offset, ok := committedOffsets[commit.SegmentID]; !ok || commit.Offset > offset {
-						committedOffsets[commit.SegmentID] = commit.Offset
-						log.Printf(
-							"consumer group %s/%s added/updated commit offset from cluster state for segment %d: %d",
-							namespaceName,
-							consumerGroupName,
-							commit.SegmentID,
-							commit.Offset,
-						)
-					}
+			if newState == state {
+				continue
+			}
+
+			state = newState
+			consumerGroup = state.GetConsumerGroup(namespaceName, consumerGroupName)
+
+			nextCommittedOffsets := make(map[uint64]int64)
+			for _, commit := range consumerGroup.OffsetCommits {
+				nextCommittedOffsets[commit.SegmentID] = commit.Offset
+				if offset, ok := committedOffsets[commit.SegmentID]; ok && offset > commit.Offset {
+					nextCommittedOffsets[commit.SegmentID] = commit.Offset
+				}
+			}
+			committedOffsets = nextCommittedOffsets
+
+			for offsetSegmentID, task := range running {
+				if _, ok := committedOffsets[offsetSegmentID]; !ok {
+					task.Cancel()
 				}
 			}
 
-			// TODO: (re)start segment consumption
+			for offsetSegmentID, offset := range committedOffsets {
+				if _, ok := running[offsetSegmentID]; !ok {
+					running[offsetSegmentID] = taskManager.Start(
+						fmt.Sprintf("consume segment %d", offsetSegmentID),
+						(func(segmentID uint64, offset int64) func(context.Context) error {
+							return func(ctx context.Context) error {
+								return s.taskConsumeSegment(ctx, group, segmentID, offset)
+							}
+						})(offsetSegmentID, offset),
+						offsetSegmentID,
+					)
+				}
+			}
+
+		case completed := <-taskManager.Completed:
+			offsetSegmentID := completed.Data.(uint64)
+
+			if t, ok := running[offsetSegmentID]; ok && t.ID == completed.ID {
+				delete(running, offsetSegmentID)
+				if completed.Err != nil {
+					state = nil // !!! force re-read of state and possibly restart the task
+				}
+			}
 
 		case ack := <-group.Ack:
 			if ack.Offset > committedOffsets[ack.SegmentID] {
@@ -162,7 +195,9 @@ func (s *Server) taskConsumerGroup(ctx context.Context, namespaceName string, co
 					)
 					return nil
 				}
-				s.segmentDir.Release(segmentHandle)
+				if err := s.segmentDir.Release(segmentHandle); err != nil {
+					return errors.Wrap(err, "release of old segment failed")
+				}
 				segmentHandle = nil // nilled to prevent double-free
 				segmentID = response.SegmentID
 				segmentHandle, err = s.segmentDir.Open(segmentID)

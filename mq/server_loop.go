@@ -7,17 +7,11 @@ import (
 	"math/rand"
 	"time"
 
+	"eventter.io/mq/tasks"
 	"github.com/hashicorp/memberlist"
 	"github.com/hashicorp/raft"
 	"github.com/pkg/errors"
 )
-
-type task struct {
-	id     uint64
-	name   string
-	ctx    context.Context
-	cancel func()
-}
 
 func (s *Server) Loop(memberEventsC chan memberlist.NodeEvent) {
 	isLeader := s.raftNode.State() == raft.Leader
@@ -28,43 +22,12 @@ func (s *Server) Loop(memberEventsC chan memberlist.NodeEvent) {
 	nodeTicker := time.NewTicker(100 * time.Millisecond)
 
 	reconciler := NewReconciler(s)
+	taskManager := tasks.NewManager(context.Background(), "main")
+	defer taskManager.Close()
 
-	taskCompletedC := make(chan uint64, 128)
-	runningConsumerGroups := make(map[string]*task)
-	runningOpenSegmentReplications := make(map[uint64]*task)
-	runningClosedSegmentReplications := make(map[uint64]*task)
-
-	var currentID uint64
-
-	startTask := func(name string, run func(ctx context.Context) error) *task {
-		ctx, cancel := context.WithCancel(context.Background())
-		currentID++
-		t := &task{
-			id:     currentID,
-			name:   name,
-			ctx:    ctx,
-			cancel: cancel,
-		}
-
-		log.Printf("task %d (%s) started", t.id, t.name)
-
-		go func() {
-			defer func() {
-				t.cancel()
-				select {
-				case taskCompletedC <- t.id:
-				default:
-					log.Printf("could not send completion of task %d", t.id)
-				}
-			}()
-			err := run(ctx)
-			if err != nil {
-				log.Printf("task %d (%s) failed: %v", t.id, t.name, err)
-			}
-		}()
-
-		return t
-	}
+	runningConsumerGroups := make(map[string]*tasks.Task)
+	runningOpenSegmentReplications := make(map[uint64]*tasks.Task)
+	runningClosedSegmentReplications := make(map[uint64]*tasks.Task)
 
 	garbageCollectionTicker := time.NewTicker(10 * time.Second)
 
@@ -132,13 +95,14 @@ LOOP:
 					consumerGroups[name] = true
 
 					if _, ok := runningConsumerGroups[name]; !ok {
-						runningConsumerGroups[name] = startTask(
+						runningConsumerGroups[name] = taskManager.Start(
 							fmt.Sprintf("consumer group %s", name),
 							func(namespace string, name string, segmentID uint64) func(context.Context) error {
 								return func(ctx context.Context) error {
 									return s.taskConsumerGroup(ctx, namespace, name, segmentID)
 								}
 							}(segment.Owner.Namespace, segment.Owner.Name, segment.ID),
+							name,
 						)
 					}
 				}
@@ -148,13 +112,14 @@ LOOP:
 						replicatingOpenSegmentIDs[segment.ID] = true
 
 						if _, ok := runningOpenSegmentReplications[segment.ID]; !ok {
-							runningOpenSegmentReplications[segment.ID] = startTask(
+							runningOpenSegmentReplications[segment.ID] = taskManager.Start(
 								fmt.Sprintf("replication of open segment %d from node %d", segment.ID, segment.Nodes.PrimaryNodeID),
 								func(segmentID uint64, nodeID uint64) func(context.Context) error {
 									return func(ctx context.Context) error {
 										return s.taskSegmentReplication(ctx, segmentID, nodeID, true)
 									}
 								}(segment.ID, segment.Nodes.PrimaryNodeID),
+								segment.ID,
 							)
 						}
 					}
@@ -164,14 +129,14 @@ LOOP:
 			for segmentID, task := range runningOpenSegmentReplications {
 				if !replicatingOpenSegmentIDs[segmentID] {
 					log.Printf("stopping replication of open segment %d", segmentID)
-					task.cancel()
+					task.Cancel()
 				}
 			}
 
 			for name, task := range runningConsumerGroups {
 				if !consumerGroups[name] {
 					log.Printf("stopping consumer group %s", name)
-					task.cancel()
+					task.Cancel()
 				}
 			}
 
@@ -183,13 +148,14 @@ LOOP:
 						replicatingClosedSegmentIDs[segment.ID] = true
 
 						if _, ok := runningClosedSegmentReplications[segment.ID]; !ok {
-							runningClosedSegmentReplications[segment.ID] = startTask(
+							runningClosedSegmentReplications[segment.ID] = taskManager.Start(
 								fmt.Sprintf("replication of closed segment %d from node %d", segment.ID, segment.Nodes.PrimaryNodeID),
 								func(segmentID uint64, nodeID uint64) func(context.Context) error {
 									return func(ctx context.Context) error {
 										return s.taskSegmentReplication(ctx, segmentID, nodeID, false)
 									}
 								}(segment.ID, segment.Nodes.DoneNodeIDs[rand.Intn(len(segment.Nodes.DoneNodeIDs))]), // select random node that is done
+								segment.ID,
 							)
 						}
 					}
@@ -199,33 +165,26 @@ LOOP:
 			for segmentID, task := range runningClosedSegmentReplications {
 				if !replicatingClosedSegmentIDs[segmentID] {
 					log.Printf("stopping replication of closed segment %d", segmentID)
-					task.cancel()
+					task.Cancel()
 				}
 			}
 
-		case taskID := <-taskCompletedC:
-			var segmentID uint64
-
-			segmentID = 0
-			for candidateSegmentID, task := range runningOpenSegmentReplications {
-				if task.id == taskID {
-					segmentID = candidateSegmentID
-					break
+		case completedTask := <-taskManager.Completed:
+			switch data := completedTask.Data.(type) {
+			case string:
+				if task, ok := runningConsumerGroups[data]; ok && completedTask.ID == task.ID {
+					delete(runningConsumerGroups, data)
+				}
+			case uint64:
+				if task, ok := runningOpenSegmentReplications[data]; ok && completedTask.ID == task.ID {
+					delete(runningOpenSegmentReplications, data)
+				}
+				if task, ok := runningClosedSegmentReplications[data]; ok && completedTask.ID == task.ID {
+					delete(runningClosedSegmentReplications, data)
 				}
 			}
-			if segmentID > 0 {
-				delete(runningOpenSegmentReplications, segmentID)
-			}
-
-			segmentID = 0
-			for candidateSegmentID, task := range runningClosedSegmentReplications {
-				if task.id == taskID {
-					segmentID = candidateSegmentID
-					break
-				}
-			}
-			if segmentID > 0 {
-				delete(runningClosedSegmentReplications, segmentID)
+			if completedTask.Err != nil {
+				state = nil // !!! force re-read of state and possibly restart the task
 			}
 
 		case ev := <-memberEventsC:
@@ -314,16 +273,6 @@ LOOP:
 		case <-s.closeC:
 			break LOOP
 		}
-	}
-
-	for _, task := range runningConsumerGroups {
-		task.cancel()
-	}
-	for _, task := range runningOpenSegmentReplications {
-		task.cancel()
-	}
-	for _, task := range runningClosedSegmentReplications {
-		task.cancel()
 	}
 }
 
