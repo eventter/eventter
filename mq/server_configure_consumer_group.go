@@ -41,8 +41,36 @@ func (s *Server) ConfigureConsumerGroup(ctx context.Context, request *client.Con
 	state := s.clusterState.Current()
 
 	for _, binding := range request.Bindings {
-		if !state.TopicExists(request.ConsumerGroup.Namespace, binding.TopicName) {
+		topic := state.GetTopic(request.ConsumerGroup.Namespace, binding.TopicName)
+		if topic == nil {
 			return nil, errors.Errorf(notFoundErrorFormat, entityTopic, request.ConsumerGroup.Namespace, binding.TopicName)
+		}
+		switch topic.Type {
+		case client.TopicType_DIRECT:
+			fallthrough
+		case client.TopicType_TOPIC:
+			if _, ok := binding.By.(*client.ConfigureConsumerGroupRequest_Binding_RoutingKey); !ok {
+				return nil, errors.Errorf(
+					"trying to bind to %s %s/%s of type %s, but no routing key set",
+					entityTopic,
+					request.ConsumerGroup.Namespace,
+					binding.TopicName,
+					topic.Type,
+				)
+			}
+		case client.TopicType_HEADERS:
+			switch binding.By.(type) {
+			case *client.ConfigureConsumerGroupRequest_Binding_HeadersAny:
+			case *client.ConfigureConsumerGroupRequest_Binding_HeadersAll:
+			default:
+				return nil, errors.Errorf(
+					"trying to bind to %s %s/%s of type %s, but no headers set",
+					entityTopic,
+					request.ConsumerGroup.Namespace,
+					binding.TopicName,
+					topic.Type,
+				)
+			}
 		}
 	}
 

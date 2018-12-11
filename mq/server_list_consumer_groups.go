@@ -40,10 +40,26 @@ func (s *Server) ListConsumerGroups(ctx context.Context, request *client.ListCon
 		var bindings []*client.ConsumerGroup_Binding
 
 		for _, b := range cg.Bindings {
-			bindings = append(bindings, &client.ConsumerGroup_Binding{
-				TopicName:  b.TopicName,
-				RoutingKey: b.RoutingKey,
-			})
+			clientBinding := &client.ConsumerGroup_Binding{
+				TopicName: b.TopicName,
+			}
+			switch by := b.By.(type) {
+			case *ClusterConsumerGroup_Binding_RoutingKey:
+				clientBinding.By = &client.ConsumerGroup_Binding_RoutingKey{
+					RoutingKey: by.RoutingKey,
+				}
+			case *ClusterConsumerGroup_Binding_HeadersAll:
+				clientBinding.By = &client.ConsumerGroup_Binding_HeadersAll{
+					HeadersAll: by.HeadersAll,
+				}
+			case *ClusterConsumerGroup_Binding_HeadersAny:
+				clientBinding.By = &client.ConsumerGroup_Binding_HeadersAny{
+					HeadersAny: by.HeadersAny,
+				}
+			default:
+				panic("unhandled binding by")
+			}
+			bindings = append(bindings, clientBinding)
 		}
 
 		consumerGroups = append(consumerGroups, &client.ConsumerGroup{

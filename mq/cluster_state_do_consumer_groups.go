@@ -62,10 +62,26 @@ func (s *ClusterState) doConfigureConsumerGroup(cmd *client.ConfigureConsumerGro
 
 	var bindings []*ClusterConsumerGroup_Binding
 	for _, binding := range cmd.Bindings {
-		bindings = append(bindings, &ClusterConsumerGroup_Binding{
-			TopicName:  binding.TopicName,
-			RoutingKey: binding.RoutingKey,
-		})
+		clusterBinding := &ClusterConsumerGroup_Binding{
+			TopicName: binding.TopicName,
+		}
+		switch by := binding.By.(type) {
+		case *client.ConfigureConsumerGroupRequest_Binding_RoutingKey:
+			clusterBinding.By = &ClusterConsumerGroup_Binding_RoutingKey{
+				RoutingKey: by.RoutingKey,
+			}
+		case *client.ConfigureConsumerGroupRequest_Binding_HeadersAll:
+			clusterBinding.By = &ClusterConsumerGroup_Binding_HeadersAll{
+				HeadersAll: by.HeadersAll,
+			}
+		case *client.ConfigureConsumerGroupRequest_Binding_HeadersAny:
+			clusterBinding.By = &ClusterConsumerGroup_Binding_HeadersAny{
+				HeadersAny: by.HeadersAny,
+			}
+		default:
+			panic("unhandled binding by")
+		}
+		bindings = append(bindings, clusterBinding)
 	}
 
 	nextConsumerGroup.Bindings = bindings

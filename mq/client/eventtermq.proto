@@ -77,7 +77,11 @@ message ConfigureConsumerGroupRequest {
     repeated Binding bindings = 2;
     message Binding {
         string topic_name = 1;
-        string routing_key = 2;
+        oneof by {
+            string routing_key = 2;
+            google.protobuf.Struct headers_all = 3;
+            google.protobuf.Struct headers_any = 4;
+        }
     }
     // Max count of in-flight messages across all consumers. Not specified / zero means that the server will choose sensible defaults.
     uint32 size = 3;
@@ -90,11 +94,15 @@ message ConfigureConsumerGroupResponse {
 
 message ConsumerGroup {
     NamespaceName consumer_group = 1 [(gogoproto.nullable) = false];
+    repeated Binding bindings = 2;
     message Binding {
         string topic_name = 1;
-        string routing_key = 2;
+        oneof by {
+            string routing_key = 2;
+            google.protobuf.Struct headers_all = 3;
+            google.protobuf.Struct headers_any = 4;
+        }
     }
-    repeated Binding bindings = 2;
     uint32 size = 3;
 }
 

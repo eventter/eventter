@@ -3,6 +3,7 @@ package mq
 import (
 	"context"
 	"io"
+	"reflect"
 	"time"
 
 	"eventter.io/mq/client"
@@ -82,7 +83,11 @@ func isMessageEligibleForConsumerGroup(message *client.Message, topic *ClusterTo
 	switch topic.Type {
 	case client.TopicType_DIRECT:
 		for _, binding := range consumerGroup.Bindings {
-			if binding.TopicName == topic.Name && binding.RoutingKey == message.RoutingKey {
+			if binding.TopicName != topic.Name {
+				continue
+			}
+
+			if by, ok := binding.By.(*ClusterConsumerGroup_Binding_RoutingKey); ok && by.RoutingKey == message.RoutingKey {
 				return true
 			}
 		}
@@ -95,7 +100,41 @@ func isMessageEligibleForConsumerGroup(message *client.Message, topic *ClusterTo
 		panic("implement me")
 
 	case client.TopicType_HEADERS:
-		panic("implement me")
+		if message.Headers == nil || message.Headers.Fields == nil {
+			return false
+		}
+	BINDING:
+		for _, binding := range consumerGroup.Bindings {
+			if binding.TopicName != topic.Name {
+				continue
+			}
+
+			switch by := binding.By.(type) {
+			case *ClusterConsumerGroup_Binding_HeadersAll:
+				for headerName, expectedHeaderValue := range by.HeadersAll.Fields {
+					gotHeaderValue, ok := message.Headers.Fields[headerName]
+					if !ok {
+						continue BINDING
+					}
+					if !reflect.DeepEqual(expectedHeaderValue, gotHeaderValue) {
+						continue BINDING
+					}
+				}
+				return true
+			case *ClusterConsumerGroup_Binding_HeadersAny:
+				for headerName, expectedHeaderValue := range by.HeadersAny.Fields {
+					gotHeaderValue, ok := message.Headers.Fields[headerName]
+					if !ok {
+						continue
+					}
+					if reflect.DeepEqual(expectedHeaderValue, gotHeaderValue) {
+						return true
+					}
+				}
+				return false
+			}
+		}
+		return false
 
 	default:
 		panic("unhandled topic type: " + topic.Type)

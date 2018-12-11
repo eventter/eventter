@@ -5,6 +5,7 @@ package io.eventter.mq;
 import "client/eventtermq.proto";
 import "gogoproto/gogo.proto";
 import "google/protobuf/duration.proto";
+import "google/protobuf/struct.proto";
 import "google/protobuf/timestamp.proto";
 
 option go_package = "mq";
@@ -37,7 +38,11 @@ message ClusterConsumerGroup {
     repeated Binding bindings = 2;
     message Binding {
         string topic_name = 1;
-        string routing_key = 2;
+        oneof by {
+            string routing_key = 2;
+            google.protobuf.Struct headers_all = 3;
+            google.protobuf.Struct headers_any = 4;
+        }
     }
     uint32 size = 3;
     repeated OffsetCommit offset_commits = 4;
