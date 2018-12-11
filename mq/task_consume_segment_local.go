@@ -3,10 +3,8 @@ package mq
 import (
 	"context"
 	"io"
-	"reflect"
 	"time"
 
-	"eventter.io/mq/client"
 	"eventter.io/mq/consumers"
 	"eventter.io/mq/segments"
 	"github.com/gogo/protobuf/proto"
@@ -64,7 +62,7 @@ func (s *Server) taskConsumeSegmentLocal(ctx context.Context, state *ClusterStat
 			}
 		}
 
-		if isMessageEligibleForConsumerGroup(publishing.Message, topic, consumerGroup) {
+		if messageMatches(publishing.Message, topic, consumerGroup) {
 			err = group.Offer(&consumers.Message{
 				Topic:        segment.Owner,
 				SegmentID:    segment.ID,
@@ -76,67 +74,5 @@ func (s *Server) taskConsumeSegmentLocal(ctx context.Context, state *ClusterStat
 				return errors.Wrap(err, "offer failed")
 			}
 		}
-	}
-}
-
-func isMessageEligibleForConsumerGroup(message *client.Message, topic *ClusterTopic, consumerGroup *ClusterConsumerGroup) bool {
-	switch topic.Type {
-	case client.TopicType_DIRECT:
-		for _, binding := range consumerGroup.Bindings {
-			if binding.TopicName != topic.Name {
-				continue
-			}
-
-			if by, ok := binding.By.(*ClusterConsumerGroup_Binding_RoutingKey); ok && by.RoutingKey == message.RoutingKey {
-				return true
-			}
-		}
-		return false
-
-	case client.TopicType_FANOUT:
-		return true
-
-	case client.TopicType_TOPIC:
-		panic("implement me")
-
-	case client.TopicType_HEADERS:
-		if message.Headers == nil || message.Headers.Fields == nil {
-			return false
-		}
-	BINDING:
-		for _, binding := range consumerGroup.Bindings {
-			if binding.TopicName != topic.Name {
-				continue
-			}
-
-			switch by := binding.By.(type) {
-			case *ClusterConsumerGroup_Binding_HeadersAll:
-				for headerName, expectedHeaderValue := range by.HeadersAll.Fields {
-					gotHeaderValue, ok := message.Headers.Fields[headerName]
-					if !ok {
-						continue BINDING
-					}
-					if !reflect.DeepEqual(expectedHeaderValue, gotHeaderValue) {
-						continue BINDING
-					}
-				}
-				return true
-			case *ClusterConsumerGroup_Binding_HeadersAny:
-				for headerName, expectedHeaderValue := range by.HeadersAny.Fields {
-					gotHeaderValue, ok := message.Headers.Fields[headerName]
-					if !ok {
-						continue
-					}
-					if reflect.DeepEqual(expectedHeaderValue, gotHeaderValue) {
-						return true
-					}
-				}
-				return false
-			}
-		}
-		return false
-
-	default:
-		panic("unhandled topic type: " + topic.Type)
 	}
 }

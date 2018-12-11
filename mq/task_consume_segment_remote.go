@@ -67,7 +67,7 @@ func (s *Server) taskConsumeSegmentRemote(ctx context.Context, state *ClusterSta
 			}
 		}
 
-		if isMessageEligibleForConsumerGroup(publishing.Message, topic, consumerGroup) {
+		if messageMatches(publishing.Message, topic, consumerGroup) {
 			err = group.Offer(&consumers.Message{
 				Topic:        segment.Owner,
 				SegmentID:    segment.ID,
