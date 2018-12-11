@@ -5,18 +5,14 @@ import (
 	"io"
 	"time"
 
+	"eventter.io/mq/client"
 	"eventter.io/mq/consumers"
 	"eventter.io/mq/segments"
 	"github.com/gogo/protobuf/proto"
 	"github.com/pkg/errors"
 )
 
-func (s *Server) taskConsumeSegmentLocal(ctx context.Context, group *consumers.Group, state *ClusterState, segment *ClusterSegment, startOffset int64) error {
-	topic := state.GetTopic(segment.Owner.Namespace, segment.Owner.Name)
-	if topic == nil {
-		return errors.Errorf(notFoundErrorFormat, entityTopic, segment.Owner.Namespace, segment.Owner.Name)
-	}
-
+func (s *Server) taskConsumeSegmentLocal(ctx context.Context, state *ClusterState, namespaceName string, consumerGroup *ClusterConsumerGroup, topic *ClusterTopic, segment *ClusterSegment, group *consumers.Group, startOffset int64) error {
 	segmentHandle, err := s.segmentDir.Open(segment.ID)
 	if err != nil {
 		return errors.Wrap(err, "segment open failed")
@@ -53,17 +49,55 @@ func (s *Server) taskConsumeSegmentLocal(ctx context.Context, group *consumers.G
 			return errors.Wrap(err, "unmarshal failed")
 		}
 
-		// TODO: filter according to topic type
-
-		err = group.Offer(&consumers.Message{
-			Topic:        segment.Owner,
-			SegmentID:    segment.ID,
-			CommitOffset: commitOffset,
-			Time:         segment.OpenedAt.Add(time.Duration(publishing.Delta)),
-			Message:      publishing.Message,
-		})
-		if err != nil {
-			return errors.Wrap(err, "offer failed")
+		if newState := s.clusterState.Current(); newState != state {
+			state = newState
+			consumerGroupName := consumerGroup.Name
+			consumerGroup = state.GetConsumerGroup(namespaceName, consumerGroupName)
+			if consumerGroup == nil {
+				return errors.Errorf(notFoundErrorFormat, entityConsumerGroup, namespaceName, consumerGroupName)
+			}
+			topicName := topic.Name
+			topic = state.GetTopic(namespaceName, topicName)
+			if topic == nil {
+				return errors.Errorf(notFoundErrorFormat, entityTopic, namespaceName, topicName)
+			}
 		}
+
+		if isMessageEligibleForConsumerGroup(publishing.Message, topic, consumerGroup) {
+			err = group.Offer(&consumers.Message{
+				Topic:        segment.Owner,
+				SegmentID:    segment.ID,
+				CommitOffset: commitOffset,
+				Time:         segment.OpenedAt.Add(time.Duration(publishing.Delta)),
+				Message:      publishing.Message,
+			})
+			if err != nil {
+				return errors.Wrap(err, "offer failed")
+			}
+		}
+	}
+}
+
+func isMessageEligibleForConsumerGroup(message *client.Message, topic *ClusterTopic, consumerGroup *ClusterConsumerGroup) bool {
+	switch topic.Type {
+	case client.TopicType_DIRECT:
+		for _, binding := range consumerGroup.Bindings {
+			if binding.TopicName == topic.Name && binding.RoutingKey == message.RoutingKey {
+				return true
+			}
+		}
+		return false
+
+	case client.TopicType_FANOUT:
+		return true
+
+	case client.TopicType_TOPIC:
+		panic("implement me")
+
+	case client.TopicType_HEADERS:
+		panic("implement me")
+
+	default:
+		panic("unhandled topic type: " + topic.Type)
 	}
 }

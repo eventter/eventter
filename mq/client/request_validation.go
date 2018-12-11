@@ -7,14 +7,21 @@ import (
 	"github.com/pkg/errors"
 )
 
+const (
+	TopicType_DIRECT  = "direct"
+	TopicType_FANOUT  = "fanout"
+	TopicType_TOPIC   = "topic"
+	TopicType_HEADERS = "headers"
+)
+
 var (
 	nameRegex         = regexp.MustCompile("^[a-zA-Z_][0-9a-zA-Z-_]*$")
 	reservedNameRegex = regexp.MustCompile("^_")
 	validTopicTypes   = map[string]bool{
-		"direct":  true,
-		"fanout":  true,
-		"topic":   true,
-		"headers": true,
+		TopicType_DIRECT:  true,
+		TopicType_FANOUT:  true,
+		TopicType_TOPIC:   true,
+		TopicType_HEADERS: true,
 	}
 )
 
@@ -25,7 +32,6 @@ const (
 	stringLengthErrorFormat = "%s must be at most %d characters long"
 	listErrorFormat         = "%s %s is not valid"
 	negativeErrorFormat     = "%s must not be negative"
-	positiveErrorFormat     = "%s must be positive"
 	nameMaxLength           = 64
 )
 

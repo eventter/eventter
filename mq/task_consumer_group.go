@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"math/rand"
+	"runtime"
 	"time"
 
 	"eventter.io/mq/client"
@@ -96,6 +97,7 @@ func (s *Server) taskConsumerGroup(ctx context.Context, namespaceName string, co
 	running := make(map[uint64]*tasks.Task)
 
 	for {
+		var ack consumers.MessageAck
 		select {
 		case <-ticker.C:
 			newState := s.clusterState.Current()
@@ -147,35 +149,45 @@ func (s *Server) taskConsumerGroup(ctx context.Context, namespaceName string, co
 					}
 				}
 
+				topic := state.GetTopic(segment.Owner.Namespace, segment.Owner.Name)
+				if topic == nil {
+					return errors.Errorf(
+						"segment %d references unknown topic %s/%s",
+						segment.ID,
+						segment.Owner.Namespace,
+						segment.Owner.Name,
+					)
+				}
+
 				taskName := fmt.Sprintf("consume segment %d", offsetSegmentID)
 				if local {
 					running[offsetSegmentID] = taskManager.Start(
 						taskName,
-						(func(state *ClusterState, segment *ClusterSegment, offset int64) func(context.Context) error {
+						(func(state *ClusterState, consumerGroup *ClusterConsumerGroup, topic *ClusterTopic, segment *ClusterSegment, offset int64) func(context.Context) error {
 							return func(ctx context.Context) error {
-								return s.taskConsumeSegmentLocal(ctx, group, state, segment, offset)
+								return s.taskConsumeSegmentLocal(ctx, state, namespaceName, consumerGroup, topic, segment, group, offset)
 							}
-						})(state, segment, offset),
+						})(state, consumerGroup, topic, segment, offset),
 						offsetSegmentID,
 					)
 				} else if segment.ClosedAt.IsZero() {
 					running[offsetSegmentID] = taskManager.Start(
 						taskName,
-						(func(state *ClusterState, segment *ClusterSegment, nodeID uint64, offset int64) func(context.Context) error {
+						(func(state *ClusterState, consumerGroup *ClusterConsumerGroup, topic *ClusterTopic, segment *ClusterSegment, nodeID uint64, offset int64) func(context.Context) error {
 							return func(ctx context.Context) error {
-								return s.taskConsumeSegmentRemote(ctx, group, state, segment, nodeID, offset)
+								return s.taskConsumeSegmentRemote(ctx, state, namespaceName, consumerGroup, topic, segment, group, nodeID, offset)
 							}
-						})(state, segment, segment.Nodes.PrimaryNodeID, offset),
+						})(state, consumerGroup, topic, segment, segment.Nodes.PrimaryNodeID, offset),
 						offsetSegmentID,
 					)
 				} else {
 					running[offsetSegmentID] = taskManager.Start(
 						taskName,
-						(func(state *ClusterState, segment *ClusterSegment, nodeID uint64, offset int64) func(context.Context) error {
+						(func(state *ClusterState, consumerGroup *ClusterConsumerGroup, topic *ClusterTopic, segment *ClusterSegment, nodeID uint64, offset int64) func(context.Context) error {
 							return func(ctx context.Context) error {
-								return s.taskConsumeSegmentRemote(ctx, group, state, segment, nodeID, offset)
+								return s.taskConsumeSegmentRemote(ctx, state, namespaceName, consumerGroup, topic, segment, group, nodeID, offset)
 							}
-						})(state, segment, segment.Nodes.DoneNodeIDs[rand.Intn(len(segment.Nodes.DoneNodeIDs))], offset),
+						})(state, consumerGroup, topic, segment, segment.Nodes.DoneNodeIDs[rand.Intn(len(segment.Nodes.DoneNodeIDs))], offset),
 						offsetSegmentID,
 					)
 				}
@@ -186,78 +198,103 @@ func (s *Server) taskConsumerGroup(ctx context.Context, namespaceName string, co
 
 			if t, ok := running[offsetSegmentID]; ok && t.ID == completed.ID {
 				delete(running, offsetSegmentID)
-				if completed.Err != nil {
+				if completed.Err == nil {
+					// task completed without error => busy wait for segment to close
+					state := s.clusterState.Current()
+					segment := state.GetClosedSegment(segmentID)
+					for segment == nil {
+						select {
+						case <-ctx.Done():
+							return ctx.Err()
+						default:
+							runtime.Gosched()
+						}
+						state = s.clusterState.Current()
+						segment = state.GetClosedSegment(segmentID)
+					}
+					// then commit the whole segment
+					ack = consumers.MessageAck{
+						SegmentID:    offsetSegmentID,
+						CommitOffset: segment.Size_,
+					}
+					goto COMMIT
+				} else {
 					state = nil // !!! force re-read of state and possibly restart the task
 				}
 			}
 
-		case ack := <-group.Ack:
-			if ack.CommitOffset > committedOffsets[ack.SegmentID] {
-				committedOffsets[ack.SegmentID] = ack.CommitOffset
-			}
-
-			commit := ClusterConsumerGroup_OffsetCommit{}
-			commit.SegmentID = ack.SegmentID
-			commit.Offset = ack.CommitOffset
-			buf, err := proto.Marshal(&commit)
-			if err != nil {
-				return errors.Wrap(err, "marshal failed")
-			}
-
-		WRITE:
-			if err := segmentHandle.Write(buf); err == segments.ErrFull {
-				sha1Sum, size, err := segmentHandle.Sum(sha1.New(), segments.SumAll)
-				if err != nil {
-					return errors.Wrap(err, "sum failed")
-				}
-				var offsetCommitsUpdate []*ClusterConsumerGroup_OffsetCommit
-				for segmentID, offset := range committedOffsets {
-					offsetCommitsUpdate = append(offsetCommitsUpdate, &ClusterConsumerGroup_OffsetCommit{
-						SegmentID: segmentID,
-						Offset:    offset,
-					})
-				}
-				response, err := s.SegmentRotate(ctx, &SegmentCloseRequest{
-					OffsetCommitsUpdate: &ClusterUpdateOffsetCommitsCommand{
-						ConsumerGroup: client.NamespaceName{
-							Namespace: namespaceName,
-							Name:      consumerGroupName,
-						},
-						OffsetCommits: offsetCommitsUpdate,
-					},
-					NodeID:    s.nodeID,
-					SegmentID: segmentID,
-					Size_:     size,
-					Sha1:      sha1Sum,
-				})
-				if response.PrimaryNodeID != s.nodeID {
-					log.Printf(
-						"consumer group %s/%s rotated segment (%d->%d) assigned to different node: %d",
-						namespaceName,
-						consumerGroupName,
-						segmentID,
-						response.SegmentID,
-						response.PrimaryNodeID,
-					)
-					return nil
-				}
-				if err := s.segmentDir.Release(segmentHandle); err != nil {
-					return errors.Wrap(err, "release of old segment failed")
-				}
-				segmentHandle = nil // nilled to prevent double-free
-				segmentID = response.SegmentID
-				segmentHandle, err = s.segmentDir.Open(segmentID)
-				if err != nil {
-					return errors.Wrap(err, "rotated segment open failed")
-				}
-				goto WRITE
-
-			} else if err != nil {
-				return errors.Wrap(err, "segment write failed")
-			}
+		case ack = <-group.Ack:
+			goto COMMIT
 
 		case <-ctx.Done():
 			return ctx.Err()
+		}
+
+		continue
+
+	COMMIT:
+		if ack.CommitOffset > committedOffsets[ack.SegmentID] {
+			committedOffsets[ack.SegmentID] = ack.CommitOffset
+		}
+
+		commit := ClusterConsumerGroup_OffsetCommit{}
+		commit.SegmentID = ack.SegmentID
+		commit.Offset = ack.CommitOffset
+		buf, err := proto.Marshal(&commit)
+		if err != nil {
+			return errors.Wrap(err, "marshal failed")
+		}
+
+	WRITE:
+		if err := segmentHandle.Write(buf); err == segments.ErrFull {
+			sha1Sum, size, err := segmentHandle.Sum(sha1.New(), segments.SumAll)
+			if err != nil {
+				return errors.Wrap(err, "sum failed")
+			}
+			var offsetCommitsUpdate []*ClusterConsumerGroup_OffsetCommit
+			for segmentID, offset := range committedOffsets {
+				offsetCommitsUpdate = append(offsetCommitsUpdate, &ClusterConsumerGroup_OffsetCommit{
+					SegmentID: segmentID,
+					Offset:    offset,
+				})
+			}
+			response, err := s.SegmentRotate(ctx, &SegmentCloseRequest{
+				OffsetCommitsUpdate: &ClusterUpdateOffsetCommitsCommand{
+					ConsumerGroup: client.NamespaceName{
+						Namespace: namespaceName,
+						Name:      consumerGroupName,
+					},
+					OffsetCommits: offsetCommitsUpdate,
+				},
+				NodeID:    s.nodeID,
+				SegmentID: segmentID,
+				Size_:     size,
+				Sha1:      sha1Sum,
+			})
+			if response.PrimaryNodeID != s.nodeID {
+				log.Printf(
+					"consumer group %s/%s rotated segment (%d->%d) assigned to different node: %d",
+					namespaceName,
+					consumerGroupName,
+					segmentID,
+					response.SegmentID,
+					response.PrimaryNodeID,
+				)
+				return nil
+			}
+			if err := s.segmentDir.Release(segmentHandle); err != nil {
+				return errors.Wrap(err, "release of old segment failed")
+			}
+			segmentHandle = nil // nilled to prevent double-free
+			segmentID = response.SegmentID
+			segmentHandle, err = s.segmentDir.Open(segmentID)
+			if err != nil {
+				return errors.Wrap(err, "rotated segment open failed")
+			}
+			goto WRITE
+
+		} else if err != nil {
+			return errors.Wrap(err, "segment write failed")
 		}
 	}
 }

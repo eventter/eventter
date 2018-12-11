@@ -12,7 +12,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-func (s *Server) taskConsumeSegmentRemote(ctx context.Context, group *consumers.Group, state *ClusterState, segment *ClusterSegment, nodeID uint64, startOffset int64) error {
+func (s *Server) taskConsumeSegmentRemote(ctx context.Context, state *ClusterState, namespaceName string, consumerGroup *ClusterConsumerGroup, topic *ClusterTopic, segment *ClusterSegment, group *consumers.Group, nodeID uint64, startOffset int64) error {
 	node := state.GetNode(nodeID)
 	if node == nil {
 		return errors.Errorf("node %d not found", nodeID)
@@ -25,11 +25,6 @@ func (s *Server) taskConsumeSegmentRemote(ctx context.Context, group *consumers.
 	defer s.pool.Put(cc)
 
 	client := NewNodeRPCClient(cc)
-
-	topic := state.GetTopic(segment.Owner.Namespace, segment.Owner.Name)
-	if topic == nil {
-		return errors.Errorf(notFoundErrorFormat, entityTopic, segment.Owner.Namespace, segment.Owner.Name)
-	}
 
 	stream, err := client.SegmentRead(ctx, &SegmentReadRequest{
 		SegmentID: segment.ID,
@@ -58,17 +53,31 @@ func (s *Server) taskConsumeSegmentRemote(ctx context.Context, group *consumers.
 			return errors.Wrap(err, "unmarshal failed")
 		}
 
-		// TODO: filter according to topic type
+		if newState := s.clusterState.Current(); newState != state {
+			state = newState
+			consumerGroupName := consumerGroup.Name
+			consumerGroup = state.GetConsumerGroup(namespaceName, consumerGroupName)
+			if consumerGroup == nil {
+				return errors.Errorf(notFoundErrorFormat, entityConsumerGroup, namespaceName, consumerGroupName)
+			}
+			topicName := topic.Name
+			topic = state.GetTopic(namespaceName, topicName)
+			if topic == nil {
+				return errors.Errorf(notFoundErrorFormat, entityTopic, namespaceName, topicName)
+			}
+		}
 
-		err = group.Offer(&consumers.Message{
-			Topic:        segment.Owner,
-			SegmentID:    segment.ID,
-			CommitOffset: response.CommitOffset,
-			Time:         segment.OpenedAt.Add(time.Duration(publishing.Delta)),
-			Message:      publishing.Message,
-		})
-		if err != nil {
-			return errors.Wrap(err, "offer failed")
+		if isMessageEligibleForConsumerGroup(publishing.Message, topic, consumerGroup) {
+			err = group.Offer(&consumers.Message{
+				Topic:        segment.Owner,
+				SegmentID:    segment.ID,
+				CommitOffset: response.CommitOffset,
+				Time:         segment.OpenedAt.Add(time.Duration(publishing.Delta)),
+				Message:      publishing.Message,
+			})
+			if err != nil {
+				return errors.Wrap(err, "offer failed")
+			}
 		}
 	}
 }
