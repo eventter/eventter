@@ -62,7 +62,7 @@ func TestFile_Write(t *testing.T) {
 	}
 	messagesRead := 0
 	for {
-		message, _, err := iterator.Next()
+		message, _, _, err := iterator.Next()
 		if err == io.EOF {
 			break
 		} else if err != nil {
@@ -159,7 +159,7 @@ func TestFile_Truncate(t *testing.T) {
 	}
 	n := 0
 	for {
-		_, _, err := iterator.Next()
+		_, _, _, err := iterator.Next()
 		if err == io.EOF {
 			break
 		} else if err != nil {
@@ -188,7 +188,7 @@ func TestFile_Truncate(t *testing.T) {
 	}
 	n = 0
 	for {
-		_, _, err := iterator.Next()
+		_, _, _, err := iterator.Next()
 		if err == io.EOF {
 			break
 		} else if err != nil {

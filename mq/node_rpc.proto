@@ -65,8 +65,9 @@ message SegmentReadRequest {
 
 message SegmentReadResponse {
     uint64 segment_id = 1 [(gogoproto.customname) = "SegmentID"];
-    int64 offset = 2;
-    bytes data = 3;
+    bytes data = 2;
+    int64 offset = 3;
+    int64 commit_offset = 4;
 }
 
 service NodeRPC {

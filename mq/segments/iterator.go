@@ -26,13 +26,13 @@ type Iterator struct {
 	closed    uint32
 }
 
-func (i *Iterator) Next() (data []byte, offset int64, err error) {
+func (i *Iterator) Next() (data []byte, offset int64, commitOffset int64, err error) {
 	if atomic.LoadUint32(&i.closed) == 1 {
-		return nil, invalidOffset, ErrIteratorClosed
+		return nil, invalidOffset, invalidOffset, ErrIteratorClosed
 	}
 
 	if atomic.LoadUint32(&i.file.term) != i.term {
-		return nil, invalidOffset, ErrIteratorInvalid
+		return nil, invalidOffset, invalidOffset, ErrIteratorInvalid
 	}
 
 	defer func() {
@@ -55,26 +55,26 @@ NEXT:
 				}
 			}
 
-			return nil, invalidOffset, err
+			return nil, invalidOffset, invalidOffset, err
 		} else if err != nil {
-			return nil, invalidOffset, errors.Wrap(err, "peek failed")
+			return nil, invalidOffset, invalidOffset, errors.Wrap(err, "peek failed")
 		}
 
-		return nil, invalidOffset, errors.New("bad length")
+		return nil, invalidOffset, invalidOffset, errors.New("bad length")
 	}
 
 	if _, err := i.reader.Discard(n); err != nil {
-		return nil, invalidOffset, errors.Wrap(err, "discard failed")
+		return nil, invalidOffset, invalidOffset, errors.Wrap(err, "discard failed")
 	}
 
 	message := make([]byte, messageLength) // TODO: buffer pooling
 	if _, err = io.ReadFull(i.reader, message); err != nil {
-		return nil, invalidOffset, errors.Wrap(err, "read failed")
+		return nil, invalidOffset, invalidOffset, errors.Wrap(err, "read failed")
 	}
 
 	i.offset += int64(n) + int64(messageLength)
 
-	return message, messageOffset, nil
+	return message, messageOffset, i.offset, nil
 }
 
 func (i *Iterator) nextWait() error {

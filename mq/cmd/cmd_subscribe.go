@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"math/rand"
 	"os"
@@ -10,6 +11,7 @@ import (
 
 	"eventter.io/mq/client"
 	"github.com/spf13/cobra"
+	"google.golang.org/grpc"
 )
 
 func subscribeCmd() *cobra.Command {
@@ -34,7 +36,7 @@ func subscribeCmd() *cobra.Command {
 			defer c.Close()
 
 			request.ConsumerGroup.Name = args[0]
-			stream, err := c.Subscribe(ctx, request)
+			stream, err := c.Subscribe(ctx, request, grpc.MaxCallRecvMsgSize(64*1024*1024))
 			if err != nil {
 				return err
 			}
@@ -53,6 +55,7 @@ func subscribeCmd() *cobra.Command {
 				if err := encoder.Encode(response); err != nil {
 					return err
 				}
+				fmt.Println(string(response.Message.Data))
 
 				_, err = c.Ack(ctx, &client.AckRequest{
 					NodeID:         response.NodeID,

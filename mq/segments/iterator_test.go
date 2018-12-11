@@ -39,7 +39,7 @@ func TestIterator_Next_NoWait(t *testing.T) {
 	}
 	n := 0
 	for i := 1; ; i++ {
-		message, offset, err := iterator.Next()
+		message, offset, _, err := iterator.Next()
 		if err == io.EOF {
 			break
 		} else if err != nil {
@@ -75,7 +75,7 @@ func TestIterator_Next_NoWait(t *testing.T) {
 	}
 	n = 0
 	for i := 1; ; i++ {
-		message, _, err := iterator.Next()
+		message, _, _, err := iterator.Next()
 		if err == io.EOF {
 			break
 		} else if err != nil {
@@ -131,7 +131,7 @@ func TestIterator_Next_Wait(t *testing.T) {
 	}
 	n := 1
 	for {
-		message, offset, err := iterator.Next()
+		message, offset, _, err := iterator.Next()
 		if err == io.EOF {
 			break
 		} else if err != nil {
@@ -175,7 +175,7 @@ func TestIterator_Next_TruncateNoWait(t *testing.T) {
 	if err := f.Truncate(TruncateAll); err != nil {
 		t.Fatal(err)
 	}
-	_, _, err = iterator.Next()
+	_, _, _, err = iterator.Next()
 	if err != ErrIteratorInvalid {
 		t.Fatalf("expected error %v, got %v", ErrIteratorInvalid, err)
 	}
@@ -191,7 +191,7 @@ func TestIterator_Next_TruncateNoWait(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	data, _, err := iterator.Next()
+	data, _, _, err := iterator.Next()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -203,7 +203,7 @@ func TestIterator_Next_TruncateNoWait(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, _, err = iterator.Next()
+	_, _, _, err = iterator.Next()
 	if err != ErrIteratorInvalid {
 		t.Fatalf("expected error %v, got %v", ErrIteratorInvalid, err)
 	}
@@ -234,7 +234,7 @@ func TestIterator_Next_TruncateWait(t *testing.T) {
 		}
 	}()
 
-	_, _, err = iterator.Next()
+	_, _, _, err = iterator.Next()
 	if err != ErrIteratorInvalid {
 		t.Fatalf("expected error %v, got %v", ErrIteratorInvalid, err)
 	}
@@ -263,7 +263,7 @@ func TestIterator_Close(t *testing.T) {
 		iterator.Close()
 	}()
 
-	_, _, err = iterator.Next()
+	_, _, _, err = iterator.Next()
 	if err != ErrIteratorClosed {
 		t.Fatalf("expected error %v, got %v", ErrIteratorClosed, err)
 	}

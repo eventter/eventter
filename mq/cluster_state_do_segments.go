@@ -12,7 +12,7 @@ func (s *ClusterState) doOpenSegment(cmd *ClusterOpenSegmentCommand) *ClusterSta
 		next.CurrentSegmentID = cmd.ID
 	}
 
-	// TODO: do binary search, then insert
+	// TODO: do binary search, then insert, remove sort.Slice
 	next.OpenSegments = make([]*ClusterSegment, len(s.OpenSegments)+1)
 	copy(next.OpenSegments, s.OpenSegments)
 	next.OpenSegments[len(s.OpenSegments)] = &ClusterSegment{
@@ -57,7 +57,7 @@ func (s *ClusterState) doCloseSegment(cmd *ClusterCloseSegmentCommand) *ClusterS
 	copy(next.OpenSegments[:segmentIndex], s.OpenSegments[:segmentIndex])
 	copy(next.OpenSegments[segmentIndex:], s.OpenSegments[segmentIndex+1:])
 
-	// TODO: do binary search, then insert
+	// TODO: do binary search, then insert, remove sort.Slice
 	next.ClosedSegments = make([]*ClusterSegment, len(s.ClosedSegments)+1)
 	copy(next.ClosedSegments, s.ClosedSegments)
 	next.ClosedSegments[len(s.ClosedSegments)] = nextSegment

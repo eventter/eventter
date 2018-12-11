@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math/rand"
 	"time"
 
 	"eventter.io/mq/client"
@@ -49,7 +50,7 @@ func (s *Server) taskConsumerGroup(ctx context.Context, namespaceName string, co
 	}
 	commit := ClusterConsumerGroup_OffsetCommit{}
 	for {
-		buf, off, err := iterator.Next()
+		buf, off, _, err := iterator.Next()
 		if err == io.EOF {
 			break
 		} else if err != nil {
@@ -109,7 +110,7 @@ func (s *Server) taskConsumerGroup(ctx context.Context, namespaceName string, co
 			for _, commit := range consumerGroup.OffsetCommits {
 				nextCommittedOffsets[commit.SegmentID] = commit.Offset
 				if offset, ok := committedOffsets[commit.SegmentID]; ok && offset > commit.Offset {
-					nextCommittedOffsets[commit.SegmentID] = commit.Offset
+					nextCommittedOffsets[commit.SegmentID] = offset
 				}
 			}
 			committedOffsets = nextCommittedOffsets
@@ -121,14 +122,60 @@ func (s *Server) taskConsumerGroup(ctx context.Context, namespaceName string, co
 			}
 
 			for offsetSegmentID, offset := range committedOffsets {
-				if _, ok := running[offsetSegmentID]; !ok {
+				if _, ok := running[offsetSegmentID]; ok {
+					continue
+				}
+
+				segment := state.GetSegment(offsetSegmentID)
+				if !segment.ClosedAt.IsZero() && offset >= segment.Size_ {
+					continue
+				}
+
+				if segment.Type != ClusterSegment_TOPIC {
+					panic("must not happen")
+				}
+
+				local := false
+				if segment.Nodes.PrimaryNodeID == s.nodeID {
+					local = true
+				} else {
+					for _, nodeID := range segment.Nodes.DoneNodeIDs {
+						if nodeID == s.nodeID {
+							local = true
+							break
+						}
+					}
+				}
+
+				taskName := fmt.Sprintf("consume segment %d", offsetSegmentID)
+				if local {
 					running[offsetSegmentID] = taskManager.Start(
-						fmt.Sprintf("consume segment %d", offsetSegmentID),
-						(func(segmentID uint64, offset int64) func(context.Context) error {
+						taskName,
+						(func(state *ClusterState, segment *ClusterSegment, offset int64) func(context.Context) error {
 							return func(ctx context.Context) error {
-								return s.taskConsumerGroupConsumeSegment(ctx, group, segmentID, offset)
+								return s.taskConsumeSegmentLocal(ctx, group, state, segment, offset)
 							}
-						})(offsetSegmentID, offset),
+						})(state, segment, offset),
+						offsetSegmentID,
+					)
+				} else if segment.ClosedAt.IsZero() {
+					running[offsetSegmentID] = taskManager.Start(
+						taskName,
+						(func(state *ClusterState, segment *ClusterSegment, nodeID uint64, offset int64) func(context.Context) error {
+							return func(ctx context.Context) error {
+								return s.taskConsumeSegmentRemote(ctx, group, state, segment, nodeID, offset)
+							}
+						})(state, segment, segment.Nodes.PrimaryNodeID, offset),
+						offsetSegmentID,
+					)
+				} else {
+					running[offsetSegmentID] = taskManager.Start(
+						taskName,
+						(func(state *ClusterState, segment *ClusterSegment, nodeID uint64, offset int64) func(context.Context) error {
+							return func(ctx context.Context) error {
+								return s.taskConsumeSegmentRemote(ctx, group, state, segment, nodeID, offset)
+							}
+						})(state, segment, segment.Nodes.DoneNodeIDs[rand.Intn(len(segment.Nodes.DoneNodeIDs))], offset),
 						offsetSegmentID,
 					)
 				}
@@ -145,14 +192,13 @@ func (s *Server) taskConsumerGroup(ctx context.Context, namespaceName string, co
 			}
 
 		case ack := <-group.Ack:
-			if ack.Offset > committedOffsets[ack.SegmentID] {
-				committedOffsets[ack.SegmentID] = ack.Offset
+			if ack.CommitOffset > committedOffsets[ack.SegmentID] {
+				committedOffsets[ack.SegmentID] = ack.CommitOffset
 			}
 
-			commit.Reset()
+			commit := ClusterConsumerGroup_OffsetCommit{}
 			commit.SegmentID = ack.SegmentID
-			commit.Offset = ack.Offset
-
+			commit.Offset = ack.CommitOffset
 			buf, err := proto.Marshal(&commit)
 			if err != nil {
 				return errors.Wrap(err, "marshal failed")

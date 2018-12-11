@@ -83,8 +83,8 @@ func (s *Subscription) Ack(seqNo uint64) error {
 	j := s.group.read
 	for ; j != s.group.write && s.group.messages[j].SubscriptionID == ack; j = (j + 1) % len(s.group.messages) {
 		messageAcks = append(messageAcks, MessageAck{
-			SegmentID: s.group.messages[j].SegmentID,
-			Offset:    s.group.messages[j].Offset,
+			SegmentID:    s.group.messages[j].SegmentID,
+			CommitOffset: s.group.messages[j].CommitOffset,
 		})
 	}
 	s.group.read = j
@@ -95,7 +95,7 @@ func (s *Subscription) Ack(seqNo uint64) error {
 
 	if c != nil {
 		for _, messageAck := range messageAcks {
-			s.group.sendAck <- messageAck
+			c <- messageAck
 		}
 	}
 

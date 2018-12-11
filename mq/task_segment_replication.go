@@ -22,11 +22,11 @@ func (s *Server) taskSegmentReplication(ctx context.Context, segmentID uint64, n
 		return errors.New("node not found")
 	}
 
-	segment, err := s.segmentDir.Open(segmentID)
+	segmentHandle, err := s.segmentDir.Open(segmentID)
 	if err != nil {
 		return errors.Wrap(err, "open failed")
 	}
-	defer s.segmentDir.Release(segment)
+	defer s.segmentDir.Release(segmentHandle)
 
 	cc, err := s.pool.Get(ctx, node.Address)
 	if err != nil {
@@ -34,7 +34,7 @@ func (s *Server) taskSegmentReplication(ctx context.Context, segmentID uint64, n
 	}
 	defer s.pool.Put(cc)
 
-	sha1Sum, size, err := segment.Sum(sha1.New(), segments.SumAll)
+	sha1Sum, size, err := segmentHandle.Sum(sha1.New(), segments.SumAll)
 	if err != nil {
 		return errors.Wrap(err, "local sum failed")
 	}
@@ -53,7 +53,7 @@ func (s *Server) taskSegmentReplication(ctx context.Context, segmentID uint64, n
 		size = segments.TruncateAll
 	}
 
-	if err := segment.Truncate(size); err != nil {
+	if err := segmentHandle.Truncate(size); err != nil {
 		return errors.Wrap(err, "truncate failed")
 	}
 
@@ -79,7 +79,7 @@ func (s *Server) taskSegmentReplication(ctx context.Context, segmentID uint64, n
 			return errors.Wrap(err, "receive failed")
 		}
 
-		if err := segment.Write(response.Data); err != nil {
+		if err := segmentHandle.Write(response.Data); err != nil {
 			return errors.Wrap(err, "write failed")
 		}
 	}
@@ -104,7 +104,7 @@ func (s *Server) taskSegmentReplication(ctx context.Context, segmentID uint64, n
 		}
 	}
 
-	finalSha1Sum, finalSize, err := segment.Sum(sha1.New(), segments.SumAll)
+	finalSha1Sum, finalSize, err := segmentHandle.Sum(sha1.New(), segments.SumAll)
 	if err != nil {
 		return errors.Wrap(err, "final sum failed")
 	}

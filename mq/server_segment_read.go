@@ -38,17 +38,20 @@ func (s *Server) SegmentRead(request *SegmentReadRequest, stream NodeRPC_Segment
 	}()
 
 	for {
-		data, offset, err := iterator.Next()
+		data, offset, commitOffset, err := iterator.Next()
 		if err == io.EOF {
 			return nil
+		} else if err == segments.ErrIteratorClosed && ctx.Err() != nil {
+			return ctx.Err()
 		} else if err != nil {
 			return errors.Wrap(err, "iterator next failed")
 		}
 
 		err = stream.Send(&SegmentReadResponse{
-			SegmentID: request.SegmentID,
-			Offset:    offset,
-			Data:      data,
+			SegmentID:    request.SegmentID,
+			Data:         data,
+			Offset:       offset,
+			CommitOffset: commitOffset,
 		})
 		if err != nil {
 			return errors.Wrap(err, "send failed")

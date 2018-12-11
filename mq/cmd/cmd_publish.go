@@ -14,10 +14,10 @@ import (
 
 func publishCmd() *cobra.Command {
 	request := &client.PublishRequest{
-		Message: &client.Message{
-			Properties: &client.Message_Properties{},
-		},
+		Message: &client.Message{},
 	}
+
+	properties := &client.Message_Properties{}
 
 	cmd := &cobra.Command{
 		Use:     "publish <topic> [message1] [message2] ... [messageN]",
@@ -38,6 +38,11 @@ func publishCmd() *cobra.Command {
 
 			request.Topic.Name = args[0]
 			args = args[1:]
+
+			zeroProperties := client.Message_Properties{}
+			if *properties != zeroProperties {
+				request.Message.Properties = properties
+			}
 
 			for _, arg := range args {
 				if strings.HasPrefix(arg, "@") {
@@ -68,16 +73,16 @@ func publishCmd() *cobra.Command {
 
 	cmd.Flags().StringVarP(&request.Topic.Namespace, "namespace", "n", defaultNamespace, "Topic namespace.")
 	cmd.Flags().StringVarP(&request.Message.RoutingKey, "routing-key", "k", "", "Routing key.")
-	cmd.Flags().StringVar(&request.Message.Properties.ContentType, "content-type", "", "Content type.")
-	cmd.Flags().StringVar(&request.Message.Properties.ContentEncoding, "content-encoding", "", "Content encoding.")
-	cmd.Flags().Int32Var(&request.Message.Properties.DeliveryMode, "delivery-mode", 0, "Delivery mode.")
-	cmd.Flags().Int32Var(&request.Message.Properties.Priority, "priority", 0, "Delivery mode.")
-	cmd.Flags().StringVar(&request.Message.Properties.CorrelationID, "correlation-id", "", "Correlation ID.")
-	cmd.Flags().StringVar(&request.Message.Properties.ReplyTo, "reply-to", "", "Reply to.")
-	cmd.Flags().StringVar(&request.Message.Properties.Expiration, "expiration", "", "Expiration.")
-	cmd.Flags().StringVar(&request.Message.Properties.MessageID, "message-id", "", "Message ID.")
-	cmd.Flags().StringVar(&request.Message.Properties.Type, "type", "", "Type.")
-	cmd.Flags().StringVar(&request.Message.Properties.UserID, "user-id", "", "User ID.")
+	cmd.Flags().StringVar(&properties.ContentType, "content-type", "", "Content type.")
+	cmd.Flags().StringVar(&properties.ContentEncoding, "content-encoding", "", "Content encoding.")
+	cmd.Flags().Int32Var(&properties.DeliveryMode, "delivery-mode", 0, "Delivery mode.")
+	cmd.Flags().Int32Var(&properties.Priority, "priority", 0, "Delivery mode.")
+	cmd.Flags().StringVar(&properties.CorrelationID, "correlation-id", "", "Correlation ID.")
+	cmd.Flags().StringVar(&properties.ReplyTo, "reply-to", "", "Reply to.")
+	cmd.Flags().StringVar(&properties.Expiration, "expiration", "", "Expiration.")
+	cmd.Flags().StringVar(&properties.MessageID, "message-id", "", "Message ID.")
+	cmd.Flags().StringVar(&properties.Type, "type", "", "Type.")
+	cmd.Flags().StringVar(&properties.UserID, "user-id", "", "User ID.")
 
 	return cmd
 }
