@@ -32,7 +32,7 @@ func (s *Server) taskConsumerGroup(ctx context.Context, namespaceName string, co
 		committedOffsets[commit.SegmentID] = commit.Offset
 	}
 
-	// 2) find all segments with offset commits, update from messages
+	// 2) find segment with offset commits, update from messages
 
 	segmentHandle, err := s.segmentDir.Open(segmentID)
 	if err != nil {

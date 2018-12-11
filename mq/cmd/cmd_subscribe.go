@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math"
 	"math/rand"
 	"os"
 	"time"
@@ -36,7 +37,7 @@ func subscribeCmd() *cobra.Command {
 			defer c.Close()
 
 			request.ConsumerGroup.Name = args[0]
-			stream, err := c.Subscribe(ctx, request, grpc.MaxCallRecvMsgSize(64*1024*1024))
+			stream, err := c.Subscribe(ctx, request, grpc.MaxCallRecvMsgSize(math.MaxUint32))
 			if err != nil {
 				return err
 			}
