@@ -68,14 +68,14 @@ LOOP:
 					return
 				}
 
-				reconciler.ReconcileConsumerGroups(s.clusterState.Current())
+				reconciler.ReconcileSegments(s.clusterState.Current())
 
 				if err := s.raftNode.Barrier(barrierTimeout).Error(); err != nil {
 					log.Printf("could not add barrier: %v", err)
 					return
 				}
 
-				reconciler.ReconcileSegments(s.clusterState.Current())
+				reconciler.ReconcileConsumerGroups(s.clusterState.Current())
 			}()
 
 		case <-nodeTicker.C:

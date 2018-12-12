@@ -14,13 +14,13 @@ func (r *Reconciler) ReconcileConsumerGroups(state *ClusterState) {
 
 	for _, namespace := range state.Namespaces {
 		for _, consumerGroup := range namespace.ConsumerGroups {
-			r.reconcileConsumerGroupOffsetsSegment(state, namespace, consumerGroup, nodeSegmentCounts)
+			r.reconcileConsumerGroupOffsetCommitsSegment(state, namespace, consumerGroup, nodeSegmentCounts)
 			r.reconcileConsumerGroupOffsetCommits(state, namespace, consumerGroup)
 		}
 	}
 }
 
-func (r *Reconciler) reconcileConsumerGroupOffsetsSegment(state *ClusterState, namespace *ClusterNamespace, consumerGroup *ClusterConsumerGroup, nodeSegmentCounts map[uint64]int) {
+func (r *Reconciler) reconcileConsumerGroupOffsetCommitsSegment(state *ClusterState, namespace *ClusterNamespace, consumerGroup *ClusterConsumerGroup, nodeSegmentCounts map[uint64]int) {
 	openSegments := state.FindOpenSegmentsFor(
 		ClusterSegment_CONSUMER_GROUP_OFFSET_COMMITS,
 		namespace.Name,

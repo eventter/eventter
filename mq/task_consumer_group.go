@@ -137,8 +137,12 @@ func (s *Server) taskConsumerGroup(ctx context.Context, namespaceName string, co
 				if _, ok := running[offsetSegmentID]; ok {
 					continue
 				}
-
 				segment := state.GetSegment(offsetSegmentID)
+				if segment == nil {
+					// segment waiting to be deleted from cluster state committed offsets
+					continue
+				}
+
 				if !segment.ClosedAt.IsZero() {
 					if offset >= segment.Size_ {
 						continue
@@ -219,8 +223,8 @@ func (s *Server) taskConsumerGroup(ctx context.Context, namespaceName string, co
 				if completed.Err == nil {
 					// task completed without error => busy wait for segment to close
 					state := s.clusterState.Current()
-					segment := state.GetClosedSegment(segmentID)
-					for segment == nil {
+					segment := state.GetSegment(offsetSegmentID)
+					for segment != nil && segment.ClosedAt.IsZero() {
 						select {
 						case <-ctx.Done():
 							return ctx.Err()
@@ -228,14 +232,17 @@ func (s *Server) taskConsumerGroup(ctx context.Context, namespaceName string, co
 							runtime.Gosched()
 						}
 						state = s.clusterState.Current()
-						segment = state.GetClosedSegment(segmentID)
+						segment = state.GetSegment(offsetSegmentID)
 					}
-					// then commit the whole segment
-					ack = consumers.MessageAck{
-						SegmentID:    offsetSegmentID,
-						CommitOffset: segment.Size_,
+					state = nil // !!! force re-read of state and possibly restart the task
+					if segment != nil {
+						// segment closed => commit the whole segment
+						ack = consumers.MessageAck{
+							SegmentID:    offsetSegmentID,
+							CommitOffset: segment.Size_,
+						}
+						goto COMMIT
 					}
-					goto COMMIT
 				} else {
 					state = nil // !!! force re-read of state and possibly restart the task
 				}
