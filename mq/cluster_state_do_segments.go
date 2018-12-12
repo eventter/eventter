@@ -4,7 +4,7 @@ import (
 	"sort"
 )
 
-func (s *ClusterState) doOpenSegment(cmd *ClusterOpenSegmentCommand) *ClusterState {
+func (s *ClusterState) doOpenSegment(cmd *ClusterCommandSegmentOpen) *ClusterState {
 	next := &ClusterState{}
 	*next = *s
 
@@ -33,7 +33,7 @@ func (s *ClusterState) doOpenSegment(cmd *ClusterOpenSegmentCommand) *ClusterSta
 	return next
 }
 
-func (s *ClusterState) doCloseSegment(cmd *ClusterCloseSegmentCommand) *ClusterState {
+func (s *ClusterState) doCloseSegment(cmd *ClusterCommandSegmentClose) *ClusterState {
 	// TODO: do binary search
 	segmentIndex := -1
 	for i, segment := range s.OpenSegments {
@@ -75,8 +75,8 @@ func (s *ClusterState) doCloseSegment(cmd *ClusterCloseSegmentCommand) *ClusterS
 	return next
 }
 
-func (s *ClusterState) doUpdateSegmentNodes(cmd *ClusterUpdateSegmentNodesCommand) *ClusterState {
-	if cmd.Which == ClusterUpdateSegmentNodesCommand_OPEN {
+func (s *ClusterState) doUpdateSegmentNodes(cmd *ClusterCommandSegmentNodesUpdate) *ClusterState {
+	if cmd.Which == ClusterCommandSegmentNodesUpdate_OPEN {
 		i := sort.Search(len(s.OpenSegments), func(i int) bool { return s.OpenSegments[i].ID >= cmd.ID })
 		if i < len(s.OpenSegments) && s.OpenSegments[i].ID == cmd.ID {
 			next := &ClusterState{}
@@ -85,7 +85,7 @@ func (s *ClusterState) doUpdateSegmentNodes(cmd *ClusterUpdateSegmentNodesComman
 			return next
 		}
 
-	} else if cmd.Which == ClusterUpdateSegmentNodesCommand_CLOSED {
+	} else if cmd.Which == ClusterCommandSegmentNodesUpdate_CLOSED {
 		i := sort.Search(len(s.ClosedSegments), func(i int) bool { return s.ClosedSegments[i].ID >= cmd.ID })
 		if i < len(s.ClosedSegments) && s.ClosedSegments[i].ID == cmd.ID {
 			next := &ClusterState{}
@@ -101,7 +101,7 @@ func (s *ClusterState) doUpdateSegmentNodes(cmd *ClusterUpdateSegmentNodesComman
 	return s
 }
 
-func (s *ClusterState) doUpdateSegmentNodesIn(segments []*ClusterSegment, segmentIndex int, cmd *ClusterUpdateSegmentNodesCommand) []*ClusterSegment {
+func (s *ClusterState) doUpdateSegmentNodesIn(segments []*ClusterSegment, segmentIndex int, cmd *ClusterCommandSegmentNodesUpdate) []*ClusterSegment {
 	nextSegments := make([]*ClusterSegment, len(segments))
 	copy(nextSegments, segments)
 
@@ -114,8 +114,8 @@ func (s *ClusterState) doUpdateSegmentNodesIn(segments []*ClusterSegment, segmen
 	return nextSegments
 }
 
-func (s *ClusterState) doDeleteSegment(cmd *ClusterDeleteSegmentCommand) *ClusterState {
-	if cmd.Which == ClusterDeleteSegmentCommand_OPEN {
+func (s *ClusterState) doDeleteSegment(cmd *ClusterCommandSegmentDelete) *ClusterState {
+	if cmd.Which == ClusterCommandSegmentDelete_OPEN {
 		i := sort.Search(len(s.OpenSegments), func(i int) bool { return s.OpenSegments[i].ID >= cmd.ID })
 		if i < len(s.OpenSegments) && s.OpenSegments[i].ID == cmd.ID {
 			next := &ClusterState{}
@@ -127,7 +127,7 @@ func (s *ClusterState) doDeleteSegment(cmd *ClusterDeleteSegmentCommand) *Cluste
 			return next
 		}
 
-	} else if cmd.Which == ClusterDeleteSegmentCommand_CLOSED {
+	} else if cmd.Which == ClusterCommandSegmentDelete_CLOSED {
 		i := sort.Search(len(s.ClosedSegments), func(i int) bool { return s.ClosedSegments[i].ID >= cmd.ID })
 		if i < len(s.ClosedSegments) && s.ClosedSegments[i].ID == cmd.ID {
 			next := &ClusterState{}

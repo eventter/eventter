@@ -1,14 +1,10 @@
 package mq
 
-import (
-	"eventter.io/mq/client"
-)
-
-func (s *ClusterState) doConfigureTopic(cmd *client.ConfigureTopicRequest) *ClusterState {
+func (s *ClusterState) doCreateTopic(cmd *ClusterCommandTopicCreate) *ClusterState {
 	next := &ClusterState{}
 	*next = *s
 
-	namespace, namespaceIndex := s.FindNamespace(cmd.Topic.Namespace)
+	namespace, namespaceIndex := s.FindNamespace(cmd.Namespace)
 	var (
 		nextNamespace *ClusterNamespace
 		nextTopic     *ClusterTopic
@@ -16,7 +12,7 @@ func (s *ClusterState) doConfigureTopic(cmd *client.ConfigureTopicRequest) *Clus
 
 	if namespace == nil {
 		nextNamespace = &ClusterNamespace{
-			Name: cmd.Topic.Namespace,
+			Name: cmd.Namespace,
 		}
 
 		next.Namespaces = make([]*ClusterNamespace, len(s.Namespaces)+1)
@@ -58,21 +54,21 @@ func (s *ClusterState) doConfigureTopic(cmd *client.ConfigureTopicRequest) *Clus
 		}
 	}
 
-	nextTopic.Type = cmd.Type
-	nextTopic.Shards = cmd.Shards
-	nextTopic.ReplicationFactor = cmd.ReplicationFactor
-	nextTopic.Retention = cmd.Retention
+	nextTopic.Type = cmd.Topic.Type
+	nextTopic.Shards = cmd.Topic.Shards
+	nextTopic.ReplicationFactor = cmd.Topic.ReplicationFactor
+	nextTopic.Retention = cmd.Topic.Retention
 
 	return next
 }
 
-func (s *ClusterState) doDeleteTopic(cmd *client.DeleteTopicRequest) *ClusterState {
-	namespace, namespaceIndex := s.FindNamespace(cmd.Topic.Namespace)
+func (s *ClusterState) doDeleteTopic(cmd *ClusterCommandTopicDelete) *ClusterState {
+	namespace, namespaceIndex := s.FindNamespace(cmd.Namespace)
 	if namespace == nil {
 		return s
 	}
 
-	_, topicIndex := namespace.findTopic(cmd.Topic.Name)
+	_, topicIndex := namespace.findTopic(cmd.Name)
 	if topicIndex == -1 {
 		return s
 	}
@@ -94,7 +90,7 @@ func (s *ClusterState) doDeleteTopic(cmd *client.DeleteTopicRequest) *ClusterSta
 		var bindingsChanged = false
 		var nextBindings []*ClusterConsumerGroup_Binding
 		for _, binding := range consumerGroup.Bindings {
-			if binding.TopicName != cmd.Topic.Name {
+			if binding.TopicName != cmd.Name {
 				nextBindings = append(nextBindings, binding)
 			} else {
 				bindingsChanged = true

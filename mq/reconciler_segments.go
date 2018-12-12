@@ -34,9 +34,9 @@ func (r *Reconciler) reconcileOpenSegment(segment *ClusterSegment, state *Cluste
 		topic := state.GetTopic(segment.Owner.Namespace, segment.Owner.Name)
 
 		if topic == nil {
-			_, err := r.delegate.Apply(&ClusterDeleteSegmentCommand{
+			_, err := r.delegate.Apply(&ClusterCommandSegmentDelete{
 				ID:    segment.ID,
-				Which: ClusterDeleteSegmentCommand_OPEN,
+				Which: ClusterCommandSegmentDelete_OPEN,
 			})
 			if err != nil {
 				log.Printf("could not delete open segment with non-existent topic: %v", err)
@@ -53,13 +53,13 @@ func (r *Reconciler) reconcileOpenSegment(segment *ClusterSegment, state *Cluste
 
 		replicationFactor = topic.ReplicationFactor
 
-	} else if segment.Type == ClusterSegment_CONSUMER_GROUP_OFFSETS {
+	} else if segment.Type == ClusterSegment_CONSUMER_GROUP_OFFSET_COMMITS {
 		consumerGroup := state.GetConsumerGroup(segment.Owner.Namespace, segment.Owner.Name)
 
 		if consumerGroup == nil {
-			_, err := r.delegate.Apply(&ClusterDeleteSegmentCommand{
+			_, err := r.delegate.Apply(&ClusterCommandSegmentDelete{
 				ID:    segment.ID,
-				Which: ClusterDeleteSegmentCommand_OPEN,
+				Which: ClusterCommandSegmentDelete_OPEN,
 			})
 			if err != nil {
 				log.Printf("could not delete open segment with non-existent consumer group: %v", err)
@@ -98,9 +98,9 @@ func (r *Reconciler) reconcileOpenSegmentWithAlivePrimary(segment *ClusterSegmen
 	}
 
 	if aliveReplicas > replicationFactor {
-		cmd := &ClusterUpdateSegmentNodesCommand{
+		cmd := &ClusterCommandSegmentNodesUpdate{
 			ID:    segment.ID,
-			Which: ClusterUpdateSegmentNodesCommand_OPEN,
+			Which: ClusterCommandSegmentNodesUpdate_OPEN,
 		}
 		cmd.Nodes.PrimaryNodeID = segment.Nodes.PrimaryNodeID
 		if replicationFactor-1 > 0 {
@@ -128,9 +128,9 @@ func (r *Reconciler) reconcileOpenSegmentWithAlivePrimary(segment *ClusterSegmen
 		)
 
 	} else if aliveReplicas < replicationFactor {
-		cmd := &ClusterUpdateSegmentNodesCommand{
+		cmd := &ClusterCommandSegmentNodesUpdate{
 			ID:    segment.ID,
-			Which: ClusterUpdateSegmentNodesCommand_OPEN,
+			Which: ClusterCommandSegmentNodesUpdate_OPEN,
 		}
 		cmd.Nodes.PrimaryNodeID = segment.Nodes.PrimaryNodeID
 		cmd.Nodes.ReplicatingNodeIDs = make([]uint64, 0, replicationFactor-1)
@@ -248,9 +248,9 @@ func (r *Reconciler) reconcileOpenSegmentWithDeadPrimary(segment *ClusterSegment
 		}
 	}
 
-	cmd := &ClusterUpdateSegmentNodesCommand{
+	cmd := &ClusterCommandSegmentNodesUpdate{
 		ID:    segment.ID,
-		Which: ClusterUpdateSegmentNodesCommand_OPEN,
+		Which: ClusterCommandSegmentNodesUpdate_OPEN,
 		Nodes: ClusterSegment_Nodes{
 			PrimaryNodeID:      newPrimaryNodeID,
 			ReplicatingNodeIDs: replicatingNodeIDs,
@@ -286,9 +286,9 @@ func (r *Reconciler) reconcileClosedSegment(segment *ClusterSegment, state *Clus
 		topic := state.GetTopic(segment.Owner.Namespace, segment.Owner.Name)
 
 		if topic == nil {
-			_, err := r.delegate.Apply(&ClusterDeleteSegmentCommand{
+			_, err := r.delegate.Apply(&ClusterCommandSegmentDelete{
 				ID:    segment.ID,
-				Which: ClusterDeleteSegmentCommand_CLOSED,
+				Which: ClusterCommandSegmentDelete_CLOSED,
 			})
 			if err != nil {
 				log.Printf("could not delete closed segment with non-existent topic: %v", err)
@@ -306,9 +306,9 @@ func (r *Reconciler) reconcileClosedSegment(segment *ClusterSegment, state *Clus
 		} else if topic.Retention > 0 {
 			retainTill := time.Now().Add(-topic.Retention)
 			if segment.ClosedAt.Before(retainTill) {
-				_, err := r.delegate.Apply(&ClusterDeleteSegmentCommand{
+				_, err := r.delegate.Apply(&ClusterCommandSegmentDelete{
 					ID:    segment.ID,
-					Which: ClusterDeleteSegmentCommand_CLOSED,
+					Which: ClusterCommandSegmentDelete_CLOSED,
 				})
 				if err != nil {
 					log.Printf("could not delete closed segment after retention period: %v", err)
@@ -327,12 +327,12 @@ func (r *Reconciler) reconcileClosedSegment(segment *ClusterSegment, state *Clus
 
 		replicationFactor = topic.ReplicationFactor
 
-	} else if segment.Type == ClusterSegment_CONSUMER_GROUP_OFFSETS {
+	} else if segment.Type == ClusterSegment_CONSUMER_GROUP_OFFSET_COMMITS {
 		// segment is closed only after offsets were saved to cluster state => delete closed offset commits segment right away
 
-		_, err := r.delegate.Apply(&ClusterDeleteSegmentCommand{
+		_, err := r.delegate.Apply(&ClusterCommandSegmentDelete{
 			ID:    segment.ID,
-			Which: ClusterDeleteSegmentCommand_CLOSED,
+			Which: ClusterCommandSegmentDelete_CLOSED,
 		})
 		if err != nil {
 			log.Printf("could not delete closed consumer group offset commits segment: %v", err)
@@ -377,9 +377,9 @@ func (r *Reconciler) reconcileClosedSegment(segment *ClusterSegment, state *Clus
 			return
 		}
 
-		cmd := &ClusterUpdateSegmentNodesCommand{
+		cmd := &ClusterCommandSegmentNodesUpdate{
 			ID:    segment.ID,
-			Which: ClusterUpdateSegmentNodesCommand_CLOSED,
+			Which: ClusterCommandSegmentNodesUpdate_CLOSED,
 		}
 		cmd.Nodes.DoneNodeIDs = make([]uint64, 0, len(segment.Nodes.DoneNodeIDs))
 		for _, nodeID := range segment.Nodes.DoneNodeIDs {
@@ -429,9 +429,9 @@ func (r *Reconciler) reconcileClosedSegment(segment *ClusterSegment, state *Clus
 			return
 		}
 
-		cmd := &ClusterUpdateSegmentNodesCommand{
+		cmd := &ClusterCommandSegmentNodesUpdate{
 			ID:    segment.ID,
-			Which: ClusterUpdateSegmentNodesCommand_CLOSED,
+			Which: ClusterCommandSegmentNodesUpdate_CLOSED,
 		}
 		cmd.Nodes.DoneNodeIDs = make([]uint64, 0, len(segment.Nodes.DoneNodeIDs))
 		for _, nodeID := range segment.Nodes.DoneNodeIDs {

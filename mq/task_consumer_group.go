@@ -10,7 +10,6 @@ import (
 	"runtime"
 	"time"
 
-	"eventter.io/mq/client"
 	"eventter.io/mq/consumers"
 	"eventter.io/mq/segments"
 	"eventter.io/mq/tasks"
@@ -95,9 +94,17 @@ func (s *Server) taskConsumerGroup(ctx context.Context, namespaceName string, co
 	ticker := time.NewTicker(100 * time.Millisecond)
 	state = nil // !!! force re-read of state and start of consumption tasks
 	running := make(map[uint64]*tasks.Task)
+	var ackImmediately []consumers.MessageAck
 
 	for {
 		var ack consumers.MessageAck
+
+		if len(ackImmediately) > 0 {
+			ack = ackImmediately[0]
+			ackImmediately = ackImmediately[1:]
+			goto COMMIT
+		}
+
 		select {
 		case <-ticker.C:
 			newState := s.clusterState.Current()
@@ -107,6 +114,9 @@ func (s *Server) taskConsumerGroup(ctx context.Context, namespaceName string, co
 
 			state = newState
 			consumerGroup = state.GetConsumerGroup(namespaceName, consumerGroupName)
+			if consumerGroup == nil {
+				return errors.Errorf(notFoundErrorFormat, entityConsumerGroup, namespaceName, consumerGroupName)
+			}
 
 			nextCommittedOffsets := make(map[uint64]int64)
 			for _, commit := range consumerGroup.OffsetCommits {
@@ -129,8 +139,16 @@ func (s *Server) taskConsumerGroup(ctx context.Context, namespaceName string, co
 				}
 
 				segment := state.GetSegment(offsetSegmentID)
-				if !segment.ClosedAt.IsZero() && offset >= segment.Size_ {
-					continue
+				if !segment.ClosedAt.IsZero() {
+					if offset >= segment.Size_ {
+						continue
+					}
+					if segment.ClosedAt.Before(consumerGroup.CreatedAt) {
+						ackImmediately = append(ackImmediately, consumers.MessageAck{
+							SegmentID:    offsetSegmentID,
+							CommitOffset: segment.Size_,
+						})
+					}
 				}
 
 				if segment.Type != ClusterSegment_TOPIC {
@@ -259,11 +277,9 @@ func (s *Server) taskConsumerGroup(ctx context.Context, namespaceName string, co
 				})
 			}
 			response, err := s.SegmentRotate(ctx, &SegmentCloseRequest{
-				OffsetCommitsUpdate: &ClusterUpdateOffsetCommitsCommand{
-					ConsumerGroup: client.NamespaceName{
-						Namespace: namespaceName,
-						Name:      consumerGroupName,
-					},
+				OffsetCommitsUpdate: &ClusterCommandConsumerGroupOffsetCommitsUpdate{
+					Namespace:     namespaceName,
+					Name:          consumerGroupName,
 					OffsetCommits: offsetCommitsUpdate,
 				},
 				NodeID:    s.nodeID,

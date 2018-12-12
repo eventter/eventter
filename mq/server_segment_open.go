@@ -58,7 +58,7 @@ func (s *Server) txSegmentOpen(state *ClusterState, primaryNodeID uint64, owner 
 		shards = topic.Shards
 		replicationFactor = topic.ReplicationFactor
 
-	} else if segmentType == ClusterSegment_CONSUMER_GROUP_OFFSETS {
+	} else if segmentType == ClusterSegment_CONSUMER_GROUP_OFFSET_COMMITS {
 		consumerGroup := state.GetConsumerGroup(owner.Namespace, owner.Name)
 		if consumerGroup == nil {
 			return nil, errors.Errorf(notFoundErrorFormat, entityConsumerGroup, owner.Namespace, owner.Name)
@@ -116,7 +116,7 @@ func (s *Server) txSegmentOpen(state *ClusterState, primaryNodeID uint64, owner 
 
 	// b) create segment
 	segmentID := s.clusterState.NextSegmentID()
-	cmd := &ClusterOpenSegmentCommand{
+	cmd := &ClusterCommandSegmentOpen{
 		ID:                 segmentID,
 		Owner:              owner,
 		Type:               segmentType,
@@ -152,11 +152,9 @@ func (s *Server) txSegmentOpen(state *ClusterState, primaryNodeID uint64, owner 
 				Offset:    0,
 			}
 
-			cmd := &ClusterUpdateOffsetCommitsCommand{
-				ConsumerGroup: client.NamespaceName{
-					Namespace: namespace.Name,
-					Name:      consumerGroup.Name,
-				},
+			cmd := &ClusterCommandConsumerGroupOffsetCommitsUpdate{
+				Namespace:     namespace.Name,
+				Name:          consumerGroup.Name,
 				OffsetCommits: nextCommits,
 			}
 			if _, err := s.Apply(cmd); err != nil {

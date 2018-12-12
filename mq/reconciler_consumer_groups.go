@@ -22,7 +22,7 @@ func (r *Reconciler) ReconcileConsumerGroups(state *ClusterState) {
 
 func (r *Reconciler) reconcileConsumerGroupOffsetsSegment(state *ClusterState, namespace *ClusterNamespace, consumerGroup *ClusterConsumerGroup, nodeSegmentCounts map[uint64]int) {
 	openSegments := state.FindOpenSegmentsFor(
-		ClusterSegment_CONSUMER_GROUP_OFFSETS,
+		ClusterSegment_CONSUMER_GROUP_OFFSET_COMMITS,
 		namespace.Name,
 		consumerGroup.Name,
 	)
@@ -55,13 +55,13 @@ func (r *Reconciler) reconcileConsumerGroupOffsetsSegment(state *ClusterState, n
 		return
 	}
 
-	_, err := r.delegate.Apply(&ClusterOpenSegmentCommand{
+	_, err := r.delegate.Apply(&ClusterCommandSegmentOpen{
 		ID: r.delegate.NextSegmentID(),
 		Owner: client.NamespaceName{
 			Namespace: namespace.Name,
 			Name:      consumerGroup.Name,
 		},
-		Type:               ClusterSegment_CONSUMER_GROUP_OFFSETS,
+		Type:               ClusterSegment_CONSUMER_GROUP_OFFSET_COMMITS,
 		OpenedAt:           time.Now(),
 		PrimaryNodeID:      primaryNodeID,
 		ReplicatingNodeIDs: nil,
@@ -129,11 +129,9 @@ func (r *Reconciler) reconcileConsumerGroupOffsetCommits(state *ClusterState, na
 		commits = append(commits, commit)
 	}
 
-	cmd := &ClusterUpdateOffsetCommitsCommand{
-		ConsumerGroup: client.NamespaceName{
-			Namespace: namespace.Name,
-			Name:      consumerGroup.Name,
-		},
+	cmd := &ClusterCommandConsumerGroupOffsetCommitsUpdate{
+		Namespace:     namespace.Name,
+		Name:          consumerGroup.Name,
 		OffsetCommits: commits,
 	}
 

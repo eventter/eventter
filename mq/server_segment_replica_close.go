@@ -50,9 +50,9 @@ func (s *Server) SegmentReplicaClose(ctx context.Context, request *SegmentCloseR
 		)
 	}
 
-	cmd := &ClusterUpdateSegmentNodesCommand{
+	cmd := &ClusterCommandSegmentNodesUpdate{
 		ID:    segment.ID,
-		Which: ClusterUpdateSegmentNodesCommand_CLOSED,
+		Which: ClusterCommandSegmentNodesUpdate_CLOSED,
 	}
 
 	cmd.Nodes.ReplicatingNodeIDs = make([]uint64, 0, len(segment.Nodes.ReplicatingNodeIDs)-1)

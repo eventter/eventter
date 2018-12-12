@@ -3,11 +3,16 @@ package mq
 import (
 	"reflect"
 	"strings"
+	"time"
 
 	"eventter.io/mq/client"
 )
 
-func messageMatches(message *client.Message, topic *ClusterTopic, consumerGroup *ClusterConsumerGroup) bool {
+func messageMatches(message *client.Message, messageTime time.Time, topic *ClusterTopic, consumerGroup *ClusterConsumerGroup) bool {
+	if messageTime.Before(consumerGroup.CreatedAt) {
+		return false
+	}
+
 	switch topic.Type {
 	case client.TopicType_DIRECT:
 		for _, binding := range consumerGroup.Bindings {
@@ -78,17 +83,23 @@ func messageMatches(message *client.Message, topic *ClusterTopic, consumerGroup 
 	}
 }
 
+const (
+	patternSeparator  = '.'
+	patternWildcard   = "*"
+	patternZeroOrMore = "#"
+)
+
 func routingKeyMatches(pattern, routingKey string) (ret bool) {
 	if pattern == "" {
 		return routingKey == ""
 	}
 
-	i := strings.IndexByte(pattern, '.')
+	i := strings.IndexByte(pattern, patternSeparator)
 	if i == -1 {
-		if pattern == "*" {
-			return routingKey != "" && strings.IndexByte(routingKey, '.') == -1
-		} else if pattern == "#" {
-			j := strings.IndexByte(routingKey, '.')
+		if pattern == patternWildcard {
+			return routingKey != "" && strings.IndexByte(routingKey, patternSeparator) == -1
+		} else if pattern == patternZeroOrMore {
+			j := strings.IndexByte(routingKey, patternSeparator)
 			if j == -1 {
 				return true
 			}
@@ -104,8 +115,8 @@ func routingKeyMatches(pattern, routingKey string) (ret bool) {
 		part := pattern[:i]
 		rest := pattern[i+1:]
 
-		if part == "*" {
-			j := strings.IndexByte(routingKey, '.')
+		if part == patternWildcard {
+			j := strings.IndexByte(routingKey, patternSeparator)
 			if j == -1 {
 				if routingKey == "" {
 					return false
@@ -118,12 +129,12 @@ func routingKeyMatches(pattern, routingKey string) (ret bool) {
 			}
 			return routingKeyMatches(rest, routingKey)
 
-		} else if part == "#" {
+		} else if part == patternZeroOrMore {
 			for {
 				if routingKeyMatches(rest, routingKey) {
 					return true
 				}
-				j := strings.IndexByte(routingKey, '.')
+				j := strings.IndexByte(routingKey, patternSeparator)
 				if j == -1 {
 					return false
 				}
@@ -134,7 +145,7 @@ func routingKeyMatches(pattern, routingKey string) (ret bool) {
 			}
 
 		} else {
-			j := strings.IndexByte(routingKey, '.')
+			j := strings.IndexByte(routingKey, patternSeparator)
 			if j == -1 {
 				return routingKey == part && routingKeyMatches(rest, "")
 			}

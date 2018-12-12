@@ -49,7 +49,10 @@ func (s *Server) DeleteTopic(ctx context.Context, request *client.DeleteTopicReq
 		}
 	}
 
-	index, err := s.Apply(request)
+	index, err := s.Apply(&ClusterCommandTopicDelete{
+		Namespace: request.Topic.Namespace,
+		Name:      request.Topic.Name,
+	})
 	if err != nil {
 		return nil, err
 	}

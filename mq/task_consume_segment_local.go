@@ -62,12 +62,14 @@ func (s *Server) taskConsumeSegmentLocal(ctx context.Context, state *ClusterStat
 			}
 		}
 
-		if messageMatches(publishing.Message, topic, consumerGroup) {
+		messageTime := segment.OpenedAt.Add(time.Duration(publishing.Delta))
+
+		if messageMatches(publishing.Message, messageTime, topic, consumerGroup) {
 			err = group.Offer(&consumers.Message{
 				Topic:        segment.Owner,
 				SegmentID:    segment.ID,
 				CommitOffset: commitOffset,
-				Time:         segment.OpenedAt.Add(time.Duration(publishing.Delta)),
+				Time:         messageTime,
 				Message:      publishing.Message,
 			})
 			if err != nil {

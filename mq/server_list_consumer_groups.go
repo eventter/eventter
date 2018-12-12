@@ -44,6 +44,8 @@ func (s *Server) ListConsumerGroups(ctx context.Context, request *client.ListCon
 				TopicName: b.TopicName,
 			}
 			switch by := b.By.(type) {
+			case nil:
+				// do nothing
 			case *ClusterConsumerGroup_Binding_RoutingKey:
 				clientBinding.By = &client.ConsumerGroup_Binding_RoutingKey{
 					RoutingKey: by.RoutingKey,
@@ -63,7 +65,7 @@ func (s *Server) ListConsumerGroups(ctx context.Context, request *client.ListCon
 		}
 
 		consumerGroups = append(consumerGroups, &client.ConsumerGroup{
-			ConsumerGroup: client.NamespaceName{
+			Name: client.NamespaceName{
 				Namespace: request.ConsumerGroup.Namespace,
 				Name:      cg.Name,
 			},

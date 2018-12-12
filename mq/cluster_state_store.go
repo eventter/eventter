@@ -50,12 +50,12 @@ func (s *ClusterStateStore) Do(index uint64, cmd *ClusterCommand) {
 			next = state
 		} else {
 			switch cmd := cmd.Command.(type) {
-			case *ClusterCommand_ConfigureTopic:
-				next = state.doConfigureTopic(cmd.ConfigureTopic)
+			case *ClusterCommand_CreateTopic:
+				next = state.doCreateTopic(cmd.CreateTopic)
 			case *ClusterCommand_DeleteTopic:
 				next = state.doDeleteTopic(cmd.DeleteTopic)
-			case *ClusterCommand_ConfigureConsumerGroup:
-				next = state.doConfigureConsumerGroup(cmd.ConfigureConsumerGroup)
+			case *ClusterCommand_CreateConsumerGroup:
+				next = state.doCreateConsumerGroup(cmd.CreateConsumerGroup)
 			case *ClusterCommand_DeleteConsumerGroup:
 				next = state.doDeleteConsumerGroup(cmd.DeleteConsumerGroup)
 			case *ClusterCommand_OpenSegment:
@@ -68,8 +68,8 @@ func (s *ClusterStateStore) Do(index uint64, cmd *ClusterCommand) {
 				next = state.doUpdateSegmentNodes(cmd.UpdateSegmentNodes)
 			case *ClusterCommand_DeleteSegment:
 				next = state.doDeleteSegment(cmd.DeleteSegment)
-			case *ClusterCommand_UpdateOffsetCommits:
-				next = state.doUpdateOffsetCommits(cmd.UpdateOffsetCommits)
+			case *ClusterCommand_UpdateConsumerGroupOffsetCommits:
+				next = state.doUpdateOffsetCommits(cmd.UpdateConsumerGroupOffsetCommits)
 			default:
 				panic(errors.Errorf("unhandled command of type [%T]", cmd))
 			}

@@ -11,13 +11,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func configureConsumerGroupCmd() *cobra.Command {
-	request := &client.ConfigureConsumerGroupRequest{}
+func createConsumerGroupCmd() *cobra.Command {
+	request := &client.CreateConsumerGroupRequest{}
 	var bindings []string
 
 	cmd := &cobra.Command{
-		Use:     "configure-consumer-group <name>",
-		Short:   "Configure consumer group.",
+		Use:     "create-consumer-group <name>",
+		Short:   "Create/update consumer group.",
 		Aliases: []string{"cg"},
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -35,17 +35,20 @@ func configureConsumerGroupCmd() *cobra.Command {
 
 			for _, binding := range bindings {
 				parts := strings.SplitN(binding, ":", 2)
-				request.Bindings = append(request.Bindings, &client.ConfigureConsumerGroupRequest_Binding{
+				binding := &client.ConsumerGroup_Binding{
 					TopicName: parts[0],
-					By: &client.ConfigureConsumerGroupRequest_Binding_RoutingKey{
+				}
+				if len(parts) > 1 {
+					binding.By = &client.ConsumerGroup_Binding_RoutingKey{
 						RoutingKey: parts[1],
-					},
-				})
+					}
+				}
+				request.ConsumerGroup.Bindings = append(request.ConsumerGroup.Bindings, binding)
 			}
 
-			request.ConsumerGroup.Name = args[0]
+			request.ConsumerGroup.Name.Name = args[0]
 
-			response, err := c.ConfigureConsumerGroup(ctx, request)
+			response, err := c.CreateConsumerGroup(ctx, request)
 			if err != nil {
 				return err
 			}
@@ -56,9 +59,9 @@ func configureConsumerGroupCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&request.ConsumerGroup.Namespace, "namespace", "n", defaultNamespace, "Consumer group namespace.")
+	cmd.Flags().StringVarP(&request.ConsumerGroup.Name.Namespace, "namespace", "n", defaultNamespace, "Consumer group namespace.")
 	cmd.Flags().StringSliceVarP(&bindings, "bind", "b", nil, "Bindings in form of <topic>:<routing key>.")
-	cmd.Flags().Uint32VarP(&request.Size_, "size", "s", 0, "Max count of in-flight messages. Zero means that the server chooses sensible defaults.")
+	cmd.Flags().Uint32VarP(&request.ConsumerGroup.Size_, "size", "s", 0, "Max count of in-flight messages. Zero means that the server chooses sensible defaults.")
 
 	return cmd
 }

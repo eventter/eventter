@@ -2,15 +2,13 @@ package mq
 
 import (
 	"sort"
-
-	"eventter.io/mq/client"
 )
 
-func (s *ClusterState) doConfigureConsumerGroup(cmd *client.ConfigureConsumerGroupRequest) *ClusterState {
+func (s *ClusterState) doCreateConsumerGroup(cmd *ClusterCommandConsumerGroupCreate) *ClusterState {
 	next := &ClusterState{}
 	*next = *s
 
-	namespace, namespaceIndex := s.FindNamespace(cmd.ConsumerGroup.Namespace)
+	namespace, namespaceIndex := s.FindNamespace(cmd.Namespace)
 	var (
 		nextNamespace     *ClusterNamespace
 		nextConsumerGroup *ClusterConsumerGroup
@@ -18,7 +16,7 @@ func (s *ClusterState) doConfigureConsumerGroup(cmd *client.ConfigureConsumerGro
 
 	if namespace == nil {
 		nextNamespace = &ClusterNamespace{
-			Name: cmd.ConsumerGroup.Namespace,
+			Name: cmd.Namespace,
 		}
 
 		next.Namespaces = make([]*ClusterNamespace, len(s.Namespaces)+1)
@@ -60,43 +58,22 @@ func (s *ClusterState) doConfigureConsumerGroup(cmd *client.ConfigureConsumerGro
 		}
 	}
 
-	var bindings []*ClusterConsumerGroup_Binding
-	for _, binding := range cmd.Bindings {
-		clusterBinding := &ClusterConsumerGroup_Binding{
-			TopicName: binding.TopicName,
-		}
-		switch by := binding.By.(type) {
-		case *client.ConfigureConsumerGroupRequest_Binding_RoutingKey:
-			clusterBinding.By = &ClusterConsumerGroup_Binding_RoutingKey{
-				RoutingKey: by.RoutingKey,
-			}
-		case *client.ConfigureConsumerGroupRequest_Binding_HeadersAll:
-			clusterBinding.By = &ClusterConsumerGroup_Binding_HeadersAll{
-				HeadersAll: by.HeadersAll,
-			}
-		case *client.ConfigureConsumerGroupRequest_Binding_HeadersAny:
-			clusterBinding.By = &ClusterConsumerGroup_Binding_HeadersAny{
-				HeadersAny: by.HeadersAny,
-			}
-		default:
-			panic("unhandled binding by")
-		}
-		bindings = append(bindings, clusterBinding)
+	nextConsumerGroup.Bindings = cmd.ConsumerGroup.Bindings
+	nextConsumerGroup.Size_ = cmd.ConsumerGroup.Size_
+	if nextConsumerGroup.CreatedAt.IsZero() {
+		nextConsumerGroup.CreatedAt = cmd.ConsumerGroup.CreatedAt
 	}
-
-	nextConsumerGroup.Bindings = bindings
-	nextConsumerGroup.Size_ = cmd.Size_
 
 	return next
 }
 
-func (s *ClusterState) doDeleteConsumerGroup(cmd *client.DeleteConsumerGroupRequest) *ClusterState {
-	namespace, namespaceIndex := s.FindNamespace(cmd.ConsumerGroup.Namespace)
+func (s *ClusterState) doDeleteConsumerGroup(cmd *ClusterCommandConsumerGroupDelete) *ClusterState {
+	namespace, namespaceIndex := s.FindNamespace(cmd.Namespace)
 	if namespace == nil {
 		return s
 	}
 
-	_, consumerGroupIndex := namespace.findConsumerGroup(cmd.ConsumerGroup.Name)
+	_, consumerGroupIndex := namespace.findConsumerGroup(cmd.Name)
 	if consumerGroupIndex == -1 {
 		return s
 	}
@@ -124,13 +101,13 @@ func (s *ClusterState) doDeleteConsumerGroup(cmd *client.DeleteConsumerGroupRequ
 	return next
 }
 
-func (s *ClusterState) doUpdateOffsetCommits(cmd *ClusterUpdateOffsetCommitsCommand) *ClusterState {
-	namespace, namespaceIndex := s.FindNamespace(cmd.ConsumerGroup.Namespace)
+func (s *ClusterState) doUpdateOffsetCommits(cmd *ClusterCommandConsumerGroupOffsetCommitsUpdate) *ClusterState {
+	namespace, namespaceIndex := s.FindNamespace(cmd.Namespace)
 	if namespace == nil {
 		return s
 	}
 
-	consumerGroup, consumerGroupIndex := namespace.findConsumerGroup(cmd.ConsumerGroup.Name)
+	consumerGroup, consumerGroupIndex := namespace.findConsumerGroup(cmd.Name)
 	if consumerGroupIndex == -1 {
 		return s
 	}

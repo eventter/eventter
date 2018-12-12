@@ -15,11 +15,19 @@ message NamespaceName {
     string name = 2;
 }
 
-message ConfigureTopicRequest {
+message CreateTopicRequest {
     // If true and node is not a leader, request will fail.
     bool leader_only = 99;
+    Topic topic = 1 [(gogoproto.nullable) = false];
+}
 
-    NamespaceName topic = 1 [(gogoproto.nullable) = false];
+message CreateTopicResponse {
+    bool ok = 1 [(gogoproto.customname) = "OK"];
+    uint64 index = 2;
+}
+
+message Topic {
+    NamespaceName name = 1 [(gogoproto.nullable) = false];
     // AMQP exchange type.
     string type = 2;
     // Shards limit max number of open segments at the time. Messages are ordered within the shard (segment), however,
@@ -29,19 +37,6 @@ message ConfigureTopicRequest {
     uint32 replication_factor = 4;
     // If retention is specified, segments will be deleted after they fall off retention period. Zero retention means
     // that segments WON'T be automatically deleted. For segments to be deleted ASAP, use very low retention, i.e. 1 nanosecond.
-    google.protobuf.Duration retention = 5 [(gogoproto.nullable) = false, (gogoproto.stdduration) = true];
-}
-
-message ConfigureTopicResponse {
-    bool ok = 1 [(gogoproto.customname) = "OK"];
-    uint64 index = 2;
-}
-
-message Topic {
-    NamespaceName topic = 1 [(gogoproto.nullable) = false];
-    string type = 2;
-    uint32 shards = 3;
-    uint32 replication_factor = 4;
     google.protobuf.Duration retention = 5 [(gogoproto.nullable) = false, (gogoproto.stdduration) = true];
 }
 
@@ -70,10 +65,20 @@ message DeleteTopicResponse {
     uint64 index = 2;
 }
 
-message ConfigureConsumerGroupRequest {
+message CreateConsumerGroupRequest {
     // If true and node is not a leader, request will fail.
     bool leader_only = 99;
-    NamespaceName consumer_group = 1 [(gogoproto.nullable) = false];
+    ConsumerGroup consumer_group = 1 [(gogoproto.nullable) = false];
+}
+
+message CreateConsumerGroupResponse {
+    bool ok = 1 [(gogoproto.customname) = "OK"];
+    uint64 index = 2;
+}
+
+message ConsumerGroup {
+    NamespaceName name = 1 [(gogoproto.nullable) = false];
+    // Bindings in conjunction with topic's `type` determine if message will be visible to consumer group.
     repeated Binding bindings = 2;
     message Binding {
         string topic_name = 1;
@@ -84,25 +89,6 @@ message ConfigureConsumerGroupRequest {
         }
     }
     // Max count of in-flight messages across all consumers. Not specified / zero means that the server will choose sensible defaults.
-    uint32 size = 3;
-}
-
-message ConfigureConsumerGroupResponse {
-    bool ok = 1 [(gogoproto.customname) = "OK"];
-    uint64 index = 2;
-}
-
-message ConsumerGroup {
-    NamespaceName consumer_group = 1 [(gogoproto.nullable) = false];
-    repeated Binding bindings = 2;
-    message Binding {
-        string topic_name = 1;
-        oneof by {
-            string routing_key = 2;
-            google.protobuf.Struct headers_all = 3;
-            google.protobuf.Struct headers_any = 4;
-        }
-    }
     uint32 size = 3;
 }
 
@@ -201,7 +187,7 @@ message NackResponse {
 
 service EventterMQ {
 
-    rpc ConfigureTopic (ConfigureTopicRequest) returns (ConfigureTopicResponse) {
+    rpc CreateTopic (CreateTopicRequest) returns (CreateTopicResponse) {
         option (google.api.http) = {
             put: "/{topic.namespace}/topics/{topic.name}"
         };
@@ -219,7 +205,7 @@ service EventterMQ {
         };
     }
 
-    rpc ConfigureConsumerGroup (ConfigureConsumerGroupRequest) returns (ConfigureConsumerGroupResponse) {
+    rpc CreateConsumerGroup (CreateConsumerGroupRequest) returns (CreateConsumerGroupResponse) {
         option (google.api.http) = {
             put: "/{consumer_group.namespace}/cgs/{consumer_group.name}"
         };

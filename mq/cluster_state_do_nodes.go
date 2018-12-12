@@ -4,7 +4,7 @@ import (
 	"sort"
 )
 
-func (s *ClusterState) doUpdateNode(cmd *ClusterUpdateNodeCommand) *ClusterState {
+func (s *ClusterState) doUpdateNode(cmd *ClusterCommandNodeUpdate) *ClusterState {
 	nodeIndex := -1
 	for i, node := range s.Nodes {
 		if node.ID == cmd.ID {

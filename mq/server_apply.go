@@ -1,7 +1,6 @@
 package mq
 
 import (
-	"eventter.io/mq/client"
 	"github.com/gogo/protobuf/proto"
 	"github.com/pkg/errors"
 )
@@ -9,26 +8,26 @@ import (
 func (s *Server) Apply(cmd interface{}) (index uint64, err error) {
 	outer := &ClusterCommand{}
 	switch cmd := cmd.(type) {
-	case *client.ConfigureTopicRequest:
-		outer.Command = &ClusterCommand_ConfigureTopic{cmd}
-	case *client.DeleteTopicRequest:
+	case *ClusterCommandTopicCreate:
+		outer.Command = &ClusterCommand_CreateTopic{cmd}
+	case *ClusterCommandTopicDelete:
 		outer.Command = &ClusterCommand_DeleteTopic{cmd}
-	case *client.ConfigureConsumerGroupRequest:
-		outer.Command = &ClusterCommand_ConfigureConsumerGroup{cmd}
-	case *client.DeleteConsumerGroupRequest:
+	case *ClusterCommandConsumerGroupCreate:
+		outer.Command = &ClusterCommand_CreateConsumerGroup{cmd}
+	case *ClusterCommandConsumerGroupDelete:
 		outer.Command = &ClusterCommand_DeleteConsumerGroup{cmd}
-	case *ClusterOpenSegmentCommand:
+	case *ClusterCommandSegmentOpen:
 		outer.Command = &ClusterCommand_OpenSegment{cmd}
-	case *ClusterCloseSegmentCommand:
+	case *ClusterCommandSegmentClose:
 		outer.Command = &ClusterCommand_CloseSegment{cmd}
-	case *ClusterUpdateNodeCommand:
+	case *ClusterCommandNodeUpdate:
 		outer.Command = &ClusterCommand_UpdateNode{cmd}
-	case *ClusterUpdateSegmentNodesCommand:
+	case *ClusterCommandSegmentNodesUpdate:
 		outer.Command = &ClusterCommand_UpdateSegmentNodes{cmd}
-	case *ClusterDeleteSegmentCommand:
+	case *ClusterCommandSegmentDelete:
 		outer.Command = &ClusterCommand_DeleteSegment{cmd}
-	case *ClusterUpdateOffsetCommitsCommand:
-		outer.Command = &ClusterCommand_UpdateOffsetCommits{cmd}
+	case *ClusterCommandConsumerGroupOffsetCommitsUpdate:
+		outer.Command = &ClusterCommand_UpdateConsumerGroupOffsetCommits{cmd}
 	default:
 		return 0, errors.Errorf("unhandled command of type: %T", cmd)
 	}

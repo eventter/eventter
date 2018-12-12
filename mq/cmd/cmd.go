@@ -218,8 +218,8 @@ func Cmd() *cobra.Command {
 
 	cmd.AddCommand(
 		debugCmd(),
-		configureConsumerGroupCmd(),
-		configureTopicCmd(),
+		createConsumerGroupCmd(),
+		createTopicCmd(),
 		subscribeCmd(),
 		deleteConsumerGroupCmd(),
 		deleteTopicCmd(),

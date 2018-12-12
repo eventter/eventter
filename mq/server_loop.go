@@ -90,7 +90,7 @@ LOOP:
 			consumerGroups := make(map[string]bool)
 
 			for _, segment := range state.OpenSegments {
-				if segment.Type == ClusterSegment_CONSUMER_GROUP_OFFSETS && segment.Nodes.PrimaryNodeID == s.nodeID {
+				if segment.Type == ClusterSegment_CONSUMER_GROUP_OFFSET_COMMITS && segment.Nodes.PrimaryNodeID == s.nodeID {
 					name := segment.Owner.Namespace + "/" + segment.Owner.Name
 					consumerGroups[name] = true
 
@@ -192,7 +192,7 @@ LOOP:
 				continue
 			}
 
-			cmd := &ClusterUpdateNodeCommand{
+			cmd := &ClusterCommandNodeUpdate{
 				ID:      MustIDFromString(ev.Node.Name),
 				Address: ev.Node.Address(),
 			}

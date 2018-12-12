@@ -38,7 +38,7 @@ func (s *Server) ListTopics(ctx context.Context, request *client.ListTopicsReque
 
 	for _, t := range t {
 		topics = append(topics, &client.Topic{
-			Topic: client.NamespaceName{
+			Name: client.NamespaceName{
 				Namespace: request.Topic.Namespace,
 				Name:      t.Name,
 			},

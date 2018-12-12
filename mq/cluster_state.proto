@@ -50,6 +50,7 @@ message ClusterConsumerGroup {
         uint64 segment_id = 1 [(gogoproto.customname) = "SegmentID"];
         int64 offset = 2;
     }
+    google.protobuf.Timestamp created_at = 5 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
 
 }
 
@@ -57,38 +58,55 @@ message ClusterSegment {
     uint64 id = 1 [(gogoproto.customname) = "ID"];
     NamespaceName owner = 2 [(gogoproto.nullable) = false];
     Type type = 3;
+    enum Type {
+        INVALID = 0;
+        TOPIC = 1;
+        CONSUMER_GROUP_OFFSET_COMMITS = 2;
+    }
     google.protobuf.Timestamp opened_at = 4 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
     google.protobuf.Timestamp closed_at = 5 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
     Nodes nodes = 6 [(gogoproto.nullable) = false];
-    int64 size = 7;
-    bytes sha1 = 8;
-
     message Nodes {
         uint64 primary_node_id = 1 [(gogoproto.customname) = "PrimaryNodeID"];
         repeated uint64 done_node_ids = 2 [(gogoproto.customname) = "DoneNodeIDs"];
         repeated uint64 replicating_node_ids = 3 [(gogoproto.customname) = "ReplicatingNodeIDs"];
     }
-
-    enum Type {
-        INVALID = 0;
-        TOPIC = 1;
-        CONSUMER_GROUP_OFFSETS = 2;
-    }
+    int64 size = 7;
+    bytes sha1 = 8;
 }
 
 message ClusterNode {
     uint64 id = 1 [(gogoproto.customname) = "ID"];
     string address = 2;
     State state = 3;
-    google.protobuf.Timestamp last_seen_alive = 4 [(gogoproto.stdtime) = true];
-
     enum State {
         DEAD = 0;
         ALIVE = 1;
     }
+    google.protobuf.Timestamp last_seen_alive = 4 [(gogoproto.stdtime) = true];
 }
 
-message ClusterOpenSegmentCommand {
+message ClusterCommandTopicCreate {
+    string namespace = 1;
+    ClusterTopic topic = 2;
+}
+
+message ClusterCommandTopicDelete {
+    string namespace = 1;
+    string name = 2;
+}
+
+message ClusterCommandConsumerGroupCreate {
+    string namespace = 1;
+    ClusterConsumerGroup consumer_group = 2;
+}
+
+message ClusterCommandConsumerGroupDelete {
+    string namespace = 1;
+    string name = 2;
+}
+
+message ClusterCommandSegmentOpen {
     uint64 id = 1 [(gogoproto.customname) = "ID"];
     NamespaceName owner = 2 [(gogoproto.nullable) = false];
     ClusterSegment.Type type = 3;
@@ -97,7 +115,7 @@ message ClusterOpenSegmentCommand {
     repeated uint64 replicating_node_ids = 6 [(gogoproto.customname) = "ReplicatingNodeIDs"];
 }
 
-message ClusterCloseSegmentCommand {
+message ClusterCommandSegmentClose {
     uint64 id = 1 [(gogoproto.customname) = "ID"];
     uint64 done_node_id = 2 [(gogoproto.customname) = "DoneNodeID"];
     google.protobuf.Timestamp closed_at = 4 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
@@ -105,50 +123,51 @@ message ClusterCloseSegmentCommand {
     bytes sha1 = 6;
 }
 
-message ClusterUpdateNodeCommand {
+message ClusterCommandNodeUpdate {
     uint64 id = 1 [(gogoproto.customname) = "ID"];
     string address = 2;
     ClusterNode.State state = 3;
     google.protobuf.Timestamp last_seen_alive = 4 [(gogoproto.stdtime) = true];
 }
 
-message ClusterUpdateSegmentNodesCommand {
+message ClusterCommandSegmentNodesUpdate {
     uint64 id = 1 [(gogoproto.customname) = "ID"];
     Which which = 2;
+    enum Which {
+        INVALID = 0;
+        OPEN = 1;
+        CLOSED = 2;
+    }
     ClusterSegment.Nodes nodes = 3 [(gogoproto.nullable) = false];
-
-    enum Which {
-        OPEN = 0;
-        CLOSED = 1;
-    }
 }
 
-message ClusterDeleteSegmentCommand {
+message ClusterCommandSegmentDelete {
     uint64 id = 1 [(gogoproto.customname) = "ID"];
     Which which = 2;
-
     enum Which {
-        OPEN = 0;
-        CLOSED = 1;
+        INVALID = 0;
+        OPEN = 1;
+        CLOSED = 2;
     }
 }
 
-message ClusterUpdateOffsetCommitsCommand {
-    NamespaceName consumer_group = 1 [(gogoproto.nullable) = false];
-    repeated ClusterConsumerGroup.OffsetCommit offset_commits = 2;
+message ClusterCommandConsumerGroupOffsetCommitsUpdate {
+    string namespace = 1;
+    string name = 2;
+    repeated ClusterConsumerGroup.OffsetCommit offset_commits = 3;
 }
 
 message ClusterCommand {
     oneof command {
-        ConfigureTopicRequest configure_topic = 1;
-        DeleteTopicRequest delete_topic = 2;
-        ConfigureConsumerGroupRequest configure_consumer_group = 3;
-        DeleteConsumerGroupRequest delete_consumer_group = 4;
-        ClusterOpenSegmentCommand open_segment = 5;
-        ClusterCloseSegmentCommand close_segment = 6;
-        ClusterUpdateNodeCommand update_node = 7;
-        ClusterUpdateSegmentNodesCommand update_segment_nodes = 8;
-        ClusterDeleteSegmentCommand delete_segment = 9;
-        ClusterUpdateOffsetCommitsCommand update_offset_commits = 10;
+        ClusterCommandTopicCreate create_topic = 1;
+        ClusterCommandTopicDelete delete_topic = 2;
+        ClusterCommandConsumerGroupCreate create_consumer_group = 3;
+        ClusterCommandConsumerGroupDelete delete_consumer_group = 4;
+        ClusterCommandSegmentOpen open_segment = 5;
+        ClusterCommandSegmentClose close_segment = 6;
+        ClusterCommandNodeUpdate update_node = 7;
+        ClusterCommandSegmentNodesUpdate update_segment_nodes = 8;
+        ClusterCommandSegmentDelete delete_segment = 9;
+        ClusterCommandConsumerGroupOffsetCommitsUpdate update_consumer_group_offset_commits = 10;
     }
 }

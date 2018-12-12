@@ -29,21 +29,41 @@ func (s *Server) DeleteConsumerGroup(ctx context.Context, request *client.Delete
 	}
 
 	if err := request.Validate(); err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "validation failed")
 	}
 
 	if err := s.beginTransaction(); err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "begin failed")
 	}
 	defer s.releaseTransaction()
 
-	if !s.clusterState.Current().ConsumerGroupExists(request.ConsumerGroup.Namespace, request.ConsumerGroup.Name) {
+	state := s.clusterState.Current()
+
+	if !state.ConsumerGroupExists(request.ConsumerGroup.Namespace, request.ConsumerGroup.Name) {
 		return nil, errors.Errorf(notFoundErrorFormat, entityConsumerGroup, request.ConsumerGroup.Namespace, request.ConsumerGroup.Name)
 	}
 
-	index, err := s.Apply(request)
+	index, err := s.Apply(&ClusterCommandConsumerGroupDelete{
+		Namespace: request.ConsumerGroup.Namespace,
+		Name:      request.ConsumerGroup.Name,
+	})
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "consumer group delete failed")
+	}
+
+	segments := state.FindOpenSegmentsFor(
+		ClusterSegment_CONSUMER_GROUP_OFFSET_COMMITS,
+		request.ConsumerGroup.Namespace,
+		request.ConsumerGroup.Name,
+	)
+	for _, segment := range segments {
+		index, err = s.Apply(&ClusterCommandSegmentDelete{
+			ID:    segment.ID,
+			Which: ClusterCommandSegmentDelete_OPEN,
+		})
+		if err != nil {
+			return nil, errors.Wrap(err, "segment delete failed")
+		}
 	}
 
 	return &client.DeleteConsumerGroupResponse{

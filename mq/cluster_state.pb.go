@@ -31,27 +31,27 @@ const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 type ClusterSegment_Type int32
 
 const (
-	ClusterSegment_INVALID                ClusterSegment_Type = 0
-	ClusterSegment_TOPIC                  ClusterSegment_Type = 1
-	ClusterSegment_CONSUMER_GROUP_OFFSETS ClusterSegment_Type = 2
+	ClusterSegment_INVALID                       ClusterSegment_Type = 0
+	ClusterSegment_TOPIC                         ClusterSegment_Type = 1
+	ClusterSegment_CONSUMER_GROUP_OFFSET_COMMITS ClusterSegment_Type = 2
 )
 
 var ClusterSegment_Type_name = map[int32]string{
 	0: "INVALID",
 	1: "TOPIC",
-	2: "CONSUMER_GROUP_OFFSETS",
+	2: "CONSUMER_GROUP_OFFSET_COMMITS",
 }
 var ClusterSegment_Type_value = map[string]int32{
-	"INVALID":                0,
-	"TOPIC":                  1,
-	"CONSUMER_GROUP_OFFSETS": 2,
+	"INVALID":                       0,
+	"TOPIC":                         1,
+	"CONSUMER_GROUP_OFFSET_COMMITS": 2,
 }
 
 func (x ClusterSegment_Type) String() string {
 	return proto.EnumName(ClusterSegment_Type_name, int32(x))
 }
 func (ClusterSegment_Type) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_cluster_state_2c80663b564ff5a3, []int{4, 0}
+	return fileDescriptor_cluster_state_44c6ec2b64aa39f9, []int{4, 0}
 }
 
 type ClusterNode_State int32
@@ -74,53 +74,59 @@ func (x ClusterNode_State) String() string {
 	return proto.EnumName(ClusterNode_State_name, int32(x))
 }
 func (ClusterNode_State) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_cluster_state_2c80663b564ff5a3, []int{5, 0}
+	return fileDescriptor_cluster_state_44c6ec2b64aa39f9, []int{5, 0}
 }
 
-type ClusterUpdateSegmentNodesCommand_Which int32
-
-const (
-	ClusterUpdateSegmentNodesCommand_OPEN   ClusterUpdateSegmentNodesCommand_Which = 0
-	ClusterUpdateSegmentNodesCommand_CLOSED ClusterUpdateSegmentNodesCommand_Which = 1
-)
-
-var ClusterUpdateSegmentNodesCommand_Which_name = map[int32]string{
-	0: "OPEN",
-	1: "CLOSED",
-}
-var ClusterUpdateSegmentNodesCommand_Which_value = map[string]int32{
-	"OPEN":   0,
-	"CLOSED": 1,
-}
-
-func (x ClusterUpdateSegmentNodesCommand_Which) String() string {
-	return proto.EnumName(ClusterUpdateSegmentNodesCommand_Which_name, int32(x))
-}
-func (ClusterUpdateSegmentNodesCommand_Which) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_cluster_state_2c80663b564ff5a3, []int{9, 0}
-}
-
-type ClusterDeleteSegmentCommand_Which int32
+type ClusterCommandSegmentNodesUpdate_Which int32
 
 const (
-	ClusterDeleteSegmentCommand_OPEN   ClusterDeleteSegmentCommand_Which = 0
-	ClusterDeleteSegmentCommand_CLOSED ClusterDeleteSegmentCommand_Which = 1
+	ClusterCommandSegmentNodesUpdate_INVALID ClusterCommandSegmentNodesUpdate_Which = 0
+	ClusterCommandSegmentNodesUpdate_OPEN    ClusterCommandSegmentNodesUpdate_Which = 1
+	ClusterCommandSegmentNodesUpdate_CLOSED  ClusterCommandSegmentNodesUpdate_Which = 2
 )
 
-var ClusterDeleteSegmentCommand_Which_name = map[int32]string{
-	0: "OPEN",
-	1: "CLOSED",
+var ClusterCommandSegmentNodesUpdate_Which_name = map[int32]string{
+	0: "INVALID",
+	1: "OPEN",
+	2: "CLOSED",
 }
-var ClusterDeleteSegmentCommand_Which_value = map[string]int32{
-	"OPEN":   0,
-	"CLOSED": 1,
+var ClusterCommandSegmentNodesUpdate_Which_value = map[string]int32{
+	"INVALID": 0,
+	"OPEN":    1,
+	"CLOSED":  2,
 }
 
-func (x ClusterDeleteSegmentCommand_Which) String() string {
-	return proto.EnumName(ClusterDeleteSegmentCommand_Which_name, int32(x))
+func (x ClusterCommandSegmentNodesUpdate_Which) String() string {
+	return proto.EnumName(ClusterCommandSegmentNodesUpdate_Which_name, int32(x))
 }
-func (ClusterDeleteSegmentCommand_Which) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_cluster_state_2c80663b564ff5a3, []int{10, 0}
+func (ClusterCommandSegmentNodesUpdate_Which) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_cluster_state_44c6ec2b64aa39f9, []int{13, 0}
+}
+
+type ClusterCommandSegmentDelete_Which int32
+
+const (
+	ClusterCommandSegmentDelete_INVALID ClusterCommandSegmentDelete_Which = 0
+	ClusterCommandSegmentDelete_OPEN    ClusterCommandSegmentDelete_Which = 1
+	ClusterCommandSegmentDelete_CLOSED  ClusterCommandSegmentDelete_Which = 2
+)
+
+var ClusterCommandSegmentDelete_Which_name = map[int32]string{
+	0: "INVALID",
+	1: "OPEN",
+	2: "CLOSED",
+}
+var ClusterCommandSegmentDelete_Which_value = map[string]int32{
+	"INVALID": 0,
+	"OPEN":    1,
+	"CLOSED":  2,
+}
+
+func (x ClusterCommandSegmentDelete_Which) String() string {
+	return proto.EnumName(ClusterCommandSegmentDelete_Which_name, int32(x))
+}
+func (ClusterCommandSegmentDelete_Which) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_cluster_state_44c6ec2b64aa39f9, []int{14, 0}
 }
 
 type ClusterState struct {
@@ -138,7 +144,7 @@ func (m *ClusterState) Reset()         { *m = ClusterState{} }
 func (m *ClusterState) String() string { return proto.CompactTextString(m) }
 func (*ClusterState) ProtoMessage()    {}
 func (*ClusterState) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cluster_state_2c80663b564ff5a3, []int{0}
+	return fileDescriptor_cluster_state_44c6ec2b64aa39f9, []int{0}
 }
 func (m *ClusterState) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -221,7 +227,7 @@ func (m *ClusterNamespace) Reset()         { *m = ClusterNamespace{} }
 func (m *ClusterNamespace) String() string { return proto.CompactTextString(m) }
 func (*ClusterNamespace) ProtoMessage()    {}
 func (*ClusterNamespace) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cluster_state_2c80663b564ff5a3, []int{1}
+	return fileDescriptor_cluster_state_44c6ec2b64aa39f9, []int{1}
 }
 func (m *ClusterNamespace) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -285,7 +291,7 @@ func (m *ClusterTopic) Reset()         { *m = ClusterTopic{} }
 func (m *ClusterTopic) String() string { return proto.CompactTextString(m) }
 func (*ClusterTopic) ProtoMessage()    {}
 func (*ClusterTopic) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cluster_state_2c80663b564ff5a3, []int{2}
+	return fileDescriptor_cluster_state_44c6ec2b64aa39f9, []int{2}
 }
 func (m *ClusterTopic) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -354,6 +360,7 @@ type ClusterConsumerGroup struct {
 	Bindings             []*ClusterConsumerGroup_Binding      `protobuf:"bytes,2,rep,name=bindings" json:"bindings,omitempty"`
 	Size_                uint32                               `protobuf:"varint,3,opt,name=size,proto3" json:"size,omitempty"`
 	OffsetCommits        []*ClusterConsumerGroup_OffsetCommit `protobuf:"bytes,4,rep,name=offset_commits,json=offsetCommits" json:"offset_commits,omitempty"`
+	CreatedAt            time.Time                            `protobuf:"bytes,5,opt,name=created_at,json=createdAt,stdtime" json:"created_at"`
 	XXX_NoUnkeyedLiteral struct{}                             `json:"-"`
 	XXX_sizecache        int32                                `json:"-"`
 }
@@ -362,7 +369,7 @@ func (m *ClusterConsumerGroup) Reset()         { *m = ClusterConsumerGroup{} }
 func (m *ClusterConsumerGroup) String() string { return proto.CompactTextString(m) }
 func (*ClusterConsumerGroup) ProtoMessage()    {}
 func (*ClusterConsumerGroup) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cluster_state_2c80663b564ff5a3, []int{3}
+	return fileDescriptor_cluster_state_44c6ec2b64aa39f9, []int{3}
 }
 func (m *ClusterConsumerGroup) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -419,6 +426,13 @@ func (m *ClusterConsumerGroup) GetOffsetCommits() []*ClusterConsumerGroup_Offset
 	return nil
 }
 
+func (m *ClusterConsumerGroup) GetCreatedAt() time.Time {
+	if m != nil {
+		return m.CreatedAt
+	}
+	return time.Time{}
+}
+
 type ClusterConsumerGroup_Binding struct {
 	TopicName string `protobuf:"bytes,1,opt,name=topic_name,json=topicName,proto3" json:"topic_name,omitempty"`
 	// Types that are valid to be assigned to By:
@@ -434,7 +448,7 @@ func (m *ClusterConsumerGroup_Binding) Reset()         { *m = ClusterConsumerGro
 func (m *ClusterConsumerGroup_Binding) String() string { return proto.CompactTextString(m) }
 func (*ClusterConsumerGroup_Binding) ProtoMessage()    {}
 func (*ClusterConsumerGroup_Binding) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cluster_state_2c80663b564ff5a3, []int{3, 0}
+	return fileDescriptor_cluster_state_44c6ec2b64aa39f9, []int{3, 0}
 }
 func (m *ClusterConsumerGroup_Binding) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -618,7 +632,7 @@ func (m *ClusterConsumerGroup_OffsetCommit) Reset()         { *m = ClusterConsum
 func (m *ClusterConsumerGroup_OffsetCommit) String() string { return proto.CompactTextString(m) }
 func (*ClusterConsumerGroup_OffsetCommit) ProtoMessage()    {}
 func (*ClusterConsumerGroup_OffsetCommit) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cluster_state_2c80663b564ff5a3, []int{3, 1}
+	return fileDescriptor_cluster_state_44c6ec2b64aa39f9, []int{3, 1}
 }
 func (m *ClusterConsumerGroup_OffsetCommit) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -678,7 +692,7 @@ func (m *ClusterSegment) Reset()         { *m = ClusterSegment{} }
 func (m *ClusterSegment) String() string { return proto.CompactTextString(m) }
 func (*ClusterSegment) ProtoMessage()    {}
 func (*ClusterSegment) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cluster_state_2c80663b564ff5a3, []int{4}
+	return fileDescriptor_cluster_state_44c6ec2b64aa39f9, []int{4}
 }
 func (m *ClusterSegment) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -775,7 +789,7 @@ func (m *ClusterSegment_Nodes) Reset()         { *m = ClusterSegment_Nodes{} }
 func (m *ClusterSegment_Nodes) String() string { return proto.CompactTextString(m) }
 func (*ClusterSegment_Nodes) ProtoMessage()    {}
 func (*ClusterSegment_Nodes) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cluster_state_2c80663b564ff5a3, []int{4, 0}
+	return fileDescriptor_cluster_state_44c6ec2b64aa39f9, []int{4, 0}
 }
 func (m *ClusterSegment_Nodes) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -838,7 +852,7 @@ func (m *ClusterNode) Reset()         { *m = ClusterNode{} }
 func (m *ClusterNode) String() string { return proto.CompactTextString(m) }
 func (*ClusterNode) ProtoMessage()    {}
 func (*ClusterNode) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cluster_state_2c80663b564ff5a3, []int{5}
+	return fileDescriptor_cluster_state_44c6ec2b64aa39f9, []int{5}
 }
 func (m *ClusterNode) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -895,7 +909,223 @@ func (m *ClusterNode) GetLastSeenAlive() *time.Time {
 	return nil
 }
 
-type ClusterOpenSegmentCommand struct {
+type ClusterCommandTopicCreate struct {
+	Namespace            string        `protobuf:"bytes,1,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	Topic                *ClusterTopic `protobuf:"bytes,2,opt,name=topic" json:"topic,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
+	XXX_sizecache        int32         `json:"-"`
+}
+
+func (m *ClusterCommandTopicCreate) Reset()         { *m = ClusterCommandTopicCreate{} }
+func (m *ClusterCommandTopicCreate) String() string { return proto.CompactTextString(m) }
+func (*ClusterCommandTopicCreate) ProtoMessage()    {}
+func (*ClusterCommandTopicCreate) Descriptor() ([]byte, []int) {
+	return fileDescriptor_cluster_state_44c6ec2b64aa39f9, []int{6}
+}
+func (m *ClusterCommandTopicCreate) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ClusterCommandTopicCreate) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ClusterCommandTopicCreate.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (dst *ClusterCommandTopicCreate) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ClusterCommandTopicCreate.Merge(dst, src)
+}
+func (m *ClusterCommandTopicCreate) XXX_Size() int {
+	return m.Size()
+}
+func (m *ClusterCommandTopicCreate) XXX_DiscardUnknown() {
+	xxx_messageInfo_ClusterCommandTopicCreate.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ClusterCommandTopicCreate proto.InternalMessageInfo
+
+func (m *ClusterCommandTopicCreate) GetNamespace() string {
+	if m != nil {
+		return m.Namespace
+	}
+	return ""
+}
+
+func (m *ClusterCommandTopicCreate) GetTopic() *ClusterTopic {
+	if m != nil {
+		return m.Topic
+	}
+	return nil
+}
+
+type ClusterCommandTopicDelete struct {
+	Namespace            string   `protobuf:"bytes,1,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	Name                 string   `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ClusterCommandTopicDelete) Reset()         { *m = ClusterCommandTopicDelete{} }
+func (m *ClusterCommandTopicDelete) String() string { return proto.CompactTextString(m) }
+func (*ClusterCommandTopicDelete) ProtoMessage()    {}
+func (*ClusterCommandTopicDelete) Descriptor() ([]byte, []int) {
+	return fileDescriptor_cluster_state_44c6ec2b64aa39f9, []int{7}
+}
+func (m *ClusterCommandTopicDelete) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ClusterCommandTopicDelete) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ClusterCommandTopicDelete.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (dst *ClusterCommandTopicDelete) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ClusterCommandTopicDelete.Merge(dst, src)
+}
+func (m *ClusterCommandTopicDelete) XXX_Size() int {
+	return m.Size()
+}
+func (m *ClusterCommandTopicDelete) XXX_DiscardUnknown() {
+	xxx_messageInfo_ClusterCommandTopicDelete.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ClusterCommandTopicDelete proto.InternalMessageInfo
+
+func (m *ClusterCommandTopicDelete) GetNamespace() string {
+	if m != nil {
+		return m.Namespace
+	}
+	return ""
+}
+
+func (m *ClusterCommandTopicDelete) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+type ClusterCommandConsumerGroupCreate struct {
+	Namespace            string                `protobuf:"bytes,1,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	ConsumerGroup        *ClusterConsumerGroup `protobuf:"bytes,2,opt,name=consumer_group,json=consumerGroup" json:"consumer_group,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
+	XXX_sizecache        int32                 `json:"-"`
+}
+
+func (m *ClusterCommandConsumerGroupCreate) Reset()         { *m = ClusterCommandConsumerGroupCreate{} }
+func (m *ClusterCommandConsumerGroupCreate) String() string { return proto.CompactTextString(m) }
+func (*ClusterCommandConsumerGroupCreate) ProtoMessage()    {}
+func (*ClusterCommandConsumerGroupCreate) Descriptor() ([]byte, []int) {
+	return fileDescriptor_cluster_state_44c6ec2b64aa39f9, []int{8}
+}
+func (m *ClusterCommandConsumerGroupCreate) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ClusterCommandConsumerGroupCreate) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ClusterCommandConsumerGroupCreate.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (dst *ClusterCommandConsumerGroupCreate) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ClusterCommandConsumerGroupCreate.Merge(dst, src)
+}
+func (m *ClusterCommandConsumerGroupCreate) XXX_Size() int {
+	return m.Size()
+}
+func (m *ClusterCommandConsumerGroupCreate) XXX_DiscardUnknown() {
+	xxx_messageInfo_ClusterCommandConsumerGroupCreate.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ClusterCommandConsumerGroupCreate proto.InternalMessageInfo
+
+func (m *ClusterCommandConsumerGroupCreate) GetNamespace() string {
+	if m != nil {
+		return m.Namespace
+	}
+	return ""
+}
+
+func (m *ClusterCommandConsumerGroupCreate) GetConsumerGroup() *ClusterConsumerGroup {
+	if m != nil {
+		return m.ConsumerGroup
+	}
+	return nil
+}
+
+type ClusterCommandConsumerGroupDelete struct {
+	Namespace            string   `protobuf:"bytes,1,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	Name                 string   `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ClusterCommandConsumerGroupDelete) Reset()         { *m = ClusterCommandConsumerGroupDelete{} }
+func (m *ClusterCommandConsumerGroupDelete) String() string { return proto.CompactTextString(m) }
+func (*ClusterCommandConsumerGroupDelete) ProtoMessage()    {}
+func (*ClusterCommandConsumerGroupDelete) Descriptor() ([]byte, []int) {
+	return fileDescriptor_cluster_state_44c6ec2b64aa39f9, []int{9}
+}
+func (m *ClusterCommandConsumerGroupDelete) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ClusterCommandConsumerGroupDelete) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ClusterCommandConsumerGroupDelete.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (dst *ClusterCommandConsumerGroupDelete) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ClusterCommandConsumerGroupDelete.Merge(dst, src)
+}
+func (m *ClusterCommandConsumerGroupDelete) XXX_Size() int {
+	return m.Size()
+}
+func (m *ClusterCommandConsumerGroupDelete) XXX_DiscardUnknown() {
+	xxx_messageInfo_ClusterCommandConsumerGroupDelete.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ClusterCommandConsumerGroupDelete proto.InternalMessageInfo
+
+func (m *ClusterCommandConsumerGroupDelete) GetNamespace() string {
+	if m != nil {
+		return m.Namespace
+	}
+	return ""
+}
+
+func (m *ClusterCommandConsumerGroupDelete) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+type ClusterCommandSegmentOpen struct {
 	ID                   uint64               `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	Owner                client.NamespaceName `protobuf:"bytes,2,opt,name=owner" json:"owner"`
 	Type                 ClusterSegment_Type  `protobuf:"varint,3,opt,name=type,proto3,enum=io.eventter.mq.ClusterSegment_Type" json:"type,omitempty"`
@@ -906,18 +1136,18 @@ type ClusterOpenSegmentCommand struct {
 	XXX_sizecache        int32                `json:"-"`
 }
 
-func (m *ClusterOpenSegmentCommand) Reset()         { *m = ClusterOpenSegmentCommand{} }
-func (m *ClusterOpenSegmentCommand) String() string { return proto.CompactTextString(m) }
-func (*ClusterOpenSegmentCommand) ProtoMessage()    {}
-func (*ClusterOpenSegmentCommand) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cluster_state_2c80663b564ff5a3, []int{6}
+func (m *ClusterCommandSegmentOpen) Reset()         { *m = ClusterCommandSegmentOpen{} }
+func (m *ClusterCommandSegmentOpen) String() string { return proto.CompactTextString(m) }
+func (*ClusterCommandSegmentOpen) ProtoMessage()    {}
+func (*ClusterCommandSegmentOpen) Descriptor() ([]byte, []int) {
+	return fileDescriptor_cluster_state_44c6ec2b64aa39f9, []int{10}
 }
-func (m *ClusterOpenSegmentCommand) XXX_Unmarshal(b []byte) error {
+func (m *ClusterCommandSegmentOpen) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *ClusterOpenSegmentCommand) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *ClusterCommandSegmentOpen) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_ClusterOpenSegmentCommand.Marshal(b, m, deterministic)
+		return xxx_messageInfo_ClusterCommandSegmentOpen.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalTo(b)
@@ -927,61 +1157,61 @@ func (m *ClusterOpenSegmentCommand) XXX_Marshal(b []byte, deterministic bool) ([
 		return b[:n], nil
 	}
 }
-func (dst *ClusterOpenSegmentCommand) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ClusterOpenSegmentCommand.Merge(dst, src)
+func (dst *ClusterCommandSegmentOpen) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ClusterCommandSegmentOpen.Merge(dst, src)
 }
-func (m *ClusterOpenSegmentCommand) XXX_Size() int {
+func (m *ClusterCommandSegmentOpen) XXX_Size() int {
 	return m.Size()
 }
-func (m *ClusterOpenSegmentCommand) XXX_DiscardUnknown() {
-	xxx_messageInfo_ClusterOpenSegmentCommand.DiscardUnknown(m)
+func (m *ClusterCommandSegmentOpen) XXX_DiscardUnknown() {
+	xxx_messageInfo_ClusterCommandSegmentOpen.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_ClusterOpenSegmentCommand proto.InternalMessageInfo
+var xxx_messageInfo_ClusterCommandSegmentOpen proto.InternalMessageInfo
 
-func (m *ClusterOpenSegmentCommand) GetID() uint64 {
+func (m *ClusterCommandSegmentOpen) GetID() uint64 {
 	if m != nil {
 		return m.ID
 	}
 	return 0
 }
 
-func (m *ClusterOpenSegmentCommand) GetOwner() client.NamespaceName {
+func (m *ClusterCommandSegmentOpen) GetOwner() client.NamespaceName {
 	if m != nil {
 		return m.Owner
 	}
 	return client.NamespaceName{}
 }
 
-func (m *ClusterOpenSegmentCommand) GetType() ClusterSegment_Type {
+func (m *ClusterCommandSegmentOpen) GetType() ClusterSegment_Type {
 	if m != nil {
 		return m.Type
 	}
 	return ClusterSegment_INVALID
 }
 
-func (m *ClusterOpenSegmentCommand) GetOpenedAt() time.Time {
+func (m *ClusterCommandSegmentOpen) GetOpenedAt() time.Time {
 	if m != nil {
 		return m.OpenedAt
 	}
 	return time.Time{}
 }
 
-func (m *ClusterOpenSegmentCommand) GetPrimaryNodeID() uint64 {
+func (m *ClusterCommandSegmentOpen) GetPrimaryNodeID() uint64 {
 	if m != nil {
 		return m.PrimaryNodeID
 	}
 	return 0
 }
 
-func (m *ClusterOpenSegmentCommand) GetReplicatingNodeIDs() []uint64 {
+func (m *ClusterCommandSegmentOpen) GetReplicatingNodeIDs() []uint64 {
 	if m != nil {
 		return m.ReplicatingNodeIDs
 	}
 	return nil
 }
 
-type ClusterCloseSegmentCommand struct {
+type ClusterCommandSegmentClose struct {
 	ID                   uint64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	DoneNodeID           uint64    `protobuf:"varint,2,opt,name=done_node_id,json=doneNodeId,proto3" json:"done_node_id,omitempty"`
 	ClosedAt             time.Time `protobuf:"bytes,4,opt,name=closed_at,json=closedAt,stdtime" json:"closed_at"`
@@ -991,18 +1221,18 @@ type ClusterCloseSegmentCommand struct {
 	XXX_sizecache        int32     `json:"-"`
 }
 
-func (m *ClusterCloseSegmentCommand) Reset()         { *m = ClusterCloseSegmentCommand{} }
-func (m *ClusterCloseSegmentCommand) String() string { return proto.CompactTextString(m) }
-func (*ClusterCloseSegmentCommand) ProtoMessage()    {}
-func (*ClusterCloseSegmentCommand) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cluster_state_2c80663b564ff5a3, []int{7}
+func (m *ClusterCommandSegmentClose) Reset()         { *m = ClusterCommandSegmentClose{} }
+func (m *ClusterCommandSegmentClose) String() string { return proto.CompactTextString(m) }
+func (*ClusterCommandSegmentClose) ProtoMessage()    {}
+func (*ClusterCommandSegmentClose) Descriptor() ([]byte, []int) {
+	return fileDescriptor_cluster_state_44c6ec2b64aa39f9, []int{11}
 }
-func (m *ClusterCloseSegmentCommand) XXX_Unmarshal(b []byte) error {
+func (m *ClusterCommandSegmentClose) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *ClusterCloseSegmentCommand) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *ClusterCommandSegmentClose) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_ClusterCloseSegmentCommand.Marshal(b, m, deterministic)
+		return xxx_messageInfo_ClusterCommandSegmentClose.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalTo(b)
@@ -1012,54 +1242,54 @@ func (m *ClusterCloseSegmentCommand) XXX_Marshal(b []byte, deterministic bool) (
 		return b[:n], nil
 	}
 }
-func (dst *ClusterCloseSegmentCommand) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ClusterCloseSegmentCommand.Merge(dst, src)
+func (dst *ClusterCommandSegmentClose) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ClusterCommandSegmentClose.Merge(dst, src)
 }
-func (m *ClusterCloseSegmentCommand) XXX_Size() int {
+func (m *ClusterCommandSegmentClose) XXX_Size() int {
 	return m.Size()
 }
-func (m *ClusterCloseSegmentCommand) XXX_DiscardUnknown() {
-	xxx_messageInfo_ClusterCloseSegmentCommand.DiscardUnknown(m)
+func (m *ClusterCommandSegmentClose) XXX_DiscardUnknown() {
+	xxx_messageInfo_ClusterCommandSegmentClose.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_ClusterCloseSegmentCommand proto.InternalMessageInfo
+var xxx_messageInfo_ClusterCommandSegmentClose proto.InternalMessageInfo
 
-func (m *ClusterCloseSegmentCommand) GetID() uint64 {
+func (m *ClusterCommandSegmentClose) GetID() uint64 {
 	if m != nil {
 		return m.ID
 	}
 	return 0
 }
 
-func (m *ClusterCloseSegmentCommand) GetDoneNodeID() uint64 {
+func (m *ClusterCommandSegmentClose) GetDoneNodeID() uint64 {
 	if m != nil {
 		return m.DoneNodeID
 	}
 	return 0
 }
 
-func (m *ClusterCloseSegmentCommand) GetClosedAt() time.Time {
+func (m *ClusterCommandSegmentClose) GetClosedAt() time.Time {
 	if m != nil {
 		return m.ClosedAt
 	}
 	return time.Time{}
 }
 
-func (m *ClusterCloseSegmentCommand) GetSize_() int64 {
+func (m *ClusterCommandSegmentClose) GetSize_() int64 {
 	if m != nil {
 		return m.Size_
 	}
 	return 0
 }
 
-func (m *ClusterCloseSegmentCommand) GetSha1() []byte {
+func (m *ClusterCommandSegmentClose) GetSha1() []byte {
 	if m != nil {
 		return m.Sha1
 	}
 	return nil
 }
 
-type ClusterUpdateNodeCommand struct {
+type ClusterCommandNodeUpdate struct {
 	ID                   uint64            `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	Address              string            `protobuf:"bytes,2,opt,name=address,proto3" json:"address,omitempty"`
 	State                ClusterNode_State `protobuf:"varint,3,opt,name=state,proto3,enum=io.eventter.mq.ClusterNode_State" json:"state,omitempty"`
@@ -1068,18 +1298,18 @@ type ClusterUpdateNodeCommand struct {
 	XXX_sizecache        int32             `json:"-"`
 }
 
-func (m *ClusterUpdateNodeCommand) Reset()         { *m = ClusterUpdateNodeCommand{} }
-func (m *ClusterUpdateNodeCommand) String() string { return proto.CompactTextString(m) }
-func (*ClusterUpdateNodeCommand) ProtoMessage()    {}
-func (*ClusterUpdateNodeCommand) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cluster_state_2c80663b564ff5a3, []int{8}
+func (m *ClusterCommandNodeUpdate) Reset()         { *m = ClusterCommandNodeUpdate{} }
+func (m *ClusterCommandNodeUpdate) String() string { return proto.CompactTextString(m) }
+func (*ClusterCommandNodeUpdate) ProtoMessage()    {}
+func (*ClusterCommandNodeUpdate) Descriptor() ([]byte, []int) {
+	return fileDescriptor_cluster_state_44c6ec2b64aa39f9, []int{12}
 }
-func (m *ClusterUpdateNodeCommand) XXX_Unmarshal(b []byte) error {
+func (m *ClusterCommandNodeUpdate) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *ClusterUpdateNodeCommand) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *ClusterCommandNodeUpdate) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_ClusterUpdateNodeCommand.Marshal(b, m, deterministic)
+		return xxx_messageInfo_ClusterCommandNodeUpdate.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalTo(b)
@@ -1089,66 +1319,66 @@ func (m *ClusterUpdateNodeCommand) XXX_Marshal(b []byte, deterministic bool) ([]
 		return b[:n], nil
 	}
 }
-func (dst *ClusterUpdateNodeCommand) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ClusterUpdateNodeCommand.Merge(dst, src)
+func (dst *ClusterCommandNodeUpdate) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ClusterCommandNodeUpdate.Merge(dst, src)
 }
-func (m *ClusterUpdateNodeCommand) XXX_Size() int {
+func (m *ClusterCommandNodeUpdate) XXX_Size() int {
 	return m.Size()
 }
-func (m *ClusterUpdateNodeCommand) XXX_DiscardUnknown() {
-	xxx_messageInfo_ClusterUpdateNodeCommand.DiscardUnknown(m)
+func (m *ClusterCommandNodeUpdate) XXX_DiscardUnknown() {
+	xxx_messageInfo_ClusterCommandNodeUpdate.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_ClusterUpdateNodeCommand proto.InternalMessageInfo
+var xxx_messageInfo_ClusterCommandNodeUpdate proto.InternalMessageInfo
 
-func (m *ClusterUpdateNodeCommand) GetID() uint64 {
+func (m *ClusterCommandNodeUpdate) GetID() uint64 {
 	if m != nil {
 		return m.ID
 	}
 	return 0
 }
 
-func (m *ClusterUpdateNodeCommand) GetAddress() string {
+func (m *ClusterCommandNodeUpdate) GetAddress() string {
 	if m != nil {
 		return m.Address
 	}
 	return ""
 }
 
-func (m *ClusterUpdateNodeCommand) GetState() ClusterNode_State {
+func (m *ClusterCommandNodeUpdate) GetState() ClusterNode_State {
 	if m != nil {
 		return m.State
 	}
 	return ClusterNode_DEAD
 }
 
-func (m *ClusterUpdateNodeCommand) GetLastSeenAlive() *time.Time {
+func (m *ClusterCommandNodeUpdate) GetLastSeenAlive() *time.Time {
 	if m != nil {
 		return m.LastSeenAlive
 	}
 	return nil
 }
 
-type ClusterUpdateSegmentNodesCommand struct {
+type ClusterCommandSegmentNodesUpdate struct {
 	ID                   uint64                                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	Which                ClusterUpdateSegmentNodesCommand_Which `protobuf:"varint,2,opt,name=which,proto3,enum=io.eventter.mq.ClusterUpdateSegmentNodesCommand_Which" json:"which,omitempty"`
+	Which                ClusterCommandSegmentNodesUpdate_Which `protobuf:"varint,2,opt,name=which,proto3,enum=io.eventter.mq.ClusterCommandSegmentNodesUpdate_Which" json:"which,omitempty"`
 	Nodes                ClusterSegment_Nodes                   `protobuf:"bytes,3,opt,name=nodes" json:"nodes"`
 	XXX_NoUnkeyedLiteral struct{}                               `json:"-"`
 	XXX_sizecache        int32                                  `json:"-"`
 }
 
-func (m *ClusterUpdateSegmentNodesCommand) Reset()         { *m = ClusterUpdateSegmentNodesCommand{} }
-func (m *ClusterUpdateSegmentNodesCommand) String() string { return proto.CompactTextString(m) }
-func (*ClusterUpdateSegmentNodesCommand) ProtoMessage()    {}
-func (*ClusterUpdateSegmentNodesCommand) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cluster_state_2c80663b564ff5a3, []int{9}
+func (m *ClusterCommandSegmentNodesUpdate) Reset()         { *m = ClusterCommandSegmentNodesUpdate{} }
+func (m *ClusterCommandSegmentNodesUpdate) String() string { return proto.CompactTextString(m) }
+func (*ClusterCommandSegmentNodesUpdate) ProtoMessage()    {}
+func (*ClusterCommandSegmentNodesUpdate) Descriptor() ([]byte, []int) {
+	return fileDescriptor_cluster_state_44c6ec2b64aa39f9, []int{13}
 }
-func (m *ClusterUpdateSegmentNodesCommand) XXX_Unmarshal(b []byte) error {
+func (m *ClusterCommandSegmentNodesUpdate) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *ClusterUpdateSegmentNodesCommand) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *ClusterCommandSegmentNodesUpdate) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_ClusterUpdateSegmentNodesCommand.Marshal(b, m, deterministic)
+		return xxx_messageInfo_ClusterCommandSegmentNodesUpdate.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalTo(b)
@@ -1158,58 +1388,58 @@ func (m *ClusterUpdateSegmentNodesCommand) XXX_Marshal(b []byte, deterministic b
 		return b[:n], nil
 	}
 }
-func (dst *ClusterUpdateSegmentNodesCommand) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ClusterUpdateSegmentNodesCommand.Merge(dst, src)
+func (dst *ClusterCommandSegmentNodesUpdate) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ClusterCommandSegmentNodesUpdate.Merge(dst, src)
 }
-func (m *ClusterUpdateSegmentNodesCommand) XXX_Size() int {
+func (m *ClusterCommandSegmentNodesUpdate) XXX_Size() int {
 	return m.Size()
 }
-func (m *ClusterUpdateSegmentNodesCommand) XXX_DiscardUnknown() {
-	xxx_messageInfo_ClusterUpdateSegmentNodesCommand.DiscardUnknown(m)
+func (m *ClusterCommandSegmentNodesUpdate) XXX_DiscardUnknown() {
+	xxx_messageInfo_ClusterCommandSegmentNodesUpdate.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_ClusterUpdateSegmentNodesCommand proto.InternalMessageInfo
+var xxx_messageInfo_ClusterCommandSegmentNodesUpdate proto.InternalMessageInfo
 
-func (m *ClusterUpdateSegmentNodesCommand) GetID() uint64 {
+func (m *ClusterCommandSegmentNodesUpdate) GetID() uint64 {
 	if m != nil {
 		return m.ID
 	}
 	return 0
 }
 
-func (m *ClusterUpdateSegmentNodesCommand) GetWhich() ClusterUpdateSegmentNodesCommand_Which {
+func (m *ClusterCommandSegmentNodesUpdate) GetWhich() ClusterCommandSegmentNodesUpdate_Which {
 	if m != nil {
 		return m.Which
 	}
-	return ClusterUpdateSegmentNodesCommand_OPEN
+	return ClusterCommandSegmentNodesUpdate_INVALID
 }
 
-func (m *ClusterUpdateSegmentNodesCommand) GetNodes() ClusterSegment_Nodes {
+func (m *ClusterCommandSegmentNodesUpdate) GetNodes() ClusterSegment_Nodes {
 	if m != nil {
 		return m.Nodes
 	}
 	return ClusterSegment_Nodes{}
 }
 
-type ClusterDeleteSegmentCommand struct {
+type ClusterCommandSegmentDelete struct {
 	ID                   uint64                            `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	Which                ClusterDeleteSegmentCommand_Which `protobuf:"varint,2,opt,name=which,proto3,enum=io.eventter.mq.ClusterDeleteSegmentCommand_Which" json:"which,omitempty"`
+	Which                ClusterCommandSegmentDelete_Which `protobuf:"varint,2,opt,name=which,proto3,enum=io.eventter.mq.ClusterCommandSegmentDelete_Which" json:"which,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}                          `json:"-"`
 	XXX_sizecache        int32                             `json:"-"`
 }
 
-func (m *ClusterDeleteSegmentCommand) Reset()         { *m = ClusterDeleteSegmentCommand{} }
-func (m *ClusterDeleteSegmentCommand) String() string { return proto.CompactTextString(m) }
-func (*ClusterDeleteSegmentCommand) ProtoMessage()    {}
-func (*ClusterDeleteSegmentCommand) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cluster_state_2c80663b564ff5a3, []int{10}
+func (m *ClusterCommandSegmentDelete) Reset()         { *m = ClusterCommandSegmentDelete{} }
+func (m *ClusterCommandSegmentDelete) String() string { return proto.CompactTextString(m) }
+func (*ClusterCommandSegmentDelete) ProtoMessage()    {}
+func (*ClusterCommandSegmentDelete) Descriptor() ([]byte, []int) {
+	return fileDescriptor_cluster_state_44c6ec2b64aa39f9, []int{14}
 }
-func (m *ClusterDeleteSegmentCommand) XXX_Unmarshal(b []byte) error {
+func (m *ClusterCommandSegmentDelete) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *ClusterDeleteSegmentCommand) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *ClusterCommandSegmentDelete) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_ClusterDeleteSegmentCommand.Marshal(b, m, deterministic)
+		return xxx_messageInfo_ClusterCommandSegmentDelete.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalTo(b)
@@ -1219,51 +1449,56 @@ func (m *ClusterDeleteSegmentCommand) XXX_Marshal(b []byte, deterministic bool) 
 		return b[:n], nil
 	}
 }
-func (dst *ClusterDeleteSegmentCommand) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ClusterDeleteSegmentCommand.Merge(dst, src)
+func (dst *ClusterCommandSegmentDelete) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ClusterCommandSegmentDelete.Merge(dst, src)
 }
-func (m *ClusterDeleteSegmentCommand) XXX_Size() int {
+func (m *ClusterCommandSegmentDelete) XXX_Size() int {
 	return m.Size()
 }
-func (m *ClusterDeleteSegmentCommand) XXX_DiscardUnknown() {
-	xxx_messageInfo_ClusterDeleteSegmentCommand.DiscardUnknown(m)
+func (m *ClusterCommandSegmentDelete) XXX_DiscardUnknown() {
+	xxx_messageInfo_ClusterCommandSegmentDelete.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_ClusterDeleteSegmentCommand proto.InternalMessageInfo
+var xxx_messageInfo_ClusterCommandSegmentDelete proto.InternalMessageInfo
 
-func (m *ClusterDeleteSegmentCommand) GetID() uint64 {
+func (m *ClusterCommandSegmentDelete) GetID() uint64 {
 	if m != nil {
 		return m.ID
 	}
 	return 0
 }
 
-func (m *ClusterDeleteSegmentCommand) GetWhich() ClusterDeleteSegmentCommand_Which {
+func (m *ClusterCommandSegmentDelete) GetWhich() ClusterCommandSegmentDelete_Which {
 	if m != nil {
 		return m.Which
 	}
-	return ClusterDeleteSegmentCommand_OPEN
+	return ClusterCommandSegmentDelete_INVALID
 }
 
-type ClusterUpdateOffsetCommitsCommand struct {
-	ConsumerGroup        client.NamespaceName                 `protobuf:"bytes,1,opt,name=consumer_group,json=consumerGroup" json:"consumer_group"`
-	OffsetCommits        []*ClusterConsumerGroup_OffsetCommit `protobuf:"bytes,2,rep,name=offset_commits,json=offsetCommits" json:"offset_commits,omitempty"`
+type ClusterCommandConsumerGroupOffsetCommitsUpdate struct {
+	Namespace            string                               `protobuf:"bytes,1,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	Name                 string                               `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	OffsetCommits        []*ClusterConsumerGroup_OffsetCommit `protobuf:"bytes,3,rep,name=offset_commits,json=offsetCommits" json:"offset_commits,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}                             `json:"-"`
 	XXX_sizecache        int32                                `json:"-"`
 }
 
-func (m *ClusterUpdateOffsetCommitsCommand) Reset()         { *m = ClusterUpdateOffsetCommitsCommand{} }
-func (m *ClusterUpdateOffsetCommitsCommand) String() string { return proto.CompactTextString(m) }
-func (*ClusterUpdateOffsetCommitsCommand) ProtoMessage()    {}
-func (*ClusterUpdateOffsetCommitsCommand) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cluster_state_2c80663b564ff5a3, []int{11}
+func (m *ClusterCommandConsumerGroupOffsetCommitsUpdate) Reset() {
+	*m = ClusterCommandConsumerGroupOffsetCommitsUpdate{}
 }
-func (m *ClusterUpdateOffsetCommitsCommand) XXX_Unmarshal(b []byte) error {
+func (m *ClusterCommandConsumerGroupOffsetCommitsUpdate) String() string {
+	return proto.CompactTextString(m)
+}
+func (*ClusterCommandConsumerGroupOffsetCommitsUpdate) ProtoMessage() {}
+func (*ClusterCommandConsumerGroupOffsetCommitsUpdate) Descriptor() ([]byte, []int) {
+	return fileDescriptor_cluster_state_44c6ec2b64aa39f9, []int{15}
+}
+func (m *ClusterCommandConsumerGroupOffsetCommitsUpdate) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *ClusterUpdateOffsetCommitsCommand) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *ClusterCommandConsumerGroupOffsetCommitsUpdate) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_ClusterUpdateOffsetCommitsCommand.Marshal(b, m, deterministic)
+		return xxx_messageInfo_ClusterCommandConsumerGroupOffsetCommitsUpdate.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalTo(b)
@@ -1273,26 +1508,33 @@ func (m *ClusterUpdateOffsetCommitsCommand) XXX_Marshal(b []byte, deterministic 
 		return b[:n], nil
 	}
 }
-func (dst *ClusterUpdateOffsetCommitsCommand) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ClusterUpdateOffsetCommitsCommand.Merge(dst, src)
+func (dst *ClusterCommandConsumerGroupOffsetCommitsUpdate) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ClusterCommandConsumerGroupOffsetCommitsUpdate.Merge(dst, src)
 }
-func (m *ClusterUpdateOffsetCommitsCommand) XXX_Size() int {
+func (m *ClusterCommandConsumerGroupOffsetCommitsUpdate) XXX_Size() int {
 	return m.Size()
 }
-func (m *ClusterUpdateOffsetCommitsCommand) XXX_DiscardUnknown() {
-	xxx_messageInfo_ClusterUpdateOffsetCommitsCommand.DiscardUnknown(m)
+func (m *ClusterCommandConsumerGroupOffsetCommitsUpdate) XXX_DiscardUnknown() {
+	xxx_messageInfo_ClusterCommandConsumerGroupOffsetCommitsUpdate.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_ClusterUpdateOffsetCommitsCommand proto.InternalMessageInfo
+var xxx_messageInfo_ClusterCommandConsumerGroupOffsetCommitsUpdate proto.InternalMessageInfo
 
-func (m *ClusterUpdateOffsetCommitsCommand) GetConsumerGroup() client.NamespaceName {
+func (m *ClusterCommandConsumerGroupOffsetCommitsUpdate) GetNamespace() string {
 	if m != nil {
-		return m.ConsumerGroup
+		return m.Namespace
 	}
-	return client.NamespaceName{}
+	return ""
 }
 
-func (m *ClusterUpdateOffsetCommitsCommand) GetOffsetCommits() []*ClusterConsumerGroup_OffsetCommit {
+func (m *ClusterCommandConsumerGroupOffsetCommitsUpdate) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *ClusterCommandConsumerGroupOffsetCommitsUpdate) GetOffsetCommits() []*ClusterConsumerGroup_OffsetCommit {
 	if m != nil {
 		return m.OffsetCommits
 	}
@@ -1301,16 +1543,16 @@ func (m *ClusterUpdateOffsetCommitsCommand) GetOffsetCommits() []*ClusterConsume
 
 type ClusterCommand struct {
 	// Types that are valid to be assigned to Command:
-	//	*ClusterCommand_ConfigureTopic
+	//	*ClusterCommand_CreateTopic
 	//	*ClusterCommand_DeleteTopic
-	//	*ClusterCommand_ConfigureConsumerGroup
+	//	*ClusterCommand_CreateConsumerGroup
 	//	*ClusterCommand_DeleteConsumerGroup
 	//	*ClusterCommand_OpenSegment
 	//	*ClusterCommand_CloseSegment
 	//	*ClusterCommand_UpdateNode
 	//	*ClusterCommand_UpdateSegmentNodes
 	//	*ClusterCommand_DeleteSegment
-	//	*ClusterCommand_UpdateOffsetCommits
+	//	*ClusterCommand_UpdateConsumerGroupOffsetCommits
 	Command              isClusterCommand_Command `protobuf_oneof:"command"`
 	XXX_NoUnkeyedLiteral struct{}                 `json:"-"`
 	XXX_sizecache        int32                    `json:"-"`
@@ -1320,7 +1562,7 @@ func (m *ClusterCommand) Reset()         { *m = ClusterCommand{} }
 func (m *ClusterCommand) String() string { return proto.CompactTextString(m) }
 func (*ClusterCommand) ProtoMessage()    {}
 func (*ClusterCommand) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cluster_state_2c80663b564ff5a3, []int{12}
+	return fileDescriptor_cluster_state_44c6ec2b64aa39f9, []int{16}
 }
 func (m *ClusterCommand) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1355,47 +1597,47 @@ type isClusterCommand_Command interface {
 	Size() int
 }
 
-type ClusterCommand_ConfigureTopic struct {
-	ConfigureTopic *client.ConfigureTopicRequest `protobuf:"bytes,1,opt,name=configure_topic,json=configureTopic,oneof"`
+type ClusterCommand_CreateTopic struct {
+	CreateTopic *ClusterCommandTopicCreate `protobuf:"bytes,1,opt,name=create_topic,json=createTopic,oneof"`
 }
 type ClusterCommand_DeleteTopic struct {
-	DeleteTopic *client.DeleteTopicRequest `protobuf:"bytes,2,opt,name=delete_topic,json=deleteTopic,oneof"`
+	DeleteTopic *ClusterCommandTopicDelete `protobuf:"bytes,2,opt,name=delete_topic,json=deleteTopic,oneof"`
 }
-type ClusterCommand_ConfigureConsumerGroup struct {
-	ConfigureConsumerGroup *client.ConfigureConsumerGroupRequest `protobuf:"bytes,3,opt,name=configure_consumer_group,json=configureConsumerGroup,oneof"`
+type ClusterCommand_CreateConsumerGroup struct {
+	CreateConsumerGroup *ClusterCommandConsumerGroupCreate `protobuf:"bytes,3,opt,name=create_consumer_group,json=createConsumerGroup,oneof"`
 }
 type ClusterCommand_DeleteConsumerGroup struct {
-	DeleteConsumerGroup *client.DeleteConsumerGroupRequest `protobuf:"bytes,4,opt,name=delete_consumer_group,json=deleteConsumerGroup,oneof"`
+	DeleteConsumerGroup *ClusterCommandConsumerGroupDelete `protobuf:"bytes,4,opt,name=delete_consumer_group,json=deleteConsumerGroup,oneof"`
 }
 type ClusterCommand_OpenSegment struct {
-	OpenSegment *ClusterOpenSegmentCommand `protobuf:"bytes,5,opt,name=open_segment,json=openSegment,oneof"`
+	OpenSegment *ClusterCommandSegmentOpen `protobuf:"bytes,5,opt,name=open_segment,json=openSegment,oneof"`
 }
 type ClusterCommand_CloseSegment struct {
-	CloseSegment *ClusterCloseSegmentCommand `protobuf:"bytes,6,opt,name=close_segment,json=closeSegment,oneof"`
+	CloseSegment *ClusterCommandSegmentClose `protobuf:"bytes,6,opt,name=close_segment,json=closeSegment,oneof"`
 }
 type ClusterCommand_UpdateNode struct {
-	UpdateNode *ClusterUpdateNodeCommand `protobuf:"bytes,7,opt,name=update_node,json=updateNode,oneof"`
+	UpdateNode *ClusterCommandNodeUpdate `protobuf:"bytes,7,opt,name=update_node,json=updateNode,oneof"`
 }
 type ClusterCommand_UpdateSegmentNodes struct {
-	UpdateSegmentNodes *ClusterUpdateSegmentNodesCommand `protobuf:"bytes,8,opt,name=update_segment_nodes,json=updateSegmentNodes,oneof"`
+	UpdateSegmentNodes *ClusterCommandSegmentNodesUpdate `protobuf:"bytes,8,opt,name=update_segment_nodes,json=updateSegmentNodes,oneof"`
 }
 type ClusterCommand_DeleteSegment struct {
-	DeleteSegment *ClusterDeleteSegmentCommand `protobuf:"bytes,9,opt,name=delete_segment,json=deleteSegment,oneof"`
+	DeleteSegment *ClusterCommandSegmentDelete `protobuf:"bytes,9,opt,name=delete_segment,json=deleteSegment,oneof"`
 }
-type ClusterCommand_UpdateOffsetCommits struct {
-	UpdateOffsetCommits *ClusterUpdateOffsetCommitsCommand `protobuf:"bytes,10,opt,name=update_offset_commits,json=updateOffsetCommits,oneof"`
+type ClusterCommand_UpdateConsumerGroupOffsetCommits struct {
+	UpdateConsumerGroupOffsetCommits *ClusterCommandConsumerGroupOffsetCommitsUpdate `protobuf:"bytes,10,opt,name=update_consumer_group_offset_commits,json=updateConsumerGroupOffsetCommits,oneof"`
 }
 
-func (*ClusterCommand_ConfigureTopic) isClusterCommand_Command()         {}
-func (*ClusterCommand_DeleteTopic) isClusterCommand_Command()            {}
-func (*ClusterCommand_ConfigureConsumerGroup) isClusterCommand_Command() {}
-func (*ClusterCommand_DeleteConsumerGroup) isClusterCommand_Command()    {}
-func (*ClusterCommand_OpenSegment) isClusterCommand_Command()            {}
-func (*ClusterCommand_CloseSegment) isClusterCommand_Command()           {}
-func (*ClusterCommand_UpdateNode) isClusterCommand_Command()             {}
-func (*ClusterCommand_UpdateSegmentNodes) isClusterCommand_Command()     {}
-func (*ClusterCommand_DeleteSegment) isClusterCommand_Command()          {}
-func (*ClusterCommand_UpdateOffsetCommits) isClusterCommand_Command()    {}
+func (*ClusterCommand_CreateTopic) isClusterCommand_Command()                      {}
+func (*ClusterCommand_DeleteTopic) isClusterCommand_Command()                      {}
+func (*ClusterCommand_CreateConsumerGroup) isClusterCommand_Command()              {}
+func (*ClusterCommand_DeleteConsumerGroup) isClusterCommand_Command()              {}
+func (*ClusterCommand_OpenSegment) isClusterCommand_Command()                      {}
+func (*ClusterCommand_CloseSegment) isClusterCommand_Command()                     {}
+func (*ClusterCommand_UpdateNode) isClusterCommand_Command()                       {}
+func (*ClusterCommand_UpdateSegmentNodes) isClusterCommand_Command()               {}
+func (*ClusterCommand_DeleteSegment) isClusterCommand_Command()                    {}
+func (*ClusterCommand_UpdateConsumerGroupOffsetCommits) isClusterCommand_Command() {}
 
 func (m *ClusterCommand) GetCommand() isClusterCommand_Command {
 	if m != nil {
@@ -1404,72 +1646,72 @@ func (m *ClusterCommand) GetCommand() isClusterCommand_Command {
 	return nil
 }
 
-func (m *ClusterCommand) GetConfigureTopic() *client.ConfigureTopicRequest {
-	if x, ok := m.GetCommand().(*ClusterCommand_ConfigureTopic); ok {
-		return x.ConfigureTopic
+func (m *ClusterCommand) GetCreateTopic() *ClusterCommandTopicCreate {
+	if x, ok := m.GetCommand().(*ClusterCommand_CreateTopic); ok {
+		return x.CreateTopic
 	}
 	return nil
 }
 
-func (m *ClusterCommand) GetDeleteTopic() *client.DeleteTopicRequest {
+func (m *ClusterCommand) GetDeleteTopic() *ClusterCommandTopicDelete {
 	if x, ok := m.GetCommand().(*ClusterCommand_DeleteTopic); ok {
 		return x.DeleteTopic
 	}
 	return nil
 }
 
-func (m *ClusterCommand) GetConfigureConsumerGroup() *client.ConfigureConsumerGroupRequest {
-	if x, ok := m.GetCommand().(*ClusterCommand_ConfigureConsumerGroup); ok {
-		return x.ConfigureConsumerGroup
+func (m *ClusterCommand) GetCreateConsumerGroup() *ClusterCommandConsumerGroupCreate {
+	if x, ok := m.GetCommand().(*ClusterCommand_CreateConsumerGroup); ok {
+		return x.CreateConsumerGroup
 	}
 	return nil
 }
 
-func (m *ClusterCommand) GetDeleteConsumerGroup() *client.DeleteConsumerGroupRequest {
+func (m *ClusterCommand) GetDeleteConsumerGroup() *ClusterCommandConsumerGroupDelete {
 	if x, ok := m.GetCommand().(*ClusterCommand_DeleteConsumerGroup); ok {
 		return x.DeleteConsumerGroup
 	}
 	return nil
 }
 
-func (m *ClusterCommand) GetOpenSegment() *ClusterOpenSegmentCommand {
+func (m *ClusterCommand) GetOpenSegment() *ClusterCommandSegmentOpen {
 	if x, ok := m.GetCommand().(*ClusterCommand_OpenSegment); ok {
 		return x.OpenSegment
 	}
 	return nil
 }
 
-func (m *ClusterCommand) GetCloseSegment() *ClusterCloseSegmentCommand {
+func (m *ClusterCommand) GetCloseSegment() *ClusterCommandSegmentClose {
 	if x, ok := m.GetCommand().(*ClusterCommand_CloseSegment); ok {
 		return x.CloseSegment
 	}
 	return nil
 }
 
-func (m *ClusterCommand) GetUpdateNode() *ClusterUpdateNodeCommand {
+func (m *ClusterCommand) GetUpdateNode() *ClusterCommandNodeUpdate {
 	if x, ok := m.GetCommand().(*ClusterCommand_UpdateNode); ok {
 		return x.UpdateNode
 	}
 	return nil
 }
 
-func (m *ClusterCommand) GetUpdateSegmentNodes() *ClusterUpdateSegmentNodesCommand {
+func (m *ClusterCommand) GetUpdateSegmentNodes() *ClusterCommandSegmentNodesUpdate {
 	if x, ok := m.GetCommand().(*ClusterCommand_UpdateSegmentNodes); ok {
 		return x.UpdateSegmentNodes
 	}
 	return nil
 }
 
-func (m *ClusterCommand) GetDeleteSegment() *ClusterDeleteSegmentCommand {
+func (m *ClusterCommand) GetDeleteSegment() *ClusterCommandSegmentDelete {
 	if x, ok := m.GetCommand().(*ClusterCommand_DeleteSegment); ok {
 		return x.DeleteSegment
 	}
 	return nil
 }
 
-func (m *ClusterCommand) GetUpdateOffsetCommits() *ClusterUpdateOffsetCommitsCommand {
-	if x, ok := m.GetCommand().(*ClusterCommand_UpdateOffsetCommits); ok {
-		return x.UpdateOffsetCommits
+func (m *ClusterCommand) GetUpdateConsumerGroupOffsetCommits() *ClusterCommandConsumerGroupOffsetCommitsUpdate {
+	if x, ok := m.GetCommand().(*ClusterCommand_UpdateConsumerGroupOffsetCommits); ok {
+		return x.UpdateConsumerGroupOffsetCommits
 	}
 	return nil
 }
@@ -1477,16 +1719,16 @@ func (m *ClusterCommand) GetUpdateOffsetCommits() *ClusterUpdateOffsetCommitsCom
 // XXX_OneofFuncs is for the internal use of the proto package.
 func (*ClusterCommand) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
 	return _ClusterCommand_OneofMarshaler, _ClusterCommand_OneofUnmarshaler, _ClusterCommand_OneofSizer, []interface{}{
-		(*ClusterCommand_ConfigureTopic)(nil),
+		(*ClusterCommand_CreateTopic)(nil),
 		(*ClusterCommand_DeleteTopic)(nil),
-		(*ClusterCommand_ConfigureConsumerGroup)(nil),
+		(*ClusterCommand_CreateConsumerGroup)(nil),
 		(*ClusterCommand_DeleteConsumerGroup)(nil),
 		(*ClusterCommand_OpenSegment)(nil),
 		(*ClusterCommand_CloseSegment)(nil),
 		(*ClusterCommand_UpdateNode)(nil),
 		(*ClusterCommand_UpdateSegmentNodes)(nil),
 		(*ClusterCommand_DeleteSegment)(nil),
-		(*ClusterCommand_UpdateOffsetCommits)(nil),
+		(*ClusterCommand_UpdateConsumerGroupOffsetCommits)(nil),
 	}
 }
 
@@ -1494,9 +1736,9 @@ func _ClusterCommand_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
 	m := msg.(*ClusterCommand)
 	// command
 	switch x := m.Command.(type) {
-	case *ClusterCommand_ConfigureTopic:
+	case *ClusterCommand_CreateTopic:
 		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.ConfigureTopic); err != nil {
+		if err := b.EncodeMessage(x.CreateTopic); err != nil {
 			return err
 		}
 	case *ClusterCommand_DeleteTopic:
@@ -1504,9 +1746,9 @@ func _ClusterCommand_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
 		if err := b.EncodeMessage(x.DeleteTopic); err != nil {
 			return err
 		}
-	case *ClusterCommand_ConfigureConsumerGroup:
+	case *ClusterCommand_CreateConsumerGroup:
 		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.ConfigureConsumerGroup); err != nil {
+		if err := b.EncodeMessage(x.CreateConsumerGroup); err != nil {
 			return err
 		}
 	case *ClusterCommand_DeleteConsumerGroup:
@@ -1539,9 +1781,9 @@ func _ClusterCommand_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
 		if err := b.EncodeMessage(x.DeleteSegment); err != nil {
 			return err
 		}
-	case *ClusterCommand_UpdateOffsetCommits:
+	case *ClusterCommand_UpdateConsumerGroupOffsetCommits:
 		_ = b.EncodeVarint(10<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.UpdateOffsetCommits); err != nil {
+		if err := b.EncodeMessage(x.UpdateConsumerGroupOffsetCommits); err != nil {
 			return err
 		}
 	case nil:
@@ -1554,35 +1796,35 @@ func _ClusterCommand_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
 func _ClusterCommand_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
 	m := msg.(*ClusterCommand)
 	switch tag {
-	case 1: // command.configure_topic
+	case 1: // command.create_topic
 		if wire != proto.WireBytes {
 			return true, proto.ErrInternalBadWireType
 		}
-		msg := new(client.ConfigureTopicRequest)
+		msg := new(ClusterCommandTopicCreate)
 		err := b.DecodeMessage(msg)
-		m.Command = &ClusterCommand_ConfigureTopic{msg}
+		m.Command = &ClusterCommand_CreateTopic{msg}
 		return true, err
 	case 2: // command.delete_topic
 		if wire != proto.WireBytes {
 			return true, proto.ErrInternalBadWireType
 		}
-		msg := new(client.DeleteTopicRequest)
+		msg := new(ClusterCommandTopicDelete)
 		err := b.DecodeMessage(msg)
 		m.Command = &ClusterCommand_DeleteTopic{msg}
 		return true, err
-	case 3: // command.configure_consumer_group
+	case 3: // command.create_consumer_group
 		if wire != proto.WireBytes {
 			return true, proto.ErrInternalBadWireType
 		}
-		msg := new(client.ConfigureConsumerGroupRequest)
+		msg := new(ClusterCommandConsumerGroupCreate)
 		err := b.DecodeMessage(msg)
-		m.Command = &ClusterCommand_ConfigureConsumerGroup{msg}
+		m.Command = &ClusterCommand_CreateConsumerGroup{msg}
 		return true, err
 	case 4: // command.delete_consumer_group
 		if wire != proto.WireBytes {
 			return true, proto.ErrInternalBadWireType
 		}
-		msg := new(client.DeleteConsumerGroupRequest)
+		msg := new(ClusterCommandConsumerGroupDelete)
 		err := b.DecodeMessage(msg)
 		m.Command = &ClusterCommand_DeleteConsumerGroup{msg}
 		return true, err
@@ -1590,7 +1832,7 @@ func _ClusterCommand_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto
 		if wire != proto.WireBytes {
 			return true, proto.ErrInternalBadWireType
 		}
-		msg := new(ClusterOpenSegmentCommand)
+		msg := new(ClusterCommandSegmentOpen)
 		err := b.DecodeMessage(msg)
 		m.Command = &ClusterCommand_OpenSegment{msg}
 		return true, err
@@ -1598,7 +1840,7 @@ func _ClusterCommand_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto
 		if wire != proto.WireBytes {
 			return true, proto.ErrInternalBadWireType
 		}
-		msg := new(ClusterCloseSegmentCommand)
+		msg := new(ClusterCommandSegmentClose)
 		err := b.DecodeMessage(msg)
 		m.Command = &ClusterCommand_CloseSegment{msg}
 		return true, err
@@ -1606,7 +1848,7 @@ func _ClusterCommand_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto
 		if wire != proto.WireBytes {
 			return true, proto.ErrInternalBadWireType
 		}
-		msg := new(ClusterUpdateNodeCommand)
+		msg := new(ClusterCommandNodeUpdate)
 		err := b.DecodeMessage(msg)
 		m.Command = &ClusterCommand_UpdateNode{msg}
 		return true, err
@@ -1614,7 +1856,7 @@ func _ClusterCommand_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto
 		if wire != proto.WireBytes {
 			return true, proto.ErrInternalBadWireType
 		}
-		msg := new(ClusterUpdateSegmentNodesCommand)
+		msg := new(ClusterCommandSegmentNodesUpdate)
 		err := b.DecodeMessage(msg)
 		m.Command = &ClusterCommand_UpdateSegmentNodes{msg}
 		return true, err
@@ -1622,17 +1864,17 @@ func _ClusterCommand_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto
 		if wire != proto.WireBytes {
 			return true, proto.ErrInternalBadWireType
 		}
-		msg := new(ClusterDeleteSegmentCommand)
+		msg := new(ClusterCommandSegmentDelete)
 		err := b.DecodeMessage(msg)
 		m.Command = &ClusterCommand_DeleteSegment{msg}
 		return true, err
-	case 10: // command.update_offset_commits
+	case 10: // command.update_consumer_group_offset_commits
 		if wire != proto.WireBytes {
 			return true, proto.ErrInternalBadWireType
 		}
-		msg := new(ClusterUpdateOffsetCommitsCommand)
+		msg := new(ClusterCommandConsumerGroupOffsetCommitsUpdate)
 		err := b.DecodeMessage(msg)
-		m.Command = &ClusterCommand_UpdateOffsetCommits{msg}
+		m.Command = &ClusterCommand_UpdateConsumerGroupOffsetCommits{msg}
 		return true, err
 	default:
 		return false, nil
@@ -1643,8 +1885,8 @@ func _ClusterCommand_OneofSizer(msg proto.Message) (n int) {
 	m := msg.(*ClusterCommand)
 	// command
 	switch x := m.Command.(type) {
-	case *ClusterCommand_ConfigureTopic:
-		s := proto.Size(x.ConfigureTopic)
+	case *ClusterCommand_CreateTopic:
+		s := proto.Size(x.CreateTopic)
 		n += 1 // tag and wire
 		n += proto.SizeVarint(uint64(s))
 		n += s
@@ -1653,8 +1895,8 @@ func _ClusterCommand_OneofSizer(msg proto.Message) (n int) {
 		n += 1 // tag and wire
 		n += proto.SizeVarint(uint64(s))
 		n += s
-	case *ClusterCommand_ConfigureConsumerGroup:
-		s := proto.Size(x.ConfigureConsumerGroup)
+	case *ClusterCommand_CreateConsumerGroup:
+		s := proto.Size(x.CreateConsumerGroup)
 		n += 1 // tag and wire
 		n += proto.SizeVarint(uint64(s))
 		n += s
@@ -1688,8 +1930,8 @@ func _ClusterCommand_OneofSizer(msg proto.Message) (n int) {
 		n += 1 // tag and wire
 		n += proto.SizeVarint(uint64(s))
 		n += s
-	case *ClusterCommand_UpdateOffsetCommits:
-		s := proto.Size(x.UpdateOffsetCommits)
+	case *ClusterCommand_UpdateConsumerGroupOffsetCommits:
+		s := proto.Size(x.UpdateConsumerGroupOffsetCommits)
 		n += 1 // tag and wire
 		n += proto.SizeVarint(uint64(s))
 		n += s
@@ -1710,17 +1952,21 @@ func init() {
 	proto.RegisterType((*ClusterSegment)(nil), "io.eventter.mq.ClusterSegment")
 	proto.RegisterType((*ClusterSegment_Nodes)(nil), "io.eventter.mq.ClusterSegment.Nodes")
 	proto.RegisterType((*ClusterNode)(nil), "io.eventter.mq.ClusterNode")
-	proto.RegisterType((*ClusterOpenSegmentCommand)(nil), "io.eventter.mq.ClusterOpenSegmentCommand")
-	proto.RegisterType((*ClusterCloseSegmentCommand)(nil), "io.eventter.mq.ClusterCloseSegmentCommand")
-	proto.RegisterType((*ClusterUpdateNodeCommand)(nil), "io.eventter.mq.ClusterUpdateNodeCommand")
-	proto.RegisterType((*ClusterUpdateSegmentNodesCommand)(nil), "io.eventter.mq.ClusterUpdateSegmentNodesCommand")
-	proto.RegisterType((*ClusterDeleteSegmentCommand)(nil), "io.eventter.mq.ClusterDeleteSegmentCommand")
-	proto.RegisterType((*ClusterUpdateOffsetCommitsCommand)(nil), "io.eventter.mq.ClusterUpdateOffsetCommitsCommand")
+	proto.RegisterType((*ClusterCommandTopicCreate)(nil), "io.eventter.mq.ClusterCommandTopicCreate")
+	proto.RegisterType((*ClusterCommandTopicDelete)(nil), "io.eventter.mq.ClusterCommandTopicDelete")
+	proto.RegisterType((*ClusterCommandConsumerGroupCreate)(nil), "io.eventter.mq.ClusterCommandConsumerGroupCreate")
+	proto.RegisterType((*ClusterCommandConsumerGroupDelete)(nil), "io.eventter.mq.ClusterCommandConsumerGroupDelete")
+	proto.RegisterType((*ClusterCommandSegmentOpen)(nil), "io.eventter.mq.ClusterCommandSegmentOpen")
+	proto.RegisterType((*ClusterCommandSegmentClose)(nil), "io.eventter.mq.ClusterCommandSegmentClose")
+	proto.RegisterType((*ClusterCommandNodeUpdate)(nil), "io.eventter.mq.ClusterCommandNodeUpdate")
+	proto.RegisterType((*ClusterCommandSegmentNodesUpdate)(nil), "io.eventter.mq.ClusterCommandSegmentNodesUpdate")
+	proto.RegisterType((*ClusterCommandSegmentDelete)(nil), "io.eventter.mq.ClusterCommandSegmentDelete")
+	proto.RegisterType((*ClusterCommandConsumerGroupOffsetCommitsUpdate)(nil), "io.eventter.mq.ClusterCommandConsumerGroupOffsetCommitsUpdate")
 	proto.RegisterType((*ClusterCommand)(nil), "io.eventter.mq.ClusterCommand")
 	proto.RegisterEnum("io.eventter.mq.ClusterSegment_Type", ClusterSegment_Type_name, ClusterSegment_Type_value)
 	proto.RegisterEnum("io.eventter.mq.ClusterNode_State", ClusterNode_State_name, ClusterNode_State_value)
-	proto.RegisterEnum("io.eventter.mq.ClusterUpdateSegmentNodesCommand_Which", ClusterUpdateSegmentNodesCommand_Which_name, ClusterUpdateSegmentNodesCommand_Which_value)
-	proto.RegisterEnum("io.eventter.mq.ClusterDeleteSegmentCommand_Which", ClusterDeleteSegmentCommand_Which_name, ClusterDeleteSegmentCommand_Which_value)
+	proto.RegisterEnum("io.eventter.mq.ClusterCommandSegmentNodesUpdate_Which", ClusterCommandSegmentNodesUpdate_Which_name, ClusterCommandSegmentNodesUpdate_Which_value)
+	proto.RegisterEnum("io.eventter.mq.ClusterCommandSegmentDelete_Which", ClusterCommandSegmentDelete_Which_name, ClusterCommandSegmentDelete_Which_value)
 }
 func (m *ClusterState) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
@@ -1944,6 +2190,14 @@ func (m *ClusterConsumerGroup) MarshalTo(dAtA []byte) (int, error) {
 			i += n
 		}
 	}
+	dAtA[i] = 0x2a
+	i++
+	i = encodeVarintClusterState(dAtA, i, uint64(github_com_gogo_protobuf_types.SizeOfStdTime(m.CreatedAt)))
+	n2, err := github_com_gogo_protobuf_types.StdTimeMarshalTo(m.CreatedAt, dAtA[i:])
+	if err != nil {
+		return 0, err
+	}
+	i += n2
 	return i, nil
 }
 
@@ -1969,11 +2223,11 @@ func (m *ClusterConsumerGroup_Binding) MarshalTo(dAtA []byte) (int, error) {
 		i += copy(dAtA[i:], m.TopicName)
 	}
 	if m.By != nil {
-		nn2, err := m.By.MarshalTo(dAtA[i:])
+		nn3, err := m.By.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += nn2
+		i += nn3
 	}
 	return i, nil
 }
@@ -1992,11 +2246,11 @@ func (m *ClusterConsumerGroup_Binding_HeadersAll) MarshalTo(dAtA []byte) (int, e
 		dAtA[i] = 0x1a
 		i++
 		i = encodeVarintClusterState(dAtA, i, uint64(m.HeadersAll.Size()))
-		n3, err := m.HeadersAll.MarshalTo(dAtA[i:])
+		n4, err := m.HeadersAll.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n3
+		i += n4
 	}
 	return i, nil
 }
@@ -2006,11 +2260,11 @@ func (m *ClusterConsumerGroup_Binding_HeadersAny) MarshalTo(dAtA []byte) (int, e
 		dAtA[i] = 0x22
 		i++
 		i = encodeVarintClusterState(dAtA, i, uint64(m.HeadersAny.Size()))
-		n4, err := m.HeadersAny.MarshalTo(dAtA[i:])
+		n5, err := m.HeadersAny.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n4
+		i += n5
 	}
 	return i, nil
 }
@@ -2065,11 +2319,11 @@ func (m *ClusterSegment) MarshalTo(dAtA []byte) (int, error) {
 	dAtA[i] = 0x12
 	i++
 	i = encodeVarintClusterState(dAtA, i, uint64(m.Owner.Size()))
-	n5, err := m.Owner.MarshalTo(dAtA[i:])
+	n6, err := m.Owner.MarshalTo(dAtA[i:])
 	if err != nil {
 		return 0, err
 	}
-	i += n5
+	i += n6
 	if m.Type != 0 {
 		dAtA[i] = 0x18
 		i++
@@ -2078,27 +2332,27 @@ func (m *ClusterSegment) MarshalTo(dAtA []byte) (int, error) {
 	dAtA[i] = 0x22
 	i++
 	i = encodeVarintClusterState(dAtA, i, uint64(github_com_gogo_protobuf_types.SizeOfStdTime(m.OpenedAt)))
-	n6, err := github_com_gogo_protobuf_types.StdTimeMarshalTo(m.OpenedAt, dAtA[i:])
-	if err != nil {
-		return 0, err
-	}
-	i += n6
-	dAtA[i] = 0x2a
-	i++
-	i = encodeVarintClusterState(dAtA, i, uint64(github_com_gogo_protobuf_types.SizeOfStdTime(m.ClosedAt)))
-	n7, err := github_com_gogo_protobuf_types.StdTimeMarshalTo(m.ClosedAt, dAtA[i:])
+	n7, err := github_com_gogo_protobuf_types.StdTimeMarshalTo(m.OpenedAt, dAtA[i:])
 	if err != nil {
 		return 0, err
 	}
 	i += n7
-	dAtA[i] = 0x32
+	dAtA[i] = 0x2a
 	i++
-	i = encodeVarintClusterState(dAtA, i, uint64(m.Nodes.Size()))
-	n8, err := m.Nodes.MarshalTo(dAtA[i:])
+	i = encodeVarintClusterState(dAtA, i, uint64(github_com_gogo_protobuf_types.SizeOfStdTime(m.ClosedAt)))
+	n8, err := github_com_gogo_protobuf_types.StdTimeMarshalTo(m.ClosedAt, dAtA[i:])
 	if err != nil {
 		return 0, err
 	}
 	i += n8
+	dAtA[i] = 0x32
+	i++
+	i = encodeVarintClusterState(dAtA, i, uint64(m.Nodes.Size()))
+	n9, err := m.Nodes.MarshalTo(dAtA[i:])
+	if err != nil {
+		return 0, err
+	}
+	i += n9
 	if m.Size_ != 0 {
 		dAtA[i] = 0x38
 		i++
@@ -2134,38 +2388,38 @@ func (m *ClusterSegment_Nodes) MarshalTo(dAtA []byte) (int, error) {
 		i = encodeVarintClusterState(dAtA, i, uint64(m.PrimaryNodeID))
 	}
 	if len(m.DoneNodeIDs) > 0 {
-		dAtA10 := make([]byte, len(m.DoneNodeIDs)*10)
-		var j9 int
+		dAtA11 := make([]byte, len(m.DoneNodeIDs)*10)
+		var j10 int
 		for _, num := range m.DoneNodeIDs {
 			for num >= 1<<7 {
-				dAtA10[j9] = uint8(uint64(num)&0x7f | 0x80)
+				dAtA11[j10] = uint8(uint64(num)&0x7f | 0x80)
 				num >>= 7
-				j9++
+				j10++
 			}
-			dAtA10[j9] = uint8(num)
-			j9++
+			dAtA11[j10] = uint8(num)
+			j10++
 		}
 		dAtA[i] = 0x12
 		i++
-		i = encodeVarintClusterState(dAtA, i, uint64(j9))
-		i += copy(dAtA[i:], dAtA10[:j9])
+		i = encodeVarintClusterState(dAtA, i, uint64(j10))
+		i += copy(dAtA[i:], dAtA11[:j10])
 	}
 	if len(m.ReplicatingNodeIDs) > 0 {
-		dAtA12 := make([]byte, len(m.ReplicatingNodeIDs)*10)
-		var j11 int
+		dAtA13 := make([]byte, len(m.ReplicatingNodeIDs)*10)
+		var j12 int
 		for _, num := range m.ReplicatingNodeIDs {
 			for num >= 1<<7 {
-				dAtA12[j11] = uint8(uint64(num)&0x7f | 0x80)
+				dAtA13[j12] = uint8(uint64(num)&0x7f | 0x80)
 				num >>= 7
-				j11++
+				j12++
 			}
-			dAtA12[j11] = uint8(num)
-			j11++
+			dAtA13[j12] = uint8(num)
+			j12++
 		}
 		dAtA[i] = 0x1a
 		i++
-		i = encodeVarintClusterState(dAtA, i, uint64(j11))
-		i += copy(dAtA[i:], dAtA12[:j11])
+		i = encodeVarintClusterState(dAtA, i, uint64(j12))
+		i += copy(dAtA[i:], dAtA13[:j12])
 	}
 	return i, nil
 }
@@ -2205,16 +2459,16 @@ func (m *ClusterNode) MarshalTo(dAtA []byte) (int, error) {
 		dAtA[i] = 0x22
 		i++
 		i = encodeVarintClusterState(dAtA, i, uint64(github_com_gogo_protobuf_types.SizeOfStdTime(*m.LastSeenAlive)))
-		n13, err := github_com_gogo_protobuf_types.StdTimeMarshalTo(*m.LastSeenAlive, dAtA[i:])
+		n14, err := github_com_gogo_protobuf_types.StdTimeMarshalTo(*m.LastSeenAlive, dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n13
+		i += n14
 	}
 	return i, nil
 }
 
-func (m *ClusterOpenSegmentCommand) Marshal() (dAtA []byte, err error) {
+func (m *ClusterCommandTopicCreate) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalTo(dAtA)
@@ -2224,7 +2478,135 @@ func (m *ClusterOpenSegmentCommand) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *ClusterOpenSegmentCommand) MarshalTo(dAtA []byte) (int, error) {
+func (m *ClusterCommandTopicCreate) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if len(m.Namespace) > 0 {
+		dAtA[i] = 0xa
+		i++
+		i = encodeVarintClusterState(dAtA, i, uint64(len(m.Namespace)))
+		i += copy(dAtA[i:], m.Namespace)
+	}
+	if m.Topic != nil {
+		dAtA[i] = 0x12
+		i++
+		i = encodeVarintClusterState(dAtA, i, uint64(m.Topic.Size()))
+		n15, err := m.Topic.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n15
+	}
+	return i, nil
+}
+
+func (m *ClusterCommandTopicDelete) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ClusterCommandTopicDelete) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if len(m.Namespace) > 0 {
+		dAtA[i] = 0xa
+		i++
+		i = encodeVarintClusterState(dAtA, i, uint64(len(m.Namespace)))
+		i += copy(dAtA[i:], m.Namespace)
+	}
+	if len(m.Name) > 0 {
+		dAtA[i] = 0x12
+		i++
+		i = encodeVarintClusterState(dAtA, i, uint64(len(m.Name)))
+		i += copy(dAtA[i:], m.Name)
+	}
+	return i, nil
+}
+
+func (m *ClusterCommandConsumerGroupCreate) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ClusterCommandConsumerGroupCreate) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if len(m.Namespace) > 0 {
+		dAtA[i] = 0xa
+		i++
+		i = encodeVarintClusterState(dAtA, i, uint64(len(m.Namespace)))
+		i += copy(dAtA[i:], m.Namespace)
+	}
+	if m.ConsumerGroup != nil {
+		dAtA[i] = 0x12
+		i++
+		i = encodeVarintClusterState(dAtA, i, uint64(m.ConsumerGroup.Size()))
+		n16, err := m.ConsumerGroup.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n16
+	}
+	return i, nil
+}
+
+func (m *ClusterCommandConsumerGroupDelete) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ClusterCommandConsumerGroupDelete) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if len(m.Namespace) > 0 {
+		dAtA[i] = 0xa
+		i++
+		i = encodeVarintClusterState(dAtA, i, uint64(len(m.Namespace)))
+		i += copy(dAtA[i:], m.Namespace)
+	}
+	if len(m.Name) > 0 {
+		dAtA[i] = 0x12
+		i++
+		i = encodeVarintClusterState(dAtA, i, uint64(len(m.Name)))
+		i += copy(dAtA[i:], m.Name)
+	}
+	return i, nil
+}
+
+func (m *ClusterCommandSegmentOpen) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ClusterCommandSegmentOpen) MarshalTo(dAtA []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
@@ -2237,11 +2619,11 @@ func (m *ClusterOpenSegmentCommand) MarshalTo(dAtA []byte) (int, error) {
 	dAtA[i] = 0x12
 	i++
 	i = encodeVarintClusterState(dAtA, i, uint64(m.Owner.Size()))
-	n14, err := m.Owner.MarshalTo(dAtA[i:])
+	n17, err := m.Owner.MarshalTo(dAtA[i:])
 	if err != nil {
 		return 0, err
 	}
-	i += n14
+	i += n17
 	if m.Type != 0 {
 		dAtA[i] = 0x18
 		i++
@@ -2250,37 +2632,37 @@ func (m *ClusterOpenSegmentCommand) MarshalTo(dAtA []byte) (int, error) {
 	dAtA[i] = 0x22
 	i++
 	i = encodeVarintClusterState(dAtA, i, uint64(github_com_gogo_protobuf_types.SizeOfStdTime(m.OpenedAt)))
-	n15, err := github_com_gogo_protobuf_types.StdTimeMarshalTo(m.OpenedAt, dAtA[i:])
+	n18, err := github_com_gogo_protobuf_types.StdTimeMarshalTo(m.OpenedAt, dAtA[i:])
 	if err != nil {
 		return 0, err
 	}
-	i += n15
+	i += n18
 	if m.PrimaryNodeID != 0 {
 		dAtA[i] = 0x28
 		i++
 		i = encodeVarintClusterState(dAtA, i, uint64(m.PrimaryNodeID))
 	}
 	if len(m.ReplicatingNodeIDs) > 0 {
-		dAtA17 := make([]byte, len(m.ReplicatingNodeIDs)*10)
-		var j16 int
+		dAtA20 := make([]byte, len(m.ReplicatingNodeIDs)*10)
+		var j19 int
 		for _, num := range m.ReplicatingNodeIDs {
 			for num >= 1<<7 {
-				dAtA17[j16] = uint8(uint64(num)&0x7f | 0x80)
+				dAtA20[j19] = uint8(uint64(num)&0x7f | 0x80)
 				num >>= 7
-				j16++
+				j19++
 			}
-			dAtA17[j16] = uint8(num)
-			j16++
+			dAtA20[j19] = uint8(num)
+			j19++
 		}
 		dAtA[i] = 0x32
 		i++
-		i = encodeVarintClusterState(dAtA, i, uint64(j16))
-		i += copy(dAtA[i:], dAtA17[:j16])
+		i = encodeVarintClusterState(dAtA, i, uint64(j19))
+		i += copy(dAtA[i:], dAtA20[:j19])
 	}
 	return i, nil
 }
 
-func (m *ClusterCloseSegmentCommand) Marshal() (dAtA []byte, err error) {
+func (m *ClusterCommandSegmentClose) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalTo(dAtA)
@@ -2290,7 +2672,7 @@ func (m *ClusterCloseSegmentCommand) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *ClusterCloseSegmentCommand) MarshalTo(dAtA []byte) (int, error) {
+func (m *ClusterCommandSegmentClose) MarshalTo(dAtA []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
@@ -2308,11 +2690,11 @@ func (m *ClusterCloseSegmentCommand) MarshalTo(dAtA []byte) (int, error) {
 	dAtA[i] = 0x22
 	i++
 	i = encodeVarintClusterState(dAtA, i, uint64(github_com_gogo_protobuf_types.SizeOfStdTime(m.ClosedAt)))
-	n18, err := github_com_gogo_protobuf_types.StdTimeMarshalTo(m.ClosedAt, dAtA[i:])
+	n21, err := github_com_gogo_protobuf_types.StdTimeMarshalTo(m.ClosedAt, dAtA[i:])
 	if err != nil {
 		return 0, err
 	}
-	i += n18
+	i += n21
 	if m.Size_ != 0 {
 		dAtA[i] = 0x28
 		i++
@@ -2327,7 +2709,7 @@ func (m *ClusterCloseSegmentCommand) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
-func (m *ClusterUpdateNodeCommand) Marshal() (dAtA []byte, err error) {
+func (m *ClusterCommandNodeUpdate) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalTo(dAtA)
@@ -2337,7 +2719,7 @@ func (m *ClusterUpdateNodeCommand) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *ClusterUpdateNodeCommand) MarshalTo(dAtA []byte) (int, error) {
+func (m *ClusterCommandNodeUpdate) MarshalTo(dAtA []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
@@ -2362,16 +2744,16 @@ func (m *ClusterUpdateNodeCommand) MarshalTo(dAtA []byte) (int, error) {
 		dAtA[i] = 0x22
 		i++
 		i = encodeVarintClusterState(dAtA, i, uint64(github_com_gogo_protobuf_types.SizeOfStdTime(*m.LastSeenAlive)))
-		n19, err := github_com_gogo_protobuf_types.StdTimeMarshalTo(*m.LastSeenAlive, dAtA[i:])
+		n22, err := github_com_gogo_protobuf_types.StdTimeMarshalTo(*m.LastSeenAlive, dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n19
+		i += n22
 	}
 	return i, nil
 }
 
-func (m *ClusterUpdateSegmentNodesCommand) Marshal() (dAtA []byte, err error) {
+func (m *ClusterCommandSegmentNodesUpdate) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalTo(dAtA)
@@ -2381,7 +2763,7 @@ func (m *ClusterUpdateSegmentNodesCommand) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *ClusterUpdateSegmentNodesCommand) MarshalTo(dAtA []byte) (int, error) {
+func (m *ClusterCommandSegmentNodesUpdate) MarshalTo(dAtA []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
@@ -2399,15 +2781,15 @@ func (m *ClusterUpdateSegmentNodesCommand) MarshalTo(dAtA []byte) (int, error) {
 	dAtA[i] = 0x1a
 	i++
 	i = encodeVarintClusterState(dAtA, i, uint64(m.Nodes.Size()))
-	n20, err := m.Nodes.MarshalTo(dAtA[i:])
+	n23, err := m.Nodes.MarshalTo(dAtA[i:])
 	if err != nil {
 		return 0, err
 	}
-	i += n20
+	i += n23
 	return i, nil
 }
 
-func (m *ClusterDeleteSegmentCommand) Marshal() (dAtA []byte, err error) {
+func (m *ClusterCommandSegmentDelete) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalTo(dAtA)
@@ -2417,7 +2799,7 @@ func (m *ClusterDeleteSegmentCommand) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *ClusterDeleteSegmentCommand) MarshalTo(dAtA []byte) (int, error) {
+func (m *ClusterCommandSegmentDelete) MarshalTo(dAtA []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
@@ -2435,7 +2817,7 @@ func (m *ClusterDeleteSegmentCommand) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
-func (m *ClusterUpdateOffsetCommitsCommand) Marshal() (dAtA []byte, err error) {
+func (m *ClusterCommandConsumerGroupOffsetCommitsUpdate) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalTo(dAtA)
@@ -2445,22 +2827,26 @@ func (m *ClusterUpdateOffsetCommitsCommand) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *ClusterUpdateOffsetCommitsCommand) MarshalTo(dAtA []byte) (int, error) {
+func (m *ClusterCommandConsumerGroupOffsetCommitsUpdate) MarshalTo(dAtA []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
 	_ = l
-	dAtA[i] = 0xa
-	i++
-	i = encodeVarintClusterState(dAtA, i, uint64(m.ConsumerGroup.Size()))
-	n21, err := m.ConsumerGroup.MarshalTo(dAtA[i:])
-	if err != nil {
-		return 0, err
+	if len(m.Namespace) > 0 {
+		dAtA[i] = 0xa
+		i++
+		i = encodeVarintClusterState(dAtA, i, uint64(len(m.Namespace)))
+		i += copy(dAtA[i:], m.Namespace)
 	}
-	i += n21
+	if len(m.Name) > 0 {
+		dAtA[i] = 0x12
+		i++
+		i = encodeVarintClusterState(dAtA, i, uint64(len(m.Name)))
+		i += copy(dAtA[i:], m.Name)
+	}
 	if len(m.OffsetCommits) > 0 {
 		for _, msg := range m.OffsetCommits {
-			dAtA[i] = 0x12
+			dAtA[i] = 0x1a
 			i++
 			i = encodeVarintClusterState(dAtA, i, uint64(msg.Size()))
 			n, err := msg.MarshalTo(dAtA[i:])
@@ -2489,26 +2875,26 @@ func (m *ClusterCommand) MarshalTo(dAtA []byte) (int, error) {
 	var l int
 	_ = l
 	if m.Command != nil {
-		nn22, err := m.Command.MarshalTo(dAtA[i:])
+		nn24, err := m.Command.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += nn22
+		i += nn24
 	}
 	return i, nil
 }
 
-func (m *ClusterCommand_ConfigureTopic) MarshalTo(dAtA []byte) (int, error) {
+func (m *ClusterCommand_CreateTopic) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
-	if m.ConfigureTopic != nil {
+	if m.CreateTopic != nil {
 		dAtA[i] = 0xa
 		i++
-		i = encodeVarintClusterState(dAtA, i, uint64(m.ConfigureTopic.Size()))
-		n23, err := m.ConfigureTopic.MarshalTo(dAtA[i:])
+		i = encodeVarintClusterState(dAtA, i, uint64(m.CreateTopic.Size()))
+		n25, err := m.CreateTopic.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n23
+		i += n25
 	}
 	return i, nil
 }
@@ -2518,25 +2904,25 @@ func (m *ClusterCommand_DeleteTopic) MarshalTo(dAtA []byte) (int, error) {
 		dAtA[i] = 0x12
 		i++
 		i = encodeVarintClusterState(dAtA, i, uint64(m.DeleteTopic.Size()))
-		n24, err := m.DeleteTopic.MarshalTo(dAtA[i:])
+		n26, err := m.DeleteTopic.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n24
+		i += n26
 	}
 	return i, nil
 }
-func (m *ClusterCommand_ConfigureConsumerGroup) MarshalTo(dAtA []byte) (int, error) {
+func (m *ClusterCommand_CreateConsumerGroup) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
-	if m.ConfigureConsumerGroup != nil {
+	if m.CreateConsumerGroup != nil {
 		dAtA[i] = 0x1a
 		i++
-		i = encodeVarintClusterState(dAtA, i, uint64(m.ConfigureConsumerGroup.Size()))
-		n25, err := m.ConfigureConsumerGroup.MarshalTo(dAtA[i:])
+		i = encodeVarintClusterState(dAtA, i, uint64(m.CreateConsumerGroup.Size()))
+		n27, err := m.CreateConsumerGroup.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n25
+		i += n27
 	}
 	return i, nil
 }
@@ -2546,11 +2932,11 @@ func (m *ClusterCommand_DeleteConsumerGroup) MarshalTo(dAtA []byte) (int, error)
 		dAtA[i] = 0x22
 		i++
 		i = encodeVarintClusterState(dAtA, i, uint64(m.DeleteConsumerGroup.Size()))
-		n26, err := m.DeleteConsumerGroup.MarshalTo(dAtA[i:])
+		n28, err := m.DeleteConsumerGroup.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n26
+		i += n28
 	}
 	return i, nil
 }
@@ -2560,11 +2946,11 @@ func (m *ClusterCommand_OpenSegment) MarshalTo(dAtA []byte) (int, error) {
 		dAtA[i] = 0x2a
 		i++
 		i = encodeVarintClusterState(dAtA, i, uint64(m.OpenSegment.Size()))
-		n27, err := m.OpenSegment.MarshalTo(dAtA[i:])
+		n29, err := m.OpenSegment.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n27
+		i += n29
 	}
 	return i, nil
 }
@@ -2574,11 +2960,11 @@ func (m *ClusterCommand_CloseSegment) MarshalTo(dAtA []byte) (int, error) {
 		dAtA[i] = 0x32
 		i++
 		i = encodeVarintClusterState(dAtA, i, uint64(m.CloseSegment.Size()))
-		n28, err := m.CloseSegment.MarshalTo(dAtA[i:])
+		n30, err := m.CloseSegment.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n28
+		i += n30
 	}
 	return i, nil
 }
@@ -2588,11 +2974,11 @@ func (m *ClusterCommand_UpdateNode) MarshalTo(dAtA []byte) (int, error) {
 		dAtA[i] = 0x3a
 		i++
 		i = encodeVarintClusterState(dAtA, i, uint64(m.UpdateNode.Size()))
-		n29, err := m.UpdateNode.MarshalTo(dAtA[i:])
+		n31, err := m.UpdateNode.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n29
+		i += n31
 	}
 	return i, nil
 }
@@ -2602,11 +2988,11 @@ func (m *ClusterCommand_UpdateSegmentNodes) MarshalTo(dAtA []byte) (int, error) 
 		dAtA[i] = 0x42
 		i++
 		i = encodeVarintClusterState(dAtA, i, uint64(m.UpdateSegmentNodes.Size()))
-		n30, err := m.UpdateSegmentNodes.MarshalTo(dAtA[i:])
+		n32, err := m.UpdateSegmentNodes.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n30
+		i += n32
 	}
 	return i, nil
 }
@@ -2616,25 +3002,25 @@ func (m *ClusterCommand_DeleteSegment) MarshalTo(dAtA []byte) (int, error) {
 		dAtA[i] = 0x4a
 		i++
 		i = encodeVarintClusterState(dAtA, i, uint64(m.DeleteSegment.Size()))
-		n31, err := m.DeleteSegment.MarshalTo(dAtA[i:])
+		n33, err := m.DeleteSegment.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n31
+		i += n33
 	}
 	return i, nil
 }
-func (m *ClusterCommand_UpdateOffsetCommits) MarshalTo(dAtA []byte) (int, error) {
+func (m *ClusterCommand_UpdateConsumerGroupOffsetCommits) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
-	if m.UpdateOffsetCommits != nil {
+	if m.UpdateConsumerGroupOffsetCommits != nil {
 		dAtA[i] = 0x52
 		i++
-		i = encodeVarintClusterState(dAtA, i, uint64(m.UpdateOffsetCommits.Size()))
-		n32, err := m.UpdateOffsetCommits.MarshalTo(dAtA[i:])
+		i = encodeVarintClusterState(dAtA, i, uint64(m.UpdateConsumerGroupOffsetCommits.Size()))
+		n34, err := m.UpdateConsumerGroupOffsetCommits.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n32
+		i += n34
 	}
 	return i, nil
 }
@@ -2749,6 +3135,8 @@ func (m *ClusterConsumerGroup) Size() (n int) {
 			n += 1 + l + sovClusterState(uint64(l))
 		}
 	}
+	l = github_com_gogo_protobuf_types.SizeOfStdTime(m.CreatedAt)
+	n += 1 + l + sovClusterState(uint64(l))
 	return n
 }
 
@@ -2872,7 +3260,63 @@ func (m *ClusterNode) Size() (n int) {
 	return n
 }
 
-func (m *ClusterOpenSegmentCommand) Size() (n int) {
+func (m *ClusterCommandTopicCreate) Size() (n int) {
+	var l int
+	_ = l
+	l = len(m.Namespace)
+	if l > 0 {
+		n += 1 + l + sovClusterState(uint64(l))
+	}
+	if m.Topic != nil {
+		l = m.Topic.Size()
+		n += 1 + l + sovClusterState(uint64(l))
+	}
+	return n
+}
+
+func (m *ClusterCommandTopicDelete) Size() (n int) {
+	var l int
+	_ = l
+	l = len(m.Namespace)
+	if l > 0 {
+		n += 1 + l + sovClusterState(uint64(l))
+	}
+	l = len(m.Name)
+	if l > 0 {
+		n += 1 + l + sovClusterState(uint64(l))
+	}
+	return n
+}
+
+func (m *ClusterCommandConsumerGroupCreate) Size() (n int) {
+	var l int
+	_ = l
+	l = len(m.Namespace)
+	if l > 0 {
+		n += 1 + l + sovClusterState(uint64(l))
+	}
+	if m.ConsumerGroup != nil {
+		l = m.ConsumerGroup.Size()
+		n += 1 + l + sovClusterState(uint64(l))
+	}
+	return n
+}
+
+func (m *ClusterCommandConsumerGroupDelete) Size() (n int) {
+	var l int
+	_ = l
+	l = len(m.Namespace)
+	if l > 0 {
+		n += 1 + l + sovClusterState(uint64(l))
+	}
+	l = len(m.Name)
+	if l > 0 {
+		n += 1 + l + sovClusterState(uint64(l))
+	}
+	return n
+}
+
+func (m *ClusterCommandSegmentOpen) Size() (n int) {
 	var l int
 	_ = l
 	if m.ID != 0 {
@@ -2898,7 +3342,7 @@ func (m *ClusterOpenSegmentCommand) Size() (n int) {
 	return n
 }
 
-func (m *ClusterCloseSegmentCommand) Size() (n int) {
+func (m *ClusterCommandSegmentClose) Size() (n int) {
 	var l int
 	_ = l
 	if m.ID != 0 {
@@ -2919,7 +3363,7 @@ func (m *ClusterCloseSegmentCommand) Size() (n int) {
 	return n
 }
 
-func (m *ClusterUpdateNodeCommand) Size() (n int) {
+func (m *ClusterCommandNodeUpdate) Size() (n int) {
 	var l int
 	_ = l
 	if m.ID != 0 {
@@ -2939,7 +3383,7 @@ func (m *ClusterUpdateNodeCommand) Size() (n int) {
 	return n
 }
 
-func (m *ClusterUpdateSegmentNodesCommand) Size() (n int) {
+func (m *ClusterCommandSegmentNodesUpdate) Size() (n int) {
 	var l int
 	_ = l
 	if m.ID != 0 {
@@ -2953,7 +3397,7 @@ func (m *ClusterUpdateSegmentNodesCommand) Size() (n int) {
 	return n
 }
 
-func (m *ClusterDeleteSegmentCommand) Size() (n int) {
+func (m *ClusterCommandSegmentDelete) Size() (n int) {
 	var l int
 	_ = l
 	if m.ID != 0 {
@@ -2965,11 +3409,17 @@ func (m *ClusterDeleteSegmentCommand) Size() (n int) {
 	return n
 }
 
-func (m *ClusterUpdateOffsetCommitsCommand) Size() (n int) {
+func (m *ClusterCommandConsumerGroupOffsetCommitsUpdate) Size() (n int) {
 	var l int
 	_ = l
-	l = m.ConsumerGroup.Size()
-	n += 1 + l + sovClusterState(uint64(l))
+	l = len(m.Namespace)
+	if l > 0 {
+		n += 1 + l + sovClusterState(uint64(l))
+	}
+	l = len(m.Name)
+	if l > 0 {
+		n += 1 + l + sovClusterState(uint64(l))
+	}
 	if len(m.OffsetCommits) > 0 {
 		for _, e := range m.OffsetCommits {
 			l = e.Size()
@@ -2988,11 +3438,11 @@ func (m *ClusterCommand) Size() (n int) {
 	return n
 }
 
-func (m *ClusterCommand_ConfigureTopic) Size() (n int) {
+func (m *ClusterCommand_CreateTopic) Size() (n int) {
 	var l int
 	_ = l
-	if m.ConfigureTopic != nil {
-		l = m.ConfigureTopic.Size()
+	if m.CreateTopic != nil {
+		l = m.CreateTopic.Size()
 		n += 1 + l + sovClusterState(uint64(l))
 	}
 	return n
@@ -3006,11 +3456,11 @@ func (m *ClusterCommand_DeleteTopic) Size() (n int) {
 	}
 	return n
 }
-func (m *ClusterCommand_ConfigureConsumerGroup) Size() (n int) {
+func (m *ClusterCommand_CreateConsumerGroup) Size() (n int) {
 	var l int
 	_ = l
-	if m.ConfigureConsumerGroup != nil {
-		l = m.ConfigureConsumerGroup.Size()
+	if m.CreateConsumerGroup != nil {
+		l = m.CreateConsumerGroup.Size()
 		n += 1 + l + sovClusterState(uint64(l))
 	}
 	return n
@@ -3069,11 +3519,11 @@ func (m *ClusterCommand_DeleteSegment) Size() (n int) {
 	}
 	return n
 }
-func (m *ClusterCommand_UpdateOffsetCommits) Size() (n int) {
+func (m *ClusterCommand_UpdateConsumerGroupOffsetCommits) Size() (n int) {
 	var l int
 	_ = l
-	if m.UpdateOffsetCommits != nil {
-		l = m.UpdateOffsetCommits.Size()
+	if m.UpdateConsumerGroupOffsetCommits != nil {
+		l = m.UpdateConsumerGroupOffsetCommits.Size()
 		n += 1 + l + sovClusterState(uint64(l))
 	}
 	return n
@@ -3757,6 +4207,36 @@ func (m *ClusterConsumerGroup) Unmarshal(dAtA []byte) error {
 			}
 			m.OffsetCommits = append(m.OffsetCommits, &ClusterConsumerGroup_OffsetCommit{})
 			if err := m.OffsetCommits[len(m.OffsetCommits)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field CreatedAt", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowClusterState
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthClusterState
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := github_com_gogo_protobuf_types.StdTimeUnmarshal(&m.CreatedAt, dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -4642,7 +5122,7 @@ func (m *ClusterNode) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *ClusterOpenSegmentCommand) Unmarshal(dAtA []byte) error {
+func (m *ClusterCommandTopicCreate) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -4665,10 +5145,450 @@ func (m *ClusterOpenSegmentCommand) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: ClusterOpenSegmentCommand: wiretype end group for non-group")
+			return fmt.Errorf("proto: ClusterCommandTopicCreate: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ClusterOpenSegmentCommand: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: ClusterCommandTopicCreate: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Namespace", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowClusterState
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthClusterState
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Namespace = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Topic", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowClusterState
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthClusterState
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Topic == nil {
+				m.Topic = &ClusterTopic{}
+			}
+			if err := m.Topic.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipClusterState(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthClusterState
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *ClusterCommandTopicDelete) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowClusterState
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ClusterCommandTopicDelete: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ClusterCommandTopicDelete: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Namespace", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowClusterState
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthClusterState
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Namespace = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Name", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowClusterState
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthClusterState
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Name = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipClusterState(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthClusterState
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *ClusterCommandConsumerGroupCreate) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowClusterState
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ClusterCommandConsumerGroupCreate: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ClusterCommandConsumerGroupCreate: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Namespace", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowClusterState
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthClusterState
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Namespace = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ConsumerGroup", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowClusterState
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthClusterState
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.ConsumerGroup == nil {
+				m.ConsumerGroup = &ClusterConsumerGroup{}
+			}
+			if err := m.ConsumerGroup.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipClusterState(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthClusterState
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *ClusterCommandConsumerGroupDelete) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowClusterState
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ClusterCommandConsumerGroupDelete: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ClusterCommandConsumerGroupDelete: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Namespace", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowClusterState
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthClusterState
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Namespace = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Name", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowClusterState
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthClusterState
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Name = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipClusterState(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthClusterState
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *ClusterCommandSegmentOpen) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowClusterState
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ClusterCommandSegmentOpen: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ClusterCommandSegmentOpen: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -4871,7 +5791,7 @@ func (m *ClusterOpenSegmentCommand) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *ClusterCloseSegmentCommand) Unmarshal(dAtA []byte) error {
+func (m *ClusterCommandSegmentClose) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -4894,10 +5814,10 @@ func (m *ClusterCloseSegmentCommand) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: ClusterCloseSegmentCommand: wiretype end group for non-group")
+			return fmt.Errorf("proto: ClusterCommandSegmentClose: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ClusterCloseSegmentCommand: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: ClusterCommandSegmentClose: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -5039,7 +5959,7 @@ func (m *ClusterCloseSegmentCommand) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *ClusterUpdateNodeCommand) Unmarshal(dAtA []byte) error {
+func (m *ClusterCommandNodeUpdate) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -5062,10 +5982,10 @@ func (m *ClusterUpdateNodeCommand) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: ClusterUpdateNodeCommand: wiretype end group for non-group")
+			return fmt.Errorf("proto: ClusterCommandNodeUpdate: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ClusterUpdateNodeCommand: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: ClusterCommandNodeUpdate: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -5189,7 +6109,7 @@ func (m *ClusterUpdateNodeCommand) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *ClusterUpdateSegmentNodesCommand) Unmarshal(dAtA []byte) error {
+func (m *ClusterCommandSegmentNodesUpdate) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -5212,10 +6132,10 @@ func (m *ClusterUpdateSegmentNodesCommand) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: ClusterUpdateSegmentNodesCommand: wiretype end group for non-group")
+			return fmt.Errorf("proto: ClusterCommandSegmentNodesUpdate: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ClusterUpdateSegmentNodesCommand: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: ClusterCommandSegmentNodesUpdate: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -5251,7 +6171,7 @@ func (m *ClusterUpdateSegmentNodesCommand) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.Which |= (ClusterUpdateSegmentNodesCommand_Which(b) & 0x7F) << shift
+				m.Which |= (ClusterCommandSegmentNodesUpdate_Which(b) & 0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -5307,7 +6227,7 @@ func (m *ClusterUpdateSegmentNodesCommand) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *ClusterDeleteSegmentCommand) Unmarshal(dAtA []byte) error {
+func (m *ClusterCommandSegmentDelete) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -5330,10 +6250,10 @@ func (m *ClusterDeleteSegmentCommand) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: ClusterDeleteSegmentCommand: wiretype end group for non-group")
+			return fmt.Errorf("proto: ClusterCommandSegmentDelete: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ClusterDeleteSegmentCommand: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: ClusterCommandSegmentDelete: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -5369,7 +6289,7 @@ func (m *ClusterDeleteSegmentCommand) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.Which |= (ClusterDeleteSegmentCommand_Which(b) & 0x7F) << shift
+				m.Which |= (ClusterCommandSegmentDelete_Which(b) & 0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -5395,7 +6315,7 @@ func (m *ClusterDeleteSegmentCommand) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *ClusterUpdateOffsetCommitsCommand) Unmarshal(dAtA []byte) error {
+func (m *ClusterCommandConsumerGroupOffsetCommitsUpdate) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -5418,17 +6338,17 @@ func (m *ClusterUpdateOffsetCommitsCommand) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: ClusterUpdateOffsetCommitsCommand: wiretype end group for non-group")
+			return fmt.Errorf("proto: ClusterCommandConsumerGroupOffsetCommitsUpdate: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ClusterUpdateOffsetCommitsCommand: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: ClusterCommandConsumerGroupOffsetCommitsUpdate: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ConsumerGroup", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Namespace", wireType)
 			}
-			var msglen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowClusterState
@@ -5438,23 +6358,51 @@ func (m *ClusterUpdateOffsetCommitsCommand) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				stringLen |= (uint64(b) & 0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if msglen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthClusterState
 			}
-			postIndex := iNdEx + msglen
+			postIndex := iNdEx + intStringLen
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.ConsumerGroup.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
+			m.Namespace = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Name", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowClusterState
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthClusterState
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Name = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field OffsetCommits", wireType)
 			}
@@ -5537,7 +6485,7 @@ func (m *ClusterCommand) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ConfigureTopic", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field CreateTopic", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -5561,11 +6509,11 @@ func (m *ClusterCommand) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			v := &client.ConfigureTopicRequest{}
+			v := &ClusterCommandTopicCreate{}
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Command = &ClusterCommand_ConfigureTopic{v}
+			m.Command = &ClusterCommand_CreateTopic{v}
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
@@ -5593,7 +6541,7 @@ func (m *ClusterCommand) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			v := &client.DeleteTopicRequest{}
+			v := &ClusterCommandTopicDelete{}
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -5601,7 +6549,7 @@ func (m *ClusterCommand) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ConfigureConsumerGroup", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field CreateConsumerGroup", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -5625,11 +6573,11 @@ func (m *ClusterCommand) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			v := &client.ConfigureConsumerGroupRequest{}
+			v := &ClusterCommandConsumerGroupCreate{}
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Command = &ClusterCommand_ConfigureConsumerGroup{v}
+			m.Command = &ClusterCommand_CreateConsumerGroup{v}
 			iNdEx = postIndex
 		case 4:
 			if wireType != 2 {
@@ -5657,7 +6605,7 @@ func (m *ClusterCommand) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			v := &client.DeleteConsumerGroupRequest{}
+			v := &ClusterCommandConsumerGroupDelete{}
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -5689,7 +6637,7 @@ func (m *ClusterCommand) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			v := &ClusterOpenSegmentCommand{}
+			v := &ClusterCommandSegmentOpen{}
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -5721,7 +6669,7 @@ func (m *ClusterCommand) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			v := &ClusterCloseSegmentCommand{}
+			v := &ClusterCommandSegmentClose{}
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -5753,7 +6701,7 @@ func (m *ClusterCommand) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			v := &ClusterUpdateNodeCommand{}
+			v := &ClusterCommandNodeUpdate{}
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -5785,7 +6733,7 @@ func (m *ClusterCommand) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			v := &ClusterUpdateSegmentNodesCommand{}
+			v := &ClusterCommandSegmentNodesUpdate{}
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -5817,7 +6765,7 @@ func (m *ClusterCommand) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			v := &ClusterDeleteSegmentCommand{}
+			v := &ClusterCommandSegmentDelete{}
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -5825,7 +6773,7 @@ func (m *ClusterCommand) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 10:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field UpdateOffsetCommits", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field UpdateConsumerGroupOffsetCommits", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -5849,11 +6797,11 @@ func (m *ClusterCommand) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			v := &ClusterUpdateOffsetCommitsCommand{}
+			v := &ClusterCommandConsumerGroupOffsetCommitsUpdate{}
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Command = &ClusterCommand_UpdateOffsetCommits{v}
+			m.Command = &ClusterCommand_UpdateConsumerGroupOffsetCommits{v}
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -5981,104 +6929,110 @@ var (
 	ErrIntOverflowClusterState   = fmt.Errorf("proto: integer overflow")
 )
 
-func init() { proto.RegisterFile("cluster_state.proto", fileDescriptor_cluster_state_2c80663b564ff5a3) }
+func init() { proto.RegisterFile("cluster_state.proto", fileDescriptor_cluster_state_44c6ec2b64aa39f9) }
 
-var fileDescriptor_cluster_state_2c80663b564ff5a3 = []byte{
-	// 1523 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xdc, 0x57, 0x4b, 0x73, 0x1b, 0x45,
-	0x10, 0xd6, 0xca, 0x92, 0x6c, 0xb5, 0x1e, 0x56, 0x26, 0x8e, 0x51, 0x94, 0xc4, 0x72, 0x04, 0x54,
-	0x19, 0x48, 0xe4, 0xd8, 0xa1, 0x48, 0x25, 0xa7, 0xe8, 0xe1, 0xd8, 0x26, 0x8e, 0x65, 0x46, 0x4e,
-	0xa0, 0xb8, 0x88, 0xf5, 0xee, 0x58, 0xde, 0x42, 0xda, 0x55, 0x76, 0x76, 0x13, 0xc4, 0x99, 0x23,
-	0x87, 0x1c, 0x73, 0xe1, 0x17, 0xf0, 0x27, 0xe0, 0x96, 0x9c, 0x80, 0x3f, 0x20, 0x52, 0xe2, 0x44,
-	0x71, 0xe0, 0x2f, 0x50, 0xf3, 0xd8, 0x87, 0x64, 0xc9, 0x51, 0x52, 0x1c, 0x28, 0x4e, 0x3b, 0x8f,
-	0xee, 0x6f, 0xba, 0x7b, 0xba, 0xbf, 0xe9, 0x85, 0xf3, 0x5a, 0xc7, 0xa5, 0x0e, 0xb1, 0x5b, 0xd4,
-	0x51, 0x1d, 0x52, 0xee, 0xd9, 0x96, 0x63, 0xa1, 0xac, 0x61, 0x95, 0xc9, 0x13, 0x62, 0x3a, 0x0e,
-	0xb1, 0xcb, 0xdd, 0xc7, 0x85, 0xf3, 0x5a, 0xc7, 0x20, 0xa6, 0xb3, 0x2e, 0x3e, 0x42, 0xa8, 0xb0,
-	0xd4, 0xb6, 0xda, 0x16, 0x1f, 0xae, 0xb3, 0x91, 0x5c, 0x5d, 0x69, 0x5b, 0x56, 0xbb, 0x43, 0xd6,
-	0xf9, 0xec, 0xc8, 0x3d, 0x5e, 0xd7, 0x5d, 0x5b, 0x75, 0x0c, 0xcb, 0x94, 0xfb, 0x97, 0xc7, 0xf7,
-	0xa9, 0x63, 0xbb, 0x9a, 0x87, 0x59, 0x1c, 0xdf, 0x75, 0x8c, 0x2e, 0xa1, 0x8e, 0xda, 0xed, 0x09,
-	0x81, 0xd2, 0x5f, 0x51, 0x48, 0xd7, 0x84, 0xc5, 0x4d, 0x66, 0x30, 0x5a, 0x82, 0xb8, 0x61, 0xea,
-	0xe4, 0x9b, 0xbc, 0xb2, 0xaa, 0xac, 0xc5, 0xb0, 0x98, 0xa0, 0x2a, 0x20, 0xcd, 0xb5, 0x6d, 0x62,
-	0x3a, 0x2d, 0x4a, 0xda, 0x5d, 0xf6, 0x35, 0xf4, 0x7c, 0x94, 0x89, 0x54, 0x97, 0x86, 0x83, 0x62,
-	0xae, 0x26, 0x76, 0x9b, 0x62, 0x73, 0xb7, 0x8e, 0x73, 0xda, 0xe8, 0x8a, 0x8e, 0xee, 0x02, 0x98,
-	0x6a, 0x97, 0xd0, 0x9e, 0xaa, 0x11, 0x9a, 0x9f, 0x5b, 0x9d, 0x5b, 0x4b, 0x6d, 0xae, 0x96, 0x47,
-	0x23, 0x53, 0x96, 0xb6, 0xec, 0x7b, 0x82, 0x38, 0xa4, 0x83, 0x6a, 0x90, 0xb1, 0x7a, 0xc4, 0xf4,
-	0x4c, 0xa0, 0xf9, 0x18, 0x07, 0x59, 0x99, 0x02, 0x22, 0x8f, 0xc6, 0x69, 0xa6, 0x24, 0x27, 0x14,
-	0x6d, 0xc3, 0xa2, 0xd6, 0xb1, 0x28, 0xd1, 0x03, 0x98, 0xf8, 0x4c, 0x30, 0x59, 0xa1, 0xe6, 0x03,
-	0x6d, 0x40, 0xdc, 0xb4, 0x74, 0x42, 0xf3, 0x09, 0xae, 0x7e, 0x69, 0x9a, 0x2b, 0x96, 0x4e, 0xb0,
-	0x90, 0x2c, 0xfd, 0xa8, 0x40, 0x6e, 0xdc, 0x43, 0x84, 0x20, 0xc6, 0x7c, 0xe4, 0x01, 0x4f, 0x62,
-	0x3e, 0x46, 0x1f, 0x43, 0xc2, 0xb1, 0x7a, 0x86, 0x46, 0xf3, 0x51, 0x0e, 0x7e, 0x79, 0x0a, 0xf8,
-	0x21, 0x13, 0xc2, 0x52, 0x16, 0x3d, 0x80, 0x45, 0xcd, 0x32, 0xa9, 0xdb, 0x25, 0x76, 0xab, 0x6d,
-	0x5b, 0x6e, 0xcf, 0x0b, 0xf3, 0x7b, 0x53, 0xd4, 0x6b, 0x52, 0x7a, 0x9b, 0x09, 0xe3, 0xac, 0x16,
-	0x9e, 0xd2, 0xd2, 0x4f, 0x8a, 0x9f, 0x1b, 0xfc, 0x9c, 0x89, 0x96, 0x22, 0x88, 0x39, 0xfd, 0x1e,
-	0xe1, 0xb9, 0x90, 0xc4, 0x7c, 0x8c, 0x96, 0x21, 0x41, 0x4f, 0x54, 0x5b, 0x67, 0xc7, 0x2b, 0x6b,
-	0x19, 0x2c, 0x67, 0xe8, 0x3a, 0x20, 0x9b, 0xf4, 0x3a, 0x86, 0xc6, 0x13, 0xb8, 0x75, 0xac, 0x6a,
-	0x8e, 0x65, 0xe7, 0x63, 0x5c, 0xe6, 0x5c, 0x68, 0xe7, 0x1e, 0xdf, 0x40, 0x15, 0x48, 0xda, 0xc4,
-	0x21, 0x26, 0x5b, 0xca, 0xc7, 0x57, 0x95, 0xb5, 0xd4, 0xe6, 0xc5, 0xb2, 0x48, 0xe8, 0xb2, 0x97,
-	0xd0, 0xe5, 0xba, 0x2c, 0x87, 0xea, 0xc2, 0x8b, 0x41, 0x31, 0xf2, 0xfc, 0xf7, 0xa2, 0x82, 0x03,
-	0xad, 0xd2, 0x77, 0x31, 0x58, 0x9a, 0xe4, 0xeb, 0x44, 0x57, 0x76, 0x60, 0xe1, 0xc8, 0x30, 0x75,
-	0xc3, 0x6c, 0x7b, 0x61, 0xbf, 0x36, 0x4b, 0xdc, 0xca, 0x55, 0xa1, 0x84, 0x7d, 0x6d, 0x86, 0x4e,
-	0x8d, 0x6f, 0x89, 0x74, 0x9f, 0x8f, 0xd1, 0x17, 0x90, 0xb5, 0x8e, 0x8f, 0x29, 0x71, 0x5a, 0x9a,
-	0xd5, 0xed, 0x1a, 0x7e, 0xf6, 0x6e, 0xcc, 0x74, 0x46, 0x83, 0xab, 0xd6, 0xb8, 0x26, 0xce, 0x58,
-	0xa1, 0x19, 0x2d, 0xbc, 0x54, 0x60, 0x5e, 0xda, 0x80, 0xae, 0x00, 0xf0, 0x64, 0x68, 0x85, 0xbc,
-	0x4b, 0xf2, 0x15, 0x96, 0x70, 0xe8, 0x2a, 0xa4, 0x6c, 0xcb, 0x75, 0x0c, 0xb3, 0xdd, 0xfa, 0x9a,
-	0xf4, 0xc5, 0xa5, 0xed, 0x44, 0x30, 0xc8, 0xc5, 0xfb, 0xa4, 0x8f, 0xee, 0x40, 0xea, 0x84, 0xa8,
-	0x3a, 0xb1, 0x69, 0x4b, 0xed, 0x74, 0xb8, 0x0b, 0xa9, 0xcd, 0x77, 0x4e, 0xc5, 0xbd, 0xc9, 0x69,
-	0x86, 0xe9, 0x4a, 0xe9, 0x4a, 0xa7, 0x33, 0xa2, 0x6b, 0xf6, 0xf9, 0xcd, 0xce, 0xa6, 0x6b, 0xf6,
-	0xab, 0x31, 0x88, 0x1e, 0xf5, 0x0b, 0x87, 0x90, 0x0e, 0xbb, 0x8a, 0xae, 0x01, 0x84, 0x08, 0x87,
-	0x73, 0x52, 0x35, 0x33, 0x1c, 0x14, 0x93, 0x01, 0xd3, 0x24, 0xa9, 0x4f, 0x31, 0xcb, 0x90, 0x10,
-	0xa1, 0xe1, 0x9e, 0xcd, 0x61, 0x39, 0x2b, 0x7d, 0x1f, 0x87, 0xec, 0x68, 0x35, 0xa3, 0x65, 0x88,
-	0xfa, 0x80, 0x89, 0xe1, 0xa0, 0x18, 0xdd, 0xad, 0xe3, 0xa8, 0xa1, 0xa3, 0xdb, 0x10, 0xb7, 0x9e,
-	0x9a, 0xc4, 0xe6, 0x08, 0xa9, 0xcd, 0x2b, 0xe3, 0xb7, 0xe3, 0xd7, 0x2d, 0x1b, 0x54, 0x63, 0x2c,
-	0xe9, 0xb0, 0xd0, 0x40, 0xb7, 0x64, 0x29, 0xb0, 0x90, 0x65, 0x37, 0xdf, 0x3d, 0x9b, 0x4e, 0xca,
-	0x87, 0xfd, 0x1e, 0x91, 0xf5, 0x52, 0x81, 0x24, 0xa3, 0x28, 0xa2, 0xb7, 0x54, 0x47, 0x06, 0xad,
-	0x70, 0x2a, 0x68, 0x87, 0x1e, 0x73, 0x8b, 0x4c, 0x7f, 0xc6, 0x32, 0x7d, 0x41, 0xa8, 0x55, 0x1c,
-	0x06, 0x21, 0x59, 0x4d, 0x75, 0x64, 0xad, 0xcc, 0x08, 0x21, 0xd4, 0x2a, 0x0e, 0xba, 0x1b, 0xf0,
-	0x99, 0x72, 0x06, 0x67, 0x78, 0xf6, 0x33, 0x5e, 0xa3, 0x5e, 0x00, 0xb8, 0xa2, 0x9f, 0xf6, 0xf3,
-	0x3c, 0xf8, 0x22, 0xed, 0xd9, 0xda, 0x89, 0xba, 0x91, 0x5f, 0x58, 0x55, 0xd6, 0xd2, 0x98, 0x8f,
-	0x0b, 0x3f, 0x2b, 0x10, 0xe7, 0xea, 0xe8, 0x36, 0x2c, 0xf6, 0x6c, 0xa3, 0xab, 0xda, 0xfd, 0x16,
-	0x83, 0x08, 0xee, 0xf8, 0xdc, 0x70, 0x50, 0xcc, 0x1c, 0x88, 0x2d, 0x26, 0xba, 0x5b, 0xc7, 0x99,
-	0x5e, 0x68, 0xaa, 0xa3, 0x9b, 0x90, 0xd1, 0x2d, 0x93, 0x78, 0x7a, 0xa2, 0x64, 0x63, 0xd5, 0xc5,
-	0xe1, 0xa0, 0x98, 0xaa, 0x5b, 0x26, 0x11, 0x5a, 0x14, 0xa7, 0x74, 0x6f, 0xa2, 0x53, 0xb4, 0x03,
-	0x4b, 0x3e, 0xcf, 0x98, 0xed, 0x40, 0x77, 0x8e, 0xeb, 0x2e, 0x0f, 0x07, 0x45, 0x84, 0x83, 0x7d,
-	0x0f, 0x02, 0xd9, 0x63, 0x6b, 0x3a, 0x2d, 0xdd, 0x81, 0x18, 0xbb, 0x41, 0x94, 0x82, 0xf9, 0xdd,
-	0xfd, 0x47, 0x95, 0xbd, 0xdd, 0x7a, 0x2e, 0x82, 0x92, 0x10, 0x3f, 0x6c, 0x1c, 0xec, 0xd6, 0x72,
-	0x0a, 0x2a, 0xc0, 0x72, 0xad, 0xb1, 0xdf, 0x7c, 0xf8, 0x60, 0x0b, 0xb7, 0xb6, 0x71, 0xe3, 0xe1,
-	0x41, 0xab, 0x71, 0xef, 0x5e, 0x73, 0xeb, 0xb0, 0x99, 0x8b, 0x96, 0x5e, 0x29, 0x90, 0x0a, 0xbd,
-	0x0e, 0x53, 0x73, 0x31, 0x0f, 0xf3, 0xaa, 0xae, 0xdb, 0x84, 0x52, 0x49, 0xaf, 0xde, 0x14, 0xdd,
-	0x82, 0x38, 0xef, 0x2f, 0x64, 0xae, 0x5d, 0x3d, 0xe3, 0xed, 0x29, 0xf3, 0x77, 0x1d, 0x0b, 0x79,
-	0xb4, 0x03, 0x8b, 0x1d, 0x95, 0xb2, 0x57, 0x9c, 0x98, 0x2d, 0xb5, 0x63, 0x3c, 0x21, 0x33, 0x24,
-	0x5c, 0x8c, 0x67, 0x4a, 0x86, 0x29, 0x36, 0x09, 0x31, 0x2b, 0x4c, 0xad, 0x74, 0x19, 0xe2, 0xa2,
-	0x63, 0x58, 0x80, 0x58, 0x7d, 0xab, 0x22, 0xdd, 0xaf, 0xec, 0xed, 0x3e, 0xda, 0xca, 0x29, 0xa5,
-	0xbf, 0xa3, 0x70, 0x51, 0x1a, 0xd1, 0x08, 0x5e, 0x5f, 0x56, 0xd4, 0xaa, 0xa9, 0xff, 0xdf, 0x8a,
-	0x6f, 0x42, 0x16, 0xc7, 0x67, 0xcc, 0xe2, 0x69, 0x09, 0x99, 0x78, 0xe3, 0x84, 0xfc, 0x4d, 0x81,
-	0x82, 0xf7, 0x74, 0xb0, 0x92, 0x9e, 0x31, 0xe4, 0x37, 0x20, 0x1d, 0x2e, 0x23, 0xd9, 0xd3, 0x65,
-	0x87, 0x83, 0x22, 0x04, 0x55, 0x84, 0x21, 0x28, 0xa2, 0x51, 0xaa, 0x89, 0xbd, 0x15, 0xd5, 0x78,
-	0x44, 0x11, 0x9f, 0x40, 0x14, 0x89, 0x80, 0x28, 0x4a, 0xbf, 0x28, 0x90, 0x97, 0x3e, 0x3d, 0xec,
-	0xe9, 0xaa, 0xc3, 0x4d, 0x78, 0x9d, 0x47, 0xff, 0xe9, 0xaa, 0xf9, 0x53, 0x81, 0xd5, 0x11, 0x8f,
-	0xe4, 0x35, 0x71, 0x3a, 0x7c, 0x9d, 0x67, 0x7b, 0x10, 0x7f, 0x7a, 0x62, 0x68, 0x27, 0xdc, 0xaf,
-	0xec, 0xe6, 0x27, 0x53, 0xec, 0x9f, 0x0a, 0x5c, 0xfe, 0x9c, 0x69, 0x63, 0x01, 0x12, 0xf0, 0xfd,
-	0xdc, 0x5b, 0xf2, 0x7d, 0xe9, 0x0a, 0xc4, 0x39, 0x22, 0xa3, 0x80, 0xc6, 0xc1, 0xd6, 0x7e, 0x2e,
-	0x82, 0x00, 0x12, 0xb5, 0xbd, 0x46, 0x73, 0xab, 0x9e, 0x53, 0x4a, 0x3f, 0x28, 0x70, 0x49, 0x82,
-	0xd4, 0x49, 0x87, 0x38, 0xb3, 0xa6, 0xe4, 0xf6, 0xa8, 0x9b, 0xd3, 0x1a, 0xa4, 0x49, 0x98, 0x23,
-	0x1e, 0xbe, 0xce, 0xbe, 0x97, 0x0a, 0x5c, 0x1d, 0x09, 0x59, 0xb8, 0xf3, 0xf0, 0x2f, 0xe3, 0x53,
-	0xc8, 0x8e, 0x36, 0xd5, 0xdc, 0xe2, 0x19, 0xc9, 0x29, 0x33, 0xd2, 0x52, 0x4f, 0xe8, 0x01, 0xa3,
-	0xff, 0x4e, 0x0f, 0x58, 0x7a, 0x3e, 0xef, 0x77, 0x38, 0x9e, 0xe1, 0x07, 0xfc, 0x6f, 0xe0, 0xd8,
-	0x68, 0xbb, 0x36, 0x69, 0xf1, 0x16, 0x50, 0x5a, 0xfe, 0xfe, 0xa9, 0xd3, 0x3c, 0x31, 0xf1, 0x3b,
-	0x41, 0x1e, 0xbb, 0x84, 0xb2, 0xf6, 0x2c, 0xab, 0x8d, 0x6c, 0xa0, 0x6d, 0x48, 0xeb, 0x3c, 0xe8,
-	0x12, 0x4e, 0xb0, 0x74, 0x69, 0x1c, 0x4e, 0x5c, 0xcc, 0x18, 0x56, 0x4a, 0x0f, 0x56, 0x91, 0x01,
-	0xf9, 0xc0, 0xb4, 0xb1, 0xe8, 0x8a, 0x6c, 0xbc, 0x3e, 0xd5, 0xc6, 0xd1, 0x7f, 0x16, 0x1f, 0x7f,
-	0x59, 0x9b, 0x28, 0x80, 0xbe, 0x82, 0x0b, 0xd2, 0xe6, 0xb1, 0x73, 0x44, 0x01, 0x7f, 0x38, 0xd9,
-	0xf8, 0x29, 0x87, 0x9c, 0xd7, 0x4f, 0xef, 0xa2, 0x7d, 0x48, 0x87, 0xff, 0x4a, 0x65, 0xf7, 0xf5,
-	0xc1, 0x94, 0x2b, 0x3d, 0xfd, 0x1a, 0xb2, 0xe0, 0x84, 0xfe, 0x50, 0xd1, 0x67, 0x90, 0xe1, 0x44,
-	0xe9, 0x03, 0x26, 0x26, 0x5b, 0x3a, 0x9d, 0xec, 0x77, 0x22, 0x38, 0xad, 0x85, 0x96, 0xd1, 0x7d,
-	0x48, 0xb9, 0x3c, 0xc3, 0x39, 0xcd, 0xf3, 0xfe, 0x2c, 0xb5, 0xb9, 0x76, 0x26, 0x7d, 0x84, 0x98,
-	0x96, 0x35, 0xea, 0xae, 0xbf, 0x88, 0x74, 0x58, 0x92, 0x60, 0x5e, 0x67, 0x2e, 0x68, 0x64, 0x81,
-	0xa3, 0xde, 0x78, 0x53, 0x52, 0xda, 0x89, 0x60, 0xe4, 0x9e, 0xda, 0x44, 0x87, 0x90, 0x95, 0xf7,
-	0xe6, 0x85, 0x21, 0xc9, 0xf1, 0x3f, 0x7a, 0x03, 0x36, 0xd8, 0x89, 0xe0, 0x8c, 0x1e, 0x5e, 0x47,
-	0x6d, 0xb8, 0x20, 0x6d, 0x1f, 0xab, 0x43, 0xe0, 0xe0, 0x1b, 0x67, 0x1a, 0x3f, 0x89, 0x1e, 0x58,
-	0x52, 0xb8, 0xa7, 0x77, 0xab, 0x49, 0x98, 0xd7, 0x84, 0x44, 0x75, 0xe9, 0xc5, 0x70, 0x45, 0xf9,
-	0x75, 0xb8, 0xa2, 0xbc, 0x1a, 0xae, 0x28, 0xcf, 0xfe, 0x58, 0x89, 0x7c, 0x19, 0xed, 0x3e, 0x3e,
-	0x4a, 0xf0, 0x17, 0xe3, 0xe6, 0x3f, 0x01, 0x00, 0x00, 0xff, 0xff, 0xea, 0x7d, 0x99, 0xee, 0x30,
-	0x12, 0x00, 0x00,
+var fileDescriptor_cluster_state_44c6ec2b64aa39f9 = []byte{
+	// 1619 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xdc, 0x58, 0xcd, 0x72, 0x1b, 0x5b,
+	0x11, 0xd6, 0xc8, 0x23, 0x59, 0x6a, 0xfd, 0x58, 0xf7, 0xd8, 0xd7, 0xe8, 0xfa, 0x3a, 0x96, 0x3d,
+	0xdc, 0x85, 0xef, 0xe5, 0x22, 0xc7, 0x0a, 0x45, 0x2a, 0x2c, 0xa8, 0xe8, 0xc7, 0xb1, 0x54, 0xb1,
+	0x2d, 0x73, 0x24, 0x07, 0x8a, 0xcd, 0xd4, 0x78, 0xe6, 0x58, 0x9e, 0x42, 0x9a, 0x51, 0x66, 0x46,
+	0x09, 0xe2, 0x21, 0xa8, 0x54, 0xb1, 0xe1, 0x19, 0xe0, 0x15, 0x58, 0xc0, 0x2e, 0xa9, 0xa2, 0x0a,
+	0x78, 0x01, 0x91, 0x12, 0x4b, 0x16, 0xec, 0x58, 0x53, 0xe7, 0x67, 0xa4, 0x19, 0x45, 0x52, 0xa4,
+	0x14, 0x1b, 0x58, 0xe9, 0xfc, 0x74, 0x7f, 0xa7, 0xbb, 0x4f, 0xf7, 0xd7, 0x67, 0x04, 0xdb, 0x7a,
+	0x77, 0xe0, 0x7a, 0xc4, 0x51, 0x5d, 0x4f, 0xf3, 0x48, 0xb1, 0xef, 0xd8, 0x9e, 0x8d, 0xb2, 0xa6,
+	0x5d, 0x24, 0xaf, 0x88, 0xe5, 0x79, 0xc4, 0x29, 0xf6, 0x5e, 0xee, 0x6d, 0xeb, 0x5d, 0x93, 0x58,
+	0xde, 0x09, 0xff, 0xe1, 0x42, 0x7b, 0x3b, 0x1d, 0xbb, 0x63, 0xb3, 0xe1, 0x09, 0x1d, 0x89, 0xd5,
+	0x83, 0x8e, 0x6d, 0x77, 0xba, 0xe4, 0x84, 0xcd, 0x6e, 0x07, 0x77, 0x27, 0xc6, 0xc0, 0xd1, 0x3c,
+	0xd3, 0xb6, 0xc4, 0xfe, 0xfe, 0xec, 0xbe, 0xeb, 0x39, 0x03, 0xdd, 0xc7, 0x2c, 0xcc, 0xee, 0x7a,
+	0x66, 0x8f, 0xb8, 0x9e, 0xd6, 0xeb, 0x73, 0x01, 0xe5, 0x9f, 0x51, 0x48, 0x57, 0xb9, 0xc5, 0x2d,
+	0x6a, 0x30, 0xda, 0x81, 0x98, 0x69, 0x19, 0xe4, 0x97, 0x79, 0xe9, 0x50, 0x3a, 0x96, 0x31, 0x9f,
+	0xa0, 0x0a, 0x20, 0x7d, 0xe0, 0x38, 0xc4, 0xf2, 0x54, 0x97, 0x74, 0x7a, 0xf4, 0xd7, 0x34, 0xf2,
+	0x51, 0x2a, 0x52, 0xd9, 0x19, 0x8f, 0x0a, 0xb9, 0x2a, 0xdf, 0x6d, 0xf1, 0xcd, 0x46, 0x0d, 0xe7,
+	0xf4, 0xf0, 0x8a, 0x81, 0x9e, 0x02, 0x58, 0x5a, 0x8f, 0xb8, 0x7d, 0x4d, 0x27, 0x6e, 0x7e, 0xe3,
+	0x70, 0xe3, 0x38, 0x55, 0x3a, 0x2c, 0x86, 0x23, 0x53, 0x14, 0xb6, 0x5c, 0xf9, 0x82, 0x38, 0xa0,
+	0x83, 0xaa, 0x90, 0xb1, 0xfb, 0xc4, 0xf2, 0x4d, 0x70, 0xf3, 0x32, 0x03, 0x39, 0x58, 0x00, 0x22,
+	0x8e, 0xc6, 0x69, 0xaa, 0x24, 0x26, 0x2e, 0x3a, 0x87, 0x2d, 0xbd, 0x6b, 0xbb, 0xc4, 0x98, 0xc2,
+	0xc4, 0x56, 0x82, 0xc9, 0x72, 0xb5, 0x09, 0xd0, 0x29, 0xc4, 0x2c, 0xdb, 0x20, 0x6e, 0x3e, 0xce,
+	0xd4, 0xbf, 0x5c, 0xe4, 0x8a, 0x6d, 0x10, 0xcc, 0x25, 0x95, 0xdf, 0x4b, 0x90, 0x9b, 0xf5, 0x10,
+	0x21, 0x90, 0xa9, 0x8f, 0x2c, 0xe0, 0x49, 0xcc, 0xc6, 0xe8, 0x07, 0x10, 0xf7, 0xec, 0xbe, 0xa9,
+	0xbb, 0xf9, 0x28, 0x03, 0xdf, 0x5f, 0x00, 0xde, 0xa6, 0x42, 0x58, 0xc8, 0xa2, 0x4b, 0xd8, 0xd2,
+	0x6d, 0xcb, 0x1d, 0xf4, 0x88, 0xa3, 0x76, 0x1c, 0x7b, 0xd0, 0xf7, 0xc3, 0xfc, 0xd5, 0x02, 0xf5,
+	0xaa, 0x90, 0x3e, 0xa7, 0xc2, 0x38, 0xab, 0x07, 0xa7, 0xae, 0xf2, 0x47, 0x69, 0x92, 0x1b, 0xec,
+	0x9c, 0xb9, 0x96, 0x22, 0x90, 0xbd, 0x61, 0x9f, 0xb0, 0x5c, 0x48, 0x62, 0x36, 0x46, 0xbb, 0x10,
+	0x77, 0xef, 0x35, 0xc7, 0xa0, 0xc7, 0x4b, 0xc7, 0x19, 0x2c, 0x66, 0xe8, 0xfb, 0x80, 0x1c, 0xd2,
+	0xef, 0x9a, 0x3a, 0x4b, 0x60, 0xf5, 0x4e, 0xd3, 0x3d, 0xdb, 0xc9, 0xcb, 0x4c, 0xe6, 0xb3, 0xc0,
+	0xce, 0x33, 0xb6, 0x81, 0xca, 0x90, 0x74, 0x88, 0x47, 0x2c, 0xba, 0x94, 0x8f, 0x1d, 0x4a, 0xc7,
+	0xa9, 0xd2, 0x17, 0x45, 0x9e, 0xd0, 0x45, 0x3f, 0xa1, 0x8b, 0x35, 0x51, 0x0e, 0x95, 0xc4, 0xdb,
+	0x51, 0x21, 0xf2, 0xdb, 0xbf, 0x17, 0x24, 0x3c, 0xd5, 0x52, 0xde, 0xc9, 0xb0, 0x33, 0xcf, 0xd7,
+	0xb9, 0xae, 0xd4, 0x21, 0x71, 0x6b, 0x5a, 0x86, 0x69, 0x75, 0xfc, 0xb0, 0x7f, 0xbb, 0x4a, 0xdc,
+	0x8a, 0x15, 0xae, 0x84, 0x27, 0xda, 0x14, 0xdd, 0x35, 0x7f, 0x45, 0x84, 0xfb, 0x6c, 0x8c, 0x7e,
+	0x06, 0x59, 0xfb, 0xee, 0xce, 0x25, 0x9e, 0xaa, 0xdb, 0xbd, 0x9e, 0x39, 0xc9, 0xde, 0xd3, 0x95,
+	0xce, 0x68, 0x32, 0xd5, 0x2a, 0xd3, 0xc4, 0x19, 0x3b, 0x30, 0xa3, 0x65, 0x01, 0xba, 0x43, 0x34,
+	0x8f, 0x18, 0xaa, 0xe6, 0x89, 0x40, 0xed, 0x7d, 0x10, 0xa8, 0xb6, 0x5f, 0xf9, 0x3c, 0x52, 0x6f,
+	0x58, 0xa4, 0x84, 0x5e, 0xd9, 0xdb, 0x7b, 0x27, 0xc1, 0xa6, 0x70, 0x04, 0x3d, 0x00, 0x60, 0x19,
+	0xa5, 0x06, 0x42, 0x94, 0x64, 0x2b, 0x34, 0x6b, 0xd1, 0x11, 0xa4, 0x1c, 0x7b, 0xe0, 0x99, 0x56,
+	0x47, 0xfd, 0x05, 0x19, 0xf2, 0x9b, 0xaf, 0x47, 0x30, 0x88, 0xc5, 0xe7, 0x64, 0x88, 0x7e, 0x04,
+	0xa9, 0x7b, 0xa2, 0x19, 0xc4, 0x71, 0x55, 0xad, 0xdb, 0x65, 0x71, 0x48, 0x95, 0xbe, 0xf3, 0x81,
+	0x4d, 0x2d, 0xc6, 0x55, 0x54, 0x57, 0x48, 0x97, 0xbb, 0xdd, 0x90, 0xae, 0x35, 0x64, 0xe9, 0xb1,
+	0x9a, 0xae, 0x35, 0xac, 0xc8, 0x10, 0xbd, 0x1d, 0xee, 0xb5, 0x21, 0x1d, 0x8c, 0x17, 0xfa, 0x16,
+	0x20, 0xc0, 0x5a, 0x8c, 0xd8, 0x2a, 0x99, 0xf1, 0xa8, 0x90, 0x9c, 0xd2, 0x55, 0xd2, 0x9d, 0xf0,
+	0xd4, 0x2e, 0xc4, 0x79, 0x7c, 0x99, 0x67, 0x1b, 0x58, 0xcc, 0x94, 0xdf, 0xc4, 0x20, 0x1b, 0xa6,
+	0x04, 0xb4, 0x0b, 0xd1, 0x09, 0x60, 0x7c, 0x3c, 0x2a, 0x44, 0x1b, 0x35, 0x1c, 0x35, 0x0d, 0xf4,
+	0x04, 0x62, 0xf6, 0x6b, 0x8b, 0x38, 0x0c, 0x21, 0x55, 0x7a, 0x30, 0x7b, 0xc5, 0x93, 0xe2, 0xa7,
+	0x83, 0x8a, 0x4c, 0xef, 0x03, 0x73, 0x0d, 0xf4, 0x58, 0xd4, 0x13, 0x0d, 0x59, 0xb6, 0xf4, 0xdd,
+	0xe5, 0x9c, 0x54, 0x6c, 0x0f, 0xfb, 0x44, 0x14, 0x5d, 0x19, 0x92, 0x94, 0xe7, 0x78, 0x12, 0xc8,
+	0x6b, 0x24, 0x41, 0x82, 0xab, 0x95, 0x3d, 0x0a, 0x21, 0xa8, 0x71, 0xcd, 0x3c, 0x4a, 0x70, 0xb5,
+	0xb2, 0x87, 0x9e, 0x4e, 0x49, 0x51, 0x5a, 0x42, 0x3c, 0xbe, 0xfd, 0x94, 0x1c, 0x5d, 0x3f, 0x00,
+	0x4c, 0x71, 0x52, 0x3b, 0x9b, 0x2c, 0xf8, 0xbc, 0x76, 0xe8, 0xda, 0xbd, 0x76, 0x9a, 0x4f, 0x1c,
+	0x4a, 0xc7, 0x69, 0xcc, 0xc6, 0x7b, 0x7f, 0x92, 0x20, 0xc6, 0xd4, 0xd1, 0x13, 0xd8, 0xea, 0x3b,
+	0x66, 0x4f, 0x73, 0x86, 0x2a, 0x85, 0x98, 0xde, 0xf1, 0x67, 0xe3, 0x51, 0x21, 0x73, 0xcd, 0xb7,
+	0xa8, 0x68, 0xa3, 0x86, 0x33, 0xfd, 0xc0, 0xd4, 0x40, 0x8f, 0x20, 0x63, 0xd8, 0x16, 0xf1, 0xf5,
+	0x78, 0xdd, 0xcb, 0x95, 0xad, 0xf1, 0xa8, 0x90, 0xaa, 0xd9, 0x16, 0xe1, 0x5a, 0x2e, 0x4e, 0x19,
+	0xfe, 0xc4, 0x70, 0x51, 0x1d, 0x76, 0x26, 0x64, 0x65, 0x75, 0xa6, 0xba, 0x1b, 0x4c, 0x77, 0x77,
+	0x3c, 0x2a, 0x20, 0x3c, 0xdd, 0xf7, 0x21, 0x90, 0x33, 0xb3, 0x66, 0xb8, 0x4a, 0x19, 0x64, 0x7a,
+	0x83, 0x28, 0x05, 0x9b, 0x8d, 0xab, 0x17, 0xe5, 0x8b, 0x46, 0x2d, 0x17, 0x41, 0x49, 0x88, 0xb5,
+	0x9b, 0xd7, 0x8d, 0x6a, 0x4e, 0x42, 0x47, 0xf0, 0xa0, 0xda, 0xbc, 0x6a, 0xdd, 0x5c, 0x9e, 0x61,
+	0xf5, 0x1c, 0x37, 0x6f, 0xae, 0xd5, 0xe6, 0xb3, 0x67, 0xad, 0xb3, 0xb6, 0x5a, 0x6d, 0x5e, 0x5e,
+	0x36, 0xda, 0xad, 0x5c, 0x54, 0x79, 0x2f, 0x41, 0x2a, 0xd0, 0x69, 0x16, 0xa6, 0x64, 0x1e, 0x36,
+	0x35, 0xc3, 0x70, 0x88, 0xeb, 0x0a, 0xaa, 0xf6, 0xa7, 0xe8, 0x31, 0xc4, 0xd8, 0x5b, 0x45, 0xa4,
+	0xdc, 0xd1, 0x92, 0x3e, 0x56, 0x64, 0x6f, 0x04, 0xcc, 0xe5, 0x51, 0x1d, 0xb6, 0xba, 0x9a, 0x4b,
+	0x5f, 0x04, 0xc4, 0x52, 0xb5, 0xae, 0xf9, 0x8a, 0xac, 0x90, 0x77, 0x32, 0x4b, 0x98, 0x0c, 0x55,
+	0x6c, 0x11, 0x62, 0x95, 0xa9, 0x9a, 0xb2, 0x0f, 0x31, 0xfe, 0xfa, 0x48, 0x80, 0x5c, 0x3b, 0x2b,
+	0x8b, 0x28, 0x94, 0x2f, 0x1a, 0x2f, 0xce, 0x72, 0x92, 0xd2, 0x83, 0x2f, 0x26, 0x9c, 0xd8, 0xeb,
+	0x69, 0x96, 0xc1, 0xba, 0x51, 0x95, 0x51, 0x17, 0xda, 0x87, 0xe4, 0xe4, 0x85, 0xe0, 0x53, 0xd5,
+	0x64, 0x01, 0x95, 0x20, 0xc6, 0x78, 0x4b, 0x14, 0xe2, 0xf2, 0x36, 0xca, 0x45, 0x95, 0xcb, 0xb9,
+	0xc7, 0xd5, 0x48, 0x97, 0x7c, 0xf4, 0x38, 0xbf, 0xab, 0x44, 0xa7, 0x5d, 0x45, 0xf9, 0xb5, 0x04,
+	0x47, 0x61, 0xbc, 0x10, 0xb3, 0xaf, 0xe4, 0xc6, 0x73, 0xc8, 0x86, 0x1b, 0xbb, 0xf0, 0x67, 0xb5,
+	0xbe, 0x9e, 0x09, 0xf5, 0x75, 0xe5, 0x66, 0xa9, 0x3d, 0x9f, 0xec, 0xe7, 0xbf, 0xa2, 0xb3, 0x71,
+	0x13, 0x45, 0xde, 0xec, 0x13, 0xeb, 0xff, 0x8d, 0x29, 0xe7, 0x50, 0x4e, 0x6c, 0x45, 0xca, 0x59,
+	0xc4, 0x1e, 0xf1, 0xb5, 0xd9, 0xe3, 0x6f, 0x12, 0xec, 0xcd, 0x8d, 0x78, 0x95, 0xb2, 0xf1, 0xc2,
+	0x90, 0x3f, 0x84, 0x74, 0x90, 0xf3, 0xc4, 0x2b, 0x3e, 0x3b, 0x1e, 0x15, 0x60, 0x4a, 0x79, 0x18,
+	0xa6, 0x8c, 0x17, 0xee, 0x0b, 0xf2, 0x27, 0xf5, 0x05, 0x9f, 0xd5, 0x63, 0x73, 0x58, 0x3d, 0x3e,
+	0x65, 0x75, 0xe5, 0x2f, 0x12, 0xe4, 0xc3, 0x3e, 0x51, 0x1b, 0x6e, 0xfa, 0x06, 0x2d, 0x92, 0xff,
+	0x49, 0x6e, 0xfb, 0xb7, 0x04, 0x87, 0x73, 0x6f, 0x89, 0x35, 0xaf, 0x8f, 0x78, 0x76, 0x01, 0xb1,
+	0xd7, 0xf7, 0xa6, 0x7e, 0xcf, 0xfc, 0xca, 0x96, 0x7e, 0xb8, 0xb0, 0xde, 0x17, 0x00, 0x17, 0x7f,
+	0x4a, 0xb5, 0x31, 0x07, 0x99, 0x36, 0xe7, 0x8d, 0x4f, 0x6c, 0xce, 0xca, 0x37, 0x10, 0x63, 0x88,
+	0xe1, 0x8e, 0x95, 0x00, 0xb9, 0x79, 0x7d, 0x76, 0x95, 0x93, 0x10, 0x40, 0xbc, 0x7a, 0xd1, 0x6c,
+	0x9d, 0xd5, 0x72, 0x51, 0xe5, 0x77, 0x12, 0x7c, 0x39, 0xd7, 0x3e, 0x41, 0x31, 0x8b, 0x7c, 0x3e,
+	0x0f, 0xfb, 0x7c, 0xba, 0x92, 0xcf, 0x1c, 0x33, 0xe4, 0xee, 0x5a, 0xc6, 0xfe, 0x41, 0x82, 0xe2,
+	0x12, 0x56, 0x0c, 0x3e, 0x27, 0xfd, 0x3b, 0x5b, 0x9b, 0x22, 0xe7, 0x7c, 0x02, 0x6c, 0xfc, 0x77,
+	0x3e, 0x01, 0x94, 0x3f, 0x6f, 0x4e, 0xde, 0xa6, 0xc2, 0x7c, 0x74, 0x05, 0x69, 0xfe, 0xba, 0x57,
+	0x79, 0x07, 0x94, 0xd8, 0x9d, 0x7f, 0xbd, 0x3c, 0x9a, 0x81, 0xce, 0x5a, 0x8f, 0xe0, 0x14, 0x07,
+	0xe0, 0x1f, 0x7f, 0x57, 0x90, 0x36, 0x58, 0x90, 0xd5, 0x60, 0x47, 0x5d, 0x05, 0x8f, 0xdf, 0x0d,
+	0xc5, 0xe3, 0x00, 0x1c, 0xaf, 0x03, 0x9f, 0x0b, 0xfb, 0x66, 0x5a, 0x1b, 0x4f, 0xce, 0x8f, 0x5c,
+	0xfb, 0x9c, 0x1e, 0x5a, 0x8f, 0xe0, 0x6d, 0x8e, 0x18, 0xfe, 0xd4, 0xeb, 0xc0, 0xe7, 0xc2, 0xf0,
+	0x99, 0x83, 0xe4, 0xb5, 0x0f, 0x9a, 0x78, 0xb2, 0xcd, 0x11, 0xc3, 0x07, 0x5d, 0x41, 0x3a, 0xf8,
+	0xf7, 0x84, 0x78, 0x41, 0x7f, 0xbd, 0x52, 0xfe, 0xd2, 0x26, 0x49, 0x23, 0x14, 0xf8, 0xab, 0x02,
+	0xfd, 0x04, 0x32, 0x8c, 0x3f, 0x27, 0x80, 0xfc, 0x4d, 0xfd, 0xcd, 0x4a, 0x80, 0xac, 0x07, 0xd4,
+	0x23, 0x38, 0xcd, 0x20, 0x7c, 0xc8, 0xe7, 0x90, 0x1a, 0xb0, 0xec, 0x65, 0xec, 0xcf, 0xde, 0xd8,
+	0xa9, 0xd2, 0xf1, 0x72, 0xc0, 0x29, 0x01, 0xd3, 0x8f, 0x2d, 0xae, 0xce, 0x9e, 0x9a, 0x06, 0xec,
+	0x08, 0x30, 0xff, 0xeb, 0x8a, 0xb3, 0x4b, 0x82, 0xa1, 0x3e, 0x5c, 0x97, 0xab, 0xea, 0x11, 0x8c,
+	0x38, 0x5e, 0x70, 0x0f, 0xb5, 0x21, 0x2b, 0xae, 0xcf, 0x0f, 0x43, 0x92, 0xe1, 0x7f, 0x6f, 0x0d,
+	0x5e, 0xa8, 0x47, 0x70, 0x86, 0x83, 0xf8, 0x81, 0x78, 0x23, 0xc1, 0x57, 0xc2, 0xf8, 0x70, 0x56,
+	0xa8, 0x33, 0x15, 0x0a, 0xec, 0xb0, 0x1f, 0xaf, 0x91, 0x24, 0x73, 0xb8, 0xa2, 0x1e, 0xc1, 0x87,
+	0xfc, 0xb4, 0xc5, 0x92, 0x95, 0x24, 0x6c, 0xea, 0x1c, 0xae, 0xb2, 0xf3, 0x76, 0x7c, 0x20, 0xfd,
+	0x75, 0x7c, 0x20, 0xbd, 0x1f, 0x1f, 0x48, 0x6f, 0xfe, 0x71, 0x10, 0xf9, 0x79, 0xb4, 0xf7, 0xf2,
+	0x36, 0xce, 0x5a, 0xce, 0xa3, 0xff, 0x04, 0x00, 0x00, 0xff, 0xff, 0xaf, 0x12, 0x72, 0xbd, 0x63,
+	0x14, 0x00, 0x00,
 }

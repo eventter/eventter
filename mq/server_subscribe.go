@@ -26,7 +26,7 @@ func (s *Server) Subscribe(request *client.SubscribeRequest, stream client.Event
 	}
 
 	offsetSegments := state.FindOpenSegmentsFor(
-		ClusterSegment_CONSUMER_GROUP_OFFSETS,
+		ClusterSegment_CONSUMER_GROUP_OFFSET_COMMITS,
 		request.ConsumerGroup.Namespace,
 		request.ConsumerGroup.Name,
 	)
