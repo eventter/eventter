@@ -122,10 +122,6 @@ message DeleteConsumerGroupRequest {
     // If true and node is not a leader, request will fail.
     bool leader_only = 99;
     NamespaceName consumer_group = 1 [(gogoproto.nullable) = false];
-    // Only if there are no consumers.
-    bool if_unused = 2;
-    // Only if there are no pending messages.
-    bool if_empty = 3;
 }
 
 message DeleteConsumerGroupResponse {

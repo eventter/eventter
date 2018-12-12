@@ -41,14 +41,6 @@ func (s *Server) DeleteConsumerGroup(ctx context.Context, request *client.Delete
 		return nil, errors.Errorf(notFoundErrorFormat, entityConsumerGroup, request.ConsumerGroup.Namespace, request.ConsumerGroup.Name)
 	}
 
-	if request.IfEmpty {
-		return nil, errors.New("if empty not implemented")
-	}
-
-	if request.IfUnused {
-		return nil, errors.New("if unused not implemented")
-	}
-
 	index, err := s.Apply(request)
 	if err != nil {
 		return nil, err

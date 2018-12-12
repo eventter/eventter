@@ -43,8 +43,6 @@ func deleteConsumerGroupCmd() *cobra.Command {
 	}
 
 	cmd.Flags().StringVarP(&request.ConsumerGroup.Namespace, "namespace", "n", defaultNamespace, "Consumer group namespace.")
-	cmd.Flags().BoolVar(&request.IfUnused, "if-unused", false, "If unused.")
-	cmd.Flags().BoolVar(&request.IfEmpty, "if-empty", false, "If empty.")
 
 	return cmd
 }
