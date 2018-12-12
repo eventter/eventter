@@ -236,8 +236,16 @@ service EventterMQ {
         };
     }
 
-    rpc Ack (AckRequest) returns (AckResponse);
+    rpc Ack (AckRequest) returns (AckResponse) {
+        option (google.api.http) = {
+            post: "/_ack"
+        };
+    }
 
-    rpc Nack (NackRequest) returns (NackResponse);
+    rpc Nack (NackRequest) returns (NackResponse) {
+        option (google.api.http) = {
+            post: "/_nack"
+        };
+    }
 
 }
