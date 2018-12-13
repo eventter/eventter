@@ -64,9 +64,9 @@ func (s *Server) txSegmentClose(state *ClusterState, request *SegmentCloseReques
 			Size_:      request.Size_,
 			Sha1:       request.Sha1,
 		}
-		if cmd.ClosedAt.Before(oldSegment.OpenedAt) {
+		if cmd.ClosedAt.Before(oldSegment.CreatedAt) {
 			// possible clock skew => move closed time to opened time
-			cmd.ClosedAt = oldSegment.OpenedAt
+			cmd.ClosedAt = oldSegment.CreatedAt
 		}
 		_, err := s.Apply(cmd)
 		if err != nil {

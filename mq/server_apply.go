@@ -22,8 +22,8 @@ func (s *Server) Apply(cmd interface{}) (index uint64, err error) {
 		outer.Command = &ClusterCommand_DeleteConsumerGroup{cmd}
 	case *ClusterCommandConsumerGroupOffsetCommitsUpdate:
 		outer.Command = &ClusterCommand_UpdateConsumerGroupOffsetCommits{cmd}
-	case *ClusterCommandSegmentOpen:
-		outer.Command = &ClusterCommand_OpenSegment{cmd}
+	case *ClusterCommandSegmentCreate:
+		outer.Command = &ClusterCommand_CreateSegment{cmd}
 	case *ClusterCommandSegmentClose:
 		outer.Command = &ClusterCommand_CloseSegment{cmd}
 	case *ClusterCommandSegmentNodesUpdate:

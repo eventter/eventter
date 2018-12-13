@@ -67,7 +67,7 @@ func (s *Server) taskConsumeSegmentRemote(ctx context.Context, state *ClusterSta
 			}
 		}
 
-		messageTime := segment.OpenedAt.Add(time.Duration(publishing.Delta))
+		messageTime := segment.CreatedAt.Add(time.Duration(publishing.Delta))
 
 		if messageMatches(publishing.Message, messageTime, topic, consumerGroup) {
 			err = group.Offer(&consumers.Message{

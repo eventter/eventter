@@ -63,7 +63,7 @@ message ClusterSegment {
         TOPIC = 1;
         CONSUMER_GROUP_OFFSET_COMMITS = 2;
     }
-    google.protobuf.Timestamp opened_at = 4 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
+    google.protobuf.Timestamp created_at = 4 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
     google.protobuf.Timestamp closed_at = 5 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
     Nodes nodes = 6 [(gogoproto.nullable) = false];
     message Nodes {
@@ -114,7 +114,7 @@ message ClusterCommandConsumerGroupDelete {
     string name = 2;
 }
 
-message ClusterCommandSegmentOpen {
+message ClusterCommandSegmentCreate {
     uint64 id = 1 [(gogoproto.customname) = "ID"];
     NamespaceName owner = 2 [(gogoproto.nullable) = false];
     ClusterSegment.Type type = 3;
@@ -174,10 +174,10 @@ message ClusterCommand {
         ClusterCommandConsumerGroupCreate create_consumer_group = 30;
         ClusterCommandConsumerGroupDelete delete_consumer_group = 31;
         ClusterCommandConsumerGroupOffsetCommitsUpdate update_consumer_group_offset_commits = 32;
-        ClusterCommandSegmentOpen open_segment = 40;
-        ClusterCommandSegmentClose close_segment = 41;
-        ClusterCommandSegmentNodesUpdate update_segment_nodes = 42;
-        ClusterCommandSegmentDelete delete_segment = 43;
+        ClusterCommandSegmentCreate create_segment = 40;
+        ClusterCommandSegmentDelete delete_segment = 41;
+        ClusterCommandSegmentClose close_segment = 42;
+        ClusterCommandSegmentNodesUpdate update_segment_nodes = 43;
         ClusterCommandNodeUpdate update_node = 50;
     }
 }

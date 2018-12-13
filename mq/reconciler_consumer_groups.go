@@ -55,7 +55,7 @@ func (r *Reconciler) reconcileConsumerGroupOffsetCommitsSegment(state *ClusterSt
 		return
 	}
 
-	_, err := r.delegate.Apply(&ClusterCommandSegmentOpen{
+	_, err := r.delegate.Apply(&ClusterCommandSegmentCreate{
 		ID: r.delegate.NextSegmentID(),
 		Owner: client.NamespaceName{
 			Namespace: namespace.Name,

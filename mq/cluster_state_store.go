@@ -64,8 +64,8 @@ func (s *ClusterStateStore) Do(index uint64, cmd *ClusterCommand) {
 				next = state.doDeleteConsumerGroup(cmd.DeleteConsumerGroup)
 			case *ClusterCommand_UpdateConsumerGroupOffsetCommits:
 				next = state.doUpdateOffsetCommits(cmd.UpdateConsumerGroupOffsetCommits)
-			case *ClusterCommand_OpenSegment:
-				next = state.doOpenSegment(cmd.OpenSegment)
+			case *ClusterCommand_CreateSegment:
+				next = state.doOpenSegment(cmd.CreateSegment)
 			case *ClusterCommand_CloseSegment:
 				next = state.doCloseSegment(cmd.CloseSegment)
 			case *ClusterCommand_UpdateSegmentNodes:

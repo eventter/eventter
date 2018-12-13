@@ -96,7 +96,7 @@ func (s *Server) Publish(ctx context.Context, request *client.PublishRequest) (*
 
 		publishing := Publishing{
 			Message: request.Message,
-			Delta:   int64(time.Now().Sub(segment.OpenedAt)),
+			Delta:   int64(time.Now().Sub(segment.CreatedAt)),
 		}
 
 		// possible clock skew => move time to segment open time

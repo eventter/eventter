@@ -116,7 +116,7 @@ func (s *Server) txSegmentOpen(state *ClusterState, primaryNodeID uint64, owner 
 
 	// b) create segment
 	segmentID := s.clusterState.NextSegmentID()
-	cmd := &ClusterCommandSegmentOpen{
+	cmd := &ClusterCommandSegmentCreate{
 		ID:                 segmentID,
 		Owner:              owner,
 		Type:               segmentType,

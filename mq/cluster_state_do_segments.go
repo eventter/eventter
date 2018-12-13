@@ -4,7 +4,7 @@ import (
 	"sort"
 )
 
-func (s *ClusterState) doOpenSegment(cmd *ClusterCommandSegmentOpen) *ClusterState {
+func (s *ClusterState) doOpenSegment(cmd *ClusterCommandSegmentCreate) *ClusterState {
 	next := &ClusterState{}
 	*next = *s
 
@@ -16,10 +16,10 @@ func (s *ClusterState) doOpenSegment(cmd *ClusterCommandSegmentOpen) *ClusterSta
 	next.OpenSegments = make([]*ClusterSegment, len(s.OpenSegments)+1)
 	copy(next.OpenSegments, s.OpenSegments)
 	next.OpenSegments[len(s.OpenSegments)] = &ClusterSegment{
-		ID:       cmd.ID,
-		Owner:    cmd.Owner,
-		Type:     cmd.Type,
-		OpenedAt: cmd.OpenedAt,
+		ID:        cmd.ID,
+		Owner:     cmd.Owner,
+		Type:      cmd.Type,
+		CreatedAt: cmd.OpenedAt,
 		Nodes: ClusterSegment_Nodes{
 			PrimaryNodeID:      cmd.PrimaryNodeID,
 			ReplicatingNodeIDs: cmd.ReplicatingNodeIDs,

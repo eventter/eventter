@@ -62,7 +62,7 @@ func (s *Server) taskConsumeSegmentLocal(ctx context.Context, state *ClusterStat
 			}
 		}
 
-		messageTime := segment.OpenedAt.Add(time.Duration(publishing.Delta))
+		messageTime := segment.CreatedAt.Add(time.Duration(publishing.Delta))
 
 		if messageMatches(publishing.Message, messageTime, topic, consumerGroup) {
 			err = group.Offer(&consumers.Message{

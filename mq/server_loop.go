@@ -16,6 +16,12 @@ import (
 func (s *Server) Loop(memberEventsC chan memberlist.NodeEvent) {
 	isLeader := s.raftNode.State() == raft.Leader
 	var leaderTickC <-chan time.Time
+	if isLeader {
+		// "tick" immediately
+		c := make(chan time.Time, 1)
+		c <- time.Now()
+		leaderTickC = c
+	}
 	leaderTicker := time.NewTicker(10 * time.Second)
 
 	var state *ClusterState = nil
@@ -37,7 +43,7 @@ LOOP:
 			log.Printf("leadership status changed: before=%t, now=%t", isLeader, becameLeader)
 
 			if becameLeader {
-				// tick now
+				// "tick" immediately
 				c := make(chan time.Time, 1)
 				c <- time.Now()
 				leaderTickC = c
