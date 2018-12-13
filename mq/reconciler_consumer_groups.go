@@ -15,7 +15,7 @@ func (r *Reconciler) ReconcileConsumerGroups(state *ClusterState) {
 	for _, namespace := range state.Namespaces {
 		for _, consumerGroup := range namespace.ConsumerGroups {
 			r.reconcileConsumerGroupOffsetCommitsSegment(state, namespace, consumerGroup, nodeSegmentCounts)
-			r.reconcileConsumerGroupOffsetCommits(state, namespace, consumerGroup)
+			r.ReconcileConsumerGroupOffsetCommits(state, namespace, consumerGroup)
 		}
 	}
 }
@@ -78,7 +78,7 @@ func (r *Reconciler) reconcileConsumerGroupOffsetCommitsSegment(state *ClusterSt
 	nodeSegmentCounts[primaryNodeID]++
 }
 
-func (r *Reconciler) reconcileConsumerGroupOffsetCommits(state *ClusterState, namespace *ClusterNamespace, consumerGroup *ClusterConsumerGroup) {
+func (r *Reconciler) ReconcileConsumerGroupOffsetCommits(state *ClusterState, namespace *ClusterNamespace, consumerGroup *ClusterConsumerGroup) uint64 {
 	boundTopicNames := make(map[string]bool)
 	for _, binding := range consumerGroup.Bindings {
 		boundTopicNames[binding.TopicName] = true
@@ -116,7 +116,7 @@ func (r *Reconciler) reconcileConsumerGroupOffsetCommits(state *ClusterState, na
 	}
 
 	if newOffsetCommits == nil && len(m) == len(n) {
-		return
+		return 0
 	}
 
 	commits := make([]*ClusterConsumerGroup_OffsetCommit, 0, len(consumerGroup.OffsetCommits)+len(newOffsetCommits))
@@ -135,7 +135,7 @@ func (r *Reconciler) reconcileConsumerGroupOffsetCommits(state *ClusterState, na
 		OffsetCommits: commits,
 	}
 
-	_, err := r.delegate.Apply(cmd)
+	index, err := r.delegate.Apply(cmd)
 	if err != nil {
 		log.Printf(
 			"could not update consumer group %s/%s offset commits: %v",
@@ -151,4 +151,6 @@ func (r *Reconciler) reconcileConsumerGroupOffsetCommits(state *ClusterState, na
 			proto.MarshalTextString(cmd),
 		)
 	}
+
+	return index
 }

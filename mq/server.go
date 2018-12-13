@@ -44,6 +44,7 @@ type Server struct {
 	groupMutex       sync.RWMutex
 	groupMap         map[string]*consumers.Group
 	subscriptionMap  map[uint64]*consumers.Subscription
+	reconciler       *Reconciler
 }
 
 var (
@@ -52,7 +53,7 @@ var (
 )
 
 func NewServer(nodeID uint64, members *memberlist.Memberlist, raftNode *raft.Raft, pool *ClientConnPool, clusterState *ClusterStateStore, segmentDir *segments.Dir) *Server {
-	return &Server{
+	s := &Server{
 		nodeID:          nodeID,
 		members:         members,
 		raftNode:        raftNode,
@@ -63,6 +64,8 @@ func NewServer(nodeID uint64, members *memberlist.Memberlist, raftNode *raft.Raf
 		groupMap:        make(map[string]*consumers.Group),
 		subscriptionMap: make(map[uint64]*consumers.Subscription),
 	}
+	s.reconciler = NewReconciler(s)
+	return s
 }
 
 func (s *Server) beginTransaction() (err error) {

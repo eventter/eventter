@@ -21,7 +21,6 @@ func (s *Server) Loop(memberEventsC chan memberlist.NodeEvent) {
 	var state *ClusterState = nil
 	nodeTicker := time.NewTicker(100 * time.Millisecond)
 
-	reconciler := NewReconciler(s)
 	taskManager := tasks.NewManager(context.Background(), "main")
 	defer taskManager.Close()
 
@@ -61,21 +60,21 @@ LOOP:
 				}
 				defer s.releaseTransaction()
 
-				reconciler.ReconcileNodes(s.clusterState.Current())
+				s.reconciler.ReconcileNodes(s.clusterState.Current())
 
 				if err := s.raftNode.Barrier(barrierTimeout).Error(); err != nil {
 					log.Printf("could not add barrier: %v", err)
 					return
 				}
 
-				reconciler.ReconcileSegments(s.clusterState.Current())
+				s.reconciler.ReconcileSegments(s.clusterState.Current())
 
 				if err := s.raftNode.Barrier(barrierTimeout).Error(); err != nil {
 					log.Printf("could not add barrier: %v", err)
 					return
 				}
 
-				reconciler.ReconcileConsumerGroups(s.clusterState.Current())
+				s.reconciler.ReconcileConsumerGroups(s.clusterState.Current())
 			}()
 
 		case <-nodeTicker.C:

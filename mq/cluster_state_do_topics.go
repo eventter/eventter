@@ -47,7 +47,7 @@ func (s *ClusterState) doCreateTopic(cmd *ClusterCommandTopicCreate) *ClusterSta
 }
 
 func (s *ClusterState) doDeleteTopic(cmd *ClusterCommandTopicDelete) *ClusterState {
-	namespace, _ := s.FindNamespace(cmd.Namespace)
+	namespace, namespaceIndex := s.FindNamespace(cmd.Namespace)
 	if namespace == nil {
 		panic("namespace must exist")
 	}
@@ -59,28 +59,44 @@ func (s *ClusterState) doDeleteTopic(cmd *ClusterCommandTopicDelete) *ClusterSta
 
 	next := &ClusterState{}
 	*next = *s
+	next.Namespaces = make([]*ClusterNamespace, len(s.Namespaces))
+	copy(next.Namespaces, s.Namespaces)
 
 	nextNamespace := &ClusterNamespace{}
 	*nextNamespace = *namespace
+	next.Namespaces[namespaceIndex] = nextNamespace
 
+	// remove topic from namespace
 	nextNamespace.Topics = make([]*ClusterTopic, len(namespace.Topics)-1)
 	copy(nextNamespace.Topics[:topicIndex], namespace.Topics[:topicIndex])
 	copy(nextNamespace.Topics[topicIndex:], namespace.Topics[topicIndex+1:])
 
+	// remove consumer group bindings & segment references
 	var consumerGroupsChanged = false
 	var nextConsumerGroups []*ClusterConsumerGroup
-
 	for _, consumerGroup := range namespace.ConsumerGroups {
-		var bindingsChanged = false
+		var changed = false
 		var nextBindings []*ClusterConsumerGroup_Binding
 		for _, binding := range consumerGroup.Bindings {
-			if binding.TopicName != cmd.Name {
-				nextBindings = append(nextBindings, binding)
+			if binding.TopicName == cmd.Name {
+				changed = true
 			} else {
-				bindingsChanged = true
+				nextBindings = append(nextBindings, binding)
 			}
 		}
-		if !bindingsChanged {
+		var nextOffsetCommits []*ClusterConsumerGroup_OffsetCommit
+		for _, commit := range consumerGroup.OffsetCommits {
+			segment := s.GetSegment(commit.SegmentID)
+			if segment == nil || (segment.Type == ClusterSegment_TOPIC &&
+				segment.Owner.Namespace == cmd.Namespace &&
+				segment.Owner.Name == cmd.Name) {
+
+				changed = true
+			} else {
+				nextOffsetCommits = append(nextOffsetCommits, commit)
+			}
+		}
+		if !changed {
 			nextConsumerGroups = append(nextConsumerGroups, consumerGroup)
 			continue
 		}
@@ -88,6 +104,7 @@ func (s *ClusterState) doDeleteTopic(cmd *ClusterCommandTopicDelete) *ClusterSta
 		nextConsumerGroup := &ClusterConsumerGroup{}
 		*nextConsumerGroup = *consumerGroup
 		nextConsumerGroup.Bindings = nextBindings
+		nextConsumerGroup.OffsetCommits = nextOffsetCommits
 
 		nextConsumerGroups = append(nextConsumerGroups, nextConsumerGroup)
 		consumerGroupsChanged = true
@@ -95,6 +112,32 @@ func (s *ClusterState) doDeleteTopic(cmd *ClusterCommandTopicDelete) *ClusterSta
 
 	if consumerGroupsChanged {
 		nextNamespace.ConsumerGroups = nextConsumerGroups
+	}
+
+	// remove topic segments
+	nextOpenSegments := make([]*ClusterSegment, 0, len(s.OpenSegments))
+	openSegmentsChanged := false
+	for _, segment := range s.OpenSegments {
+		if segment.Type == ClusterSegment_TOPIC && segment.Owner.Namespace == cmd.Namespace && segment.Owner.Name == cmd.Name {
+			openSegmentsChanged = true
+		} else {
+			nextOpenSegments = append(nextOpenSegments, segment)
+		}
+	}
+	if openSegmentsChanged {
+		next.OpenSegments = nextOpenSegments
+	}
+	nextClosedSegments := make([]*ClusterSegment, 0, len(s.ClosedSegments))
+	closedSegmentsChanged := false
+	for _, segment := range s.ClosedSegments {
+		if segment.Type == ClusterSegment_TOPIC && segment.Owner.Namespace == cmd.Namespace && segment.Owner.Name == cmd.Name {
+			closedSegmentsChanged = true
+		} else {
+			nextClosedSegments = append(nextClosedSegments, segment)
+		}
+	}
+	if closedSegmentsChanged {
+		next.ClosedSegments = nextClosedSegments
 	}
 
 	return next

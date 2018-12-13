@@ -30,13 +30,8 @@ func (n *ClusterNamespace) ListConsumerGroups(namespaceName string, consumerGrou
 	}
 }
 
-func (s *ClusterState) AnyConsumerGroupReferencesTopic(namespaceName string, topicName string) bool {
-	namespace, _ := s.FindNamespace(namespaceName)
-	if namespace == nil {
-		return false
-	}
-
-	for _, consumerGroup := range namespace.ConsumerGroups {
+func (n *ClusterNamespace) AnyConsumerGroupReferencesTopic(topicName string) bool {
+	for _, consumerGroup := range n.ConsumerGroups {
 		for _, binding := range consumerGroup.Bindings {
 			if binding.TopicName == topicName {
 				return true

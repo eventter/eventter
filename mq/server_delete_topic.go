@@ -49,7 +49,7 @@ func (s *Server) DeleteTopic(ctx context.Context, request *client.DeleteTopicReq
 	}
 
 	if request.IfUnused {
-		if state.AnyConsumerGroupReferencesTopic(request.Topic.Namespace, request.Topic.Name) {
+		if namespace.AnyConsumerGroupReferencesTopic(request.Topic.Name) {
 			return nil, errors.Errorf("topic %s/%s is referenced by some consumer group(s)", request.Topic.Namespace, request.Topic.Name)
 		}
 	}

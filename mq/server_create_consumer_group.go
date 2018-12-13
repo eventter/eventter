@@ -2,7 +2,6 @@ package mq
 
 import (
 	"context"
-	"math"
 	"time"
 
 	"eventter.io/mq/client"
@@ -125,35 +124,11 @@ func (s *Server) CreateConsumerGroup(ctx context.Context, request *client.Create
 
 	// !!! reload state after barrier
 	state = s.clusterState.Current()
+	namespace, _ = state.FindNamespace(request.ConsumerGroup.Name.Namespace)
+	consumerGroup, _ := namespace.FindConsumerGroup(request.ConsumerGroup.Name.Name)
 
-	openSegments := state.FindOpenSegmentsFor(
-		ClusterSegment_CONSUMER_GROUP_OFFSET_COMMITS,
-		request.ConsumerGroup.Name.Namespace,
-		request.ConsumerGroup.Name.Name,
-	)
-
-	if len(openSegments) == 0 {
-		nodeSegmentCounts := state.CountSegmentsPerNode()
-		var (
-			primaryNodeID       uint64
-			primarySegmentCount = math.MaxInt32
-		)
-		for _, node := range state.Nodes {
-			if segmentCount := nodeSegmentCounts[node.ID]; node.State == ClusterNode_ALIVE && segmentCount < primarySegmentCount {
-				primaryNodeID = node.ID
-				primarySegmentCount = segmentCount
-			}
-		}
-
-		if primaryNodeID > 0 {
-			_, err = s.txSegmentOpen(state, primaryNodeID, request.ConsumerGroup.Name, ClusterSegment_CONSUMER_GROUP_OFFSET_COMMITS)
-			if err != nil {
-				return nil, errors.Wrap(err, "segment open failed")
-			}
-		}
-
-	} else if len(openSegments) > 1 {
-		panic("there must be at most one open segment per consumer group")
+	if newIndex := s.reconciler.ReconcileConsumerGroupOffsetCommits(state, namespace, consumerGroup); newIndex > 0 {
+		index = newIndex
 	}
 
 	return &client.CreateConsumerGroupResponse{
