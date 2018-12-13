@@ -20,7 +20,12 @@ func (s *Server) Publish(ctx context.Context, request *client.PublishRequest) (*
 
 	state := s.clusterState.Current()
 
-	topic := state.GetTopic(request.Topic.Namespace, request.Topic.Name)
+	namespace, _ := state.FindNamespace(request.Topic.Namespace)
+	if namespace == nil {
+		return nil, errors.Errorf(namespaceNotFoundErrorFormat, request.Topic.Namespace)
+	}
+
+	topic, _ := namespace.FindTopic(request.Topic.Name)
 	if topic == nil {
 		return nil, errors.Errorf(notFoundErrorFormat, entityTopic, request.Topic.Namespace, request.Topic.Name)
 	}

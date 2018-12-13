@@ -14,7 +14,7 @@ func messageMatches(message *client.Message, messageTime time.Time, topic *Clust
 	}
 
 	switch topic.Type {
-	case client.TopicType_DIRECT:
+	case client.ExchangeTypeDirect:
 		for _, binding := range consumerGroup.Bindings {
 			if binding.TopicName != topic.Name {
 				continue
@@ -26,10 +26,10 @@ func messageMatches(message *client.Message, messageTime time.Time, topic *Clust
 		}
 		return false
 
-	case client.TopicType_FANOUT:
+	case client.ExchangeTypeFanout:
 		return true
 
-	case client.TopicType_TOPIC:
+	case client.ExchangeTypeTopic:
 		for _, binding := range consumerGroup.Bindings {
 			if binding.TopicName != topic.Name {
 				continue
@@ -41,7 +41,7 @@ func messageMatches(message *client.Message, messageTime time.Time, topic *Clust
 		}
 		return false
 
-	case client.TopicType_HEADERS:
+	case client.ExchangeTypeHeaders:
 		if message.Headers == nil || message.Headers.Fields == nil {
 			return false
 		}

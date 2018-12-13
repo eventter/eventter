@@ -70,7 +70,7 @@ func (s *Server) txSegmentClose(state *ClusterState, request *SegmentCloseReques
 		}
 		_, err := s.Apply(cmd)
 		if err != nil {
-			return errors.Wrap(err, "apply close segment failed")
+			return errors.Wrap(err, "apply failed")
 		}
 	}
 

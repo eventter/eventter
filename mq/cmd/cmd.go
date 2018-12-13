@@ -217,15 +217,17 @@ func Cmd() *cobra.Command {
 	cmd.Flags().StringSliceVar(&join, "join", nil, "Running peers to join.")
 
 	cmd.AddCommand(
-		debugCmd(),
 		createConsumerGroupCmd(),
+		createNamespaceCmd(),
 		createTopicCmd(),
-		subscribeCmd(),
+		debugCmd(),
 		deleteConsumerGroupCmd(),
+		deleteNamespaceCmd(),
 		deleteTopicCmd(),
 		listConsumerGroupsCmd(),
 		listTopicsCmd(),
 		publishCmd(),
+		subscribeCmd(),
 	)
 
 	return cmd

@@ -4,38 +4,28 @@ import (
 	"sort"
 )
 
-func (s *ClusterState) ListTopics(namespaceName string, topicName string) (uint64, []*ClusterTopic) {
-	namespace, _ := s.FindNamespace(namespaceName)
-	if namespace == nil {
-		return s.Index, nil
-	}
-
+func (n *ClusterNamespace) ListTopics(namespaceName string, topicName string) []*ClusterTopic {
 	if topicName == "" {
-		return s.Index, namespace.Topics
+		return n.Topics
 	} else {
-		topic, _ := namespace.findTopic(topicName)
+		topic, _ := n.FindTopic(topicName)
 		if topic == nil {
-			return s.Index, nil
+			return nil
 		} else {
-			return s.Index, []*ClusterTopic{topic}
+			return []*ClusterTopic{topic}
 		}
 	}
 }
 
-func (s *ClusterState) ListConsumerGroups(namespaceName string, consumerGroupName string) (uint64, []*ClusterConsumerGroup) {
-	namespace, _ := s.FindNamespace(namespaceName)
-	if namespace == nil {
-		return s.Index, nil
-	}
-
+func (n *ClusterNamespace) ListConsumerGroups(namespaceName string, consumerGroupName string) []*ClusterConsumerGroup {
 	if consumerGroupName == "" {
-		return s.Index, namespace.ConsumerGroups
+		return n.ConsumerGroups
 	} else {
-		consumerGroup, _ := namespace.findConsumerGroup(consumerGroupName)
+		consumerGroup, _ := n.FindConsumerGroup(consumerGroupName)
 		if consumerGroup == nil {
-			return s.Index, nil
+			return nil
 		} else {
-			return s.Index, []*ClusterConsumerGroup{consumerGroup}
+			return []*ClusterConsumerGroup{consumerGroup}
 		}
 	}
 }
@@ -63,7 +53,7 @@ func (s *ClusterState) TopicExists(namespaceName string, topicName string) bool 
 		return false
 	}
 
-	topic, _ := namespace.findTopic(topicName)
+	topic, _ := namespace.FindTopic(topicName)
 	return topic != nil
 }
 
@@ -73,7 +63,7 @@ func (s *ClusterState) GetTopic(namespaceName string, topicName string) *Cluster
 		return nil
 	}
 
-	topic, _ := namespace.findTopic(topicName)
+	topic, _ := namespace.FindTopic(topicName)
 	return topic
 }
 
@@ -83,7 +73,7 @@ func (s *ClusterState) ConsumerGroupExists(namespaceName string, consumerGroupNa
 		return false
 	}
 
-	consumerGroup, _ := namespace.findConsumerGroup(consumerGroupName)
+	consumerGroup, _ := namespace.FindConsumerGroup(consumerGroupName)
 	return consumerGroup != nil
 }
 
@@ -93,7 +83,7 @@ func (s *ClusterState) GetConsumerGroup(namespaceName string, consumerGroupName 
 		return nil
 	}
 
-	consumerGroup, _ := namespace.findConsumerGroup(consumerGroupName)
+	consumerGroup, _ := namespace.FindConsumerGroup(consumerGroupName)
 	return consumerGroup
 }
 
@@ -190,7 +180,7 @@ func (s *ClusterState) FindNamespace(name string) (*ClusterNamespace, int) {
 	return nil, -1
 }
 
-func (n *ClusterNamespace) findTopic(name string) (*ClusterTopic, int) {
+func (n *ClusterNamespace) FindTopic(name string) (*ClusterTopic, int) {
 	for index, topic := range n.Topics {
 		if topic.Name == name {
 			return topic, index
@@ -199,15 +189,11 @@ func (n *ClusterNamespace) findTopic(name string) (*ClusterTopic, int) {
 	return nil, -1
 }
 
-func (n *ClusterNamespace) findConsumerGroup(name string) (*ClusterConsumerGroup, int) {
+func (n *ClusterNamespace) FindConsumerGroup(name string) (*ClusterConsumerGroup, int) {
 	for index, consumerGroup := range n.ConsumerGroups {
 		if consumerGroup.Name == name {
 			return consumerGroup, index
 		}
 	}
 	return nil, -1
-}
-
-func (n *ClusterNamespace) isEmpty() bool {
-	return len(n.Topics) == 0 && len(n.ConsumerGroups) == 0
 }

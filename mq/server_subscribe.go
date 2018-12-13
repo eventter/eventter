@@ -15,7 +15,12 @@ func (s *Server) Subscribe(request *client.SubscribeRequest, stream client.Event
 
 	state := s.clusterState.Current()
 
-	consumerGroup := state.GetConsumerGroup(request.ConsumerGroup.Namespace, request.ConsumerGroup.Name)
+	namespace, _ := state.FindNamespace(request.ConsumerGroup.Namespace)
+	if namespace == nil {
+		return errors.Errorf(namespaceNotFoundErrorFormat, request.ConsumerGroup.Namespace)
+	}
+
+	consumerGroup, _ := namespace.FindConsumerGroup(request.ConsumerGroup.Name)
 	if consumerGroup == nil {
 		return errors.Errorf(
 			notFoundErrorFormat,

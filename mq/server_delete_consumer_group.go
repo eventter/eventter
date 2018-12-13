@@ -39,7 +39,12 @@ func (s *Server) DeleteConsumerGroup(ctx context.Context, request *client.Delete
 
 	state := s.clusterState.Current()
 
-	if !state.ConsumerGroupExists(request.ConsumerGroup.Namespace, request.ConsumerGroup.Name) {
+	namespace, _ := state.FindNamespace(request.ConsumerGroup.Namespace)
+	if namespace == nil {
+		return nil, errors.Errorf(namespaceNotFoundErrorFormat, request.ConsumerGroup.Namespace)
+	}
+
+	if consumerGroup, _ := namespace.FindConsumerGroup(request.ConsumerGroup.Name); consumerGroup == nil {
 		return nil, errors.Errorf(notFoundErrorFormat, entityConsumerGroup, request.ConsumerGroup.Namespace, request.ConsumerGroup.Name)
 	}
 

@@ -32,11 +32,16 @@ func (s *Server) ListConsumerGroups(ctx context.Context, request *client.ListCon
 		return nil, err
 	}
 
-	index, cgs := s.clusterState.Current().ListConsumerGroups(request.ConsumerGroup.Namespace, request.ConsumerGroup.Name)
+	state := s.clusterState.Current()
+
+	namespace, _ := state.FindNamespace(request.ConsumerGroup.Namespace)
+	if namespace == nil {
+		return nil, errors.Errorf(namespaceNotFoundErrorFormat, request.ConsumerGroup.Namespace)
+	}
 
 	var consumerGroups []*client.ConsumerGroup
 
-	for _, cg := range cgs {
+	for _, cg := range namespace.ListConsumerGroups(request.ConsumerGroup.Namespace, request.ConsumerGroup.Name) {
 		var bindings []*client.ConsumerGroup_Binding
 
 		for _, b := range cg.Bindings {
@@ -76,7 +81,7 @@ func (s *Server) ListConsumerGroups(ctx context.Context, request *client.ListCon
 
 	return &client.ListConsumerGroupsResponse{
 		OK:             true,
-		Index:          index,
+		Index:          state.Index,
 		ConsumerGroups: consumerGroups,
 	}, nil
 }

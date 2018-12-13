@@ -13,14 +13,15 @@ import (
 )
 
 const (
-	notFoundErrorFormat      = "%s %s/%s not found"
-	couldNotDialLeaderError  = "could not dial leader"
-	entityTopic              = "topic"
-	entityConsumerGroup      = "consumer group"
-	applyTimeout             = 10 * time.Second
-	barrierTimeout           = 10 * time.Second
-	defaultReplicationFactor = 3
-	defaultConsumerGroupSize = 1024
+	notFoundErrorFormat          = "%s %s/%s not found"
+	namespaceNotFoundErrorFormat = "namespace %s not found"
+	couldNotDialLeaderError      = "could not dial leader"
+	entityTopic                  = "topic"
+	entityConsumerGroup          = "consumer group"
+	applyTimeout                 = 10 * time.Second
+	barrierTimeout               = 10 * time.Second
+	defaultReplicationFactor     = 3
+	defaultConsumerGroupSize     = 1024
 )
 
 var (

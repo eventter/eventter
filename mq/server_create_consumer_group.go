@@ -41,6 +41,11 @@ func (s *Server) CreateConsumerGroup(ctx context.Context, request *client.Create
 
 	state := s.clusterState.Current()
 
+	namespace, _ := state.FindNamespace(request.ConsumerGroup.Name.Namespace)
+	if namespace == nil {
+		return nil, errors.Errorf(namespaceNotFoundErrorFormat, request.ConsumerGroup.Name.Namespace)
+	}
+
 	cmd := &ClusterCommandConsumerGroupCreate{
 		Namespace: request.ConsumerGroup.Name.Namespace,
 		ConsumerGroup: &ClusterConsumerGroup{
@@ -60,9 +65,9 @@ func (s *Server) CreateConsumerGroup(ctx context.Context, request *client.Create
 			TopicName: binding.TopicName,
 		}
 		switch topic.Type {
-		case client.TopicType_DIRECT:
+		case client.ExchangeTypeDirect:
 			fallthrough
-		case client.TopicType_TOPIC:
+		case client.ExchangeTypeTopic:
 			switch by := binding.By.(type) {
 			case *client.ConsumerGroup_Binding_RoutingKey:
 				clusterBinding.By = &ClusterConsumerGroup_Binding_RoutingKey{
@@ -77,7 +82,7 @@ func (s *Server) CreateConsumerGroup(ctx context.Context, request *client.Create
 					topic.Type,
 				)
 			}
-		case client.TopicType_HEADERS:
+		case client.ExchangeTypeHeaders:
 			switch by := binding.By.(type) {
 			case *client.ConsumerGroup_Binding_HeadersAny:
 				clusterBinding.By = &ClusterConsumerGroup_Binding_HeadersAny{
@@ -96,7 +101,7 @@ func (s *Server) CreateConsumerGroup(ctx context.Context, request *client.Create
 					topic.Type,
 				)
 			}
-		case client.TopicType_FANOUT:
+		case client.ExchangeTypeFanout:
 			// leave by to null
 		default:
 			return nil, errors.Errorf("unhandled topic type: %s", topic.Type)

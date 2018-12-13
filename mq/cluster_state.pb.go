@@ -51,7 +51,7 @@ func (x ClusterSegment_Type) String() string {
 	return proto.EnumName(ClusterSegment_Type_name, int32(x))
 }
 func (ClusterSegment_Type) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_cluster_state_44c6ec2b64aa39f9, []int{4, 0}
+	return fileDescriptor_cluster_state_97775bfba9ff2da0, []int{4, 0}
 }
 
 type ClusterNode_State int32
@@ -74,7 +74,7 @@ func (x ClusterNode_State) String() string {
 	return proto.EnumName(ClusterNode_State_name, int32(x))
 }
 func (ClusterNode_State) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_cluster_state_44c6ec2b64aa39f9, []int{5, 0}
+	return fileDescriptor_cluster_state_97775bfba9ff2da0, []int{5, 0}
 }
 
 type ClusterCommandSegmentNodesUpdate_Which int32
@@ -100,7 +100,7 @@ func (x ClusterCommandSegmentNodesUpdate_Which) String() string {
 	return proto.EnumName(ClusterCommandSegmentNodesUpdate_Which_name, int32(x))
 }
 func (ClusterCommandSegmentNodesUpdate_Which) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_cluster_state_44c6ec2b64aa39f9, []int{13, 0}
+	return fileDescriptor_cluster_state_97775bfba9ff2da0, []int{15, 0}
 }
 
 type ClusterCommandSegmentDelete_Which int32
@@ -126,7 +126,7 @@ func (x ClusterCommandSegmentDelete_Which) String() string {
 	return proto.EnumName(ClusterCommandSegmentDelete_Which_name, int32(x))
 }
 func (ClusterCommandSegmentDelete_Which) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_cluster_state_44c6ec2b64aa39f9, []int{14, 0}
+	return fileDescriptor_cluster_state_97775bfba9ff2da0, []int{16, 0}
 }
 
 type ClusterState struct {
@@ -144,7 +144,7 @@ func (m *ClusterState) Reset()         { *m = ClusterState{} }
 func (m *ClusterState) String() string { return proto.CompactTextString(m) }
 func (*ClusterState) ProtoMessage()    {}
 func (*ClusterState) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cluster_state_44c6ec2b64aa39f9, []int{0}
+	return fileDescriptor_cluster_state_97775bfba9ff2da0, []int{0}
 }
 func (m *ClusterState) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -227,7 +227,7 @@ func (m *ClusterNamespace) Reset()         { *m = ClusterNamespace{} }
 func (m *ClusterNamespace) String() string { return proto.CompactTextString(m) }
 func (*ClusterNamespace) ProtoMessage()    {}
 func (*ClusterNamespace) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cluster_state_44c6ec2b64aa39f9, []int{1}
+	return fileDescriptor_cluster_state_97775bfba9ff2da0, []int{1}
 }
 func (m *ClusterNamespace) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -291,7 +291,7 @@ func (m *ClusterTopic) Reset()         { *m = ClusterTopic{} }
 func (m *ClusterTopic) String() string { return proto.CompactTextString(m) }
 func (*ClusterTopic) ProtoMessage()    {}
 func (*ClusterTopic) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cluster_state_44c6ec2b64aa39f9, []int{2}
+	return fileDescriptor_cluster_state_97775bfba9ff2da0, []int{2}
 }
 func (m *ClusterTopic) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -369,7 +369,7 @@ func (m *ClusterConsumerGroup) Reset()         { *m = ClusterConsumerGroup{} }
 func (m *ClusterConsumerGroup) String() string { return proto.CompactTextString(m) }
 func (*ClusterConsumerGroup) ProtoMessage()    {}
 func (*ClusterConsumerGroup) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cluster_state_44c6ec2b64aa39f9, []int{3}
+	return fileDescriptor_cluster_state_97775bfba9ff2da0, []int{3}
 }
 func (m *ClusterConsumerGroup) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -448,7 +448,7 @@ func (m *ClusterConsumerGroup_Binding) Reset()         { *m = ClusterConsumerGro
 func (m *ClusterConsumerGroup_Binding) String() string { return proto.CompactTextString(m) }
 func (*ClusterConsumerGroup_Binding) ProtoMessage()    {}
 func (*ClusterConsumerGroup_Binding) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cluster_state_44c6ec2b64aa39f9, []int{3, 0}
+	return fileDescriptor_cluster_state_97775bfba9ff2da0, []int{3, 0}
 }
 func (m *ClusterConsumerGroup_Binding) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -632,7 +632,7 @@ func (m *ClusterConsumerGroup_OffsetCommit) Reset()         { *m = ClusterConsum
 func (m *ClusterConsumerGroup_OffsetCommit) String() string { return proto.CompactTextString(m) }
 func (*ClusterConsumerGroup_OffsetCommit) ProtoMessage()    {}
 func (*ClusterConsumerGroup_OffsetCommit) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cluster_state_44c6ec2b64aa39f9, []int{3, 1}
+	return fileDescriptor_cluster_state_97775bfba9ff2da0, []int{3, 1}
 }
 func (m *ClusterConsumerGroup_OffsetCommit) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -692,7 +692,7 @@ func (m *ClusterSegment) Reset()         { *m = ClusterSegment{} }
 func (m *ClusterSegment) String() string { return proto.CompactTextString(m) }
 func (*ClusterSegment) ProtoMessage()    {}
 func (*ClusterSegment) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cluster_state_44c6ec2b64aa39f9, []int{4}
+	return fileDescriptor_cluster_state_97775bfba9ff2da0, []int{4}
 }
 func (m *ClusterSegment) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -789,7 +789,7 @@ func (m *ClusterSegment_Nodes) Reset()         { *m = ClusterSegment_Nodes{} }
 func (m *ClusterSegment_Nodes) String() string { return proto.CompactTextString(m) }
 func (*ClusterSegment_Nodes) ProtoMessage()    {}
 func (*ClusterSegment_Nodes) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cluster_state_44c6ec2b64aa39f9, []int{4, 0}
+	return fileDescriptor_cluster_state_97775bfba9ff2da0, []int{4, 0}
 }
 func (m *ClusterSegment_Nodes) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -852,7 +852,7 @@ func (m *ClusterNode) Reset()         { *m = ClusterNode{} }
 func (m *ClusterNode) String() string { return proto.CompactTextString(m) }
 func (*ClusterNode) ProtoMessage()    {}
 func (*ClusterNode) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cluster_state_44c6ec2b64aa39f9, []int{5}
+	return fileDescriptor_cluster_state_97775bfba9ff2da0, []int{5}
 }
 func (m *ClusterNode) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -909,6 +909,98 @@ func (m *ClusterNode) GetLastSeenAlive() *time.Time {
 	return nil
 }
 
+type ClusterCommandNamespaceCreate struct {
+	Namespace            string   `protobuf:"bytes,1,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ClusterCommandNamespaceCreate) Reset()         { *m = ClusterCommandNamespaceCreate{} }
+func (m *ClusterCommandNamespaceCreate) String() string { return proto.CompactTextString(m) }
+func (*ClusterCommandNamespaceCreate) ProtoMessage()    {}
+func (*ClusterCommandNamespaceCreate) Descriptor() ([]byte, []int) {
+	return fileDescriptor_cluster_state_97775bfba9ff2da0, []int{6}
+}
+func (m *ClusterCommandNamespaceCreate) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ClusterCommandNamespaceCreate) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ClusterCommandNamespaceCreate.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (dst *ClusterCommandNamespaceCreate) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ClusterCommandNamespaceCreate.Merge(dst, src)
+}
+func (m *ClusterCommandNamespaceCreate) XXX_Size() int {
+	return m.Size()
+}
+func (m *ClusterCommandNamespaceCreate) XXX_DiscardUnknown() {
+	xxx_messageInfo_ClusterCommandNamespaceCreate.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ClusterCommandNamespaceCreate proto.InternalMessageInfo
+
+func (m *ClusterCommandNamespaceCreate) GetNamespace() string {
+	if m != nil {
+		return m.Namespace
+	}
+	return ""
+}
+
+type ClusterCommandNamespaceDelete struct {
+	Namespace            string   `protobuf:"bytes,1,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ClusterCommandNamespaceDelete) Reset()         { *m = ClusterCommandNamespaceDelete{} }
+func (m *ClusterCommandNamespaceDelete) String() string { return proto.CompactTextString(m) }
+func (*ClusterCommandNamespaceDelete) ProtoMessage()    {}
+func (*ClusterCommandNamespaceDelete) Descriptor() ([]byte, []int) {
+	return fileDescriptor_cluster_state_97775bfba9ff2da0, []int{7}
+}
+func (m *ClusterCommandNamespaceDelete) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ClusterCommandNamespaceDelete) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ClusterCommandNamespaceDelete.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (dst *ClusterCommandNamespaceDelete) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ClusterCommandNamespaceDelete.Merge(dst, src)
+}
+func (m *ClusterCommandNamespaceDelete) XXX_Size() int {
+	return m.Size()
+}
+func (m *ClusterCommandNamespaceDelete) XXX_DiscardUnknown() {
+	xxx_messageInfo_ClusterCommandNamespaceDelete.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ClusterCommandNamespaceDelete proto.InternalMessageInfo
+
+func (m *ClusterCommandNamespaceDelete) GetNamespace() string {
+	if m != nil {
+		return m.Namespace
+	}
+	return ""
+}
+
 type ClusterCommandTopicCreate struct {
 	Namespace            string        `protobuf:"bytes,1,opt,name=namespace,proto3" json:"namespace,omitempty"`
 	Topic                *ClusterTopic `protobuf:"bytes,2,opt,name=topic" json:"topic,omitempty"`
@@ -920,7 +1012,7 @@ func (m *ClusterCommandTopicCreate) Reset()         { *m = ClusterCommandTopicCr
 func (m *ClusterCommandTopicCreate) String() string { return proto.CompactTextString(m) }
 func (*ClusterCommandTopicCreate) ProtoMessage()    {}
 func (*ClusterCommandTopicCreate) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cluster_state_44c6ec2b64aa39f9, []int{6}
+	return fileDescriptor_cluster_state_97775bfba9ff2da0, []int{8}
 }
 func (m *ClusterCommandTopicCreate) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -974,7 +1066,7 @@ func (m *ClusterCommandTopicDelete) Reset()         { *m = ClusterCommandTopicDe
 func (m *ClusterCommandTopicDelete) String() string { return proto.CompactTextString(m) }
 func (*ClusterCommandTopicDelete) ProtoMessage()    {}
 func (*ClusterCommandTopicDelete) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cluster_state_44c6ec2b64aa39f9, []int{7}
+	return fileDescriptor_cluster_state_97775bfba9ff2da0, []int{9}
 }
 func (m *ClusterCommandTopicDelete) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1028,7 +1120,7 @@ func (m *ClusterCommandConsumerGroupCreate) Reset()         { *m = ClusterComman
 func (m *ClusterCommandConsumerGroupCreate) String() string { return proto.CompactTextString(m) }
 func (*ClusterCommandConsumerGroupCreate) ProtoMessage()    {}
 func (*ClusterCommandConsumerGroupCreate) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cluster_state_44c6ec2b64aa39f9, []int{8}
+	return fileDescriptor_cluster_state_97775bfba9ff2da0, []int{10}
 }
 func (m *ClusterCommandConsumerGroupCreate) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1082,7 +1174,7 @@ func (m *ClusterCommandConsumerGroupDelete) Reset()         { *m = ClusterComman
 func (m *ClusterCommandConsumerGroupDelete) String() string { return proto.CompactTextString(m) }
 func (*ClusterCommandConsumerGroupDelete) ProtoMessage()    {}
 func (*ClusterCommandConsumerGroupDelete) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cluster_state_44c6ec2b64aa39f9, []int{9}
+	return fileDescriptor_cluster_state_97775bfba9ff2da0, []int{11}
 }
 func (m *ClusterCommandConsumerGroupDelete) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1140,7 +1232,7 @@ func (m *ClusterCommandSegmentOpen) Reset()         { *m = ClusterCommandSegment
 func (m *ClusterCommandSegmentOpen) String() string { return proto.CompactTextString(m) }
 func (*ClusterCommandSegmentOpen) ProtoMessage()    {}
 func (*ClusterCommandSegmentOpen) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cluster_state_44c6ec2b64aa39f9, []int{10}
+	return fileDescriptor_cluster_state_97775bfba9ff2da0, []int{12}
 }
 func (m *ClusterCommandSegmentOpen) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1225,7 +1317,7 @@ func (m *ClusterCommandSegmentClose) Reset()         { *m = ClusterCommandSegmen
 func (m *ClusterCommandSegmentClose) String() string { return proto.CompactTextString(m) }
 func (*ClusterCommandSegmentClose) ProtoMessage()    {}
 func (*ClusterCommandSegmentClose) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cluster_state_44c6ec2b64aa39f9, []int{11}
+	return fileDescriptor_cluster_state_97775bfba9ff2da0, []int{13}
 }
 func (m *ClusterCommandSegmentClose) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1302,7 +1394,7 @@ func (m *ClusterCommandNodeUpdate) Reset()         { *m = ClusterCommandNodeUpda
 func (m *ClusterCommandNodeUpdate) String() string { return proto.CompactTextString(m) }
 func (*ClusterCommandNodeUpdate) ProtoMessage()    {}
 func (*ClusterCommandNodeUpdate) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cluster_state_44c6ec2b64aa39f9, []int{12}
+	return fileDescriptor_cluster_state_97775bfba9ff2da0, []int{14}
 }
 func (m *ClusterCommandNodeUpdate) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1371,7 +1463,7 @@ func (m *ClusterCommandSegmentNodesUpdate) Reset()         { *m = ClusterCommand
 func (m *ClusterCommandSegmentNodesUpdate) String() string { return proto.CompactTextString(m) }
 func (*ClusterCommandSegmentNodesUpdate) ProtoMessage()    {}
 func (*ClusterCommandSegmentNodesUpdate) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cluster_state_44c6ec2b64aa39f9, []int{13}
+	return fileDescriptor_cluster_state_97775bfba9ff2da0, []int{15}
 }
 func (m *ClusterCommandSegmentNodesUpdate) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1432,7 +1524,7 @@ func (m *ClusterCommandSegmentDelete) Reset()         { *m = ClusterCommandSegme
 func (m *ClusterCommandSegmentDelete) String() string { return proto.CompactTextString(m) }
 func (*ClusterCommandSegmentDelete) ProtoMessage()    {}
 func (*ClusterCommandSegmentDelete) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cluster_state_44c6ec2b64aa39f9, []int{14}
+	return fileDescriptor_cluster_state_97775bfba9ff2da0, []int{16}
 }
 func (m *ClusterCommandSegmentDelete) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1491,7 +1583,7 @@ func (m *ClusterCommandConsumerGroupOffsetCommitsUpdate) String() string {
 }
 func (*ClusterCommandConsumerGroupOffsetCommitsUpdate) ProtoMessage() {}
 func (*ClusterCommandConsumerGroupOffsetCommitsUpdate) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cluster_state_44c6ec2b64aa39f9, []int{15}
+	return fileDescriptor_cluster_state_97775bfba9ff2da0, []int{17}
 }
 func (m *ClusterCommandConsumerGroupOffsetCommitsUpdate) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1543,16 +1635,18 @@ func (m *ClusterCommandConsumerGroupOffsetCommitsUpdate) GetOffsetCommits() []*C
 
 type ClusterCommand struct {
 	// Types that are valid to be assigned to Command:
+	//	*ClusterCommand_CreateNamespace
+	//	*ClusterCommand_DeleteNamespace
 	//	*ClusterCommand_CreateTopic
 	//	*ClusterCommand_DeleteTopic
 	//	*ClusterCommand_CreateConsumerGroup
 	//	*ClusterCommand_DeleteConsumerGroup
+	//	*ClusterCommand_UpdateConsumerGroupOffsetCommits
 	//	*ClusterCommand_OpenSegment
 	//	*ClusterCommand_CloseSegment
-	//	*ClusterCommand_UpdateNode
 	//	*ClusterCommand_UpdateSegmentNodes
 	//	*ClusterCommand_DeleteSegment
-	//	*ClusterCommand_UpdateConsumerGroupOffsetCommits
+	//	*ClusterCommand_UpdateNode
 	Command              isClusterCommand_Command `protobuf_oneof:"command"`
 	XXX_NoUnkeyedLiteral struct{}                 `json:"-"`
 	XXX_sizecache        int32                    `json:"-"`
@@ -1562,7 +1656,7 @@ func (m *ClusterCommand) Reset()         { *m = ClusterCommand{} }
 func (m *ClusterCommand) String() string { return proto.CompactTextString(m) }
 func (*ClusterCommand) ProtoMessage()    {}
 func (*ClusterCommand) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cluster_state_44c6ec2b64aa39f9, []int{16}
+	return fileDescriptor_cluster_state_97775bfba9ff2da0, []int{18}
 }
 func (m *ClusterCommand) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1597,51 +1691,73 @@ type isClusterCommand_Command interface {
 	Size() int
 }
 
+type ClusterCommand_CreateNamespace struct {
+	CreateNamespace *ClusterCommandNamespaceCreate `protobuf:"bytes,10,opt,name=create_namespace,json=createNamespace,oneof"`
+}
+type ClusterCommand_DeleteNamespace struct {
+	DeleteNamespace *ClusterCommandNamespaceDelete `protobuf:"bytes,11,opt,name=delete_namespace,json=deleteNamespace,oneof"`
+}
 type ClusterCommand_CreateTopic struct {
-	CreateTopic *ClusterCommandTopicCreate `protobuf:"bytes,1,opt,name=create_topic,json=createTopic,oneof"`
+	CreateTopic *ClusterCommandTopicCreate `protobuf:"bytes,20,opt,name=create_topic,json=createTopic,oneof"`
 }
 type ClusterCommand_DeleteTopic struct {
-	DeleteTopic *ClusterCommandTopicDelete `protobuf:"bytes,2,opt,name=delete_topic,json=deleteTopic,oneof"`
+	DeleteTopic *ClusterCommandTopicDelete `protobuf:"bytes,21,opt,name=delete_topic,json=deleteTopic,oneof"`
 }
 type ClusterCommand_CreateConsumerGroup struct {
-	CreateConsumerGroup *ClusterCommandConsumerGroupCreate `protobuf:"bytes,3,opt,name=create_consumer_group,json=createConsumerGroup,oneof"`
+	CreateConsumerGroup *ClusterCommandConsumerGroupCreate `protobuf:"bytes,30,opt,name=create_consumer_group,json=createConsumerGroup,oneof"`
 }
 type ClusterCommand_DeleteConsumerGroup struct {
-	DeleteConsumerGroup *ClusterCommandConsumerGroupDelete `protobuf:"bytes,4,opt,name=delete_consumer_group,json=deleteConsumerGroup,oneof"`
-}
-type ClusterCommand_OpenSegment struct {
-	OpenSegment *ClusterCommandSegmentOpen `protobuf:"bytes,5,opt,name=open_segment,json=openSegment,oneof"`
-}
-type ClusterCommand_CloseSegment struct {
-	CloseSegment *ClusterCommandSegmentClose `protobuf:"bytes,6,opt,name=close_segment,json=closeSegment,oneof"`
-}
-type ClusterCommand_UpdateNode struct {
-	UpdateNode *ClusterCommandNodeUpdate `protobuf:"bytes,7,opt,name=update_node,json=updateNode,oneof"`
-}
-type ClusterCommand_UpdateSegmentNodes struct {
-	UpdateSegmentNodes *ClusterCommandSegmentNodesUpdate `protobuf:"bytes,8,opt,name=update_segment_nodes,json=updateSegmentNodes,oneof"`
-}
-type ClusterCommand_DeleteSegment struct {
-	DeleteSegment *ClusterCommandSegmentDelete `protobuf:"bytes,9,opt,name=delete_segment,json=deleteSegment,oneof"`
+	DeleteConsumerGroup *ClusterCommandConsumerGroupDelete `protobuf:"bytes,31,opt,name=delete_consumer_group,json=deleteConsumerGroup,oneof"`
 }
 type ClusterCommand_UpdateConsumerGroupOffsetCommits struct {
-	UpdateConsumerGroupOffsetCommits *ClusterCommandConsumerGroupOffsetCommitsUpdate `protobuf:"bytes,10,opt,name=update_consumer_group_offset_commits,json=updateConsumerGroupOffsetCommits,oneof"`
+	UpdateConsumerGroupOffsetCommits *ClusterCommandConsumerGroupOffsetCommitsUpdate `protobuf:"bytes,32,opt,name=update_consumer_group_offset_commits,json=updateConsumerGroupOffsetCommits,oneof"`
+}
+type ClusterCommand_OpenSegment struct {
+	OpenSegment *ClusterCommandSegmentOpen `protobuf:"bytes,40,opt,name=open_segment,json=openSegment,oneof"`
+}
+type ClusterCommand_CloseSegment struct {
+	CloseSegment *ClusterCommandSegmentClose `protobuf:"bytes,41,opt,name=close_segment,json=closeSegment,oneof"`
+}
+type ClusterCommand_UpdateSegmentNodes struct {
+	UpdateSegmentNodes *ClusterCommandSegmentNodesUpdate `protobuf:"bytes,42,opt,name=update_segment_nodes,json=updateSegmentNodes,oneof"`
+}
+type ClusterCommand_DeleteSegment struct {
+	DeleteSegment *ClusterCommandSegmentDelete `protobuf:"bytes,43,opt,name=delete_segment,json=deleteSegment,oneof"`
+}
+type ClusterCommand_UpdateNode struct {
+	UpdateNode *ClusterCommandNodeUpdate `protobuf:"bytes,50,opt,name=update_node,json=updateNode,oneof"`
 }
 
+func (*ClusterCommand_CreateNamespace) isClusterCommand_Command()                  {}
+func (*ClusterCommand_DeleteNamespace) isClusterCommand_Command()                  {}
 func (*ClusterCommand_CreateTopic) isClusterCommand_Command()                      {}
 func (*ClusterCommand_DeleteTopic) isClusterCommand_Command()                      {}
 func (*ClusterCommand_CreateConsumerGroup) isClusterCommand_Command()              {}
 func (*ClusterCommand_DeleteConsumerGroup) isClusterCommand_Command()              {}
+func (*ClusterCommand_UpdateConsumerGroupOffsetCommits) isClusterCommand_Command() {}
 func (*ClusterCommand_OpenSegment) isClusterCommand_Command()                      {}
 func (*ClusterCommand_CloseSegment) isClusterCommand_Command()                     {}
-func (*ClusterCommand_UpdateNode) isClusterCommand_Command()                       {}
 func (*ClusterCommand_UpdateSegmentNodes) isClusterCommand_Command()               {}
 func (*ClusterCommand_DeleteSegment) isClusterCommand_Command()                    {}
-func (*ClusterCommand_UpdateConsumerGroupOffsetCommits) isClusterCommand_Command() {}
+func (*ClusterCommand_UpdateNode) isClusterCommand_Command()                       {}
 
 func (m *ClusterCommand) GetCommand() isClusterCommand_Command {
 	if m != nil {
 		return m.Command
+	}
+	return nil
+}
+
+func (m *ClusterCommand) GetCreateNamespace() *ClusterCommandNamespaceCreate {
+	if x, ok := m.GetCommand().(*ClusterCommand_CreateNamespace); ok {
+		return x.CreateNamespace
+	}
+	return nil
+}
+
+func (m *ClusterCommand) GetDeleteNamespace() *ClusterCommandNamespaceDelete {
+	if x, ok := m.GetCommand().(*ClusterCommand_DeleteNamespace); ok {
+		return x.DeleteNamespace
 	}
 	return nil
 }
@@ -1674,6 +1790,13 @@ func (m *ClusterCommand) GetDeleteConsumerGroup() *ClusterCommandConsumerGroupDe
 	return nil
 }
 
+func (m *ClusterCommand) GetUpdateConsumerGroupOffsetCommits() *ClusterCommandConsumerGroupOffsetCommitsUpdate {
+	if x, ok := m.GetCommand().(*ClusterCommand_UpdateConsumerGroupOffsetCommits); ok {
+		return x.UpdateConsumerGroupOffsetCommits
+	}
+	return nil
+}
+
 func (m *ClusterCommand) GetOpenSegment() *ClusterCommandSegmentOpen {
 	if x, ok := m.GetCommand().(*ClusterCommand_OpenSegment); ok {
 		return x.OpenSegment
@@ -1684,13 +1807,6 @@ func (m *ClusterCommand) GetOpenSegment() *ClusterCommandSegmentOpen {
 func (m *ClusterCommand) GetCloseSegment() *ClusterCommandSegmentClose {
 	if x, ok := m.GetCommand().(*ClusterCommand_CloseSegment); ok {
 		return x.CloseSegment
-	}
-	return nil
-}
-
-func (m *ClusterCommand) GetUpdateNode() *ClusterCommandNodeUpdate {
-	if x, ok := m.GetCommand().(*ClusterCommand_UpdateNode); ok {
-		return x.UpdateNode
 	}
 	return nil
 }
@@ -1709,9 +1825,9 @@ func (m *ClusterCommand) GetDeleteSegment() *ClusterCommandSegmentDelete {
 	return nil
 }
 
-func (m *ClusterCommand) GetUpdateConsumerGroupOffsetCommits() *ClusterCommandConsumerGroupOffsetCommitsUpdate {
-	if x, ok := m.GetCommand().(*ClusterCommand_UpdateConsumerGroupOffsetCommits); ok {
-		return x.UpdateConsumerGroupOffsetCommits
+func (m *ClusterCommand) GetUpdateNode() *ClusterCommandNodeUpdate {
+	if x, ok := m.GetCommand().(*ClusterCommand_UpdateNode); ok {
+		return x.UpdateNode
 	}
 	return nil
 }
@@ -1719,16 +1835,18 @@ func (m *ClusterCommand) GetUpdateConsumerGroupOffsetCommits() *ClusterCommandCo
 // XXX_OneofFuncs is for the internal use of the proto package.
 func (*ClusterCommand) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
 	return _ClusterCommand_OneofMarshaler, _ClusterCommand_OneofUnmarshaler, _ClusterCommand_OneofSizer, []interface{}{
+		(*ClusterCommand_CreateNamespace)(nil),
+		(*ClusterCommand_DeleteNamespace)(nil),
 		(*ClusterCommand_CreateTopic)(nil),
 		(*ClusterCommand_DeleteTopic)(nil),
 		(*ClusterCommand_CreateConsumerGroup)(nil),
 		(*ClusterCommand_DeleteConsumerGroup)(nil),
+		(*ClusterCommand_UpdateConsumerGroupOffsetCommits)(nil),
 		(*ClusterCommand_OpenSegment)(nil),
 		(*ClusterCommand_CloseSegment)(nil),
-		(*ClusterCommand_UpdateNode)(nil),
 		(*ClusterCommand_UpdateSegmentNodes)(nil),
 		(*ClusterCommand_DeleteSegment)(nil),
-		(*ClusterCommand_UpdateConsumerGroupOffsetCommits)(nil),
+		(*ClusterCommand_UpdateNode)(nil),
 	}
 }
 
@@ -1736,54 +1854,64 @@ func _ClusterCommand_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
 	m := msg.(*ClusterCommand)
 	// command
 	switch x := m.Command.(type) {
+	case *ClusterCommand_CreateNamespace:
+		_ = b.EncodeVarint(10<<3 | proto.WireBytes)
+		if err := b.EncodeMessage(x.CreateNamespace); err != nil {
+			return err
+		}
+	case *ClusterCommand_DeleteNamespace:
+		_ = b.EncodeVarint(11<<3 | proto.WireBytes)
+		if err := b.EncodeMessage(x.DeleteNamespace); err != nil {
+			return err
+		}
 	case *ClusterCommand_CreateTopic:
-		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
+		_ = b.EncodeVarint(20<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.CreateTopic); err != nil {
 			return err
 		}
 	case *ClusterCommand_DeleteTopic:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
+		_ = b.EncodeVarint(21<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.DeleteTopic); err != nil {
 			return err
 		}
 	case *ClusterCommand_CreateConsumerGroup:
-		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
+		_ = b.EncodeVarint(30<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.CreateConsumerGroup); err != nil {
 			return err
 		}
 	case *ClusterCommand_DeleteConsumerGroup:
-		_ = b.EncodeVarint(4<<3 | proto.WireBytes)
+		_ = b.EncodeVarint(31<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.DeleteConsumerGroup); err != nil {
 			return err
 		}
+	case *ClusterCommand_UpdateConsumerGroupOffsetCommits:
+		_ = b.EncodeVarint(32<<3 | proto.WireBytes)
+		if err := b.EncodeMessage(x.UpdateConsumerGroupOffsetCommits); err != nil {
+			return err
+		}
 	case *ClusterCommand_OpenSegment:
-		_ = b.EncodeVarint(5<<3 | proto.WireBytes)
+		_ = b.EncodeVarint(40<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.OpenSegment); err != nil {
 			return err
 		}
 	case *ClusterCommand_CloseSegment:
-		_ = b.EncodeVarint(6<<3 | proto.WireBytes)
+		_ = b.EncodeVarint(41<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.CloseSegment); err != nil {
 			return err
 		}
-	case *ClusterCommand_UpdateNode:
-		_ = b.EncodeVarint(7<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.UpdateNode); err != nil {
-			return err
-		}
 	case *ClusterCommand_UpdateSegmentNodes:
-		_ = b.EncodeVarint(8<<3 | proto.WireBytes)
+		_ = b.EncodeVarint(42<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.UpdateSegmentNodes); err != nil {
 			return err
 		}
 	case *ClusterCommand_DeleteSegment:
-		_ = b.EncodeVarint(9<<3 | proto.WireBytes)
+		_ = b.EncodeVarint(43<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.DeleteSegment); err != nil {
 			return err
 		}
-	case *ClusterCommand_UpdateConsumerGroupOffsetCommits:
-		_ = b.EncodeVarint(10<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.UpdateConsumerGroupOffsetCommits); err != nil {
+	case *ClusterCommand_UpdateNode:
+		_ = b.EncodeVarint(50<<3 | proto.WireBytes)
+		if err := b.EncodeMessage(x.UpdateNode); err != nil {
 			return err
 		}
 	case nil:
@@ -1796,7 +1924,23 @@ func _ClusterCommand_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
 func _ClusterCommand_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
 	m := msg.(*ClusterCommand)
 	switch tag {
-	case 1: // command.create_topic
+	case 10: // command.create_namespace
+		if wire != proto.WireBytes {
+			return true, proto.ErrInternalBadWireType
+		}
+		msg := new(ClusterCommandNamespaceCreate)
+		err := b.DecodeMessage(msg)
+		m.Command = &ClusterCommand_CreateNamespace{msg}
+		return true, err
+	case 11: // command.delete_namespace
+		if wire != proto.WireBytes {
+			return true, proto.ErrInternalBadWireType
+		}
+		msg := new(ClusterCommandNamespaceDelete)
+		err := b.DecodeMessage(msg)
+		m.Command = &ClusterCommand_DeleteNamespace{msg}
+		return true, err
+	case 20: // command.create_topic
 		if wire != proto.WireBytes {
 			return true, proto.ErrInternalBadWireType
 		}
@@ -1804,7 +1948,7 @@ func _ClusterCommand_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto
 		err := b.DecodeMessage(msg)
 		m.Command = &ClusterCommand_CreateTopic{msg}
 		return true, err
-	case 2: // command.delete_topic
+	case 21: // command.delete_topic
 		if wire != proto.WireBytes {
 			return true, proto.ErrInternalBadWireType
 		}
@@ -1812,7 +1956,7 @@ func _ClusterCommand_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto
 		err := b.DecodeMessage(msg)
 		m.Command = &ClusterCommand_DeleteTopic{msg}
 		return true, err
-	case 3: // command.create_consumer_group
+	case 30: // command.create_consumer_group
 		if wire != proto.WireBytes {
 			return true, proto.ErrInternalBadWireType
 		}
@@ -1820,7 +1964,7 @@ func _ClusterCommand_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto
 		err := b.DecodeMessage(msg)
 		m.Command = &ClusterCommand_CreateConsumerGroup{msg}
 		return true, err
-	case 4: // command.delete_consumer_group
+	case 31: // command.delete_consumer_group
 		if wire != proto.WireBytes {
 			return true, proto.ErrInternalBadWireType
 		}
@@ -1828,7 +1972,15 @@ func _ClusterCommand_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto
 		err := b.DecodeMessage(msg)
 		m.Command = &ClusterCommand_DeleteConsumerGroup{msg}
 		return true, err
-	case 5: // command.open_segment
+	case 32: // command.update_consumer_group_offset_commits
+		if wire != proto.WireBytes {
+			return true, proto.ErrInternalBadWireType
+		}
+		msg := new(ClusterCommandConsumerGroupOffsetCommitsUpdate)
+		err := b.DecodeMessage(msg)
+		m.Command = &ClusterCommand_UpdateConsumerGroupOffsetCommits{msg}
+		return true, err
+	case 40: // command.open_segment
 		if wire != proto.WireBytes {
 			return true, proto.ErrInternalBadWireType
 		}
@@ -1836,7 +1988,7 @@ func _ClusterCommand_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto
 		err := b.DecodeMessage(msg)
 		m.Command = &ClusterCommand_OpenSegment{msg}
 		return true, err
-	case 6: // command.close_segment
+	case 41: // command.close_segment
 		if wire != proto.WireBytes {
 			return true, proto.ErrInternalBadWireType
 		}
@@ -1844,15 +1996,7 @@ func _ClusterCommand_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto
 		err := b.DecodeMessage(msg)
 		m.Command = &ClusterCommand_CloseSegment{msg}
 		return true, err
-	case 7: // command.update_node
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(ClusterCommandNodeUpdate)
-		err := b.DecodeMessage(msg)
-		m.Command = &ClusterCommand_UpdateNode{msg}
-		return true, err
-	case 8: // command.update_segment_nodes
+	case 42: // command.update_segment_nodes
 		if wire != proto.WireBytes {
 			return true, proto.ErrInternalBadWireType
 		}
@@ -1860,7 +2004,7 @@ func _ClusterCommand_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto
 		err := b.DecodeMessage(msg)
 		m.Command = &ClusterCommand_UpdateSegmentNodes{msg}
 		return true, err
-	case 9: // command.delete_segment
+	case 43: // command.delete_segment
 		if wire != proto.WireBytes {
 			return true, proto.ErrInternalBadWireType
 		}
@@ -1868,13 +2012,13 @@ func _ClusterCommand_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto
 		err := b.DecodeMessage(msg)
 		m.Command = &ClusterCommand_DeleteSegment{msg}
 		return true, err
-	case 10: // command.update_consumer_group_offset_commits
+	case 50: // command.update_node
 		if wire != proto.WireBytes {
 			return true, proto.ErrInternalBadWireType
 		}
-		msg := new(ClusterCommandConsumerGroupOffsetCommitsUpdate)
+		msg := new(ClusterCommandNodeUpdate)
 		err := b.DecodeMessage(msg)
-		m.Command = &ClusterCommand_UpdateConsumerGroupOffsetCommits{msg}
+		m.Command = &ClusterCommand_UpdateNode{msg}
 		return true, err
 	default:
 		return false, nil
@@ -1885,54 +2029,64 @@ func _ClusterCommand_OneofSizer(msg proto.Message) (n int) {
 	m := msg.(*ClusterCommand)
 	// command
 	switch x := m.Command.(type) {
+	case *ClusterCommand_CreateNamespace:
+		s := proto.Size(x.CreateNamespace)
+		n += 1 // tag and wire
+		n += proto.SizeVarint(uint64(s))
+		n += s
+	case *ClusterCommand_DeleteNamespace:
+		s := proto.Size(x.DeleteNamespace)
+		n += 1 // tag and wire
+		n += proto.SizeVarint(uint64(s))
+		n += s
 	case *ClusterCommand_CreateTopic:
 		s := proto.Size(x.CreateTopic)
-		n += 1 // tag and wire
+		n += 2 // tag and wire
 		n += proto.SizeVarint(uint64(s))
 		n += s
 	case *ClusterCommand_DeleteTopic:
 		s := proto.Size(x.DeleteTopic)
-		n += 1 // tag and wire
+		n += 2 // tag and wire
 		n += proto.SizeVarint(uint64(s))
 		n += s
 	case *ClusterCommand_CreateConsumerGroup:
 		s := proto.Size(x.CreateConsumerGroup)
-		n += 1 // tag and wire
+		n += 2 // tag and wire
 		n += proto.SizeVarint(uint64(s))
 		n += s
 	case *ClusterCommand_DeleteConsumerGroup:
 		s := proto.Size(x.DeleteConsumerGroup)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *ClusterCommand_OpenSegment:
-		s := proto.Size(x.OpenSegment)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *ClusterCommand_CloseSegment:
-		s := proto.Size(x.CloseSegment)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *ClusterCommand_UpdateNode:
-		s := proto.Size(x.UpdateNode)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *ClusterCommand_UpdateSegmentNodes:
-		s := proto.Size(x.UpdateSegmentNodes)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *ClusterCommand_DeleteSegment:
-		s := proto.Size(x.DeleteSegment)
-		n += 1 // tag and wire
+		n += 2 // tag and wire
 		n += proto.SizeVarint(uint64(s))
 		n += s
 	case *ClusterCommand_UpdateConsumerGroupOffsetCommits:
 		s := proto.Size(x.UpdateConsumerGroupOffsetCommits)
-		n += 1 // tag and wire
+		n += 2 // tag and wire
+		n += proto.SizeVarint(uint64(s))
+		n += s
+	case *ClusterCommand_OpenSegment:
+		s := proto.Size(x.OpenSegment)
+		n += 2 // tag and wire
+		n += proto.SizeVarint(uint64(s))
+		n += s
+	case *ClusterCommand_CloseSegment:
+		s := proto.Size(x.CloseSegment)
+		n += 2 // tag and wire
+		n += proto.SizeVarint(uint64(s))
+		n += s
+	case *ClusterCommand_UpdateSegmentNodes:
+		s := proto.Size(x.UpdateSegmentNodes)
+		n += 2 // tag and wire
+		n += proto.SizeVarint(uint64(s))
+		n += s
+	case *ClusterCommand_DeleteSegment:
+		s := proto.Size(x.DeleteSegment)
+		n += 2 // tag and wire
+		n += proto.SizeVarint(uint64(s))
+		n += s
+	case *ClusterCommand_UpdateNode:
+		s := proto.Size(x.UpdateNode)
+		n += 2 // tag and wire
 		n += proto.SizeVarint(uint64(s))
 		n += s
 	case nil:
@@ -1952,6 +2106,8 @@ func init() {
 	proto.RegisterType((*ClusterSegment)(nil), "io.eventter.mq.ClusterSegment")
 	proto.RegisterType((*ClusterSegment_Nodes)(nil), "io.eventter.mq.ClusterSegment.Nodes")
 	proto.RegisterType((*ClusterNode)(nil), "io.eventter.mq.ClusterNode")
+	proto.RegisterType((*ClusterCommandNamespaceCreate)(nil), "io.eventter.mq.ClusterCommandNamespaceCreate")
+	proto.RegisterType((*ClusterCommandNamespaceDelete)(nil), "io.eventter.mq.ClusterCommandNamespaceDelete")
 	proto.RegisterType((*ClusterCommandTopicCreate)(nil), "io.eventter.mq.ClusterCommandTopicCreate")
 	proto.RegisterType((*ClusterCommandTopicDelete)(nil), "io.eventter.mq.ClusterCommandTopicDelete")
 	proto.RegisterType((*ClusterCommandConsumerGroupCreate)(nil), "io.eventter.mq.ClusterCommandConsumerGroupCreate")
@@ -2468,6 +2624,54 @@ func (m *ClusterNode) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
+func (m *ClusterCommandNamespaceCreate) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ClusterCommandNamespaceCreate) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if len(m.Namespace) > 0 {
+		dAtA[i] = 0xa
+		i++
+		i = encodeVarintClusterState(dAtA, i, uint64(len(m.Namespace)))
+		i += copy(dAtA[i:], m.Namespace)
+	}
+	return i, nil
+}
+
+func (m *ClusterCommandNamespaceDelete) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ClusterCommandNamespaceDelete) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if len(m.Namespace) > 0 {
+		dAtA[i] = 0xa
+		i++
+		i = encodeVarintClusterState(dAtA, i, uint64(len(m.Namespace)))
+		i += copy(dAtA[i:], m.Namespace)
+	}
+	return i, nil
+}
+
 func (m *ClusterCommandTopicCreate) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -2884,13 +3088,13 @@ func (m *ClusterCommand) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
-func (m *ClusterCommand_CreateTopic) MarshalTo(dAtA []byte) (int, error) {
+func (m *ClusterCommand_CreateNamespace) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
-	if m.CreateTopic != nil {
-		dAtA[i] = 0xa
+	if m.CreateNamespace != nil {
+		dAtA[i] = 0x52
 		i++
-		i = encodeVarintClusterState(dAtA, i, uint64(m.CreateTopic.Size()))
-		n25, err := m.CreateTopic.MarshalTo(dAtA[i:])
+		i = encodeVarintClusterState(dAtA, i, uint64(m.CreateNamespace.Size()))
+		n25, err := m.CreateNamespace.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
@@ -2898,13 +3102,13 @@ func (m *ClusterCommand_CreateTopic) MarshalTo(dAtA []byte) (int, error) {
 	}
 	return i, nil
 }
-func (m *ClusterCommand_DeleteTopic) MarshalTo(dAtA []byte) (int, error) {
+func (m *ClusterCommand_DeleteNamespace) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
-	if m.DeleteTopic != nil {
-		dAtA[i] = 0x12
+	if m.DeleteNamespace != nil {
+		dAtA[i] = 0x5a
 		i++
-		i = encodeVarintClusterState(dAtA, i, uint64(m.DeleteTopic.Size()))
-		n26, err := m.DeleteTopic.MarshalTo(dAtA[i:])
+		i = encodeVarintClusterState(dAtA, i, uint64(m.DeleteNamespace.Size()))
+		n26, err := m.DeleteNamespace.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
@@ -2912,13 +3116,15 @@ func (m *ClusterCommand_DeleteTopic) MarshalTo(dAtA []byte) (int, error) {
 	}
 	return i, nil
 }
-func (m *ClusterCommand_CreateConsumerGroup) MarshalTo(dAtA []byte) (int, error) {
+func (m *ClusterCommand_CreateTopic) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
-	if m.CreateConsumerGroup != nil {
-		dAtA[i] = 0x1a
+	if m.CreateTopic != nil {
+		dAtA[i] = 0xa2
 		i++
-		i = encodeVarintClusterState(dAtA, i, uint64(m.CreateConsumerGroup.Size()))
-		n27, err := m.CreateConsumerGroup.MarshalTo(dAtA[i:])
+		dAtA[i] = 0x1
+		i++
+		i = encodeVarintClusterState(dAtA, i, uint64(m.CreateTopic.Size()))
+		n27, err := m.CreateTopic.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
@@ -2926,13 +3132,15 @@ func (m *ClusterCommand_CreateConsumerGroup) MarshalTo(dAtA []byte) (int, error)
 	}
 	return i, nil
 }
-func (m *ClusterCommand_DeleteConsumerGroup) MarshalTo(dAtA []byte) (int, error) {
+func (m *ClusterCommand_DeleteTopic) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
-	if m.DeleteConsumerGroup != nil {
-		dAtA[i] = 0x22
+	if m.DeleteTopic != nil {
+		dAtA[i] = 0xaa
 		i++
-		i = encodeVarintClusterState(dAtA, i, uint64(m.DeleteConsumerGroup.Size()))
-		n28, err := m.DeleteConsumerGroup.MarshalTo(dAtA[i:])
+		dAtA[i] = 0x1
+		i++
+		i = encodeVarintClusterState(dAtA, i, uint64(m.DeleteTopic.Size()))
+		n28, err := m.DeleteTopic.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
@@ -2940,13 +3148,15 @@ func (m *ClusterCommand_DeleteConsumerGroup) MarshalTo(dAtA []byte) (int, error)
 	}
 	return i, nil
 }
-func (m *ClusterCommand_OpenSegment) MarshalTo(dAtA []byte) (int, error) {
+func (m *ClusterCommand_CreateConsumerGroup) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
-	if m.OpenSegment != nil {
-		dAtA[i] = 0x2a
+	if m.CreateConsumerGroup != nil {
+		dAtA[i] = 0xf2
 		i++
-		i = encodeVarintClusterState(dAtA, i, uint64(m.OpenSegment.Size()))
-		n29, err := m.OpenSegment.MarshalTo(dAtA[i:])
+		dAtA[i] = 0x1
+		i++
+		i = encodeVarintClusterState(dAtA, i, uint64(m.CreateConsumerGroup.Size()))
+		n29, err := m.CreateConsumerGroup.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
@@ -2954,13 +3164,15 @@ func (m *ClusterCommand_OpenSegment) MarshalTo(dAtA []byte) (int, error) {
 	}
 	return i, nil
 }
-func (m *ClusterCommand_CloseSegment) MarshalTo(dAtA []byte) (int, error) {
+func (m *ClusterCommand_DeleteConsumerGroup) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
-	if m.CloseSegment != nil {
-		dAtA[i] = 0x32
+	if m.DeleteConsumerGroup != nil {
+		dAtA[i] = 0xfa
 		i++
-		i = encodeVarintClusterState(dAtA, i, uint64(m.CloseSegment.Size()))
-		n30, err := m.CloseSegment.MarshalTo(dAtA[i:])
+		dAtA[i] = 0x1
+		i++
+		i = encodeVarintClusterState(dAtA, i, uint64(m.DeleteConsumerGroup.Size()))
+		n30, err := m.DeleteConsumerGroup.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
@@ -2968,13 +3180,15 @@ func (m *ClusterCommand_CloseSegment) MarshalTo(dAtA []byte) (int, error) {
 	}
 	return i, nil
 }
-func (m *ClusterCommand_UpdateNode) MarshalTo(dAtA []byte) (int, error) {
+func (m *ClusterCommand_UpdateConsumerGroupOffsetCommits) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
-	if m.UpdateNode != nil {
-		dAtA[i] = 0x3a
+	if m.UpdateConsumerGroupOffsetCommits != nil {
+		dAtA[i] = 0x82
 		i++
-		i = encodeVarintClusterState(dAtA, i, uint64(m.UpdateNode.Size()))
-		n31, err := m.UpdateNode.MarshalTo(dAtA[i:])
+		dAtA[i] = 0x2
+		i++
+		i = encodeVarintClusterState(dAtA, i, uint64(m.UpdateConsumerGroupOffsetCommits.Size()))
+		n31, err := m.UpdateConsumerGroupOffsetCommits.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
@@ -2982,13 +3196,15 @@ func (m *ClusterCommand_UpdateNode) MarshalTo(dAtA []byte) (int, error) {
 	}
 	return i, nil
 }
-func (m *ClusterCommand_UpdateSegmentNodes) MarshalTo(dAtA []byte) (int, error) {
+func (m *ClusterCommand_OpenSegment) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
-	if m.UpdateSegmentNodes != nil {
-		dAtA[i] = 0x42
+	if m.OpenSegment != nil {
+		dAtA[i] = 0xc2
 		i++
-		i = encodeVarintClusterState(dAtA, i, uint64(m.UpdateSegmentNodes.Size()))
-		n32, err := m.UpdateSegmentNodes.MarshalTo(dAtA[i:])
+		dAtA[i] = 0x2
+		i++
+		i = encodeVarintClusterState(dAtA, i, uint64(m.OpenSegment.Size()))
+		n32, err := m.OpenSegment.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
@@ -2996,13 +3212,15 @@ func (m *ClusterCommand_UpdateSegmentNodes) MarshalTo(dAtA []byte) (int, error) 
 	}
 	return i, nil
 }
-func (m *ClusterCommand_DeleteSegment) MarshalTo(dAtA []byte) (int, error) {
+func (m *ClusterCommand_CloseSegment) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
-	if m.DeleteSegment != nil {
-		dAtA[i] = 0x4a
+	if m.CloseSegment != nil {
+		dAtA[i] = 0xca
 		i++
-		i = encodeVarintClusterState(dAtA, i, uint64(m.DeleteSegment.Size()))
-		n33, err := m.DeleteSegment.MarshalTo(dAtA[i:])
+		dAtA[i] = 0x2
+		i++
+		i = encodeVarintClusterState(dAtA, i, uint64(m.CloseSegment.Size()))
+		n33, err := m.CloseSegment.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
@@ -3010,17 +3228,51 @@ func (m *ClusterCommand_DeleteSegment) MarshalTo(dAtA []byte) (int, error) {
 	}
 	return i, nil
 }
-func (m *ClusterCommand_UpdateConsumerGroupOffsetCommits) MarshalTo(dAtA []byte) (int, error) {
+func (m *ClusterCommand_UpdateSegmentNodes) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
-	if m.UpdateConsumerGroupOffsetCommits != nil {
-		dAtA[i] = 0x52
+	if m.UpdateSegmentNodes != nil {
+		dAtA[i] = 0xd2
 		i++
-		i = encodeVarintClusterState(dAtA, i, uint64(m.UpdateConsumerGroupOffsetCommits.Size()))
-		n34, err := m.UpdateConsumerGroupOffsetCommits.MarshalTo(dAtA[i:])
+		dAtA[i] = 0x2
+		i++
+		i = encodeVarintClusterState(dAtA, i, uint64(m.UpdateSegmentNodes.Size()))
+		n34, err := m.UpdateSegmentNodes.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
 		i += n34
+	}
+	return i, nil
+}
+func (m *ClusterCommand_DeleteSegment) MarshalTo(dAtA []byte) (int, error) {
+	i := 0
+	if m.DeleteSegment != nil {
+		dAtA[i] = 0xda
+		i++
+		dAtA[i] = 0x2
+		i++
+		i = encodeVarintClusterState(dAtA, i, uint64(m.DeleteSegment.Size()))
+		n35, err := m.DeleteSegment.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n35
+	}
+	return i, nil
+}
+func (m *ClusterCommand_UpdateNode) MarshalTo(dAtA []byte) (int, error) {
+	i := 0
+	if m.UpdateNode != nil {
+		dAtA[i] = 0x92
+		i++
+		dAtA[i] = 0x3
+		i++
+		i = encodeVarintClusterState(dAtA, i, uint64(m.UpdateNode.Size()))
+		n36, err := m.UpdateNode.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n36
 	}
 	return i, nil
 }
@@ -3260,6 +3512,26 @@ func (m *ClusterNode) Size() (n int) {
 	return n
 }
 
+func (m *ClusterCommandNamespaceCreate) Size() (n int) {
+	var l int
+	_ = l
+	l = len(m.Namespace)
+	if l > 0 {
+		n += 1 + l + sovClusterState(uint64(l))
+	}
+	return n
+}
+
+func (m *ClusterCommandNamespaceDelete) Size() (n int) {
+	var l int
+	_ = l
+	l = len(m.Namespace)
+	if l > 0 {
+		n += 1 + l + sovClusterState(uint64(l))
+	}
+	return n
+}
+
 func (m *ClusterCommandTopicCreate) Size() (n int) {
 	var l int
 	_ = l
@@ -3438,12 +3710,30 @@ func (m *ClusterCommand) Size() (n int) {
 	return n
 }
 
+func (m *ClusterCommand_CreateNamespace) Size() (n int) {
+	var l int
+	_ = l
+	if m.CreateNamespace != nil {
+		l = m.CreateNamespace.Size()
+		n += 1 + l + sovClusterState(uint64(l))
+	}
+	return n
+}
+func (m *ClusterCommand_DeleteNamespace) Size() (n int) {
+	var l int
+	_ = l
+	if m.DeleteNamespace != nil {
+		l = m.DeleteNamespace.Size()
+		n += 1 + l + sovClusterState(uint64(l))
+	}
+	return n
+}
 func (m *ClusterCommand_CreateTopic) Size() (n int) {
 	var l int
 	_ = l
 	if m.CreateTopic != nil {
 		l = m.CreateTopic.Size()
-		n += 1 + l + sovClusterState(uint64(l))
+		n += 2 + l + sovClusterState(uint64(l))
 	}
 	return n
 }
@@ -3452,7 +3742,7 @@ func (m *ClusterCommand_DeleteTopic) Size() (n int) {
 	_ = l
 	if m.DeleteTopic != nil {
 		l = m.DeleteTopic.Size()
-		n += 1 + l + sovClusterState(uint64(l))
+		n += 2 + l + sovClusterState(uint64(l))
 	}
 	return n
 }
@@ -3461,7 +3751,7 @@ func (m *ClusterCommand_CreateConsumerGroup) Size() (n int) {
 	_ = l
 	if m.CreateConsumerGroup != nil {
 		l = m.CreateConsumerGroup.Size()
-		n += 1 + l + sovClusterState(uint64(l))
+		n += 2 + l + sovClusterState(uint64(l))
 	}
 	return n
 }
@@ -3470,52 +3760,7 @@ func (m *ClusterCommand_DeleteConsumerGroup) Size() (n int) {
 	_ = l
 	if m.DeleteConsumerGroup != nil {
 		l = m.DeleteConsumerGroup.Size()
-		n += 1 + l + sovClusterState(uint64(l))
-	}
-	return n
-}
-func (m *ClusterCommand_OpenSegment) Size() (n int) {
-	var l int
-	_ = l
-	if m.OpenSegment != nil {
-		l = m.OpenSegment.Size()
-		n += 1 + l + sovClusterState(uint64(l))
-	}
-	return n
-}
-func (m *ClusterCommand_CloseSegment) Size() (n int) {
-	var l int
-	_ = l
-	if m.CloseSegment != nil {
-		l = m.CloseSegment.Size()
-		n += 1 + l + sovClusterState(uint64(l))
-	}
-	return n
-}
-func (m *ClusterCommand_UpdateNode) Size() (n int) {
-	var l int
-	_ = l
-	if m.UpdateNode != nil {
-		l = m.UpdateNode.Size()
-		n += 1 + l + sovClusterState(uint64(l))
-	}
-	return n
-}
-func (m *ClusterCommand_UpdateSegmentNodes) Size() (n int) {
-	var l int
-	_ = l
-	if m.UpdateSegmentNodes != nil {
-		l = m.UpdateSegmentNodes.Size()
-		n += 1 + l + sovClusterState(uint64(l))
-	}
-	return n
-}
-func (m *ClusterCommand_DeleteSegment) Size() (n int) {
-	var l int
-	_ = l
-	if m.DeleteSegment != nil {
-		l = m.DeleteSegment.Size()
-		n += 1 + l + sovClusterState(uint64(l))
+		n += 2 + l + sovClusterState(uint64(l))
 	}
 	return n
 }
@@ -3524,7 +3769,52 @@ func (m *ClusterCommand_UpdateConsumerGroupOffsetCommits) Size() (n int) {
 	_ = l
 	if m.UpdateConsumerGroupOffsetCommits != nil {
 		l = m.UpdateConsumerGroupOffsetCommits.Size()
-		n += 1 + l + sovClusterState(uint64(l))
+		n += 2 + l + sovClusterState(uint64(l))
+	}
+	return n
+}
+func (m *ClusterCommand_OpenSegment) Size() (n int) {
+	var l int
+	_ = l
+	if m.OpenSegment != nil {
+		l = m.OpenSegment.Size()
+		n += 2 + l + sovClusterState(uint64(l))
+	}
+	return n
+}
+func (m *ClusterCommand_CloseSegment) Size() (n int) {
+	var l int
+	_ = l
+	if m.CloseSegment != nil {
+		l = m.CloseSegment.Size()
+		n += 2 + l + sovClusterState(uint64(l))
+	}
+	return n
+}
+func (m *ClusterCommand_UpdateSegmentNodes) Size() (n int) {
+	var l int
+	_ = l
+	if m.UpdateSegmentNodes != nil {
+		l = m.UpdateSegmentNodes.Size()
+		n += 2 + l + sovClusterState(uint64(l))
+	}
+	return n
+}
+func (m *ClusterCommand_DeleteSegment) Size() (n int) {
+	var l int
+	_ = l
+	if m.DeleteSegment != nil {
+		l = m.DeleteSegment.Size()
+		n += 2 + l + sovClusterState(uint64(l))
+	}
+	return n
+}
+func (m *ClusterCommand_UpdateNode) Size() (n int) {
+	var l int
+	_ = l
+	if m.UpdateNode != nil {
+		l = m.UpdateNode.Size()
+		n += 2 + l + sovClusterState(uint64(l))
 	}
 	return n
 }
@@ -5122,6 +5412,164 @@ func (m *ClusterNode) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+func (m *ClusterCommandNamespaceCreate) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowClusterState
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ClusterCommandNamespaceCreate: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ClusterCommandNamespaceCreate: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Namespace", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowClusterState
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthClusterState
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Namespace = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipClusterState(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthClusterState
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *ClusterCommandNamespaceDelete) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowClusterState
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ClusterCommandNamespaceDelete: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ClusterCommandNamespaceDelete: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Namespace", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowClusterState
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthClusterState
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Namespace = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipClusterState(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthClusterState
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
 func (m *ClusterCommandTopicCreate) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -6483,7 +6931,71 @@ func (m *ClusterCommand) Unmarshal(dAtA []byte) error {
 			return fmt.Errorf("proto: ClusterCommand: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
-		case 1:
+		case 10:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field CreateNamespace", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowClusterState
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthClusterState
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := &ClusterCommandNamespaceCreate{}
+			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			m.Command = &ClusterCommand_CreateNamespace{v}
+			iNdEx = postIndex
+		case 11:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field DeleteNamespace", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowClusterState
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthClusterState
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := &ClusterCommandNamespaceDelete{}
+			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			m.Command = &ClusterCommand_DeleteNamespace{v}
+			iNdEx = postIndex
+		case 20:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field CreateTopic", wireType)
 			}
@@ -6515,7 +7027,7 @@ func (m *ClusterCommand) Unmarshal(dAtA []byte) error {
 			}
 			m.Command = &ClusterCommand_CreateTopic{v}
 			iNdEx = postIndex
-		case 2:
+		case 21:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field DeleteTopic", wireType)
 			}
@@ -6547,7 +7059,7 @@ func (m *ClusterCommand) Unmarshal(dAtA []byte) error {
 			}
 			m.Command = &ClusterCommand_DeleteTopic{v}
 			iNdEx = postIndex
-		case 3:
+		case 30:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field CreateConsumerGroup", wireType)
 			}
@@ -6579,7 +7091,7 @@ func (m *ClusterCommand) Unmarshal(dAtA []byte) error {
 			}
 			m.Command = &ClusterCommand_CreateConsumerGroup{v}
 			iNdEx = postIndex
-		case 4:
+		case 31:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field DeleteConsumerGroup", wireType)
 			}
@@ -6611,7 +7123,39 @@ func (m *ClusterCommand) Unmarshal(dAtA []byte) error {
 			}
 			m.Command = &ClusterCommand_DeleteConsumerGroup{v}
 			iNdEx = postIndex
-		case 5:
+		case 32:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field UpdateConsumerGroupOffsetCommits", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowClusterState
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthClusterState
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := &ClusterCommandConsumerGroupOffsetCommitsUpdate{}
+			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			m.Command = &ClusterCommand_UpdateConsumerGroupOffsetCommits{v}
+			iNdEx = postIndex
+		case 40:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field OpenSegment", wireType)
 			}
@@ -6643,7 +7187,7 @@ func (m *ClusterCommand) Unmarshal(dAtA []byte) error {
 			}
 			m.Command = &ClusterCommand_OpenSegment{v}
 			iNdEx = postIndex
-		case 6:
+		case 41:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field CloseSegment", wireType)
 			}
@@ -6675,39 +7219,7 @@ func (m *ClusterCommand) Unmarshal(dAtA []byte) error {
 			}
 			m.Command = &ClusterCommand_CloseSegment{v}
 			iNdEx = postIndex
-		case 7:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field UpdateNode", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowClusterState
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthClusterState
-			}
-			postIndex := iNdEx + msglen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &ClusterCommandNodeUpdate{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Command = &ClusterCommand_UpdateNode{v}
-			iNdEx = postIndex
-		case 8:
+		case 42:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field UpdateSegmentNodes", wireType)
 			}
@@ -6739,7 +7251,7 @@ func (m *ClusterCommand) Unmarshal(dAtA []byte) error {
 			}
 			m.Command = &ClusterCommand_UpdateSegmentNodes{v}
 			iNdEx = postIndex
-		case 9:
+		case 43:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field DeleteSegment", wireType)
 			}
@@ -6771,9 +7283,9 @@ func (m *ClusterCommand) Unmarshal(dAtA []byte) error {
 			}
 			m.Command = &ClusterCommand_DeleteSegment{v}
 			iNdEx = postIndex
-		case 10:
+		case 50:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field UpdateConsumerGroupOffsetCommits", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field UpdateNode", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -6797,11 +7309,11 @@ func (m *ClusterCommand) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			v := &ClusterCommandConsumerGroupOffsetCommitsUpdate{}
+			v := &ClusterCommandNodeUpdate{}
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Command = &ClusterCommand_UpdateConsumerGroupOffsetCommits{v}
+			m.Command = &ClusterCommand_UpdateNode{v}
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -6929,110 +7441,113 @@ var (
 	ErrIntOverflowClusterState   = fmt.Errorf("proto: integer overflow")
 )
 
-func init() { proto.RegisterFile("cluster_state.proto", fileDescriptor_cluster_state_44c6ec2b64aa39f9) }
+func init() { proto.RegisterFile("cluster_state.proto", fileDescriptor_cluster_state_97775bfba9ff2da0) }
 
-var fileDescriptor_cluster_state_44c6ec2b64aa39f9 = []byte{
-	// 1619 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xdc, 0x58, 0xcd, 0x72, 0x1b, 0x5b,
-	0x11, 0xd6, 0xc8, 0x23, 0x59, 0x6a, 0xfd, 0x58, 0xf7, 0xd8, 0xd7, 0xe8, 0xfa, 0x3a, 0x96, 0x3d,
-	0xdc, 0x85, 0xef, 0xe5, 0x22, 0xc7, 0x0a, 0x45, 0x2a, 0x2c, 0xa8, 0xe8, 0xc7, 0xb1, 0x54, 0xb1,
-	0x2d, 0x73, 0x24, 0x07, 0x8a, 0xcd, 0xd4, 0x78, 0xe6, 0x58, 0x9e, 0x42, 0x9a, 0x51, 0x66, 0x46,
-	0x09, 0xe2, 0x21, 0xa8, 0x54, 0xb1, 0xe1, 0x19, 0xe0, 0x15, 0x58, 0xc0, 0x2e, 0xa9, 0xa2, 0x0a,
-	0x78, 0x01, 0x91, 0x12, 0x4b, 0x16, 0xec, 0x58, 0x53, 0xe7, 0x67, 0xa4, 0x19, 0x45, 0x52, 0xa4,
-	0x14, 0x1b, 0x58, 0xe9, 0xfc, 0x74, 0x7f, 0xa7, 0xbb, 0x4f, 0xf7, 0xd7, 0x67, 0x04, 0xdb, 0x7a,
-	0x77, 0xe0, 0x7a, 0xc4, 0x51, 0x5d, 0x4f, 0xf3, 0x48, 0xb1, 0xef, 0xd8, 0x9e, 0x8d, 0xb2, 0xa6,
-	0x5d, 0x24, 0xaf, 0x88, 0xe5, 0x79, 0xc4, 0x29, 0xf6, 0x5e, 0xee, 0x6d, 0xeb, 0x5d, 0x93, 0x58,
-	0xde, 0x09, 0xff, 0xe1, 0x42, 0x7b, 0x3b, 0x1d, 0xbb, 0x63, 0xb3, 0xe1, 0x09, 0x1d, 0x89, 0xd5,
-	0x83, 0x8e, 0x6d, 0x77, 0xba, 0xe4, 0x84, 0xcd, 0x6e, 0x07, 0x77, 0x27, 0xc6, 0xc0, 0xd1, 0x3c,
-	0xd3, 0xb6, 0xc4, 0xfe, 0xfe, 0xec, 0xbe, 0xeb, 0x39, 0x03, 0xdd, 0xc7, 0x2c, 0xcc, 0xee, 0x7a,
-	0x66, 0x8f, 0xb8, 0x9e, 0xd6, 0xeb, 0x73, 0x01, 0xe5, 0x9f, 0x51, 0x48, 0x57, 0xb9, 0xc5, 0x2d,
-	0x6a, 0x30, 0xda, 0x81, 0x98, 0x69, 0x19, 0xe4, 0x97, 0x79, 0xe9, 0x50, 0x3a, 0x96, 0x31, 0x9f,
-	0xa0, 0x0a, 0x20, 0x7d, 0xe0, 0x38, 0xc4, 0xf2, 0x54, 0x97, 0x74, 0x7a, 0xf4, 0xd7, 0x34, 0xf2,
-	0x51, 0x2a, 0x52, 0xd9, 0x19, 0x8f, 0x0a, 0xb9, 0x2a, 0xdf, 0x6d, 0xf1, 0xcd, 0x46, 0x0d, 0xe7,
-	0xf4, 0xf0, 0x8a, 0x81, 0x9e, 0x02, 0x58, 0x5a, 0x8f, 0xb8, 0x7d, 0x4d, 0x27, 0x6e, 0x7e, 0xe3,
-	0x70, 0xe3, 0x38, 0x55, 0x3a, 0x2c, 0x86, 0x23, 0x53, 0x14, 0xb6, 0x5c, 0xf9, 0x82, 0x38, 0xa0,
-	0x83, 0xaa, 0x90, 0xb1, 0xfb, 0xc4, 0xf2, 0x4d, 0x70, 0xf3, 0x32, 0x03, 0x39, 0x58, 0x00, 0x22,
-	0x8e, 0xc6, 0x69, 0xaa, 0x24, 0x26, 0x2e, 0x3a, 0x87, 0x2d, 0xbd, 0x6b, 0xbb, 0xc4, 0x98, 0xc2,
-	0xc4, 0x56, 0x82, 0xc9, 0x72, 0xb5, 0x09, 0xd0, 0x29, 0xc4, 0x2c, 0xdb, 0x20, 0x6e, 0x3e, 0xce,
-	0xd4, 0xbf, 0x5c, 0xe4, 0x8a, 0x6d, 0x10, 0xcc, 0x25, 0x95, 0xdf, 0x4b, 0x90, 0x9b, 0xf5, 0x10,
-	0x21, 0x90, 0xa9, 0x8f, 0x2c, 0xe0, 0x49, 0xcc, 0xc6, 0xe8, 0x07, 0x10, 0xf7, 0xec, 0xbe, 0xa9,
-	0xbb, 0xf9, 0x28, 0x03, 0xdf, 0x5f, 0x00, 0xde, 0xa6, 0x42, 0x58, 0xc8, 0xa2, 0x4b, 0xd8, 0xd2,
-	0x6d, 0xcb, 0x1d, 0xf4, 0x88, 0xa3, 0x76, 0x1c, 0x7b, 0xd0, 0xf7, 0xc3, 0xfc, 0xd5, 0x02, 0xf5,
-	0xaa, 0x90, 0x3e, 0xa7, 0xc2, 0x38, 0xab, 0x07, 0xa7, 0xae, 0xf2, 0x47, 0x69, 0x92, 0x1b, 0xec,
-	0x9c, 0xb9, 0x96, 0x22, 0x90, 0xbd, 0x61, 0x9f, 0xb0, 0x5c, 0x48, 0x62, 0x36, 0x46, 0xbb, 0x10,
-	0x77, 0xef, 0x35, 0xc7, 0xa0, 0xc7, 0x4b, 0xc7, 0x19, 0x2c, 0x66, 0xe8, 0xfb, 0x80, 0x1c, 0xd2,
-	0xef, 0x9a, 0x3a, 0x4b, 0x60, 0xf5, 0x4e, 0xd3, 0x3d, 0xdb, 0xc9, 0xcb, 0x4c, 0xe6, 0xb3, 0xc0,
-	0xce, 0x33, 0xb6, 0x81, 0xca, 0x90, 0x74, 0x88, 0x47, 0x2c, 0xba, 0x94, 0x8f, 0x1d, 0x4a, 0xc7,
-	0xa9, 0xd2, 0x17, 0x45, 0x9e, 0xd0, 0x45, 0x3f, 0xa1, 0x8b, 0x35, 0x51, 0x0e, 0x95, 0xc4, 0xdb,
-	0x51, 0x21, 0xf2, 0xdb, 0xbf, 0x17, 0x24, 0x3c, 0xd5, 0x52, 0xde, 0xc9, 0xb0, 0x33, 0xcf, 0xd7,
-	0xb9, 0xae, 0xd4, 0x21, 0x71, 0x6b, 0x5a, 0x86, 0x69, 0x75, 0xfc, 0xb0, 0x7f, 0xbb, 0x4a, 0xdc,
-	0x8a, 0x15, 0xae, 0x84, 0x27, 0xda, 0x14, 0xdd, 0x35, 0x7f, 0x45, 0x84, 0xfb, 0x6c, 0x8c, 0x7e,
-	0x06, 0x59, 0xfb, 0xee, 0xce, 0x25, 0x9e, 0xaa, 0xdb, 0xbd, 0x9e, 0x39, 0xc9, 0xde, 0xd3, 0x95,
-	0xce, 0x68, 0x32, 0xd5, 0x2a, 0xd3, 0xc4, 0x19, 0x3b, 0x30, 0xa3, 0x65, 0x01, 0xba, 0x43, 0x34,
-	0x8f, 0x18, 0xaa, 0xe6, 0x89, 0x40, 0xed, 0x7d, 0x10, 0xa8, 0xb6, 0x5f, 0xf9, 0x3c, 0x52, 0x6f,
-	0x58, 0xa4, 0x84, 0x5e, 0xd9, 0xdb, 0x7b, 0x27, 0xc1, 0xa6, 0x70, 0x04, 0x3d, 0x00, 0x60, 0x19,
-	0xa5, 0x06, 0x42, 0x94, 0x64, 0x2b, 0x34, 0x6b, 0xd1, 0x11, 0xa4, 0x1c, 0x7b, 0xe0, 0x99, 0x56,
-	0x47, 0xfd, 0x05, 0x19, 0xf2, 0x9b, 0xaf, 0x47, 0x30, 0x88, 0xc5, 0xe7, 0x64, 0x88, 0x7e, 0x04,
-	0xa9, 0x7b, 0xa2, 0x19, 0xc4, 0x71, 0x55, 0xad, 0xdb, 0x65, 0x71, 0x48, 0x95, 0xbe, 0xf3, 0x81,
-	0x4d, 0x2d, 0xc6, 0x55, 0x54, 0x57, 0x48, 0x97, 0xbb, 0xdd, 0x90, 0xae, 0x35, 0x64, 0xe9, 0xb1,
-	0x9a, 0xae, 0x35, 0xac, 0xc8, 0x10, 0xbd, 0x1d, 0xee, 0xb5, 0x21, 0x1d, 0x8c, 0x17, 0xfa, 0x16,
-	0x20, 0xc0, 0x5a, 0x8c, 0xd8, 0x2a, 0x99, 0xf1, 0xa8, 0x90, 0x9c, 0xd2, 0x55, 0xd2, 0x9d, 0xf0,
-	0xd4, 0x2e, 0xc4, 0x79, 0x7c, 0x99, 0x67, 0x1b, 0x58, 0xcc, 0x94, 0xdf, 0xc4, 0x20, 0x1b, 0xa6,
-	0x04, 0xb4, 0x0b, 0xd1, 0x09, 0x60, 0x7c, 0x3c, 0x2a, 0x44, 0x1b, 0x35, 0x1c, 0x35, 0x0d, 0xf4,
-	0x04, 0x62, 0xf6, 0x6b, 0x8b, 0x38, 0x0c, 0x21, 0x55, 0x7a, 0x30, 0x7b, 0xc5, 0x93, 0xe2, 0xa7,
-	0x83, 0x8a, 0x4c, 0xef, 0x03, 0x73, 0x0d, 0xf4, 0x58, 0xd4, 0x13, 0x0d, 0x59, 0xb6, 0xf4, 0xdd,
-	0xe5, 0x9c, 0x54, 0x6c, 0x0f, 0xfb, 0x44, 0x14, 0x5d, 0x19, 0x92, 0x94, 0xe7, 0x78, 0x12, 0xc8,
-	0x6b, 0x24, 0x41, 0x82, 0xab, 0x95, 0x3d, 0x0a, 0x21, 0xa8, 0x71, 0xcd, 0x3c, 0x4a, 0x70, 0xb5,
-	0xb2, 0x87, 0x9e, 0x4e, 0x49, 0x51, 0x5a, 0x42, 0x3c, 0xbe, 0xfd, 0x94, 0x1c, 0x5d, 0x3f, 0x00,
-	0x4c, 0x71, 0x52, 0x3b, 0x9b, 0x2c, 0xf8, 0xbc, 0x76, 0xe8, 0xda, 0xbd, 0x76, 0x9a, 0x4f, 0x1c,
-	0x4a, 0xc7, 0x69, 0xcc, 0xc6, 0x7b, 0x7f, 0x92, 0x20, 0xc6, 0xd4, 0xd1, 0x13, 0xd8, 0xea, 0x3b,
-	0x66, 0x4f, 0x73, 0x86, 0x2a, 0x85, 0x98, 0xde, 0xf1, 0x67, 0xe3, 0x51, 0x21, 0x73, 0xcd, 0xb7,
-	0xa8, 0x68, 0xa3, 0x86, 0x33, 0xfd, 0xc0, 0xd4, 0x40, 0x8f, 0x20, 0x63, 0xd8, 0x16, 0xf1, 0xf5,
-	0x78, 0xdd, 0xcb, 0x95, 0xad, 0xf1, 0xa8, 0x90, 0xaa, 0xd9, 0x16, 0xe1, 0x5a, 0x2e, 0x4e, 0x19,
-	0xfe, 0xc4, 0x70, 0x51, 0x1d, 0x76, 0x26, 0x64, 0x65, 0x75, 0xa6, 0xba, 0x1b, 0x4c, 0x77, 0x77,
-	0x3c, 0x2a, 0x20, 0x3c, 0xdd, 0xf7, 0x21, 0x90, 0x33, 0xb3, 0x66, 0xb8, 0x4a, 0x19, 0x64, 0x7a,
-	0x83, 0x28, 0x05, 0x9b, 0x8d, 0xab, 0x17, 0xe5, 0x8b, 0x46, 0x2d, 0x17, 0x41, 0x49, 0x88, 0xb5,
-	0x9b, 0xd7, 0x8d, 0x6a, 0x4e, 0x42, 0x47, 0xf0, 0xa0, 0xda, 0xbc, 0x6a, 0xdd, 0x5c, 0x9e, 0x61,
-	0xf5, 0x1c, 0x37, 0x6f, 0xae, 0xd5, 0xe6, 0xb3, 0x67, 0xad, 0xb3, 0xb6, 0x5a, 0x6d, 0x5e, 0x5e,
-	0x36, 0xda, 0xad, 0x5c, 0x54, 0x79, 0x2f, 0x41, 0x2a, 0xd0, 0x69, 0x16, 0xa6, 0x64, 0x1e, 0x36,
-	0x35, 0xc3, 0x70, 0x88, 0xeb, 0x0a, 0xaa, 0xf6, 0xa7, 0xe8, 0x31, 0xc4, 0xd8, 0x5b, 0x45, 0xa4,
-	0xdc, 0xd1, 0x92, 0x3e, 0x56, 0x64, 0x6f, 0x04, 0xcc, 0xe5, 0x51, 0x1d, 0xb6, 0xba, 0x9a, 0x4b,
-	0x5f, 0x04, 0xc4, 0x52, 0xb5, 0xae, 0xf9, 0x8a, 0xac, 0x90, 0x77, 0x32, 0x4b, 0x98, 0x0c, 0x55,
-	0x6c, 0x11, 0x62, 0x95, 0xa9, 0x9a, 0xb2, 0x0f, 0x31, 0xfe, 0xfa, 0x48, 0x80, 0x5c, 0x3b, 0x2b,
-	0x8b, 0x28, 0x94, 0x2f, 0x1a, 0x2f, 0xce, 0x72, 0x92, 0xd2, 0x83, 0x2f, 0x26, 0x9c, 0xd8, 0xeb,
-	0x69, 0x96, 0xc1, 0xba, 0x51, 0x95, 0x51, 0x17, 0xda, 0x87, 0xe4, 0xe4, 0x85, 0xe0, 0x53, 0xd5,
-	0x64, 0x01, 0x95, 0x20, 0xc6, 0x78, 0x4b, 0x14, 0xe2, 0xf2, 0x36, 0xca, 0x45, 0x95, 0xcb, 0xb9,
-	0xc7, 0xd5, 0x48, 0x97, 0x7c, 0xf4, 0x38, 0xbf, 0xab, 0x44, 0xa7, 0x5d, 0x45, 0xf9, 0xb5, 0x04,
-	0x47, 0x61, 0xbc, 0x10, 0xb3, 0xaf, 0xe4, 0xc6, 0x73, 0xc8, 0x86, 0x1b, 0xbb, 0xf0, 0x67, 0xb5,
-	0xbe, 0x9e, 0x09, 0xf5, 0x75, 0xe5, 0x66, 0xa9, 0x3d, 0x9f, 0xec, 0xe7, 0xbf, 0xa2, 0xb3, 0x71,
-	0x13, 0x45, 0xde, 0xec, 0x13, 0xeb, 0xff, 0x8d, 0x29, 0xe7, 0x50, 0x4e, 0x6c, 0x45, 0xca, 0x59,
-	0xc4, 0x1e, 0xf1, 0xb5, 0xd9, 0xe3, 0x6f, 0x12, 0xec, 0xcd, 0x8d, 0x78, 0x95, 0xb2, 0xf1, 0xc2,
-	0x90, 0x3f, 0x84, 0x74, 0x90, 0xf3, 0xc4, 0x2b, 0x3e, 0x3b, 0x1e, 0x15, 0x60, 0x4a, 0x79, 0x18,
-	0xa6, 0x8c, 0x17, 0xee, 0x0b, 0xf2, 0x27, 0xf5, 0x05, 0x9f, 0xd5, 0x63, 0x73, 0x58, 0x3d, 0x3e,
-	0x65, 0x75, 0xe5, 0x2f, 0x12, 0xe4, 0xc3, 0x3e, 0x51, 0x1b, 0x6e, 0xfa, 0x06, 0x2d, 0x92, 0xff,
-	0x49, 0x6e, 0xfb, 0xb7, 0x04, 0x87, 0x73, 0x6f, 0x89, 0x35, 0xaf, 0x8f, 0x78, 0x76, 0x01, 0xb1,
-	0xd7, 0xf7, 0xa6, 0x7e, 0xcf, 0xfc, 0xca, 0x96, 0x7e, 0xb8, 0xb0, 0xde, 0x17, 0x00, 0x17, 0x7f,
-	0x4a, 0xb5, 0x31, 0x07, 0x99, 0x36, 0xe7, 0x8d, 0x4f, 0x6c, 0xce, 0xca, 0x37, 0x10, 0x63, 0x88,
-	0xe1, 0x8e, 0x95, 0x00, 0xb9, 0x79, 0x7d, 0x76, 0x95, 0x93, 0x10, 0x40, 0xbc, 0x7a, 0xd1, 0x6c,
-	0x9d, 0xd5, 0x72, 0x51, 0xe5, 0x77, 0x12, 0x7c, 0x39, 0xd7, 0x3e, 0x41, 0x31, 0x8b, 0x7c, 0x3e,
-	0x0f, 0xfb, 0x7c, 0xba, 0x92, 0xcf, 0x1c, 0x33, 0xe4, 0xee, 0x5a, 0xc6, 0xfe, 0x41, 0x82, 0xe2,
-	0x12, 0x56, 0x0c, 0x3e, 0x27, 0xfd, 0x3b, 0x5b, 0x9b, 0x22, 0xe7, 0x7c, 0x02, 0x6c, 0xfc, 0x77,
-	0x3e, 0x01, 0x94, 0x3f, 0x6f, 0x4e, 0xde, 0xa6, 0xc2, 0x7c, 0x74, 0x05, 0x69, 0xfe, 0xba, 0x57,
-	0x79, 0x07, 0x94, 0xd8, 0x9d, 0x7f, 0xbd, 0x3c, 0x9a, 0x81, 0xce, 0x5a, 0x8f, 0xe0, 0x14, 0x07,
-	0xe0, 0x1f, 0x7f, 0x57, 0x90, 0x36, 0x58, 0x90, 0xd5, 0x60, 0x47, 0x5d, 0x05, 0x8f, 0xdf, 0x0d,
-	0xc5, 0xe3, 0x00, 0x1c, 0xaf, 0x03, 0x9f, 0x0b, 0xfb, 0x66, 0x5a, 0x1b, 0x4f, 0xce, 0x8f, 0x5c,
-	0xfb, 0x9c, 0x1e, 0x5a, 0x8f, 0xe0, 0x6d, 0x8e, 0x18, 0xfe, 0xd4, 0xeb, 0xc0, 0xe7, 0xc2, 0xf0,
-	0x99, 0x83, 0xe4, 0xb5, 0x0f, 0x9a, 0x78, 0xb2, 0xcd, 0x11, 0xc3, 0x07, 0x5d, 0x41, 0x3a, 0xf8,
-	0xf7, 0x84, 0x78, 0x41, 0x7f, 0xbd, 0x52, 0xfe, 0xd2, 0x26, 0x49, 0x23, 0x14, 0xf8, 0xab, 0x02,
-	0xfd, 0x04, 0x32, 0x8c, 0x3f, 0x27, 0x80, 0xfc, 0x4d, 0xfd, 0xcd, 0x4a, 0x80, 0xac, 0x07, 0xd4,
-	0x23, 0x38, 0xcd, 0x20, 0x7c, 0xc8, 0xe7, 0x90, 0x1a, 0xb0, 0xec, 0x65, 0xec, 0xcf, 0xde, 0xd8,
-	0xa9, 0xd2, 0xf1, 0x72, 0xc0, 0x29, 0x01, 0xd3, 0x8f, 0x2d, 0xae, 0xce, 0x9e, 0x9a, 0x06, 0xec,
-	0x08, 0x30, 0xff, 0xeb, 0x8a, 0xb3, 0x4b, 0x82, 0xa1, 0x3e, 0x5c, 0x97, 0xab, 0xea, 0x11, 0x8c,
-	0x38, 0x5e, 0x70, 0x0f, 0xb5, 0x21, 0x2b, 0xae, 0xcf, 0x0f, 0x43, 0x92, 0xe1, 0x7f, 0x6f, 0x0d,
-	0x5e, 0xa8, 0x47, 0x70, 0x86, 0x83, 0xf8, 0x81, 0x78, 0x23, 0xc1, 0x57, 0xc2, 0xf8, 0x70, 0x56,
-	0xa8, 0x33, 0x15, 0x0a, 0xec, 0xb0, 0x1f, 0xaf, 0x91, 0x24, 0x73, 0xb8, 0xa2, 0x1e, 0xc1, 0x87,
-	0xfc, 0xb4, 0xc5, 0x92, 0x95, 0x24, 0x6c, 0xea, 0x1c, 0xae, 0xb2, 0xf3, 0x76, 0x7c, 0x20, 0xfd,
-	0x75, 0x7c, 0x20, 0xbd, 0x1f, 0x1f, 0x48, 0x6f, 0xfe, 0x71, 0x10, 0xf9, 0x79, 0xb4, 0xf7, 0xf2,
-	0x36, 0xce, 0x5a, 0xce, 0xa3, 0xff, 0x04, 0x00, 0x00, 0xff, 0xff, 0xaf, 0x12, 0x72, 0xbd, 0x63,
-	0x14, 0x00, 0x00,
+var fileDescriptor_cluster_state_97775bfba9ff2da0 = []byte{
+	// 1673 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xdc, 0x58, 0xcd, 0x73, 0xe2, 0xc8,
+	0x15, 0x47, 0x18, 0xb0, 0x79, 0x7c, 0x98, 0x6d, 0x33, 0x0e, 0xeb, 0xb5, 0x0d, 0x56, 0xf6, 0xe0,
+	0x9d, 0xdd, 0xc5, 0x6b, 0x36, 0x95, 0xad, 0x4d, 0x55, 0x52, 0xcb, 0x87, 0xc7, 0x50, 0x63, 0x1b,
+	0xa7, 0xc1, 0x93, 0xd4, 0x5c, 0x54, 0xb2, 0xd4, 0xc6, 0xaa, 0x80, 0xc4, 0x48, 0x62, 0x26, 0xe4,
+	0x9c, 0x73, 0x6a, 0xaa, 0x72, 0xc9, 0xdf, 0x90, 0xfc, 0x0b, 0x39, 0x24, 0xb7, 0x99, 0x53, 0x92,
+	0x7f, 0x80, 0x4c, 0x91, 0x63, 0x0e, 0xb9, 0xe5, 0x9c, 0xea, 0x0f, 0x09, 0xc1, 0x00, 0x86, 0xa9,
+	0x5c, 0x92, 0x13, 0xea, 0x8f, 0xdf, 0xaf, 0xdf, 0x7b, 0xfd, 0xfa, 0xf7, 0xba, 0x81, 0x1d, 0xad,
+	0x3b, 0x70, 0x5c, 0x62, 0x2b, 0x8e, 0xab, 0xba, 0xa4, 0xd8, 0xb7, 0x2d, 0xd7, 0x42, 0x69, 0xc3,
+	0x2a, 0x92, 0x97, 0xc4, 0x74, 0x5d, 0x62, 0x17, 0x7b, 0x2f, 0xf6, 0x76, 0xb4, 0xae, 0x41, 0x4c,
+	0xf7, 0x84, 0xff, 0xf0, 0x49, 0x7b, 0xd9, 0x8e, 0xd5, 0xb1, 0xd8, 0xe7, 0x09, 0xfd, 0x12, 0xbd,
+	0x87, 0x1d, 0xcb, 0xea, 0x74, 0xc9, 0x09, 0x6b, 0xdd, 0x0e, 0xee, 0x4e, 0xf4, 0x81, 0xad, 0xba,
+	0x86, 0x65, 0x8a, 0xf1, 0xfd, 0xd9, 0x71, 0xc7, 0xb5, 0x07, 0x9a, 0xc7, 0x99, 0x9f, 0x1d, 0x75,
+	0x8d, 0x1e, 0x71, 0x5c, 0xb5, 0xd7, 0xe7, 0x13, 0xe4, 0x7f, 0x86, 0x21, 0x59, 0xe5, 0x16, 0xb7,
+	0xa8, 0xc1, 0x28, 0x0b, 0x51, 0xc3, 0xd4, 0xc9, 0x2f, 0x73, 0x52, 0x41, 0x3a, 0x8e, 0x60, 0xde,
+	0x40, 0x15, 0x40, 0xda, 0xc0, 0xb6, 0x89, 0xe9, 0x2a, 0x0e, 0xe9, 0xf4, 0xe8, 0xaf, 0xa1, 0xe7,
+	0xc2, 0x74, 0x4a, 0x25, 0x3b, 0x1e, 0xe5, 0x33, 0x55, 0x3e, 0xda, 0xe2, 0x83, 0x8d, 0x1a, 0xce,
+	0x68, 0xd3, 0x3d, 0x3a, 0xfa, 0x0e, 0xc0, 0x54, 0x7b, 0xc4, 0xe9, 0xab, 0x1a, 0x71, 0x72, 0x1b,
+	0x85, 0x8d, 0xe3, 0x44, 0xa9, 0x50, 0x9c, 0x8e, 0x4c, 0x51, 0xd8, 0x72, 0xe5, 0x4d, 0xc4, 0x01,
+	0x0c, 0xaa, 0x42, 0xca, 0xea, 0x13, 0xd3, 0x33, 0xc1, 0xc9, 0x45, 0x18, 0xc9, 0xe1, 0x02, 0x12,
+	0xb1, 0x34, 0x4e, 0x52, 0x90, 0x68, 0x38, 0xe8, 0x1c, 0xb6, 0xb5, 0xae, 0xe5, 0x10, 0x7d, 0x42,
+	0x13, 0x5d, 0x89, 0x26, 0xcd, 0x61, 0x3e, 0xd1, 0x29, 0x44, 0x4d, 0x4b, 0x27, 0x4e, 0x2e, 0xc6,
+	0xe0, 0x9f, 0x2c, 0x72, 0xc5, 0xd2, 0x09, 0xe6, 0x33, 0xe5, 0x3f, 0x48, 0x90, 0x99, 0xf5, 0x10,
+	0x21, 0x88, 0x50, 0x1f, 0x59, 0xc0, 0xe3, 0x98, 0x7d, 0xa3, 0x1f, 0x40, 0xcc, 0xb5, 0xfa, 0x86,
+	0xe6, 0xe4, 0xc2, 0x8c, 0x7c, 0x7f, 0x01, 0x79, 0x9b, 0x4e, 0xc2, 0x62, 0x2e, 0xba, 0x84, 0x6d,
+	0xcd, 0x32, 0x9d, 0x41, 0x8f, 0xd8, 0x4a, 0xc7, 0xb6, 0x06, 0x7d, 0x2f, 0xcc, 0x9f, 0x2e, 0x80,
+	0x57, 0xc5, 0xec, 0x73, 0x3a, 0x19, 0xa7, 0xb5, 0x60, 0xd3, 0x91, 0xff, 0x24, 0xf9, 0xb9, 0xc1,
+	0xd6, 0x99, 0x6b, 0x29, 0x82, 0x88, 0x3b, 0xec, 0x13, 0x96, 0x0b, 0x71, 0xcc, 0xbe, 0xd1, 0x2e,
+	0xc4, 0x9c, 0x7b, 0xd5, 0xd6, 0xe9, 0xf2, 0xd2, 0x71, 0x0a, 0x8b, 0x16, 0xfa, 0x12, 0x90, 0x4d,
+	0xfa, 0x5d, 0x43, 0x63, 0x09, 0xac, 0xdc, 0xa9, 0x9a, 0x6b, 0xd9, 0xb9, 0x08, 0x9b, 0xf3, 0x51,
+	0x60, 0xe4, 0x09, 0x1b, 0x40, 0x65, 0x88, 0xdb, 0xc4, 0x25, 0x26, 0xed, 0xca, 0x45, 0x0b, 0xd2,
+	0x71, 0xa2, 0xf4, 0x71, 0x91, 0x27, 0x74, 0xd1, 0x4b, 0xe8, 0x62, 0x4d, 0x1c, 0x87, 0xca, 0xd6,
+	0x9b, 0x51, 0x3e, 0xf4, 0xbb, 0xbf, 0xe7, 0x25, 0x3c, 0x41, 0xc9, 0x6f, 0x23, 0x90, 0x9d, 0xe7,
+	0xeb, 0x5c, 0x57, 0xea, 0xb0, 0x75, 0x6b, 0x98, 0xba, 0x61, 0x76, 0xbc, 0xb0, 0x7f, 0xb1, 0x4a,
+	0xdc, 0x8a, 0x15, 0x0e, 0xc2, 0x3e, 0x9a, 0xb2, 0x3b, 0xc6, 0xaf, 0x88, 0x70, 0x9f, 0x7d, 0xa3,
+	0x9f, 0x43, 0xda, 0xba, 0xbb, 0x73, 0x88, 0xab, 0x68, 0x56, 0xaf, 0x67, 0xf8, 0xd9, 0x7b, 0xba,
+	0xd2, 0x1a, 0x4d, 0x06, 0xad, 0x32, 0x24, 0x4e, 0x59, 0x81, 0x16, 0x3d, 0x16, 0xa0, 0xd9, 0x44,
+	0x75, 0x89, 0xae, 0xa8, 0xae, 0x08, 0xd4, 0xde, 0x7b, 0x81, 0x6a, 0x7b, 0x27, 0x9f, 0x47, 0xea,
+	0x35, 0x8b, 0x94, 0xc0, 0x95, 0xdd, 0xbd, 0xb7, 0x12, 0x6c, 0x0a, 0x47, 0xd0, 0x01, 0x00, 0xcb,
+	0x28, 0x25, 0x10, 0xa2, 0x38, 0xeb, 0xa1, 0x59, 0x8b, 0x8e, 0x20, 0x61, 0x5b, 0x03, 0xd7, 0x30,
+	0x3b, 0xca, 0x2f, 0xc8, 0x90, 0xef, 0x7c, 0x3d, 0x84, 0x41, 0x74, 0x3e, 0x25, 0x43, 0xf4, 0x23,
+	0x48, 0xdc, 0x13, 0x55, 0x27, 0xb6, 0xa3, 0xa8, 0xdd, 0x2e, 0x8b, 0x43, 0xa2, 0xf4, 0xbd, 0xf7,
+	0x6c, 0x6a, 0x31, 0xad, 0xa2, 0x58, 0x31, 0xbb, 0xdc, 0xed, 0x4e, 0x61, 0xcd, 0x21, 0x4b, 0x8f,
+	0xd5, 0xb0, 0xe6, 0xb0, 0x12, 0x81, 0xf0, 0xed, 0x70, 0xaf, 0x0d, 0xc9, 0x60, 0xbc, 0xd0, 0x17,
+	0x00, 0x01, 0xd5, 0x62, 0xc2, 0x56, 0x49, 0x8d, 0x47, 0xf9, 0xf8, 0x44, 0xae, 0xe2, 0x8e, 0xaf,
+	0x53, 0xbb, 0x10, 0xe3, 0xf1, 0x65, 0x9e, 0x6d, 0x60, 0xd1, 0x92, 0x7f, 0x1b, 0x85, 0xf4, 0xb4,
+	0x24, 0xa0, 0x5d, 0x08, 0xfb, 0x84, 0xb1, 0xf1, 0x28, 0x1f, 0x6e, 0xd4, 0x70, 0xd8, 0xd0, 0xd1,
+	0xb7, 0x10, 0xb5, 0x5e, 0x99, 0xc4, 0x66, 0x0c, 0x89, 0xd2, 0xc1, 0xec, 0x16, 0xfb, 0x87, 0x9f,
+	0x7e, 0x54, 0x22, 0x74, 0x3f, 0x30, 0x47, 0xa0, 0x6f, 0xc4, 0x79, 0xa2, 0x21, 0x4b, 0x97, 0xbe,
+	0xbf, 0x5c, 0x93, 0x8a, 0xed, 0x61, 0x9f, 0x88, 0x43, 0x57, 0x86, 0x38, 0xd5, 0x39, 0x9e, 0x04,
+	0x91, 0x35, 0x92, 0x60, 0x8b, 0xc3, 0xca, 0x2e, 0xa5, 0x10, 0xd2, 0xb8, 0x66, 0x1e, 0x6d, 0x71,
+	0x58, 0xd9, 0x45, 0xdf, 0x4d, 0x44, 0x51, 0x5a, 0x22, 0x3c, 0x9e, 0xfd, 0x54, 0x1c, 0x1d, 0x2f,
+	0x00, 0x0c, 0xe8, 0x9f, 0x9d, 0x4d, 0x16, 0x7c, 0x7e, 0x76, 0x68, 0xdf, 0xbd, 0x7a, 0x9a, 0xdb,
+	0x2a, 0x48, 0xc7, 0x49, 0xcc, 0xbe, 0xf7, 0xfe, 0x2c, 0x41, 0x94, 0xc1, 0xd1, 0xb7, 0xb0, 0xdd,
+	0xb7, 0x8d, 0x9e, 0x6a, 0x0f, 0x15, 0x4a, 0x31, 0xd9, 0xe3, 0x8f, 0xc6, 0xa3, 0x7c, 0xea, 0x9a,
+	0x0f, 0xd1, 0xa9, 0x8d, 0x1a, 0x4e, 0xf5, 0x03, 0x4d, 0x1d, 0x7d, 0x0d, 0x29, 0xdd, 0x32, 0x89,
+	0x87, 0xe3, 0xe7, 0x3e, 0x52, 0xd9, 0x1e, 0x8f, 0xf2, 0x89, 0x9a, 0x65, 0x12, 0x8e, 0x72, 0x70,
+	0x42, 0xf7, 0x1a, 0xba, 0x83, 0xea, 0x90, 0xf5, 0xc5, 0xca, 0xec, 0x4c, 0xb0, 0x1b, 0x0c, 0xbb,
+	0x3b, 0x1e, 0xe5, 0x11, 0x9e, 0x8c, 0x7b, 0x14, 0xc8, 0x9e, 0xe9, 0xd3, 0x1d, 0xb9, 0x0c, 0x11,
+	0xba, 0x83, 0x28, 0x01, 0x9b, 0x8d, 0xab, 0x67, 0xe5, 0x8b, 0x46, 0x2d, 0x13, 0x42, 0x71, 0x88,
+	0xb6, 0x9b, 0xd7, 0x8d, 0x6a, 0x46, 0x42, 0x47, 0x70, 0x50, 0x6d, 0x5e, 0xb5, 0x6e, 0x2e, 0xcf,
+	0xb0, 0x72, 0x8e, 0x9b, 0x37, 0xd7, 0x4a, 0xf3, 0xc9, 0x93, 0xd6, 0x59, 0x5b, 0xa9, 0x36, 0x2f,
+	0x2f, 0x1b, 0xed, 0x56, 0x26, 0x2c, 0xbf, 0x93, 0x20, 0x11, 0xa8, 0x34, 0x0b, 0x53, 0x32, 0x07,
+	0x9b, 0xaa, 0xae, 0xdb, 0xc4, 0x71, 0x84, 0x54, 0x7b, 0x4d, 0xf4, 0x0d, 0x44, 0xd9, 0x5d, 0x45,
+	0xa4, 0xdc, 0xd1, 0x92, 0x3a, 0x56, 0x64, 0x77, 0x04, 0xcc, 0xe7, 0xa3, 0x3a, 0x6c, 0x77, 0x55,
+	0x87, 0xde, 0x08, 0x88, 0xa9, 0xa8, 0x5d, 0xe3, 0x25, 0x59, 0x21, 0xef, 0x22, 0x2c, 0x61, 0x52,
+	0x14, 0xd8, 0x22, 0xc4, 0x2c, 0x53, 0x98, 0xbc, 0x0f, 0x51, 0x7e, 0xfb, 0xd8, 0x82, 0x48, 0xed,
+	0xac, 0x2c, 0xa2, 0x50, 0xbe, 0x68, 0x3c, 0x3b, 0xcb, 0x48, 0xf2, 0x8f, 0xe1, 0xc0, 0xd7, 0xc4,
+	0x5e, 0x4f, 0x35, 0x75, 0xff, 0xf8, 0x54, 0x99, 0x7c, 0xa1, 0x7d, 0x88, 0xfb, 0xb7, 0x04, 0x4f,
+	0xae, 0xfc, 0x8e, 0x25, 0xf0, 0x1a, 0xe9, 0x92, 0x07, 0xe1, 0x3d, 0xf8, 0x78, 0x1a, 0xce, 0x6a,
+	0xe1, 0x2a, 0x2b, 0xa3, 0x12, 0x44, 0x99, 0x6a, 0x0a, 0x19, 0x58, 0x5e, 0xc4, 0xf9, 0x54, 0xf9,
+	0x72, 0xee, 0x72, 0xab, 0x58, 0xea, 0xd7, 0xb4, 0xf0, 0xa4, 0xa6, 0xc9, 0xbf, 0x91, 0xe0, 0x68,
+	0x9a, 0x6f, 0xaa, 0xae, 0xac, 0xe4, 0xc6, 0x53, 0x48, 0x4f, 0x5f, 0x2b, 0x84, 0x3f, 0xab, 0xdd,
+	0x2a, 0x52, 0x53, 0xb7, 0x0a, 0xf9, 0x66, 0xa9, 0x3d, 0x1f, 0xec, 0xe7, 0xbf, 0xc2, 0xb3, 0x71,
+	0x13, 0x12, 0xd3, 0xec, 0x13, 0xf3, 0xff, 0x4d, 0xa7, 0xe7, 0x08, 0x5e, 0x74, 0x45, 0xc1, 0x5b,
+	0xa4, 0x5d, 0xb1, 0xb5, 0xb5, 0xeb, 0x6f, 0x12, 0xec, 0xcd, 0x8d, 0x78, 0x95, 0xd6, 0x82, 0x85,
+	0x21, 0xff, 0x0a, 0x92, 0x41, 0xc5, 0x15, 0x6f, 0x88, 0xf4, 0x78, 0x94, 0x87, 0x89, 0xe0, 0x62,
+	0x98, 0xe8, 0xed, 0x74, 0x55, 0x8a, 0x7c, 0x50, 0x55, 0xf2, 0x6a, 0x4a, 0x74, 0x4e, 0x4d, 0x89,
+	0x4d, 0x6a, 0x8a, 0xfc, 0x17, 0x09, 0x72, 0x33, 0x5a, 0x61, 0xe9, 0xe4, 0xa6, 0xaf, 0xd3, 0x43,
+	0xf2, 0x3f, 0xa9, 0xac, 0xff, 0x96, 0xa0, 0x30, 0x77, 0x97, 0x58, 0xe9, 0x7c, 0xc0, 0xb3, 0x0b,
+	0x88, 0xbe, 0xba, 0x37, 0xb4, 0x7b, 0xe6, 0x57, 0xba, 0xf4, 0xc3, 0x85, 0xe7, 0x7d, 0x01, 0x71,
+	0xf1, 0x67, 0x14, 0x8d, 0x39, 0xc9, 0xe4, 0x6a, 0xb0, 0xf1, 0x81, 0x57, 0x03, 0xf9, 0x31, 0x44,
+	0x19, 0xe3, 0x74, 0xbd, 0xdc, 0x82, 0x48, 0xf3, 0xfa, 0xec, 0x2a, 0x23, 0x21, 0x80, 0x58, 0xf5,
+	0xa2, 0xd9, 0x3a, 0xab, 0x65, 0xc2, 0xf2, 0xef, 0x25, 0xf8, 0x64, 0xae, 0x7d, 0x42, 0x62, 0x16,
+	0xf9, 0x7c, 0x3e, 0xed, 0xf3, 0xe9, 0x4a, 0x3e, 0x73, 0xce, 0x29, 0x77, 0xd7, 0x32, 0xf6, 0x8f,
+	0x12, 0x14, 0x97, 0xa8, 0x62, 0xf0, 0x32, 0xeb, 0xed, 0xd9, 0xda, 0x12, 0x39, 0xe7, 0x01, 0xb2,
+	0xf1, 0xdf, 0x79, 0x80, 0xc8, 0xbf, 0x8e, 0xfb, 0x37, 0x63, 0x61, 0x3e, 0x7a, 0x0e, 0x19, 0xfe,
+	0xb6, 0x50, 0x26, 0x56, 0x02, 0xdb, 0xf7, 0x2f, 0x97, 0x47, 0x74, 0xa6, 0xb6, 0xd7, 0x43, 0x78,
+	0x9b, 0x13, 0x4d, 0x1e, 0xcc, 0xcf, 0x21, 0xa3, 0xb3, 0x80, 0x07, 0xb8, 0x13, 0x6b, 0x71, 0xf3,
+	0xfd, 0xa2, 0xdc, 0x9c, 0x68, 0xc2, 0x7d, 0x05, 0x49, 0x61, 0x37, 0xaf, 0xdc, 0x59, 0xc6, 0xfb,
+	0xd9, 0x72, 0xde, 0xc0, 0x8d, 0xa0, 0x1e, 0xc2, 0x09, 0x4e, 0xc0, 0x9f, 0xcc, 0x57, 0x90, 0x14,
+	0xb6, 0x72, 0xbe, 0x47, 0x2b, 0xf3, 0xf9, 0x36, 0x26, 0x38, 0x01, 0xe7, 0xeb, 0xc0, 0x23, 0x61,
+	0xdf, 0x4c, 0x49, 0x3e, 0x64, 0xc4, 0x0f, 0xa4, 0xeb, 0x9c, 0xda, 0x5f, 0x0f, 0xe1, 0x1d, 0xce,
+	0x38, 0xfd, 0x40, 0xee, 0xc0, 0x23, 0x61, 0xf8, 0xcc, 0x42, 0xf9, 0xb5, 0x17, 0xf2, 0x3d, 0xd9,
+	0xe1, 0x8c, 0xd3, 0x0b, 0xbd, 0x96, 0xe0, 0xd3, 0x01, 0xcb, 0xe9, 0x99, 0x95, 0x94, 0x99, 0x6c,
+	0x2d, 0xb0, 0x85, 0x7f, 0xb2, 0xc6, 0xc2, 0x73, 0xce, 0x4d, 0x3d, 0x84, 0x0b, 0x7c, 0xb5, 0xc5,
+	0x33, 0xe9, 0xa6, 0x05, 0xff, 0x67, 0xca, 0x1d, 0xaf, 0xb2, 0x69, 0x81, 0xfb, 0x06, 0xdd, 0xb4,
+	0xc0, 0x7f, 0x4e, 0xe8, 0xa7, 0x90, 0x62, 0xa5, 0xc8, 0x27, 0xfc, 0x8c, 0x11, 0x3e, 0x5e, 0x89,
+	0x90, 0x95, 0xd3, 0x7a, 0x08, 0x27, 0x19, 0x85, 0x47, 0xa9, 0x43, 0x56, 0x04, 0xcd, 0x7b, 0xd9,
+	0x72, 0x6d, 0x7d, 0xcc, 0x98, 0xbf, 0x5a, 0x57, 0xa9, 0xeb, 0x21, 0x8c, 0x38, 0x5f, 0x70, 0x0c,
+	0xb5, 0x21, 0x2d, 0x92, 0xc0, 0xb3, 0xfc, 0x73, 0xc6, 0xff, 0xf9, 0x1a, 0xaa, 0x58, 0x0f, 0xe1,
+	0x14, 0x27, 0xf1, 0x6c, 0x7f, 0x0a, 0x09, 0x61, 0x3b, 0xb5, 0x39, 0x57, 0x62, 0x94, 0xc7, 0x0f,
+	0x1c, 0x5d, 0xbf, 0x0e, 0xd3, 0x17, 0x3f, 0x87, 0xd3, 0xbe, 0x4a, 0x1c, 0x36, 0x35, 0x3e, 0xa5,
+	0x92, 0x7d, 0x33, 0x3e, 0x94, 0xfe, 0x3a, 0x3e, 0x94, 0xde, 0x8d, 0x0f, 0xa5, 0xd7, 0xff, 0x38,
+	0x0c, 0x3d, 0x0f, 0xf7, 0x5e, 0xdc, 0xc6, 0x58, 0xa9, 0xfc, 0xfa, 0x3f, 0x01, 0x00, 0x00, 0xff,
+	0xff, 0x01, 0x67, 0xaa, 0x21, 0x99, 0x15, 0x00, 0x00,
 }

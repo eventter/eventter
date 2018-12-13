@@ -39,7 +39,12 @@ func (s *Server) DeleteTopic(ctx context.Context, request *client.DeleteTopicReq
 
 	state := s.clusterState.Current()
 
-	if !state.TopicExists(request.Topic.Namespace, request.Topic.Name) {
+	namespace, _ := state.FindNamespace(request.Topic.Namespace)
+	if namespace == nil {
+		return nil, errors.Errorf(namespaceNotFoundErrorFormat, request.Topic.Namespace)
+	}
+
+	if topic, _ := namespace.FindTopic(request.Topic.Name); topic == nil {
 		return nil, errors.Errorf(notFoundErrorFormat, entityTopic, request.Topic.Namespace, request.Topic.Name)
 	}
 

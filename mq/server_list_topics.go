@@ -32,11 +32,15 @@ func (s *Server) ListTopics(ctx context.Context, request *client.ListTopicsReque
 		return nil, err
 	}
 
-	index, t := s.clusterState.Current().ListTopics(request.Topic.Namespace, request.Topic.Name)
+	state := s.clusterState.Current()
+
+	namespace, _ := state.FindNamespace(request.Topic.Namespace)
+	if namespace == nil {
+		return nil, errors.Errorf(namespaceNotFoundErrorFormat, request.Topic.Namespace)
+	}
 
 	var topics []*client.Topic
-
-	for _, t := range t {
+	for _, t := range namespace.ListTopics(request.Topic.Namespace, request.Topic.Name) {
 		topics = append(topics, &client.Topic{
 			Name: client.NamespaceName{
 				Namespace: request.Topic.Namespace,
@@ -51,7 +55,7 @@ func (s *Server) ListTopics(ctx context.Context, request *client.ListTopicsReque
 
 	return &client.ListTopicsResponse{
 		OK:     true,
-		Index:  index,
+		Index:  state.Index,
 		Topics: topics,
 	}, nil
 }

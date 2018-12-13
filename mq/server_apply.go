@@ -8,6 +8,10 @@ import (
 func (s *Server) Apply(cmd interface{}) (index uint64, err error) {
 	outer := &ClusterCommand{}
 	switch cmd := cmd.(type) {
+	case *ClusterCommandNamespaceCreate:
+		outer.Command = &ClusterCommand_CreateNamespace{cmd}
+	case *ClusterCommandNamespaceDelete:
+		outer.Command = &ClusterCommand_DeleteNamespace{cmd}
 	case *ClusterCommandTopicCreate:
 		outer.Command = &ClusterCommand_CreateTopic{cmd}
 	case *ClusterCommandTopicDelete:
@@ -16,18 +20,18 @@ func (s *Server) Apply(cmd interface{}) (index uint64, err error) {
 		outer.Command = &ClusterCommand_CreateConsumerGroup{cmd}
 	case *ClusterCommandConsumerGroupDelete:
 		outer.Command = &ClusterCommand_DeleteConsumerGroup{cmd}
+	case *ClusterCommandConsumerGroupOffsetCommitsUpdate:
+		outer.Command = &ClusterCommand_UpdateConsumerGroupOffsetCommits{cmd}
 	case *ClusterCommandSegmentOpen:
 		outer.Command = &ClusterCommand_OpenSegment{cmd}
 	case *ClusterCommandSegmentClose:
 		outer.Command = &ClusterCommand_CloseSegment{cmd}
-	case *ClusterCommandNodeUpdate:
-		outer.Command = &ClusterCommand_UpdateNode{cmd}
 	case *ClusterCommandSegmentNodesUpdate:
 		outer.Command = &ClusterCommand_UpdateSegmentNodes{cmd}
 	case *ClusterCommandSegmentDelete:
 		outer.Command = &ClusterCommand_DeleteSegment{cmd}
-	case *ClusterCommandConsumerGroupOffsetCommitsUpdate:
-		outer.Command = &ClusterCommand_UpdateConsumerGroupOffsetCommits{cmd}
+	case *ClusterCommandNodeUpdate:
+		outer.Command = &ClusterCommand_UpdateNode{cmd}
 	default:
 		return 0, errors.Errorf("unhandled command of type: %T", cmd)
 	}

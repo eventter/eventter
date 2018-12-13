@@ -7,21 +7,14 @@ import (
 	"github.com/pkg/errors"
 )
 
-const (
-	TopicType_DIRECT  = "direct"
-	TopicType_FANOUT  = "fanout"
-	TopicType_TOPIC   = "topic"
-	TopicType_HEADERS = "headers"
-)
-
 var (
 	nameRegex         = regexp.MustCompile("^[a-zA-Z_][0-9a-zA-Z-_]*$")
 	reservedNameRegex = regexp.MustCompile("^_")
 	validTopicTypes   = map[string]bool{
-		TopicType_DIRECT:  true,
-		TopicType_FANOUT:  true,
-		TopicType_TOPIC:   true,
-		TopicType_HEADERS: true,
+		ExchangeTypeDirect:  true,
+		ExchangeTypeFanout:  true,
+		ExchangeTypeTopic:   true,
+		ExchangeTypeHeaders: true,
 	}
 )
 
@@ -45,6 +38,46 @@ func (e *RequestValidationError) Error() string {
 		s += "- " + err.Error() + "\n"
 	}
 	return strings.TrimRight(s, "\n")
+}
+
+func (r *CreateNamespaceRequest) Validate() error {
+	var errs []error
+
+	if r.Namespace == "" {
+		errs = append(errs, errors.Errorf(blankErrorFormat, "namespace"))
+	} else if !nameRegex.MatchString(r.Namespace) {
+		errs = append(errs, errors.Errorf(nameInvalidErrorFormat, "namespace"))
+	} else if reservedNameRegex.MatchString(r.Namespace) {
+		errs = append(errs, errors.Errorf(reservedNameErrorFormat, "namespace"))
+	} else if len(r.Namespace) > nameMaxLength {
+		errs = append(errs, errors.Errorf(stringLengthErrorFormat, "namespace", nameMaxLength))
+	}
+
+	if len(errs) > 0 {
+		return &RequestValidationError{errs}
+	}
+
+	return nil
+}
+
+func (r *DeleteNamespaceRequest) Validate() error {
+	var errs []error
+
+	if r.Namespace == "" {
+		errs = append(errs, errors.Errorf(blankErrorFormat, "namespace"))
+	} else if !nameRegex.MatchString(r.Namespace) {
+		errs = append(errs, errors.Errorf(nameInvalidErrorFormat, "namespace"))
+	} else if reservedNameRegex.MatchString(r.Namespace) {
+		errs = append(errs, errors.Errorf(reservedNameErrorFormat, "namespace"))
+	} else if len(r.Namespace) > nameMaxLength {
+		errs = append(errs, errors.Errorf(stringLengthErrorFormat, "namespace", nameMaxLength))
+	}
+
+	if len(errs) > 0 {
+		return &RequestValidationError{errs}
+	}
+
+	return nil
 }
 
 func (r *CreateTopicRequest) Validate() error {

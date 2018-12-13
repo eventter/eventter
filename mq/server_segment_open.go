@@ -126,7 +126,7 @@ func (s *Server) txSegmentOpen(state *ClusterState, primaryNodeID uint64, owner 
 	}
 	_, err := s.Apply(cmd)
 	if err != nil {
-		return nil, errors.Wrap(err, "apply open segment failed")
+		return nil, errors.Wrap(err, "apply failed")
 	}
 
 	// c) update consumer group offset commits if topic segment

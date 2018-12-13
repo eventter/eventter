@@ -32,7 +32,17 @@ func (s *Server) CreateTopic(ctx context.Context, request *client.CreateTopicReq
 		return nil, err
 	}
 
+	if err := s.beginTransaction(); err != nil {
+		return nil, errors.Wrap(err, "tx begin failed")
+	}
+	defer s.releaseTransaction()
+
 	state := s.clusterState.Current()
+
+	namespace, _ := state.FindNamespace(request.Topic.Name.Namespace)
+	if namespace == nil {
+		return nil, errors.Errorf(namespaceNotFoundErrorFormat, request.Topic.Name.Namespace)
+	}
 
 	topic := state.GetTopic(request.Topic.Name.Namespace, request.Topic.Name.Name)
 	if topic != nil {

@@ -10,6 +10,28 @@ import "google/protobuf/timestamp.proto";
 
 option go_package = "client";
 
+message CreateNamespaceRequest {
+    // If true and node is not a leader, request will fail.
+    bool leader_only = 99;
+    string namespace = 1;
+}
+
+message CreateNamespaceResponse {
+    bool ok = 1 [(gogoproto.customname) = "OK"];
+    uint64 index = 2;
+}
+
+message DeleteNamespaceRequest {
+    // If true and node is not a leader, request will fail.
+    bool leader_only = 99;
+    string namespace = 1;
+}
+
+message DeleteNamespaceResponse {
+    bool ok = 1 [(gogoproto.customname) = "OK"];
+    uint64 index = 2;
+}
+
 message NamespaceName {
     string namespace = 1;
     string name = 2;
@@ -186,6 +208,18 @@ message NackResponse {
 }
 
 service EventterMQ {
+
+    rpc CreateNamespace(CreateNamespaceRequest) returns (CreateNamespaceResponse) {
+        option (google.api.http) = {
+            put: "/{namespace}"
+        };
+    };
+
+    rpc DeleteNamespace(DeleteNamespaceRequest) returns (DeleteNamespaceResponse) {
+        option (google.api.http) = {
+            put: "/{namespace}"
+        };
+    };
 
     rpc CreateTopic (CreateTopicRequest) returns (CreateTopicResponse) {
         option (google.api.http) = {

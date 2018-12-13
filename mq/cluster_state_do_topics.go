@@ -5,53 +5,37 @@ func (s *ClusterState) doCreateTopic(cmd *ClusterCommandTopicCreate) *ClusterSta
 	*next = *s
 
 	namespace, namespaceIndex := s.FindNamespace(cmd.Namespace)
-	var (
-		nextNamespace *ClusterNamespace
-		nextTopic     *ClusterTopic
-	)
-
 	if namespace == nil {
-		nextNamespace = &ClusterNamespace{
-			Name: cmd.Namespace,
-		}
+		panic("namespace must exist")
+	}
 
-		next.Namespaces = make([]*ClusterNamespace, len(s.Namespaces)+1)
-		copy(next.Namespaces, s.Namespaces)
-		next.Namespaces[len(s.Namespaces)] = nextNamespace
+	nextNamespace := &ClusterNamespace{}
+	*nextNamespace = *namespace
 
+	next.Namespaces = make([]*ClusterNamespace, len(s.Namespaces))
+	copy(next.Namespaces[:namespaceIndex], s.Namespaces[:namespaceIndex])
+	next.Namespaces[namespaceIndex] = nextNamespace
+	copy(next.Namespaces[namespaceIndex+1:], s.Namespaces[namespaceIndex+1:])
+
+	topic, topicIndex := namespace.FindTopic(cmd.Topic.Name)
+	var nextTopic *ClusterTopic
+	if topic == nil {
 		nextTopic = &ClusterTopic{
 			Name: cmd.Topic.Name,
 		}
-		nextNamespace.Topics = []*ClusterTopic{nextTopic}
+
+		nextNamespace.Topics = make([]*ClusterTopic, len(namespace.Topics)+1)
+		copy(nextNamespace.Topics, namespace.Topics)
+		nextNamespace.Topics[len(namespace.Topics)] = nextTopic
 
 	} else {
-		nextNamespace = &ClusterNamespace{}
-		*nextNamespace = *namespace
+		nextTopic = &ClusterTopic{}
+		*nextTopic = *topic
 
-		next.Namespaces = make([]*ClusterNamespace, len(s.Namespaces))
-		copy(next.Namespaces[:namespaceIndex], s.Namespaces[:namespaceIndex])
-		next.Namespaces[namespaceIndex] = nextNamespace
-		copy(next.Namespaces[namespaceIndex+1:], s.Namespaces[namespaceIndex+1:])
-
-		topic, topicIndex := namespace.findTopic(cmd.Topic.Name)
-		if topic == nil {
-			nextTopic = &ClusterTopic{
-				Name: cmd.Topic.Name,
-			}
-
-			nextNamespace.Topics = make([]*ClusterTopic, len(namespace.Topics)+1)
-			copy(nextNamespace.Topics, namespace.Topics)
-			nextNamespace.Topics[len(namespace.Topics)] = nextTopic
-
-		} else {
-			nextTopic = &ClusterTopic{}
-			*nextTopic = *topic
-
-			nextNamespace.Topics = make([]*ClusterTopic, len(namespace.Topics))
-			copy(nextNamespace.Topics[:topicIndex], namespace.Topics[:topicIndex])
-			nextNamespace.Topics[topicIndex] = nextTopic
-			copy(nextNamespace.Topics[topicIndex+1:], namespace.Topics[topicIndex+1:])
-		}
+		nextNamespace.Topics = make([]*ClusterTopic, len(namespace.Topics))
+		copy(nextNamespace.Topics[:topicIndex], namespace.Topics[:topicIndex])
+		nextNamespace.Topics[topicIndex] = nextTopic
+		copy(nextNamespace.Topics[topicIndex+1:], namespace.Topics[topicIndex+1:])
 	}
 
 	nextTopic.Type = cmd.Topic.Type
@@ -63,12 +47,12 @@ func (s *ClusterState) doCreateTopic(cmd *ClusterCommandTopicCreate) *ClusterSta
 }
 
 func (s *ClusterState) doDeleteTopic(cmd *ClusterCommandTopicDelete) *ClusterState {
-	namespace, namespaceIndex := s.FindNamespace(cmd.Namespace)
+	namespace, _ := s.FindNamespace(cmd.Namespace)
 	if namespace == nil {
-		return s
+		panic("namespace must exist")
 	}
 
-	_, topicIndex := namespace.findTopic(cmd.Name)
+	_, topicIndex := namespace.FindTopic(cmd.Name)
 	if topicIndex == -1 {
 		return s
 	}
@@ -111,16 +95,6 @@ func (s *ClusterState) doDeleteTopic(cmd *ClusterCommandTopicDelete) *ClusterSta
 
 	if consumerGroupsChanged {
 		nextNamespace.ConsumerGroups = nextConsumerGroups
-	}
-
-	if nextNamespace.isEmpty() {
-		next.Namespaces = make([]*ClusterNamespace, len(s.Namespaces)-1)
-		copy(next.Namespaces[:namespaceIndex], s.Namespaces[:namespaceIndex])
-		copy(next.Namespaces[namespaceIndex:], s.Namespaces[namespaceIndex+1:])
-	} else {
-		next.Namespaces = make([]*ClusterNamespace, len(s.Namespaces))
-		copy(next.Namespaces, s.Namespaces)
-		next.Namespaces[namespaceIndex] = nextNamespace
 	}
 
 	return next

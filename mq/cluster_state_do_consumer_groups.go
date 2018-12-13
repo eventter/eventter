@@ -9,53 +9,37 @@ func (s *ClusterState) doCreateConsumerGroup(cmd *ClusterCommandConsumerGroupCre
 	*next = *s
 
 	namespace, namespaceIndex := s.FindNamespace(cmd.Namespace)
-	var (
-		nextNamespace     *ClusterNamespace
-		nextConsumerGroup *ClusterConsumerGroup
-	)
-
 	if namespace == nil {
-		nextNamespace = &ClusterNamespace{
-			Name: cmd.Namespace,
-		}
+		panic("namespace must exist")
+	}
 
-		next.Namespaces = make([]*ClusterNamespace, len(s.Namespaces)+1)
-		copy(next.Namespaces, s.Namespaces)
-		next.Namespaces[len(s.Namespaces)] = nextNamespace
+	nextNamespace := &ClusterNamespace{}
+	*nextNamespace = *namespace
 
+	next.Namespaces = make([]*ClusterNamespace, len(s.Namespaces))
+	copy(next.Namespaces[:namespaceIndex], s.Namespaces[:namespaceIndex])
+	next.Namespaces[namespaceIndex] = nextNamespace
+	copy(next.Namespaces[namespaceIndex+1:], s.Namespaces[namespaceIndex+1:])
+
+	consumerGroup, consumerGroupIndex := namespace.FindConsumerGroup(cmd.ConsumerGroup.Name)
+	var nextConsumerGroup *ClusterConsumerGroup
+	if consumerGroup == nil {
 		nextConsumerGroup = &ClusterConsumerGroup{
 			Name: cmd.ConsumerGroup.Name,
 		}
-		nextNamespace.ConsumerGroups = []*ClusterConsumerGroup{nextConsumerGroup}
+
+		nextNamespace.ConsumerGroups = make([]*ClusterConsumerGroup, len(namespace.ConsumerGroups)+1)
+		copy(nextNamespace.ConsumerGroups, namespace.ConsumerGroups)
+		nextNamespace.ConsumerGroups[len(namespace.ConsumerGroups)] = nextConsumerGroup
 
 	} else {
-		nextNamespace = &ClusterNamespace{}
-		*nextNamespace = *namespace
+		nextConsumerGroup = &ClusterConsumerGroup{}
+		*nextConsumerGroup = *consumerGroup
 
-		next.Namespaces = make([]*ClusterNamespace, len(s.Namespaces))
-		copy(next.Namespaces[:namespaceIndex], s.Namespaces[:namespaceIndex])
-		next.Namespaces[namespaceIndex] = nextNamespace
-		copy(next.Namespaces[namespaceIndex+1:], s.Namespaces[namespaceIndex+1:])
-
-		consumerGroup, consumerGroupIndex := namespace.findConsumerGroup(cmd.ConsumerGroup.Name)
-		if consumerGroup == nil {
-			nextConsumerGroup = &ClusterConsumerGroup{
-				Name: cmd.ConsumerGroup.Name,
-			}
-
-			nextNamespace.ConsumerGroups = make([]*ClusterConsumerGroup, len(namespace.ConsumerGroups)+1)
-			copy(nextNamespace.ConsumerGroups, namespace.ConsumerGroups)
-			nextNamespace.ConsumerGroups[len(namespace.ConsumerGroups)] = nextConsumerGroup
-
-		} else {
-			nextConsumerGroup = &ClusterConsumerGroup{}
-			*nextConsumerGroup = *consumerGroup
-
-			nextNamespace.ConsumerGroups = make([]*ClusterConsumerGroup, len(namespace.ConsumerGroups))
-			copy(nextNamespace.ConsumerGroups[:consumerGroupIndex], namespace.ConsumerGroups[:consumerGroupIndex])
-			nextNamespace.ConsumerGroups[consumerGroupIndex] = nextConsumerGroup
-			copy(nextNamespace.ConsumerGroups[consumerGroupIndex+1:], namespace.ConsumerGroups[consumerGroupIndex+1:])
-		}
+		nextNamespace.ConsumerGroups = make([]*ClusterConsumerGroup, len(namespace.ConsumerGroups))
+		copy(nextNamespace.ConsumerGroups[:consumerGroupIndex], namespace.ConsumerGroups[:consumerGroupIndex])
+		nextNamespace.ConsumerGroups[consumerGroupIndex] = nextConsumerGroup
+		copy(nextNamespace.ConsumerGroups[consumerGroupIndex+1:], namespace.ConsumerGroups[consumerGroupIndex+1:])
 	}
 
 	nextConsumerGroup.Bindings = cmd.ConsumerGroup.Bindings
@@ -68,12 +52,12 @@ func (s *ClusterState) doCreateConsumerGroup(cmd *ClusterCommandConsumerGroupCre
 }
 
 func (s *ClusterState) doDeleteConsumerGroup(cmd *ClusterCommandConsumerGroupDelete) *ClusterState {
-	namespace, namespaceIndex := s.FindNamespace(cmd.Namespace)
+	namespace, _ := s.FindNamespace(cmd.Namespace)
 	if namespace == nil {
-		return s
+		panic("namespace must exist")
 	}
 
-	_, consumerGroupIndex := namespace.findConsumerGroup(cmd.Name)
+	_, consumerGroupIndex := namespace.FindConsumerGroup(cmd.Name)
 	if consumerGroupIndex == -1 {
 		return s
 	}
@@ -88,26 +72,16 @@ func (s *ClusterState) doDeleteConsumerGroup(cmd *ClusterCommandConsumerGroupDel
 	copy(nextNamespace.ConsumerGroups[:consumerGroupIndex], namespace.ConsumerGroups[:consumerGroupIndex])
 	copy(nextNamespace.ConsumerGroups[consumerGroupIndex:], namespace.ConsumerGroups[consumerGroupIndex+1:])
 
-	if nextNamespace.isEmpty() {
-		next.Namespaces = make([]*ClusterNamespace, len(s.Namespaces)-1)
-		copy(next.Namespaces[:namespaceIndex], s.Namespaces[:namespaceIndex])
-		copy(next.Namespaces[namespaceIndex:], s.Namespaces[namespaceIndex+1:])
-	} else {
-		next.Namespaces = make([]*ClusterNamespace, len(s.Namespaces))
-		copy(next.Namespaces, s.Namespaces)
-		next.Namespaces[namespaceIndex] = nextNamespace
-	}
-
 	return next
 }
 
 func (s *ClusterState) doUpdateOffsetCommits(cmd *ClusterCommandConsumerGroupOffsetCommitsUpdate) *ClusterState {
 	namespace, namespaceIndex := s.FindNamespace(cmd.Namespace)
 	if namespace == nil {
-		return s
+		panic("namespace must exist")
 	}
 
-	consumerGroup, consumerGroupIndex := namespace.findConsumerGroup(cmd.Name)
+	consumerGroup, consumerGroupIndex := namespace.FindConsumerGroup(cmd.Name)
 	if consumerGroupIndex == -1 {
 		return s
 	}
