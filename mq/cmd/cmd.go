@@ -191,18 +191,23 @@ func Cmd() *cobra.Command {
 			log.Print("gracefully shutting down")
 
 			gracefulShutdownTimeout := 10 * time.Second
-			gracefulShutdownCtx, gracefulShutdownDone := context.WithTimeout(context.Background(), gracefulShutdownTimeout)
+			gracefulShutdownCtx, gracefulShutdownCancel := context.WithTimeout(context.Background(), gracefulShutdownTimeout)
+
+			go func() {
+				select {
+				case <-interrupt:
+					gracefulShutdownCancel()
+				case <-gracefulShutdownCtx.Done():
+					return
+				}
+			}()
 
 			go func() {
 				grpcServer.GracefulStop()
-				gracefulShutdownDone()
+				gracefulShutdownCancel()
 			}()
 
 			<-gracefulShutdownCtx.Done()
-
-			if gracefulShutdownCtx.Err() == context.DeadlineExceeded {
-				log.Printf("graceful shutdown did not complete in %s, forcefully shutting down", gracefulShutdownTimeout.String())
-			}
 
 			return nil
 		},
