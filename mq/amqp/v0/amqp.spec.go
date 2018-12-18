@@ -13,105 +13,149 @@ import (
 	"github.com/pkg/errors"
 )
 
+type FrameType uint8
+type ClassID uint16
+type MethodID uint16
+
 const (
-	Major              = 0
-	Minor              = 9
-	Revision           = 1
-	Port               = 5672
-	FrameMethod        = 1
-	FrameHeader        = 2
-	FrameBody          = 3
-	FrameHeartbeat     = 8
-	FrameMinSize       = 4096
-	FrameEnd           = 206
-	ReplySuccess       = 200
-	ContentTooLarge    = 311
-	NoConsumers        = 313
-	ConnectionForced   = 320
-	InvalidPath        = 402
-	AccessRefused      = 403
-	NotFound           = 404
-	ResourceLocked     = 405
-	PreconditionFailed = 406
-	FrameError         = 501
-	SyntaxError        = 502
-	CommandInvalid     = 503
-	ChannelError       = 504
-	UnexpectedFrame    = 505
-	ResourceError      = 506
-	NotAllowed         = 530
-	NotImplemented     = 540
-	InternalError      = 541
+	Major                        = 0
+	Minor                        = 9
+	Revision                     = 1
+	Port                         = 5672
+	FrameMethod        FrameType = 1
+	FrameHeader        FrameType = 2
+	FrameBody          FrameType = 3
+	FrameHeartbeat     FrameType = 8
+	FrameMinSize                 = 4096
+	FrameEnd                     = 206
+	ReplySuccess                 = 200
+	ContentTooLarge              = 311
+	NoConsumers                  = 313
+	ConnectionForced             = 320
+	InvalidPath                  = 402
+	AccessRefused                = 403
+	NotFound                     = 404
+	ResourceLocked               = 405
+	PreconditionFailed           = 406
+	FrameError                   = 501
+	SyntaxError                  = 502
+	CommandInvalid               = 503
+	ChannelError                 = 504
+	UnexpectedFrame              = 505
+	ResourceError                = 506
+	NotAllowed                   = 530
+	NotImplemented               = 540
+	InternalError                = 541
 
-	ConnectionClass          = 10
-	ConnectionStartMethod    = 10
-	ConnectionStartOkMethod  = 11
-	ConnectionSecureMethod   = 20
-	ConnectionSecureOkMethod = 21
-	ConnectionTuneMethod     = 30
-	ConnectionTuneOkMethod   = 31
-	ConnectionOpenMethod     = 40
-	ConnectionOpenOkMethod   = 41
-	ConnectionCloseMethod    = 50
-	ConnectionCloseOkMethod  = 51
+	ConnectionClass          ClassID  = 10
+	ConnectionStartMethod    MethodID = 10
+	ConnectionStartOkMethod  MethodID = 11
+	ConnectionSecureMethod   MethodID = 20
+	ConnectionSecureOkMethod MethodID = 21
+	ConnectionTuneMethod     MethodID = 30
+	ConnectionTuneOkMethod   MethodID = 31
+	ConnectionOpenMethod     MethodID = 40
+	ConnectionOpenOkMethod   MethodID = 41
+	ConnectionCloseMethod    MethodID = 50
+	ConnectionCloseOkMethod  MethodID = 51
 
-	ChannelClass         = 20
-	ChannelOpenMethod    = 10
-	ChannelOpenOkMethod  = 11
-	ChannelFlowMethod    = 20
-	ChannelFlowOkMethod  = 21
-	ChannelCloseMethod   = 40
-	ChannelCloseOkMethod = 41
+	ChannelClass         ClassID  = 20
+	ChannelOpenMethod    MethodID = 10
+	ChannelOpenOkMethod  MethodID = 11
+	ChannelFlowMethod    MethodID = 20
+	ChannelFlowOkMethod  MethodID = 21
+	ChannelCloseMethod   MethodID = 40
+	ChannelCloseOkMethod MethodID = 41
 
-	ExchangeClass           = 40
-	ExchangeDeclareMethod   = 10
-	ExchangeDeclareOkMethod = 11
-	ExchangeDeleteMethod    = 20
-	ExchangeDeleteOkMethod  = 21
+	ExchangeClass           ClassID  = 40
+	ExchangeDeclareMethod   MethodID = 10
+	ExchangeDeclareOkMethod MethodID = 11
+	ExchangeDeleteMethod    MethodID = 20
+	ExchangeDeleteOkMethod  MethodID = 21
 
-	QueueClass           = 50
-	QueueDeclareMethod   = 10
-	QueueDeclareOkMethod = 11
-	QueueBindMethod      = 20
-	QueueBindOkMethod    = 21
-	QueueUnbindMethod    = 50
-	QueueUnbindOkMethod  = 51
-	QueuePurgeMethod     = 30
-	QueuePurgeOkMethod   = 31
-	QueueDeleteMethod    = 40
-	QueueDeleteOkMethod  = 41
+	QueueClass           ClassID  = 50
+	QueueDeclareMethod   MethodID = 10
+	QueueDeclareOkMethod MethodID = 11
+	QueueBindMethod      MethodID = 20
+	QueueBindOkMethod    MethodID = 21
+	QueueUnbindMethod    MethodID = 50
+	QueueUnbindOkMethod  MethodID = 51
+	QueuePurgeMethod     MethodID = 30
+	QueuePurgeOkMethod   MethodID = 31
+	QueueDeleteMethod    MethodID = 40
+	QueueDeleteOkMethod  MethodID = 41
 
-	BasicClass              = 60
-	BasicQosMethod          = 10
-	BasicQosOkMethod        = 11
-	BasicConsumeMethod      = 20
-	BasicConsumeOkMethod    = 21
-	BasicCancelMethod       = 30
-	BasicCancelOkMethod     = 31
-	BasicPublishMethod      = 40
-	BasicReturnMethod       = 50
-	BasicDeliverMethod      = 60
-	BasicGetMethod          = 70
-	BasicGetOkMethod        = 71
-	BasicGetEmptyMethod     = 72
-	BasicAckMethod          = 80
-	BasicRejectMethod       = 90
-	BasicRecoverAsyncMethod = 100
-	BasicRecoverMethod      = 110
-	BasicRecoverOkMethod    = 111
+	BasicClass              ClassID  = 60
+	BasicQosMethod          MethodID = 10
+	BasicQosOkMethod        MethodID = 11
+	BasicConsumeMethod      MethodID = 20
+	BasicConsumeOkMethod    MethodID = 21
+	BasicCancelMethod       MethodID = 30
+	BasicCancelOkMethod     MethodID = 31
+	BasicPublishMethod      MethodID = 40
+	BasicReturnMethod       MethodID = 50
+	BasicDeliverMethod      MethodID = 60
+	BasicGetMethod          MethodID = 70
+	BasicGetOkMethod        MethodID = 71
+	BasicGetEmptyMethod     MethodID = 72
+	BasicAckMethod          MethodID = 80
+	BasicRejectMethod       MethodID = 90
+	BasicRecoverAsyncMethod MethodID = 100
+	BasicRecoverMethod      MethodID = 110
+	BasicRecoverOkMethod    MethodID = 111
 
-	TxClass            = 90
-	TxSelectMethod     = 10
-	TxSelectOkMethod   = 11
-	TxCommitMethod     = 20
-	TxCommitOkMethod   = 21
-	TxRollbackMethod   = 30
-	TxRollbackOkMethod = 31
+	TxClass            ClassID  = 90
+	TxSelectMethod     MethodID = 10
+	TxSelectOkMethod   MethodID = 11
+	TxCommitMethod     MethodID = 20
+	TxCommitOkMethod   MethodID = 21
+	TxRollbackMethod   MethodID = 30
+	TxRollbackOkMethod MethodID = 31
 )
+
+type Frame interface {
+	FrameType() FrameType
+}
+
+type MethodFrame interface {
+	Frame
+	FrameClassID() ClassID
+	FrameMethodID() MethodID
+}
+
+type FrameMeta struct {
+	Type    FrameType
+	Channel uint16
+	Size    uint32
+}
+
+type MethodMeta struct {
+	ClassID  ClassID
+	MethodID MethodID
+}
+
+type ContentFrame struct {
+	FrameMeta
+	Data []byte
+}
+
+func (f *ContentFrame) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+type HeartbeatFrame struct {
+	FrameMeta
+}
+
+func (f *HeartbeatFrame) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
 
 var endian = binary.BigEndian
 
 type ConnectionStart struct {
+	FrameMeta
+	MethodMeta
 	VersionMajor     uint8
 	VersionMinor     uint8
 	ServerProperties *types.Struct
@@ -119,8 +163,19 @@ type ConnectionStart struct {
 	Locales          string
 }
 
+func (f *ConnectionStart) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+func (f *ConnectionStart) FrameClassID() ClassID {
+	return f.MethodMeta.ClassID
+}
+
+func (f *ConnectionStart) FrameMethodID() MethodID {
+	return f.MethodMeta.MethodID
+}
+
 func (f *ConnectionStart) Unmarshal(data []byte) error {
-	*f = ConnectionStart{}
 	var x [8]byte
 	_ = x
 	buf := bytes.NewBuffer(data)
@@ -130,16 +185,20 @@ func (f *ConnectionStart) Unmarshal(data []byte) error {
 	} else if n < 2 {
 		return errors.New("read class ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != ConnectionClass {
+	if id := ClassID(endian.Uint16(x[:2])); id != ConnectionClass {
 		return errors.Errorf("expected class ID %d, got %d", ConnectionClass, id)
+	} else {
+		f.MethodMeta.ClassID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "read method ID failed")
 	} else if n < 2 {
 		return errors.New("read method ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != ConnectionStartMethod {
+	if id := MethodID(endian.Uint16(x[:2])); id != ConnectionStartMethod {
 		return errors.Errorf("expected method ID %d, got %d", ConnectionStartMethod, id)
+	} else {
+		f.MethodMeta.MethodID = id
 	}
 	if b, err := buf.ReadByte(); err != nil {
 		return errors.Wrap(err, "field version-major: read octet failed")
@@ -198,9 +257,9 @@ func (f *ConnectionStart) Marshal() ([]byte, error) {
 	var bits byte = 0
 	_ = bits
 	buf := bytes.Buffer{}
-	endian.PutUint16(x[:2], ConnectionClass)
+	endian.PutUint16(x[:2], uint16(ConnectionClass))
 	buf.Write(x[:2])
-	endian.PutUint16(x[:2], ConnectionStartMethod)
+	endian.PutUint16(x[:2], uint16(ConnectionStartMethod))
 	buf.Write(x[:2])
 	buf.WriteByte(f.VersionMajor)
 	buf.WriteByte(f.VersionMinor)
@@ -229,14 +288,27 @@ func (f *ConnectionStart) Marshal() ([]byte, error) {
 }
 
 type ConnectionStartOk struct {
+	FrameMeta
+	MethodMeta
 	ClientProperties *types.Struct
 	Mechanism        string
 	Response         string
 	Locale           string
 }
 
+func (f *ConnectionStartOk) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+func (f *ConnectionStartOk) FrameClassID() ClassID {
+	return f.MethodMeta.ClassID
+}
+
+func (f *ConnectionStartOk) FrameMethodID() MethodID {
+	return f.MethodMeta.MethodID
+}
+
 func (f *ConnectionStartOk) Unmarshal(data []byte) error {
-	*f = ConnectionStartOk{}
 	var x [8]byte
 	_ = x
 	buf := bytes.NewBuffer(data)
@@ -246,16 +318,20 @@ func (f *ConnectionStartOk) Unmarshal(data []byte) error {
 	} else if n < 2 {
 		return errors.New("read class ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != ConnectionClass {
+	if id := ClassID(endian.Uint16(x[:2])); id != ConnectionClass {
 		return errors.Errorf("expected class ID %d, got %d", ConnectionClass, id)
+	} else {
+		f.MethodMeta.ClassID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "read method ID failed")
 	} else if n < 2 {
 		return errors.New("read method ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != ConnectionStartOkMethod {
+	if id := MethodID(endian.Uint16(x[:2])); id != ConnectionStartOkMethod {
 		return errors.Errorf("expected method ID %d, got %d", ConnectionStartOkMethod, id)
+	} else {
+		f.MethodMeta.MethodID = id
 	}
 	if n, err := buf.Read(x[:4]); err != nil {
 		return errors.Wrap(err, "field client-properties: read table failed")
@@ -312,9 +388,9 @@ func (f *ConnectionStartOk) Marshal() ([]byte, error) {
 	var bits byte = 0
 	_ = bits
 	buf := bytes.Buffer{}
-	endian.PutUint16(x[:2], ConnectionClass)
+	endian.PutUint16(x[:2], uint16(ConnectionClass))
 	buf.Write(x[:2])
-	endian.PutUint16(x[:2], ConnectionStartOkMethod)
+	endian.PutUint16(x[:2], uint16(ConnectionStartOkMethod))
 	buf.Write(x[:2])
 	if tableBuf, err := marshalTable(f.ClientProperties); err != nil {
 		return nil, errors.Wrap(err, "client-properties table marshal failed")
@@ -346,11 +422,24 @@ func (f *ConnectionStartOk) Marshal() ([]byte, error) {
 }
 
 type ConnectionSecure struct {
+	FrameMeta
+	MethodMeta
 	Challenge string
 }
 
+func (f *ConnectionSecure) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+func (f *ConnectionSecure) FrameClassID() ClassID {
+	return f.MethodMeta.ClassID
+}
+
+func (f *ConnectionSecure) FrameMethodID() MethodID {
+	return f.MethodMeta.MethodID
+}
+
 func (f *ConnectionSecure) Unmarshal(data []byte) error {
-	*f = ConnectionSecure{}
 	var x [8]byte
 	_ = x
 	buf := bytes.NewBuffer(data)
@@ -360,16 +449,20 @@ func (f *ConnectionSecure) Unmarshal(data []byte) error {
 	} else if n < 2 {
 		return errors.New("read class ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != ConnectionClass {
+	if id := ClassID(endian.Uint16(x[:2])); id != ConnectionClass {
 		return errors.Errorf("expected class ID %d, got %d", ConnectionClass, id)
+	} else {
+		f.MethodMeta.ClassID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "read method ID failed")
 	} else if n < 2 {
 		return errors.New("read method ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != ConnectionSecureMethod {
+	if id := MethodID(endian.Uint16(x[:2])); id != ConnectionSecureMethod {
 		return errors.Errorf("expected method ID %d, got %d", ConnectionSecureMethod, id)
+	} else {
+		f.MethodMeta.MethodID = id
 	}
 	if n, err := buf.Read(x[:4]); err != nil {
 		return errors.Wrap(err, "field challenge: read longstr failed")
@@ -392,9 +485,9 @@ func (f *ConnectionSecure) Marshal() ([]byte, error) {
 	var bits byte = 0
 	_ = bits
 	buf := bytes.Buffer{}
-	endian.PutUint16(x[:2], ConnectionClass)
+	endian.PutUint16(x[:2], uint16(ConnectionClass))
 	buf.Write(x[:2])
-	endian.PutUint16(x[:2], ConnectionSecureMethod)
+	endian.PutUint16(x[:2], uint16(ConnectionSecureMethod))
 	buf.Write(x[:2])
 	if l := len(f.Challenge); l > math.MaxUint32 {
 		return nil, errors.Errorf("challenge can be at most %d bytes long, got %d bytes", math.MaxUint32, l)
@@ -407,11 +500,24 @@ func (f *ConnectionSecure) Marshal() ([]byte, error) {
 }
 
 type ConnectionSecureOk struct {
+	FrameMeta
+	MethodMeta
 	Response string
 }
 
+func (f *ConnectionSecureOk) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+func (f *ConnectionSecureOk) FrameClassID() ClassID {
+	return f.MethodMeta.ClassID
+}
+
+func (f *ConnectionSecureOk) FrameMethodID() MethodID {
+	return f.MethodMeta.MethodID
+}
+
 func (f *ConnectionSecureOk) Unmarshal(data []byte) error {
-	*f = ConnectionSecureOk{}
 	var x [8]byte
 	_ = x
 	buf := bytes.NewBuffer(data)
@@ -421,16 +527,20 @@ func (f *ConnectionSecureOk) Unmarshal(data []byte) error {
 	} else if n < 2 {
 		return errors.New("read class ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != ConnectionClass {
+	if id := ClassID(endian.Uint16(x[:2])); id != ConnectionClass {
 		return errors.Errorf("expected class ID %d, got %d", ConnectionClass, id)
+	} else {
+		f.MethodMeta.ClassID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "read method ID failed")
 	} else if n < 2 {
 		return errors.New("read method ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != ConnectionSecureOkMethod {
+	if id := MethodID(endian.Uint16(x[:2])); id != ConnectionSecureOkMethod {
 		return errors.Errorf("expected method ID %d, got %d", ConnectionSecureOkMethod, id)
+	} else {
+		f.MethodMeta.MethodID = id
 	}
 	if n, err := buf.Read(x[:4]); err != nil {
 		return errors.Wrap(err, "field response: read longstr failed")
@@ -453,9 +563,9 @@ func (f *ConnectionSecureOk) Marshal() ([]byte, error) {
 	var bits byte = 0
 	_ = bits
 	buf := bytes.Buffer{}
-	endian.PutUint16(x[:2], ConnectionClass)
+	endian.PutUint16(x[:2], uint16(ConnectionClass))
 	buf.Write(x[:2])
-	endian.PutUint16(x[:2], ConnectionSecureOkMethod)
+	endian.PutUint16(x[:2], uint16(ConnectionSecureOkMethod))
 	buf.Write(x[:2])
 	if l := len(f.Response); l > math.MaxUint32 {
 		return nil, errors.Errorf("response can be at most %d bytes long, got %d bytes", math.MaxUint32, l)
@@ -468,13 +578,26 @@ func (f *ConnectionSecureOk) Marshal() ([]byte, error) {
 }
 
 type ConnectionTune struct {
+	FrameMeta
+	MethodMeta
 	ChannelMax uint16
 	FrameMax   uint32
 	Heartbeat  uint16
 }
 
+func (f *ConnectionTune) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+func (f *ConnectionTune) FrameClassID() ClassID {
+	return f.MethodMeta.ClassID
+}
+
+func (f *ConnectionTune) FrameMethodID() MethodID {
+	return f.MethodMeta.MethodID
+}
+
 func (f *ConnectionTune) Unmarshal(data []byte) error {
-	*f = ConnectionTune{}
 	var x [8]byte
 	_ = x
 	buf := bytes.NewBuffer(data)
@@ -484,16 +607,20 @@ func (f *ConnectionTune) Unmarshal(data []byte) error {
 	} else if n < 2 {
 		return errors.New("read class ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != ConnectionClass {
+	if id := ClassID(endian.Uint16(x[:2])); id != ConnectionClass {
 		return errors.Errorf("expected class ID %d, got %d", ConnectionClass, id)
+	} else {
+		f.MethodMeta.ClassID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "read method ID failed")
 	} else if n < 2 {
 		return errors.New("read method ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != ConnectionTuneMethod {
+	if id := MethodID(endian.Uint16(x[:2])); id != ConnectionTuneMethod {
 		return errors.Errorf("expected method ID %d, got %d", ConnectionTuneMethod, id)
+	} else {
+		f.MethodMeta.MethodID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "field channel-max: read short failed")
@@ -522,9 +649,9 @@ func (f *ConnectionTune) Marshal() ([]byte, error) {
 	var bits byte = 0
 	_ = bits
 	buf := bytes.Buffer{}
-	endian.PutUint16(x[:2], ConnectionClass)
+	endian.PutUint16(x[:2], uint16(ConnectionClass))
 	buf.Write(x[:2])
-	endian.PutUint16(x[:2], ConnectionTuneMethod)
+	endian.PutUint16(x[:2], uint16(ConnectionTuneMethod))
 	buf.Write(x[:2])
 	endian.PutUint16(x[:2], f.ChannelMax)
 	buf.Write(x[:2])
@@ -536,13 +663,26 @@ func (f *ConnectionTune) Marshal() ([]byte, error) {
 }
 
 type ConnectionTuneOk struct {
+	FrameMeta
+	MethodMeta
 	ChannelMax uint16
 	FrameMax   uint32
 	Heartbeat  uint16
 }
 
+func (f *ConnectionTuneOk) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+func (f *ConnectionTuneOk) FrameClassID() ClassID {
+	return f.MethodMeta.ClassID
+}
+
+func (f *ConnectionTuneOk) FrameMethodID() MethodID {
+	return f.MethodMeta.MethodID
+}
+
 func (f *ConnectionTuneOk) Unmarshal(data []byte) error {
-	*f = ConnectionTuneOk{}
 	var x [8]byte
 	_ = x
 	buf := bytes.NewBuffer(data)
@@ -552,16 +692,20 @@ func (f *ConnectionTuneOk) Unmarshal(data []byte) error {
 	} else if n < 2 {
 		return errors.New("read class ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != ConnectionClass {
+	if id := ClassID(endian.Uint16(x[:2])); id != ConnectionClass {
 		return errors.Errorf("expected class ID %d, got %d", ConnectionClass, id)
+	} else {
+		f.MethodMeta.ClassID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "read method ID failed")
 	} else if n < 2 {
 		return errors.New("read method ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != ConnectionTuneOkMethod {
+	if id := MethodID(endian.Uint16(x[:2])); id != ConnectionTuneOkMethod {
 		return errors.Errorf("expected method ID %d, got %d", ConnectionTuneOkMethod, id)
+	} else {
+		f.MethodMeta.MethodID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "field channel-max: read short failed")
@@ -590,9 +734,9 @@ func (f *ConnectionTuneOk) Marshal() ([]byte, error) {
 	var bits byte = 0
 	_ = bits
 	buf := bytes.Buffer{}
-	endian.PutUint16(x[:2], ConnectionClass)
+	endian.PutUint16(x[:2], uint16(ConnectionClass))
 	buf.Write(x[:2])
-	endian.PutUint16(x[:2], ConnectionTuneOkMethod)
+	endian.PutUint16(x[:2], uint16(ConnectionTuneOkMethod))
 	buf.Write(x[:2])
 	endian.PutUint16(x[:2], f.ChannelMax)
 	buf.Write(x[:2])
@@ -604,13 +748,26 @@ func (f *ConnectionTuneOk) Marshal() ([]byte, error) {
 }
 
 type ConnectionOpen struct {
+	FrameMeta
+	MethodMeta
 	VirtualHost string
 	Reserved1   string
 	Reserved2   bool
 }
 
+func (f *ConnectionOpen) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+func (f *ConnectionOpen) FrameClassID() ClassID {
+	return f.MethodMeta.ClassID
+}
+
+func (f *ConnectionOpen) FrameMethodID() MethodID {
+	return f.MethodMeta.MethodID
+}
+
 func (f *ConnectionOpen) Unmarshal(data []byte) error {
-	*f = ConnectionOpen{}
 	var x [8]byte
 	_ = x
 	buf := bytes.NewBuffer(data)
@@ -620,16 +777,20 @@ func (f *ConnectionOpen) Unmarshal(data []byte) error {
 	} else if n < 2 {
 		return errors.New("read class ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != ConnectionClass {
+	if id := ClassID(endian.Uint16(x[:2])); id != ConnectionClass {
 		return errors.Errorf("expected class ID %d, got %d", ConnectionClass, id)
+	} else {
+		f.MethodMeta.ClassID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "read method ID failed")
 	} else if n < 2 {
 		return errors.New("read method ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != ConnectionOpenMethod {
+	if id := MethodID(endian.Uint16(x[:2])); id != ConnectionOpenMethod {
 		return errors.Errorf("expected method ID %d, got %d", ConnectionOpenMethod, id)
+	} else {
+		f.MethodMeta.MethodID = id
 	}
 	if b, err := buf.ReadByte(); err != nil {
 		return errors.Wrap(err, "field virtual-host: read shortstr failed")
@@ -661,9 +822,9 @@ func (f *ConnectionOpen) Marshal() ([]byte, error) {
 	var bits byte = 0
 	_ = bits
 	buf := bytes.Buffer{}
-	endian.PutUint16(x[:2], ConnectionClass)
+	endian.PutUint16(x[:2], uint16(ConnectionClass))
 	buf.Write(x[:2])
-	endian.PutUint16(x[:2], ConnectionOpenMethod)
+	endian.PutUint16(x[:2], uint16(ConnectionOpenMethod))
 	buf.Write(x[:2])
 	if l := len(f.VirtualHost); l > math.MaxUint8 {
 		return nil, errors.Errorf("virtual-host can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
@@ -686,11 +847,24 @@ func (f *ConnectionOpen) Marshal() ([]byte, error) {
 }
 
 type ConnectionOpenOk struct {
+	FrameMeta
+	MethodMeta
 	Reserved1 string
 }
 
+func (f *ConnectionOpenOk) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+func (f *ConnectionOpenOk) FrameClassID() ClassID {
+	return f.MethodMeta.ClassID
+}
+
+func (f *ConnectionOpenOk) FrameMethodID() MethodID {
+	return f.MethodMeta.MethodID
+}
+
 func (f *ConnectionOpenOk) Unmarshal(data []byte) error {
-	*f = ConnectionOpenOk{}
 	var x [8]byte
 	_ = x
 	buf := bytes.NewBuffer(data)
@@ -700,16 +874,20 @@ func (f *ConnectionOpenOk) Unmarshal(data []byte) error {
 	} else if n < 2 {
 		return errors.New("read class ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != ConnectionClass {
+	if id := ClassID(endian.Uint16(x[:2])); id != ConnectionClass {
 		return errors.Errorf("expected class ID %d, got %d", ConnectionClass, id)
+	} else {
+		f.MethodMeta.ClassID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "read method ID failed")
 	} else if n < 2 {
 		return errors.New("read method ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != ConnectionOpenOkMethod {
+	if id := MethodID(endian.Uint16(x[:2])); id != ConnectionOpenOkMethod {
 		return errors.Errorf("expected method ID %d, got %d", ConnectionOpenOkMethod, id)
+	} else {
+		f.MethodMeta.MethodID = id
 	}
 	if b, err := buf.ReadByte(); err != nil {
 		return errors.Wrap(err, "field reserved-1: read shortstr failed")
@@ -730,9 +908,9 @@ func (f *ConnectionOpenOk) Marshal() ([]byte, error) {
 	var bits byte = 0
 	_ = bits
 	buf := bytes.Buffer{}
-	endian.PutUint16(x[:2], ConnectionClass)
+	endian.PutUint16(x[:2], uint16(ConnectionClass))
 	buf.Write(x[:2])
-	endian.PutUint16(x[:2], ConnectionOpenOkMethod)
+	endian.PutUint16(x[:2], uint16(ConnectionOpenOkMethod))
 	buf.Write(x[:2])
 	if l := len(f.Reserved1); l > math.MaxUint8 {
 		return nil, errors.Errorf("reserved-1 can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
@@ -744,14 +922,27 @@ func (f *ConnectionOpenOk) Marshal() ([]byte, error) {
 }
 
 type ConnectionClose struct {
+	FrameMeta
+	MethodMeta
 	ReplyCode uint16
 	ReplyText string
 	ClassID   uint16
 	MethodID  uint16
 }
 
+func (f *ConnectionClose) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+func (f *ConnectionClose) FrameClassID() ClassID {
+	return f.MethodMeta.ClassID
+}
+
+func (f *ConnectionClose) FrameMethodID() MethodID {
+	return f.MethodMeta.MethodID
+}
+
 func (f *ConnectionClose) Unmarshal(data []byte) error {
-	*f = ConnectionClose{}
 	var x [8]byte
 	_ = x
 	buf := bytes.NewBuffer(data)
@@ -761,16 +952,20 @@ func (f *ConnectionClose) Unmarshal(data []byte) error {
 	} else if n < 2 {
 		return errors.New("read class ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != ConnectionClass {
+	if id := ClassID(endian.Uint16(x[:2])); id != ConnectionClass {
 		return errors.Errorf("expected class ID %d, got %d", ConnectionClass, id)
+	} else {
+		f.MethodMeta.ClassID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "read method ID failed")
 	} else if n < 2 {
 		return errors.New("read method ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != ConnectionCloseMethod {
+	if id := MethodID(endian.Uint16(x[:2])); id != ConnectionCloseMethod {
 		return errors.Errorf("expected method ID %d, got %d", ConnectionCloseMethod, id)
+	} else {
+		f.MethodMeta.MethodID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "field reply-code: read short failed")
@@ -809,9 +1004,9 @@ func (f *ConnectionClose) Marshal() ([]byte, error) {
 	var bits byte = 0
 	_ = bits
 	buf := bytes.Buffer{}
-	endian.PutUint16(x[:2], ConnectionClass)
+	endian.PutUint16(x[:2], uint16(ConnectionClass))
 	buf.Write(x[:2])
-	endian.PutUint16(x[:2], ConnectionCloseMethod)
+	endian.PutUint16(x[:2], uint16(ConnectionCloseMethod))
 	buf.Write(x[:2])
 	endian.PutUint16(x[:2], f.ReplyCode)
 	buf.Write(x[:2])
@@ -829,10 +1024,23 @@ func (f *ConnectionClose) Marshal() ([]byte, error) {
 }
 
 type ConnectionCloseOk struct {
+	FrameMeta
+	MethodMeta
+}
+
+func (f *ConnectionCloseOk) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+func (f *ConnectionCloseOk) FrameClassID() ClassID {
+	return f.MethodMeta.ClassID
+}
+
+func (f *ConnectionCloseOk) FrameMethodID() MethodID {
+	return f.MethodMeta.MethodID
 }
 
 func (f *ConnectionCloseOk) Unmarshal(data []byte) error {
-	*f = ConnectionCloseOk{}
 	var x [8]byte
 	_ = x
 	buf := bytes.NewBuffer(data)
@@ -842,16 +1050,20 @@ func (f *ConnectionCloseOk) Unmarshal(data []byte) error {
 	} else if n < 2 {
 		return errors.New("read class ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != ConnectionClass {
+	if id := ClassID(endian.Uint16(x[:2])); id != ConnectionClass {
 		return errors.Errorf("expected class ID %d, got %d", ConnectionClass, id)
+	} else {
+		f.MethodMeta.ClassID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "read method ID failed")
 	} else if n < 2 {
 		return errors.New("read method ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != ConnectionCloseOkMethod {
+	if id := MethodID(endian.Uint16(x[:2])); id != ConnectionCloseOkMethod {
 		return errors.Errorf("expected method ID %d, got %d", ConnectionCloseOkMethod, id)
+	} else {
+		f.MethodMeta.MethodID = id
 	}
 	return nil
 }
@@ -862,19 +1074,32 @@ func (f *ConnectionCloseOk) Marshal() ([]byte, error) {
 	var bits byte = 0
 	_ = bits
 	buf := bytes.Buffer{}
-	endian.PutUint16(x[:2], ConnectionClass)
+	endian.PutUint16(x[:2], uint16(ConnectionClass))
 	buf.Write(x[:2])
-	endian.PutUint16(x[:2], ConnectionCloseOkMethod)
+	endian.PutUint16(x[:2], uint16(ConnectionCloseOkMethod))
 	buf.Write(x[:2])
 	return buf.Bytes(), nil
 }
 
 type ChannelOpen struct {
+	FrameMeta
+	MethodMeta
 	Reserved1 string
 }
 
+func (f *ChannelOpen) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+func (f *ChannelOpen) FrameClassID() ClassID {
+	return f.MethodMeta.ClassID
+}
+
+func (f *ChannelOpen) FrameMethodID() MethodID {
+	return f.MethodMeta.MethodID
+}
+
 func (f *ChannelOpen) Unmarshal(data []byte) error {
-	*f = ChannelOpen{}
 	var x [8]byte
 	_ = x
 	buf := bytes.NewBuffer(data)
@@ -884,16 +1109,20 @@ func (f *ChannelOpen) Unmarshal(data []byte) error {
 	} else if n < 2 {
 		return errors.New("read class ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != ChannelClass {
+	if id := ClassID(endian.Uint16(x[:2])); id != ChannelClass {
 		return errors.Errorf("expected class ID %d, got %d", ChannelClass, id)
+	} else {
+		f.MethodMeta.ClassID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "read method ID failed")
 	} else if n < 2 {
 		return errors.New("read method ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != ChannelOpenMethod {
+	if id := MethodID(endian.Uint16(x[:2])); id != ChannelOpenMethod {
 		return errors.Errorf("expected method ID %d, got %d", ChannelOpenMethod, id)
+	} else {
+		f.MethodMeta.MethodID = id
 	}
 	if b, err := buf.ReadByte(); err != nil {
 		return errors.Wrap(err, "field reserved-1: read shortstr failed")
@@ -914,9 +1143,9 @@ func (f *ChannelOpen) Marshal() ([]byte, error) {
 	var bits byte = 0
 	_ = bits
 	buf := bytes.Buffer{}
-	endian.PutUint16(x[:2], ChannelClass)
+	endian.PutUint16(x[:2], uint16(ChannelClass))
 	buf.Write(x[:2])
-	endian.PutUint16(x[:2], ChannelOpenMethod)
+	endian.PutUint16(x[:2], uint16(ChannelOpenMethod))
 	buf.Write(x[:2])
 	if l := len(f.Reserved1); l > math.MaxUint8 {
 		return nil, errors.Errorf("reserved-1 can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
@@ -928,11 +1157,24 @@ func (f *ChannelOpen) Marshal() ([]byte, error) {
 }
 
 type ChannelOpenOk struct {
+	FrameMeta
+	MethodMeta
 	Reserved1 string
 }
 
+func (f *ChannelOpenOk) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+func (f *ChannelOpenOk) FrameClassID() ClassID {
+	return f.MethodMeta.ClassID
+}
+
+func (f *ChannelOpenOk) FrameMethodID() MethodID {
+	return f.MethodMeta.MethodID
+}
+
 func (f *ChannelOpenOk) Unmarshal(data []byte) error {
-	*f = ChannelOpenOk{}
 	var x [8]byte
 	_ = x
 	buf := bytes.NewBuffer(data)
@@ -942,16 +1184,20 @@ func (f *ChannelOpenOk) Unmarshal(data []byte) error {
 	} else if n < 2 {
 		return errors.New("read class ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != ChannelClass {
+	if id := ClassID(endian.Uint16(x[:2])); id != ChannelClass {
 		return errors.Errorf("expected class ID %d, got %d", ChannelClass, id)
+	} else {
+		f.MethodMeta.ClassID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "read method ID failed")
 	} else if n < 2 {
 		return errors.New("read method ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != ChannelOpenOkMethod {
+	if id := MethodID(endian.Uint16(x[:2])); id != ChannelOpenOkMethod {
 		return errors.Errorf("expected method ID %d, got %d", ChannelOpenOkMethod, id)
+	} else {
+		f.MethodMeta.MethodID = id
 	}
 	if n, err := buf.Read(x[:4]); err != nil {
 		return errors.Wrap(err, "field reserved-1: read longstr failed")
@@ -974,9 +1220,9 @@ func (f *ChannelOpenOk) Marshal() ([]byte, error) {
 	var bits byte = 0
 	_ = bits
 	buf := bytes.Buffer{}
-	endian.PutUint16(x[:2], ChannelClass)
+	endian.PutUint16(x[:2], uint16(ChannelClass))
 	buf.Write(x[:2])
-	endian.PutUint16(x[:2], ChannelOpenOkMethod)
+	endian.PutUint16(x[:2], uint16(ChannelOpenOkMethod))
 	buf.Write(x[:2])
 	if l := len(f.Reserved1); l > math.MaxUint32 {
 		return nil, errors.Errorf("reserved-1 can be at most %d bytes long, got %d bytes", math.MaxUint32, l)
@@ -989,11 +1235,24 @@ func (f *ChannelOpenOk) Marshal() ([]byte, error) {
 }
 
 type ChannelFlow struct {
+	FrameMeta
+	MethodMeta
 	Active bool
 }
 
+func (f *ChannelFlow) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+func (f *ChannelFlow) FrameClassID() ClassID {
+	return f.MethodMeta.ClassID
+}
+
+func (f *ChannelFlow) FrameMethodID() MethodID {
+	return f.MethodMeta.MethodID
+}
+
 func (f *ChannelFlow) Unmarshal(data []byte) error {
-	*f = ChannelFlow{}
 	var x [8]byte
 	_ = x
 	buf := bytes.NewBuffer(data)
@@ -1003,16 +1262,20 @@ func (f *ChannelFlow) Unmarshal(data []byte) error {
 	} else if n < 2 {
 		return errors.New("read class ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != ChannelClass {
+	if id := ClassID(endian.Uint16(x[:2])); id != ChannelClass {
 		return errors.Errorf("expected class ID %d, got %d", ChannelClass, id)
+	} else {
+		f.MethodMeta.ClassID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "read method ID failed")
 	} else if n < 2 {
 		return errors.New("read method ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != ChannelFlowMethod {
+	if id := MethodID(endian.Uint16(x[:2])); id != ChannelFlowMethod {
 		return errors.Errorf("expected method ID %d, got %d", ChannelFlowMethod, id)
+	} else {
+		f.MethodMeta.MethodID = id
 	}
 	// TODO: end bit fields
 	return nil
@@ -1024,9 +1287,9 @@ func (f *ChannelFlow) Marshal() ([]byte, error) {
 	var bits byte = 0
 	_ = bits
 	buf := bytes.Buffer{}
-	endian.PutUint16(x[:2], ChannelClass)
+	endian.PutUint16(x[:2], uint16(ChannelClass))
 	buf.Write(x[:2])
-	endian.PutUint16(x[:2], ChannelFlowMethod)
+	endian.PutUint16(x[:2], uint16(ChannelFlowMethod))
 	buf.Write(x[:2])
 	if f.Active {
 		bits |= 1 << 0
@@ -1037,11 +1300,24 @@ func (f *ChannelFlow) Marshal() ([]byte, error) {
 }
 
 type ChannelFlowOk struct {
+	FrameMeta
+	MethodMeta
 	Active bool
 }
 
+func (f *ChannelFlowOk) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+func (f *ChannelFlowOk) FrameClassID() ClassID {
+	return f.MethodMeta.ClassID
+}
+
+func (f *ChannelFlowOk) FrameMethodID() MethodID {
+	return f.MethodMeta.MethodID
+}
+
 func (f *ChannelFlowOk) Unmarshal(data []byte) error {
-	*f = ChannelFlowOk{}
 	var x [8]byte
 	_ = x
 	buf := bytes.NewBuffer(data)
@@ -1051,16 +1327,20 @@ func (f *ChannelFlowOk) Unmarshal(data []byte) error {
 	} else if n < 2 {
 		return errors.New("read class ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != ChannelClass {
+	if id := ClassID(endian.Uint16(x[:2])); id != ChannelClass {
 		return errors.Errorf("expected class ID %d, got %d", ChannelClass, id)
+	} else {
+		f.MethodMeta.ClassID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "read method ID failed")
 	} else if n < 2 {
 		return errors.New("read method ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != ChannelFlowOkMethod {
+	if id := MethodID(endian.Uint16(x[:2])); id != ChannelFlowOkMethod {
 		return errors.Errorf("expected method ID %d, got %d", ChannelFlowOkMethod, id)
+	} else {
+		f.MethodMeta.MethodID = id
 	}
 	// TODO: end bit fields
 	return nil
@@ -1072,9 +1352,9 @@ func (f *ChannelFlowOk) Marshal() ([]byte, error) {
 	var bits byte = 0
 	_ = bits
 	buf := bytes.Buffer{}
-	endian.PutUint16(x[:2], ChannelClass)
+	endian.PutUint16(x[:2], uint16(ChannelClass))
 	buf.Write(x[:2])
-	endian.PutUint16(x[:2], ChannelFlowOkMethod)
+	endian.PutUint16(x[:2], uint16(ChannelFlowOkMethod))
 	buf.Write(x[:2])
 	if f.Active {
 		bits |= 1 << 0
@@ -1085,14 +1365,27 @@ func (f *ChannelFlowOk) Marshal() ([]byte, error) {
 }
 
 type ChannelClose struct {
+	FrameMeta
+	MethodMeta
 	ReplyCode uint16
 	ReplyText string
 	ClassID   uint16
 	MethodID  uint16
 }
 
+func (f *ChannelClose) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+func (f *ChannelClose) FrameClassID() ClassID {
+	return f.MethodMeta.ClassID
+}
+
+func (f *ChannelClose) FrameMethodID() MethodID {
+	return f.MethodMeta.MethodID
+}
+
 func (f *ChannelClose) Unmarshal(data []byte) error {
-	*f = ChannelClose{}
 	var x [8]byte
 	_ = x
 	buf := bytes.NewBuffer(data)
@@ -1102,16 +1395,20 @@ func (f *ChannelClose) Unmarshal(data []byte) error {
 	} else if n < 2 {
 		return errors.New("read class ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != ChannelClass {
+	if id := ClassID(endian.Uint16(x[:2])); id != ChannelClass {
 		return errors.Errorf("expected class ID %d, got %d", ChannelClass, id)
+	} else {
+		f.MethodMeta.ClassID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "read method ID failed")
 	} else if n < 2 {
 		return errors.New("read method ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != ChannelCloseMethod {
+	if id := MethodID(endian.Uint16(x[:2])); id != ChannelCloseMethod {
 		return errors.Errorf("expected method ID %d, got %d", ChannelCloseMethod, id)
+	} else {
+		f.MethodMeta.MethodID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "field reply-code: read short failed")
@@ -1150,9 +1447,9 @@ func (f *ChannelClose) Marshal() ([]byte, error) {
 	var bits byte = 0
 	_ = bits
 	buf := bytes.Buffer{}
-	endian.PutUint16(x[:2], ChannelClass)
+	endian.PutUint16(x[:2], uint16(ChannelClass))
 	buf.Write(x[:2])
-	endian.PutUint16(x[:2], ChannelCloseMethod)
+	endian.PutUint16(x[:2], uint16(ChannelCloseMethod))
 	buf.Write(x[:2])
 	endian.PutUint16(x[:2], f.ReplyCode)
 	buf.Write(x[:2])
@@ -1170,10 +1467,23 @@ func (f *ChannelClose) Marshal() ([]byte, error) {
 }
 
 type ChannelCloseOk struct {
+	FrameMeta
+	MethodMeta
+}
+
+func (f *ChannelCloseOk) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+func (f *ChannelCloseOk) FrameClassID() ClassID {
+	return f.MethodMeta.ClassID
+}
+
+func (f *ChannelCloseOk) FrameMethodID() MethodID {
+	return f.MethodMeta.MethodID
 }
 
 func (f *ChannelCloseOk) Unmarshal(data []byte) error {
-	*f = ChannelCloseOk{}
 	var x [8]byte
 	_ = x
 	buf := bytes.NewBuffer(data)
@@ -1183,16 +1493,20 @@ func (f *ChannelCloseOk) Unmarshal(data []byte) error {
 	} else if n < 2 {
 		return errors.New("read class ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != ChannelClass {
+	if id := ClassID(endian.Uint16(x[:2])); id != ChannelClass {
 		return errors.Errorf("expected class ID %d, got %d", ChannelClass, id)
+	} else {
+		f.MethodMeta.ClassID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "read method ID failed")
 	} else if n < 2 {
 		return errors.New("read method ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != ChannelCloseOkMethod {
+	if id := MethodID(endian.Uint16(x[:2])); id != ChannelCloseOkMethod {
 		return errors.Errorf("expected method ID %d, got %d", ChannelCloseOkMethod, id)
+	} else {
+		f.MethodMeta.MethodID = id
 	}
 	return nil
 }
@@ -1203,14 +1517,16 @@ func (f *ChannelCloseOk) Marshal() ([]byte, error) {
 	var bits byte = 0
 	_ = bits
 	buf := bytes.Buffer{}
-	endian.PutUint16(x[:2], ChannelClass)
+	endian.PutUint16(x[:2], uint16(ChannelClass))
 	buf.Write(x[:2])
-	endian.PutUint16(x[:2], ChannelCloseOkMethod)
+	endian.PutUint16(x[:2], uint16(ChannelCloseOkMethod))
 	buf.Write(x[:2])
 	return buf.Bytes(), nil
 }
 
 type ExchangeDeclare struct {
+	FrameMeta
+	MethodMeta
 	Reserved1 uint16
 	Exchange  string
 	Type      string
@@ -1222,8 +1538,19 @@ type ExchangeDeclare struct {
 	Arguments *types.Struct
 }
 
+func (f *ExchangeDeclare) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+func (f *ExchangeDeclare) FrameClassID() ClassID {
+	return f.MethodMeta.ClassID
+}
+
+func (f *ExchangeDeclare) FrameMethodID() MethodID {
+	return f.MethodMeta.MethodID
+}
+
 func (f *ExchangeDeclare) Unmarshal(data []byte) error {
-	*f = ExchangeDeclare{}
 	var x [8]byte
 	_ = x
 	buf := bytes.NewBuffer(data)
@@ -1233,16 +1560,20 @@ func (f *ExchangeDeclare) Unmarshal(data []byte) error {
 	} else if n < 2 {
 		return errors.New("read class ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != ExchangeClass {
+	if id := ClassID(endian.Uint16(x[:2])); id != ExchangeClass {
 		return errors.Errorf("expected class ID %d, got %d", ExchangeClass, id)
+	} else {
+		f.MethodMeta.ClassID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "read method ID failed")
 	} else if n < 2 {
 		return errors.New("read method ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != ExchangeDeclareMethod {
+	if id := MethodID(endian.Uint16(x[:2])); id != ExchangeDeclareMethod {
 		return errors.Errorf("expected method ID %d, got %d", ExchangeDeclareMethod, id)
+	} else {
+		f.MethodMeta.MethodID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "field reserved-1: read short failed")
@@ -1300,9 +1631,9 @@ func (f *ExchangeDeclare) Marshal() ([]byte, error) {
 	var bits byte = 0
 	_ = bits
 	buf := bytes.Buffer{}
-	endian.PutUint16(x[:2], ExchangeClass)
+	endian.PutUint16(x[:2], uint16(ExchangeClass))
 	buf.Write(x[:2])
-	endian.PutUint16(x[:2], ExchangeDeclareMethod)
+	endian.PutUint16(x[:2], uint16(ExchangeDeclareMethod))
 	buf.Write(x[:2])
 	endian.PutUint16(x[:2], f.Reserved1)
 	buf.Write(x[:2])
@@ -1350,10 +1681,23 @@ func (f *ExchangeDeclare) Marshal() ([]byte, error) {
 }
 
 type ExchangeDeclareOk struct {
+	FrameMeta
+	MethodMeta
+}
+
+func (f *ExchangeDeclareOk) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+func (f *ExchangeDeclareOk) FrameClassID() ClassID {
+	return f.MethodMeta.ClassID
+}
+
+func (f *ExchangeDeclareOk) FrameMethodID() MethodID {
+	return f.MethodMeta.MethodID
 }
 
 func (f *ExchangeDeclareOk) Unmarshal(data []byte) error {
-	*f = ExchangeDeclareOk{}
 	var x [8]byte
 	_ = x
 	buf := bytes.NewBuffer(data)
@@ -1363,16 +1707,20 @@ func (f *ExchangeDeclareOk) Unmarshal(data []byte) error {
 	} else if n < 2 {
 		return errors.New("read class ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != ExchangeClass {
+	if id := ClassID(endian.Uint16(x[:2])); id != ExchangeClass {
 		return errors.Errorf("expected class ID %d, got %d", ExchangeClass, id)
+	} else {
+		f.MethodMeta.ClassID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "read method ID failed")
 	} else if n < 2 {
 		return errors.New("read method ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != ExchangeDeclareOkMethod {
+	if id := MethodID(endian.Uint16(x[:2])); id != ExchangeDeclareOkMethod {
 		return errors.Errorf("expected method ID %d, got %d", ExchangeDeclareOkMethod, id)
+	} else {
+		f.MethodMeta.MethodID = id
 	}
 	return nil
 }
@@ -1383,22 +1731,35 @@ func (f *ExchangeDeclareOk) Marshal() ([]byte, error) {
 	var bits byte = 0
 	_ = bits
 	buf := bytes.Buffer{}
-	endian.PutUint16(x[:2], ExchangeClass)
+	endian.PutUint16(x[:2], uint16(ExchangeClass))
 	buf.Write(x[:2])
-	endian.PutUint16(x[:2], ExchangeDeclareOkMethod)
+	endian.PutUint16(x[:2], uint16(ExchangeDeclareOkMethod))
 	buf.Write(x[:2])
 	return buf.Bytes(), nil
 }
 
 type ExchangeDelete struct {
+	FrameMeta
+	MethodMeta
 	Reserved1 uint16
 	Exchange  string
 	IfUnused  bool
 	NoWait    bool
 }
 
+func (f *ExchangeDelete) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+func (f *ExchangeDelete) FrameClassID() ClassID {
+	return f.MethodMeta.ClassID
+}
+
+func (f *ExchangeDelete) FrameMethodID() MethodID {
+	return f.MethodMeta.MethodID
+}
+
 func (f *ExchangeDelete) Unmarshal(data []byte) error {
-	*f = ExchangeDelete{}
 	var x [8]byte
 	_ = x
 	buf := bytes.NewBuffer(data)
@@ -1408,16 +1769,20 @@ func (f *ExchangeDelete) Unmarshal(data []byte) error {
 	} else if n < 2 {
 		return errors.New("read class ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != ExchangeClass {
+	if id := ClassID(endian.Uint16(x[:2])); id != ExchangeClass {
 		return errors.Errorf("expected class ID %d, got %d", ExchangeClass, id)
+	} else {
+		f.MethodMeta.ClassID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "read method ID failed")
 	} else if n < 2 {
 		return errors.New("read method ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != ExchangeDeleteMethod {
+	if id := MethodID(endian.Uint16(x[:2])); id != ExchangeDeleteMethod {
 		return errors.Errorf("expected method ID %d, got %d", ExchangeDeleteMethod, id)
+	} else {
+		f.MethodMeta.MethodID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "field reserved-1: read short failed")
@@ -1446,9 +1811,9 @@ func (f *ExchangeDelete) Marshal() ([]byte, error) {
 	var bits byte = 0
 	_ = bits
 	buf := bytes.Buffer{}
-	endian.PutUint16(x[:2], ExchangeClass)
+	endian.PutUint16(x[:2], uint16(ExchangeClass))
 	buf.Write(x[:2])
-	endian.PutUint16(x[:2], ExchangeDeleteMethod)
+	endian.PutUint16(x[:2], uint16(ExchangeDeleteMethod))
 	buf.Write(x[:2])
 	endian.PutUint16(x[:2], f.Reserved1)
 	buf.Write(x[:2])
@@ -1471,10 +1836,23 @@ func (f *ExchangeDelete) Marshal() ([]byte, error) {
 }
 
 type ExchangeDeleteOk struct {
+	FrameMeta
+	MethodMeta
+}
+
+func (f *ExchangeDeleteOk) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+func (f *ExchangeDeleteOk) FrameClassID() ClassID {
+	return f.MethodMeta.ClassID
+}
+
+func (f *ExchangeDeleteOk) FrameMethodID() MethodID {
+	return f.MethodMeta.MethodID
 }
 
 func (f *ExchangeDeleteOk) Unmarshal(data []byte) error {
-	*f = ExchangeDeleteOk{}
 	var x [8]byte
 	_ = x
 	buf := bytes.NewBuffer(data)
@@ -1484,16 +1862,20 @@ func (f *ExchangeDeleteOk) Unmarshal(data []byte) error {
 	} else if n < 2 {
 		return errors.New("read class ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != ExchangeClass {
+	if id := ClassID(endian.Uint16(x[:2])); id != ExchangeClass {
 		return errors.Errorf("expected class ID %d, got %d", ExchangeClass, id)
+	} else {
+		f.MethodMeta.ClassID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "read method ID failed")
 	} else if n < 2 {
 		return errors.New("read method ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != ExchangeDeleteOkMethod {
+	if id := MethodID(endian.Uint16(x[:2])); id != ExchangeDeleteOkMethod {
 		return errors.Errorf("expected method ID %d, got %d", ExchangeDeleteOkMethod, id)
+	} else {
+		f.MethodMeta.MethodID = id
 	}
 	return nil
 }
@@ -1504,14 +1886,16 @@ func (f *ExchangeDeleteOk) Marshal() ([]byte, error) {
 	var bits byte = 0
 	_ = bits
 	buf := bytes.Buffer{}
-	endian.PutUint16(x[:2], ExchangeClass)
+	endian.PutUint16(x[:2], uint16(ExchangeClass))
 	buf.Write(x[:2])
-	endian.PutUint16(x[:2], ExchangeDeleteOkMethod)
+	endian.PutUint16(x[:2], uint16(ExchangeDeleteOkMethod))
 	buf.Write(x[:2])
 	return buf.Bytes(), nil
 }
 
 type QueueDeclare struct {
+	FrameMeta
+	MethodMeta
 	Reserved1  uint16
 	Queue      string
 	Passive    bool
@@ -1522,8 +1906,19 @@ type QueueDeclare struct {
 	Arguments  *types.Struct
 }
 
+func (f *QueueDeclare) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+func (f *QueueDeclare) FrameClassID() ClassID {
+	return f.MethodMeta.ClassID
+}
+
+func (f *QueueDeclare) FrameMethodID() MethodID {
+	return f.MethodMeta.MethodID
+}
+
 func (f *QueueDeclare) Unmarshal(data []byte) error {
-	*f = QueueDeclare{}
 	var x [8]byte
 	_ = x
 	buf := bytes.NewBuffer(data)
@@ -1533,16 +1928,20 @@ func (f *QueueDeclare) Unmarshal(data []byte) error {
 	} else if n < 2 {
 		return errors.New("read class ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != QueueClass {
+	if id := ClassID(endian.Uint16(x[:2])); id != QueueClass {
 		return errors.Errorf("expected class ID %d, got %d", QueueClass, id)
+	} else {
+		f.MethodMeta.ClassID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "read method ID failed")
 	} else if n < 2 {
 		return errors.New("read method ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != QueueDeclareMethod {
+	if id := MethodID(endian.Uint16(x[:2])); id != QueueDeclareMethod {
 		return errors.Errorf("expected method ID %d, got %d", QueueDeclareMethod, id)
+	} else {
+		f.MethodMeta.MethodID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "field reserved-1: read short failed")
@@ -1590,9 +1989,9 @@ func (f *QueueDeclare) Marshal() ([]byte, error) {
 	var bits byte = 0
 	_ = bits
 	buf := bytes.Buffer{}
-	endian.PutUint16(x[:2], QueueClass)
+	endian.PutUint16(x[:2], uint16(QueueClass))
 	buf.Write(x[:2])
-	endian.PutUint16(x[:2], QueueDeclareMethod)
+	endian.PutUint16(x[:2], uint16(QueueDeclareMethod))
 	buf.Write(x[:2])
 	endian.PutUint16(x[:2], f.Reserved1)
 	buf.Write(x[:2])
@@ -1634,13 +2033,26 @@ func (f *QueueDeclare) Marshal() ([]byte, error) {
 }
 
 type QueueDeclareOk struct {
+	FrameMeta
+	MethodMeta
 	Queue         string
 	MessageCount  uint32
 	ConsumerCount uint32
 }
 
+func (f *QueueDeclareOk) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+func (f *QueueDeclareOk) FrameClassID() ClassID {
+	return f.MethodMeta.ClassID
+}
+
+func (f *QueueDeclareOk) FrameMethodID() MethodID {
+	return f.MethodMeta.MethodID
+}
+
 func (f *QueueDeclareOk) Unmarshal(data []byte) error {
-	*f = QueueDeclareOk{}
 	var x [8]byte
 	_ = x
 	buf := bytes.NewBuffer(data)
@@ -1650,16 +2062,20 @@ func (f *QueueDeclareOk) Unmarshal(data []byte) error {
 	} else if n < 2 {
 		return errors.New("read class ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != QueueClass {
+	if id := ClassID(endian.Uint16(x[:2])); id != QueueClass {
 		return errors.Errorf("expected class ID %d, got %d", QueueClass, id)
+	} else {
+		f.MethodMeta.ClassID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "read method ID failed")
 	} else if n < 2 {
 		return errors.New("read method ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != QueueDeclareOkMethod {
+	if id := MethodID(endian.Uint16(x[:2])); id != QueueDeclareOkMethod {
 		return errors.Errorf("expected method ID %d, got %d", QueueDeclareOkMethod, id)
+	} else {
+		f.MethodMeta.MethodID = id
 	}
 	if b, err := buf.ReadByte(); err != nil {
 		return errors.Wrap(err, "field queue: read shortstr failed")
@@ -1692,9 +2108,9 @@ func (f *QueueDeclareOk) Marshal() ([]byte, error) {
 	var bits byte = 0
 	_ = bits
 	buf := bytes.Buffer{}
-	endian.PutUint16(x[:2], QueueClass)
+	endian.PutUint16(x[:2], uint16(QueueClass))
 	buf.Write(x[:2])
-	endian.PutUint16(x[:2], QueueDeclareOkMethod)
+	endian.PutUint16(x[:2], uint16(QueueDeclareOkMethod))
 	buf.Write(x[:2])
 	if l := len(f.Queue); l > math.MaxUint8 {
 		return nil, errors.Errorf("queue can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
@@ -1710,6 +2126,8 @@ func (f *QueueDeclareOk) Marshal() ([]byte, error) {
 }
 
 type QueueBind struct {
+	FrameMeta
+	MethodMeta
 	Reserved1  uint16
 	Queue      string
 	Exchange   string
@@ -1718,8 +2136,19 @@ type QueueBind struct {
 	Arguments  *types.Struct
 }
 
+func (f *QueueBind) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+func (f *QueueBind) FrameClassID() ClassID {
+	return f.MethodMeta.ClassID
+}
+
+func (f *QueueBind) FrameMethodID() MethodID {
+	return f.MethodMeta.MethodID
+}
+
 func (f *QueueBind) Unmarshal(data []byte) error {
-	*f = QueueBind{}
 	var x [8]byte
 	_ = x
 	buf := bytes.NewBuffer(data)
@@ -1729,16 +2158,20 @@ func (f *QueueBind) Unmarshal(data []byte) error {
 	} else if n < 2 {
 		return errors.New("read class ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != QueueClass {
+	if id := ClassID(endian.Uint16(x[:2])); id != QueueClass {
 		return errors.Errorf("expected class ID %d, got %d", QueueClass, id)
+	} else {
+		f.MethodMeta.ClassID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "read method ID failed")
 	} else if n < 2 {
 		return errors.New("read method ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != QueueBindMethod {
+	if id := MethodID(endian.Uint16(x[:2])); id != QueueBindMethod {
 		return errors.Errorf("expected method ID %d, got %d", QueueBindMethod, id)
+	} else {
+		f.MethodMeta.MethodID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "field reserved-1: read short failed")
@@ -1805,9 +2238,9 @@ func (f *QueueBind) Marshal() ([]byte, error) {
 	var bits byte = 0
 	_ = bits
 	buf := bytes.Buffer{}
-	endian.PutUint16(x[:2], QueueClass)
+	endian.PutUint16(x[:2], uint16(QueueClass))
 	buf.Write(x[:2])
-	endian.PutUint16(x[:2], QueueBindMethod)
+	endian.PutUint16(x[:2], uint16(QueueBindMethod))
 	buf.Write(x[:2])
 	endian.PutUint16(x[:2], f.Reserved1)
 	buf.Write(x[:2])
@@ -1845,10 +2278,23 @@ func (f *QueueBind) Marshal() ([]byte, error) {
 }
 
 type QueueBindOk struct {
+	FrameMeta
+	MethodMeta
+}
+
+func (f *QueueBindOk) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+func (f *QueueBindOk) FrameClassID() ClassID {
+	return f.MethodMeta.ClassID
+}
+
+func (f *QueueBindOk) FrameMethodID() MethodID {
+	return f.MethodMeta.MethodID
 }
 
 func (f *QueueBindOk) Unmarshal(data []byte) error {
-	*f = QueueBindOk{}
 	var x [8]byte
 	_ = x
 	buf := bytes.NewBuffer(data)
@@ -1858,16 +2304,20 @@ func (f *QueueBindOk) Unmarshal(data []byte) error {
 	} else if n < 2 {
 		return errors.New("read class ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != QueueClass {
+	if id := ClassID(endian.Uint16(x[:2])); id != QueueClass {
 		return errors.Errorf("expected class ID %d, got %d", QueueClass, id)
+	} else {
+		f.MethodMeta.ClassID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "read method ID failed")
 	} else if n < 2 {
 		return errors.New("read method ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != QueueBindOkMethod {
+	if id := MethodID(endian.Uint16(x[:2])); id != QueueBindOkMethod {
 		return errors.Errorf("expected method ID %d, got %d", QueueBindOkMethod, id)
+	} else {
+		f.MethodMeta.MethodID = id
 	}
 	return nil
 }
@@ -1878,14 +2328,16 @@ func (f *QueueBindOk) Marshal() ([]byte, error) {
 	var bits byte = 0
 	_ = bits
 	buf := bytes.Buffer{}
-	endian.PutUint16(x[:2], QueueClass)
+	endian.PutUint16(x[:2], uint16(QueueClass))
 	buf.Write(x[:2])
-	endian.PutUint16(x[:2], QueueBindOkMethod)
+	endian.PutUint16(x[:2], uint16(QueueBindOkMethod))
 	buf.Write(x[:2])
 	return buf.Bytes(), nil
 }
 
 type QueueUnbind struct {
+	FrameMeta
+	MethodMeta
 	Reserved1  uint16
 	Queue      string
 	Exchange   string
@@ -1893,8 +2345,19 @@ type QueueUnbind struct {
 	Arguments  *types.Struct
 }
 
+func (f *QueueUnbind) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+func (f *QueueUnbind) FrameClassID() ClassID {
+	return f.MethodMeta.ClassID
+}
+
+func (f *QueueUnbind) FrameMethodID() MethodID {
+	return f.MethodMeta.MethodID
+}
+
 func (f *QueueUnbind) Unmarshal(data []byte) error {
-	*f = QueueUnbind{}
 	var x [8]byte
 	_ = x
 	buf := bytes.NewBuffer(data)
@@ -1904,16 +2367,20 @@ func (f *QueueUnbind) Unmarshal(data []byte) error {
 	} else if n < 2 {
 		return errors.New("read class ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != QueueClass {
+	if id := ClassID(endian.Uint16(x[:2])); id != QueueClass {
 		return errors.Errorf("expected class ID %d, got %d", QueueClass, id)
+	} else {
+		f.MethodMeta.ClassID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "read method ID failed")
 	} else if n < 2 {
 		return errors.New("read method ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != QueueUnbindMethod {
+	if id := MethodID(endian.Uint16(x[:2])); id != QueueUnbindMethod {
 		return errors.Errorf("expected method ID %d, got %d", QueueUnbindMethod, id)
+	} else {
+		f.MethodMeta.MethodID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "field reserved-1: read short failed")
@@ -1974,9 +2441,9 @@ func (f *QueueUnbind) Marshal() ([]byte, error) {
 	var bits byte = 0
 	_ = bits
 	buf := bytes.Buffer{}
-	endian.PutUint16(x[:2], QueueClass)
+	endian.PutUint16(x[:2], uint16(QueueClass))
 	buf.Write(x[:2])
-	endian.PutUint16(x[:2], QueueUnbindMethod)
+	endian.PutUint16(x[:2], uint16(QueueUnbindMethod))
 	buf.Write(x[:2])
 	endian.PutUint16(x[:2], f.Reserved1)
 	buf.Write(x[:2])
@@ -2009,10 +2476,23 @@ func (f *QueueUnbind) Marshal() ([]byte, error) {
 }
 
 type QueueUnbindOk struct {
+	FrameMeta
+	MethodMeta
+}
+
+func (f *QueueUnbindOk) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+func (f *QueueUnbindOk) FrameClassID() ClassID {
+	return f.MethodMeta.ClassID
+}
+
+func (f *QueueUnbindOk) FrameMethodID() MethodID {
+	return f.MethodMeta.MethodID
 }
 
 func (f *QueueUnbindOk) Unmarshal(data []byte) error {
-	*f = QueueUnbindOk{}
 	var x [8]byte
 	_ = x
 	buf := bytes.NewBuffer(data)
@@ -2022,16 +2502,20 @@ func (f *QueueUnbindOk) Unmarshal(data []byte) error {
 	} else if n < 2 {
 		return errors.New("read class ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != QueueClass {
+	if id := ClassID(endian.Uint16(x[:2])); id != QueueClass {
 		return errors.Errorf("expected class ID %d, got %d", QueueClass, id)
+	} else {
+		f.MethodMeta.ClassID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "read method ID failed")
 	} else if n < 2 {
 		return errors.New("read method ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != QueueUnbindOkMethod {
+	if id := MethodID(endian.Uint16(x[:2])); id != QueueUnbindOkMethod {
 		return errors.Errorf("expected method ID %d, got %d", QueueUnbindOkMethod, id)
+	} else {
+		f.MethodMeta.MethodID = id
 	}
 	return nil
 }
@@ -2042,21 +2526,34 @@ func (f *QueueUnbindOk) Marshal() ([]byte, error) {
 	var bits byte = 0
 	_ = bits
 	buf := bytes.Buffer{}
-	endian.PutUint16(x[:2], QueueClass)
+	endian.PutUint16(x[:2], uint16(QueueClass))
 	buf.Write(x[:2])
-	endian.PutUint16(x[:2], QueueUnbindOkMethod)
+	endian.PutUint16(x[:2], uint16(QueueUnbindOkMethod))
 	buf.Write(x[:2])
 	return buf.Bytes(), nil
 }
 
 type QueuePurge struct {
+	FrameMeta
+	MethodMeta
 	Reserved1 uint16
 	Queue     string
 	NoWait    bool
 }
 
+func (f *QueuePurge) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+func (f *QueuePurge) FrameClassID() ClassID {
+	return f.MethodMeta.ClassID
+}
+
+func (f *QueuePurge) FrameMethodID() MethodID {
+	return f.MethodMeta.MethodID
+}
+
 func (f *QueuePurge) Unmarshal(data []byte) error {
-	*f = QueuePurge{}
 	var x [8]byte
 	_ = x
 	buf := bytes.NewBuffer(data)
@@ -2066,16 +2563,20 @@ func (f *QueuePurge) Unmarshal(data []byte) error {
 	} else if n < 2 {
 		return errors.New("read class ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != QueueClass {
+	if id := ClassID(endian.Uint16(x[:2])); id != QueueClass {
 		return errors.Errorf("expected class ID %d, got %d", QueueClass, id)
+	} else {
+		f.MethodMeta.ClassID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "read method ID failed")
 	} else if n < 2 {
 		return errors.New("read method ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != QueuePurgeMethod {
+	if id := MethodID(endian.Uint16(x[:2])); id != QueuePurgeMethod {
 		return errors.Errorf("expected method ID %d, got %d", QueuePurgeMethod, id)
+	} else {
+		f.MethodMeta.MethodID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "field reserved-1: read short failed")
@@ -2103,9 +2604,9 @@ func (f *QueuePurge) Marshal() ([]byte, error) {
 	var bits byte = 0
 	_ = bits
 	buf := bytes.Buffer{}
-	endian.PutUint16(x[:2], QueueClass)
+	endian.PutUint16(x[:2], uint16(QueueClass))
 	buf.Write(x[:2])
-	endian.PutUint16(x[:2], QueuePurgeMethod)
+	endian.PutUint16(x[:2], uint16(QueuePurgeMethod))
 	buf.Write(x[:2])
 	endian.PutUint16(x[:2], f.Reserved1)
 	buf.Write(x[:2])
@@ -2124,11 +2625,24 @@ func (f *QueuePurge) Marshal() ([]byte, error) {
 }
 
 type QueuePurgeOk struct {
+	FrameMeta
+	MethodMeta
 	MessageCount uint32
 }
 
+func (f *QueuePurgeOk) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+func (f *QueuePurgeOk) FrameClassID() ClassID {
+	return f.MethodMeta.ClassID
+}
+
+func (f *QueuePurgeOk) FrameMethodID() MethodID {
+	return f.MethodMeta.MethodID
+}
+
 func (f *QueuePurgeOk) Unmarshal(data []byte) error {
-	*f = QueuePurgeOk{}
 	var x [8]byte
 	_ = x
 	buf := bytes.NewBuffer(data)
@@ -2138,16 +2652,20 @@ func (f *QueuePurgeOk) Unmarshal(data []byte) error {
 	} else if n < 2 {
 		return errors.New("read class ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != QueueClass {
+	if id := ClassID(endian.Uint16(x[:2])); id != QueueClass {
 		return errors.Errorf("expected class ID %d, got %d", QueueClass, id)
+	} else {
+		f.MethodMeta.ClassID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "read method ID failed")
 	} else if n < 2 {
 		return errors.New("read method ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != QueuePurgeOkMethod {
+	if id := MethodID(endian.Uint16(x[:2])); id != QueuePurgeOkMethod {
 		return errors.Errorf("expected method ID %d, got %d", QueuePurgeOkMethod, id)
+	} else {
+		f.MethodMeta.MethodID = id
 	}
 	if n, err := buf.Read(x[:4]); err != nil {
 		return errors.Wrap(err, "field message-count: read long failed")
@@ -2164,9 +2682,9 @@ func (f *QueuePurgeOk) Marshal() ([]byte, error) {
 	var bits byte = 0
 	_ = bits
 	buf := bytes.Buffer{}
-	endian.PutUint16(x[:2], QueueClass)
+	endian.PutUint16(x[:2], uint16(QueueClass))
 	buf.Write(x[:2])
-	endian.PutUint16(x[:2], QueuePurgeOkMethod)
+	endian.PutUint16(x[:2], uint16(QueuePurgeOkMethod))
 	buf.Write(x[:2])
 	endian.PutUint32(x[:4], f.MessageCount)
 	buf.Write(x[:4])
@@ -2174,6 +2692,8 @@ func (f *QueuePurgeOk) Marshal() ([]byte, error) {
 }
 
 type QueueDelete struct {
+	FrameMeta
+	MethodMeta
 	Reserved1 uint16
 	Queue     string
 	IfUnused  bool
@@ -2181,8 +2701,19 @@ type QueueDelete struct {
 	NoWait    bool
 }
 
+func (f *QueueDelete) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+func (f *QueueDelete) FrameClassID() ClassID {
+	return f.MethodMeta.ClassID
+}
+
+func (f *QueueDelete) FrameMethodID() MethodID {
+	return f.MethodMeta.MethodID
+}
+
 func (f *QueueDelete) Unmarshal(data []byte) error {
-	*f = QueueDelete{}
 	var x [8]byte
 	_ = x
 	buf := bytes.NewBuffer(data)
@@ -2192,16 +2723,20 @@ func (f *QueueDelete) Unmarshal(data []byte) error {
 	} else if n < 2 {
 		return errors.New("read class ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != QueueClass {
+	if id := ClassID(endian.Uint16(x[:2])); id != QueueClass {
 		return errors.Errorf("expected class ID %d, got %d", QueueClass, id)
+	} else {
+		f.MethodMeta.ClassID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "read method ID failed")
 	} else if n < 2 {
 		return errors.New("read method ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != QueueDeleteMethod {
+	if id := MethodID(endian.Uint16(x[:2])); id != QueueDeleteMethod {
 		return errors.Errorf("expected method ID %d, got %d", QueueDeleteMethod, id)
+	} else {
+		f.MethodMeta.MethodID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "field reserved-1: read short failed")
@@ -2230,9 +2765,9 @@ func (f *QueueDelete) Marshal() ([]byte, error) {
 	var bits byte = 0
 	_ = bits
 	buf := bytes.Buffer{}
-	endian.PutUint16(x[:2], QueueClass)
+	endian.PutUint16(x[:2], uint16(QueueClass))
 	buf.Write(x[:2])
-	endian.PutUint16(x[:2], QueueDeleteMethod)
+	endian.PutUint16(x[:2], uint16(QueueDeleteMethod))
 	buf.Write(x[:2])
 	endian.PutUint16(x[:2], f.Reserved1)
 	buf.Write(x[:2])
@@ -2259,11 +2794,24 @@ func (f *QueueDelete) Marshal() ([]byte, error) {
 }
 
 type QueueDeleteOk struct {
+	FrameMeta
+	MethodMeta
 	MessageCount uint32
 }
 
+func (f *QueueDeleteOk) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+func (f *QueueDeleteOk) FrameClassID() ClassID {
+	return f.MethodMeta.ClassID
+}
+
+func (f *QueueDeleteOk) FrameMethodID() MethodID {
+	return f.MethodMeta.MethodID
+}
+
 func (f *QueueDeleteOk) Unmarshal(data []byte) error {
-	*f = QueueDeleteOk{}
 	var x [8]byte
 	_ = x
 	buf := bytes.NewBuffer(data)
@@ -2273,16 +2821,20 @@ func (f *QueueDeleteOk) Unmarshal(data []byte) error {
 	} else if n < 2 {
 		return errors.New("read class ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != QueueClass {
+	if id := ClassID(endian.Uint16(x[:2])); id != QueueClass {
 		return errors.Errorf("expected class ID %d, got %d", QueueClass, id)
+	} else {
+		f.MethodMeta.ClassID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "read method ID failed")
 	} else if n < 2 {
 		return errors.New("read method ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != QueueDeleteOkMethod {
+	if id := MethodID(endian.Uint16(x[:2])); id != QueueDeleteOkMethod {
 		return errors.Errorf("expected method ID %d, got %d", QueueDeleteOkMethod, id)
+	} else {
+		f.MethodMeta.MethodID = id
 	}
 	if n, err := buf.Read(x[:4]); err != nil {
 		return errors.Wrap(err, "field message-count: read long failed")
@@ -2299,16 +2851,17 @@ func (f *QueueDeleteOk) Marshal() ([]byte, error) {
 	var bits byte = 0
 	_ = bits
 	buf := bytes.Buffer{}
-	endian.PutUint16(x[:2], QueueClass)
+	endian.PutUint16(x[:2], uint16(QueueClass))
 	buf.Write(x[:2])
-	endian.PutUint16(x[:2], QueueDeleteOkMethod)
+	endian.PutUint16(x[:2], uint16(QueueDeleteOkMethod))
 	buf.Write(x[:2])
 	endian.PutUint32(x[:4], f.MessageCount)
 	buf.Write(x[:4])
 	return buf.Bytes(), nil
 }
 
-type ContentHeader struct {
+type ContentHeaderFrame struct {
+	FrameMeta
 	ClassID         uint16
 	Weight          uint16
 	BodySize        uint64
@@ -2328,11 +2881,15 @@ type ContentHeader struct {
 	Reserved        string
 }
 
-func (f *ContentHeader) Unmarshal(buf []byte) error {
+func (f *ContentHeaderFrame) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+func (f *ContentHeaderFrame) Unmarshal(buf []byte) error {
 	panic("implement me")
 }
 
-func (f *ContentHeader) Marshal() ([]byte, error) {
+func (f *ContentHeaderFrame) Marshal() ([]byte, error) {
 	var x [8]byte
 	_ = x
 	var flags uint16
@@ -2494,13 +3051,26 @@ func (f *ContentHeader) Marshal() ([]byte, error) {
 }
 
 type BasicQos struct {
+	FrameMeta
+	MethodMeta
 	PrefetchSize  uint32
 	PrefetchCount uint16
 	Global        bool
 }
 
+func (f *BasicQos) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+func (f *BasicQos) FrameClassID() ClassID {
+	return f.MethodMeta.ClassID
+}
+
+func (f *BasicQos) FrameMethodID() MethodID {
+	return f.MethodMeta.MethodID
+}
+
 func (f *BasicQos) Unmarshal(data []byte) error {
-	*f = BasicQos{}
 	var x [8]byte
 	_ = x
 	buf := bytes.NewBuffer(data)
@@ -2510,16 +3080,20 @@ func (f *BasicQos) Unmarshal(data []byte) error {
 	} else if n < 2 {
 		return errors.New("read class ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != BasicClass {
+	if id := ClassID(endian.Uint16(x[:2])); id != BasicClass {
 		return errors.Errorf("expected class ID %d, got %d", BasicClass, id)
+	} else {
+		f.MethodMeta.ClassID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "read method ID failed")
 	} else if n < 2 {
 		return errors.New("read method ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != BasicQosMethod {
+	if id := MethodID(endian.Uint16(x[:2])); id != BasicQosMethod {
 		return errors.Errorf("expected method ID %d, got %d", BasicQosMethod, id)
+	} else {
+		f.MethodMeta.MethodID = id
 	}
 	if n, err := buf.Read(x[:4]); err != nil {
 		return errors.Wrap(err, "field prefetch-size: read long failed")
@@ -2543,9 +3117,9 @@ func (f *BasicQos) Marshal() ([]byte, error) {
 	var bits byte = 0
 	_ = bits
 	buf := bytes.Buffer{}
-	endian.PutUint16(x[:2], BasicClass)
+	endian.PutUint16(x[:2], uint16(BasicClass))
 	buf.Write(x[:2])
-	endian.PutUint16(x[:2], BasicQosMethod)
+	endian.PutUint16(x[:2], uint16(BasicQosMethod))
 	buf.Write(x[:2])
 	endian.PutUint32(x[:4], f.PrefetchSize)
 	buf.Write(x[:4])
@@ -2560,10 +3134,23 @@ func (f *BasicQos) Marshal() ([]byte, error) {
 }
 
 type BasicQosOk struct {
+	FrameMeta
+	MethodMeta
+}
+
+func (f *BasicQosOk) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+func (f *BasicQosOk) FrameClassID() ClassID {
+	return f.MethodMeta.ClassID
+}
+
+func (f *BasicQosOk) FrameMethodID() MethodID {
+	return f.MethodMeta.MethodID
 }
 
 func (f *BasicQosOk) Unmarshal(data []byte) error {
-	*f = BasicQosOk{}
 	var x [8]byte
 	_ = x
 	buf := bytes.NewBuffer(data)
@@ -2573,16 +3160,20 @@ func (f *BasicQosOk) Unmarshal(data []byte) error {
 	} else if n < 2 {
 		return errors.New("read class ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != BasicClass {
+	if id := ClassID(endian.Uint16(x[:2])); id != BasicClass {
 		return errors.Errorf("expected class ID %d, got %d", BasicClass, id)
+	} else {
+		f.MethodMeta.ClassID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "read method ID failed")
 	} else if n < 2 {
 		return errors.New("read method ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != BasicQosOkMethod {
+	if id := MethodID(endian.Uint16(x[:2])); id != BasicQosOkMethod {
 		return errors.Errorf("expected method ID %d, got %d", BasicQosOkMethod, id)
+	} else {
+		f.MethodMeta.MethodID = id
 	}
 	return nil
 }
@@ -2593,14 +3184,16 @@ func (f *BasicQosOk) Marshal() ([]byte, error) {
 	var bits byte = 0
 	_ = bits
 	buf := bytes.Buffer{}
-	endian.PutUint16(x[:2], BasicClass)
+	endian.PutUint16(x[:2], uint16(BasicClass))
 	buf.Write(x[:2])
-	endian.PutUint16(x[:2], BasicQosOkMethod)
+	endian.PutUint16(x[:2], uint16(BasicQosOkMethod))
 	buf.Write(x[:2])
 	return buf.Bytes(), nil
 }
 
 type BasicConsume struct {
+	FrameMeta
+	MethodMeta
 	Reserved1   uint16
 	Queue       string
 	ConsumerTag string
@@ -2611,8 +3204,19 @@ type BasicConsume struct {
 	Arguments   *types.Struct
 }
 
+func (f *BasicConsume) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+func (f *BasicConsume) FrameClassID() ClassID {
+	return f.MethodMeta.ClassID
+}
+
+func (f *BasicConsume) FrameMethodID() MethodID {
+	return f.MethodMeta.MethodID
+}
+
 func (f *BasicConsume) Unmarshal(data []byte) error {
-	*f = BasicConsume{}
 	var x [8]byte
 	_ = x
 	buf := bytes.NewBuffer(data)
@@ -2622,16 +3226,20 @@ func (f *BasicConsume) Unmarshal(data []byte) error {
 	} else if n < 2 {
 		return errors.New("read class ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != BasicClass {
+	if id := ClassID(endian.Uint16(x[:2])); id != BasicClass {
 		return errors.Errorf("expected class ID %d, got %d", BasicClass, id)
+	} else {
+		f.MethodMeta.ClassID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "read method ID failed")
 	} else if n < 2 {
 		return errors.New("read method ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != BasicConsumeMethod {
+	if id := MethodID(endian.Uint16(x[:2])); id != BasicConsumeMethod {
 		return errors.Errorf("expected method ID %d, got %d", BasicConsumeMethod, id)
+	} else {
+		f.MethodMeta.MethodID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "field reserved-1: read short failed")
@@ -2689,9 +3297,9 @@ func (f *BasicConsume) Marshal() ([]byte, error) {
 	var bits byte = 0
 	_ = bits
 	buf := bytes.Buffer{}
-	endian.PutUint16(x[:2], BasicClass)
+	endian.PutUint16(x[:2], uint16(BasicClass))
 	buf.Write(x[:2])
-	endian.PutUint16(x[:2], BasicConsumeMethod)
+	endian.PutUint16(x[:2], uint16(BasicConsumeMethod))
 	buf.Write(x[:2])
 	endian.PutUint16(x[:2], f.Reserved1)
 	buf.Write(x[:2])
@@ -2735,11 +3343,24 @@ func (f *BasicConsume) Marshal() ([]byte, error) {
 }
 
 type BasicConsumeOk struct {
+	FrameMeta
+	MethodMeta
 	ConsumerTag string
 }
 
+func (f *BasicConsumeOk) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+func (f *BasicConsumeOk) FrameClassID() ClassID {
+	return f.MethodMeta.ClassID
+}
+
+func (f *BasicConsumeOk) FrameMethodID() MethodID {
+	return f.MethodMeta.MethodID
+}
+
 func (f *BasicConsumeOk) Unmarshal(data []byte) error {
-	*f = BasicConsumeOk{}
 	var x [8]byte
 	_ = x
 	buf := bytes.NewBuffer(data)
@@ -2749,16 +3370,20 @@ func (f *BasicConsumeOk) Unmarshal(data []byte) error {
 	} else if n < 2 {
 		return errors.New("read class ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != BasicClass {
+	if id := ClassID(endian.Uint16(x[:2])); id != BasicClass {
 		return errors.Errorf("expected class ID %d, got %d", BasicClass, id)
+	} else {
+		f.MethodMeta.ClassID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "read method ID failed")
 	} else if n < 2 {
 		return errors.New("read method ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != BasicConsumeOkMethod {
+	if id := MethodID(endian.Uint16(x[:2])); id != BasicConsumeOkMethod {
 		return errors.Errorf("expected method ID %d, got %d", BasicConsumeOkMethod, id)
+	} else {
+		f.MethodMeta.MethodID = id
 	}
 	if b, err := buf.ReadByte(); err != nil {
 		return errors.Wrap(err, "field consumer-tag: read shortstr failed")
@@ -2779,9 +3404,9 @@ func (f *BasicConsumeOk) Marshal() ([]byte, error) {
 	var bits byte = 0
 	_ = bits
 	buf := bytes.Buffer{}
-	endian.PutUint16(x[:2], BasicClass)
+	endian.PutUint16(x[:2], uint16(BasicClass))
 	buf.Write(x[:2])
-	endian.PutUint16(x[:2], BasicConsumeOkMethod)
+	endian.PutUint16(x[:2], uint16(BasicConsumeOkMethod))
 	buf.Write(x[:2])
 	if l := len(f.ConsumerTag); l > math.MaxUint8 {
 		return nil, errors.Errorf("consumer-tag can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
@@ -2793,12 +3418,25 @@ func (f *BasicConsumeOk) Marshal() ([]byte, error) {
 }
 
 type BasicCancel struct {
+	FrameMeta
+	MethodMeta
 	ConsumerTag string
 	NoWait      bool
 }
 
+func (f *BasicCancel) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+func (f *BasicCancel) FrameClassID() ClassID {
+	return f.MethodMeta.ClassID
+}
+
+func (f *BasicCancel) FrameMethodID() MethodID {
+	return f.MethodMeta.MethodID
+}
+
 func (f *BasicCancel) Unmarshal(data []byte) error {
-	*f = BasicCancel{}
 	var x [8]byte
 	_ = x
 	buf := bytes.NewBuffer(data)
@@ -2808,16 +3446,20 @@ func (f *BasicCancel) Unmarshal(data []byte) error {
 	} else if n < 2 {
 		return errors.New("read class ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != BasicClass {
+	if id := ClassID(endian.Uint16(x[:2])); id != BasicClass {
 		return errors.Errorf("expected class ID %d, got %d", BasicClass, id)
+	} else {
+		f.MethodMeta.ClassID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "read method ID failed")
 	} else if n < 2 {
 		return errors.New("read method ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != BasicCancelMethod {
+	if id := MethodID(endian.Uint16(x[:2])); id != BasicCancelMethod {
 		return errors.Errorf("expected method ID %d, got %d", BasicCancelMethod, id)
+	} else {
+		f.MethodMeta.MethodID = id
 	}
 	if b, err := buf.ReadByte(); err != nil {
 		return errors.Wrap(err, "field consumer-tag: read shortstr failed")
@@ -2839,9 +3481,9 @@ func (f *BasicCancel) Marshal() ([]byte, error) {
 	var bits byte = 0
 	_ = bits
 	buf := bytes.Buffer{}
-	endian.PutUint16(x[:2], BasicClass)
+	endian.PutUint16(x[:2], uint16(BasicClass))
 	buf.Write(x[:2])
-	endian.PutUint16(x[:2], BasicCancelMethod)
+	endian.PutUint16(x[:2], uint16(BasicCancelMethod))
 	buf.Write(x[:2])
 	if l := len(f.ConsumerTag); l > math.MaxUint8 {
 		return nil, errors.Errorf("consumer-tag can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
@@ -2858,11 +3500,24 @@ func (f *BasicCancel) Marshal() ([]byte, error) {
 }
 
 type BasicCancelOk struct {
+	FrameMeta
+	MethodMeta
 	ConsumerTag string
 }
 
+func (f *BasicCancelOk) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+func (f *BasicCancelOk) FrameClassID() ClassID {
+	return f.MethodMeta.ClassID
+}
+
+func (f *BasicCancelOk) FrameMethodID() MethodID {
+	return f.MethodMeta.MethodID
+}
+
 func (f *BasicCancelOk) Unmarshal(data []byte) error {
-	*f = BasicCancelOk{}
 	var x [8]byte
 	_ = x
 	buf := bytes.NewBuffer(data)
@@ -2872,16 +3527,20 @@ func (f *BasicCancelOk) Unmarshal(data []byte) error {
 	} else if n < 2 {
 		return errors.New("read class ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != BasicClass {
+	if id := ClassID(endian.Uint16(x[:2])); id != BasicClass {
 		return errors.Errorf("expected class ID %d, got %d", BasicClass, id)
+	} else {
+		f.MethodMeta.ClassID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "read method ID failed")
 	} else if n < 2 {
 		return errors.New("read method ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != BasicCancelOkMethod {
+	if id := MethodID(endian.Uint16(x[:2])); id != BasicCancelOkMethod {
 		return errors.Errorf("expected method ID %d, got %d", BasicCancelOkMethod, id)
+	} else {
+		f.MethodMeta.MethodID = id
 	}
 	if b, err := buf.ReadByte(); err != nil {
 		return errors.Wrap(err, "field consumer-tag: read shortstr failed")
@@ -2902,9 +3561,9 @@ func (f *BasicCancelOk) Marshal() ([]byte, error) {
 	var bits byte = 0
 	_ = bits
 	buf := bytes.Buffer{}
-	endian.PutUint16(x[:2], BasicClass)
+	endian.PutUint16(x[:2], uint16(BasicClass))
 	buf.Write(x[:2])
-	endian.PutUint16(x[:2], BasicCancelOkMethod)
+	endian.PutUint16(x[:2], uint16(BasicCancelOkMethod))
 	buf.Write(x[:2])
 	if l := len(f.ConsumerTag); l > math.MaxUint8 {
 		return nil, errors.Errorf("consumer-tag can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
@@ -2916,6 +3575,8 @@ func (f *BasicCancelOk) Marshal() ([]byte, error) {
 }
 
 type BasicPublish struct {
+	FrameMeta
+	MethodMeta
 	Reserved1  uint16
 	Exchange   string
 	RoutingKey string
@@ -2923,8 +3584,19 @@ type BasicPublish struct {
 	Immediate  bool
 }
 
+func (f *BasicPublish) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+func (f *BasicPublish) FrameClassID() ClassID {
+	return f.MethodMeta.ClassID
+}
+
+func (f *BasicPublish) FrameMethodID() MethodID {
+	return f.MethodMeta.MethodID
+}
+
 func (f *BasicPublish) Unmarshal(data []byte) error {
-	*f = BasicPublish{}
 	var x [8]byte
 	_ = x
 	buf := bytes.NewBuffer(data)
@@ -2934,16 +3606,20 @@ func (f *BasicPublish) Unmarshal(data []byte) error {
 	} else if n < 2 {
 		return errors.New("read class ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != BasicClass {
+	if id := ClassID(endian.Uint16(x[:2])); id != BasicClass {
 		return errors.Errorf("expected class ID %d, got %d", BasicClass, id)
+	} else {
+		f.MethodMeta.ClassID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "read method ID failed")
 	} else if n < 2 {
 		return errors.New("read method ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != BasicPublishMethod {
+	if id := MethodID(endian.Uint16(x[:2])); id != BasicPublishMethod {
 		return errors.Errorf("expected method ID %d, got %d", BasicPublishMethod, id)
+	} else {
+		f.MethodMeta.MethodID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "field reserved-1: read short failed")
@@ -2982,9 +3658,9 @@ func (f *BasicPublish) Marshal() ([]byte, error) {
 	var bits byte = 0
 	_ = bits
 	buf := bytes.Buffer{}
-	endian.PutUint16(x[:2], BasicClass)
+	endian.PutUint16(x[:2], uint16(BasicClass))
 	buf.Write(x[:2])
-	endian.PutUint16(x[:2], BasicPublishMethod)
+	endian.PutUint16(x[:2], uint16(BasicPublishMethod))
 	buf.Write(x[:2])
 	endian.PutUint16(x[:2], f.Reserved1)
 	buf.Write(x[:2])
@@ -3013,14 +3689,27 @@ func (f *BasicPublish) Marshal() ([]byte, error) {
 }
 
 type BasicReturn struct {
+	FrameMeta
+	MethodMeta
 	ReplyCode  uint16
 	ReplyText  string
 	Exchange   string
 	RoutingKey string
 }
 
+func (f *BasicReturn) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+func (f *BasicReturn) FrameClassID() ClassID {
+	return f.MethodMeta.ClassID
+}
+
+func (f *BasicReturn) FrameMethodID() MethodID {
+	return f.MethodMeta.MethodID
+}
+
 func (f *BasicReturn) Unmarshal(data []byte) error {
-	*f = BasicReturn{}
 	var x [8]byte
 	_ = x
 	buf := bytes.NewBuffer(data)
@@ -3030,16 +3719,20 @@ func (f *BasicReturn) Unmarshal(data []byte) error {
 	} else if n < 2 {
 		return errors.New("read class ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != BasicClass {
+	if id := ClassID(endian.Uint16(x[:2])); id != BasicClass {
 		return errors.Errorf("expected class ID %d, got %d", BasicClass, id)
+	} else {
+		f.MethodMeta.ClassID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "read method ID failed")
 	} else if n < 2 {
 		return errors.New("read method ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != BasicReturnMethod {
+	if id := MethodID(endian.Uint16(x[:2])); id != BasicReturnMethod {
 		return errors.Errorf("expected method ID %d, got %d", BasicReturnMethod, id)
+	} else {
+		f.MethodMeta.MethodID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "field reply-code: read short failed")
@@ -3086,9 +3779,9 @@ func (f *BasicReturn) Marshal() ([]byte, error) {
 	var bits byte = 0
 	_ = bits
 	buf := bytes.Buffer{}
-	endian.PutUint16(x[:2], BasicClass)
+	endian.PutUint16(x[:2], uint16(BasicClass))
 	buf.Write(x[:2])
-	endian.PutUint16(x[:2], BasicReturnMethod)
+	endian.PutUint16(x[:2], uint16(BasicReturnMethod))
 	buf.Write(x[:2])
 	endian.PutUint16(x[:2], f.ReplyCode)
 	buf.Write(x[:2])
@@ -3114,6 +3807,8 @@ func (f *BasicReturn) Marshal() ([]byte, error) {
 }
 
 type BasicDeliver struct {
+	FrameMeta
+	MethodMeta
 	ConsumerTag string
 	DeliveryTag uint64
 	Redelivered bool
@@ -3121,8 +3816,19 @@ type BasicDeliver struct {
 	RoutingKey  string
 }
 
+func (f *BasicDeliver) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+func (f *BasicDeliver) FrameClassID() ClassID {
+	return f.MethodMeta.ClassID
+}
+
+func (f *BasicDeliver) FrameMethodID() MethodID {
+	return f.MethodMeta.MethodID
+}
+
 func (f *BasicDeliver) Unmarshal(data []byte) error {
-	*f = BasicDeliver{}
 	var x [8]byte
 	_ = x
 	buf := bytes.NewBuffer(data)
@@ -3132,16 +3838,20 @@ func (f *BasicDeliver) Unmarshal(data []byte) error {
 	} else if n < 2 {
 		return errors.New("read class ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != BasicClass {
+	if id := ClassID(endian.Uint16(x[:2])); id != BasicClass {
 		return errors.Errorf("expected class ID %d, got %d", BasicClass, id)
+	} else {
+		f.MethodMeta.ClassID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "read method ID failed")
 	} else if n < 2 {
 		return errors.New("read method ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != BasicDeliverMethod {
+	if id := MethodID(endian.Uint16(x[:2])); id != BasicDeliverMethod {
 		return errors.Errorf("expected method ID %d, got %d", BasicDeliverMethod, id)
+	} else {
+		f.MethodMeta.MethodID = id
 	}
 	if b, err := buf.ReadByte(); err != nil {
 		return errors.Wrap(err, "field consumer-tag: read shortstr failed")
@@ -3194,9 +3904,9 @@ func (f *BasicDeliver) Marshal() ([]byte, error) {
 	var bits byte = 0
 	_ = bits
 	buf := bytes.Buffer{}
-	endian.PutUint16(x[:2], BasicClass)
+	endian.PutUint16(x[:2], uint16(BasicClass))
 	buf.Write(x[:2])
-	endian.PutUint16(x[:2], BasicDeliverMethod)
+	endian.PutUint16(x[:2], uint16(BasicDeliverMethod))
 	buf.Write(x[:2])
 	if l := len(f.ConsumerTag); l > math.MaxUint8 {
 		return nil, errors.Errorf("consumer-tag can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
@@ -3227,13 +3937,26 @@ func (f *BasicDeliver) Marshal() ([]byte, error) {
 }
 
 type BasicGet struct {
+	FrameMeta
+	MethodMeta
 	Reserved1 uint16
 	Queue     string
 	NoAck     bool
 }
 
+func (f *BasicGet) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+func (f *BasicGet) FrameClassID() ClassID {
+	return f.MethodMeta.ClassID
+}
+
+func (f *BasicGet) FrameMethodID() MethodID {
+	return f.MethodMeta.MethodID
+}
+
 func (f *BasicGet) Unmarshal(data []byte) error {
-	*f = BasicGet{}
 	var x [8]byte
 	_ = x
 	buf := bytes.NewBuffer(data)
@@ -3243,16 +3966,20 @@ func (f *BasicGet) Unmarshal(data []byte) error {
 	} else if n < 2 {
 		return errors.New("read class ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != BasicClass {
+	if id := ClassID(endian.Uint16(x[:2])); id != BasicClass {
 		return errors.Errorf("expected class ID %d, got %d", BasicClass, id)
+	} else {
+		f.MethodMeta.ClassID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "read method ID failed")
 	} else if n < 2 {
 		return errors.New("read method ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != BasicGetMethod {
+	if id := MethodID(endian.Uint16(x[:2])); id != BasicGetMethod {
 		return errors.Errorf("expected method ID %d, got %d", BasicGetMethod, id)
+	} else {
+		f.MethodMeta.MethodID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "field reserved-1: read short failed")
@@ -3280,9 +4007,9 @@ func (f *BasicGet) Marshal() ([]byte, error) {
 	var bits byte = 0
 	_ = bits
 	buf := bytes.Buffer{}
-	endian.PutUint16(x[:2], BasicClass)
+	endian.PutUint16(x[:2], uint16(BasicClass))
 	buf.Write(x[:2])
-	endian.PutUint16(x[:2], BasicGetMethod)
+	endian.PutUint16(x[:2], uint16(BasicGetMethod))
 	buf.Write(x[:2])
 	endian.PutUint16(x[:2], f.Reserved1)
 	buf.Write(x[:2])
@@ -3301,6 +4028,8 @@ func (f *BasicGet) Marshal() ([]byte, error) {
 }
 
 type BasicGetOk struct {
+	FrameMeta
+	MethodMeta
 	DeliveryTag  uint64
 	Redelivered  bool
 	Exchange     string
@@ -3308,8 +4037,19 @@ type BasicGetOk struct {
 	MessageCount uint32
 }
 
+func (f *BasicGetOk) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+func (f *BasicGetOk) FrameClassID() ClassID {
+	return f.MethodMeta.ClassID
+}
+
+func (f *BasicGetOk) FrameMethodID() MethodID {
+	return f.MethodMeta.MethodID
+}
+
 func (f *BasicGetOk) Unmarshal(data []byte) error {
-	*f = BasicGetOk{}
 	var x [8]byte
 	_ = x
 	buf := bytes.NewBuffer(data)
@@ -3319,16 +4059,20 @@ func (f *BasicGetOk) Unmarshal(data []byte) error {
 	} else if n < 2 {
 		return errors.New("read class ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != BasicClass {
+	if id := ClassID(endian.Uint16(x[:2])); id != BasicClass {
 		return errors.Errorf("expected class ID %d, got %d", BasicClass, id)
+	} else {
+		f.MethodMeta.ClassID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "read method ID failed")
 	} else if n < 2 {
 		return errors.New("read method ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != BasicGetOkMethod {
+	if id := MethodID(endian.Uint16(x[:2])); id != BasicGetOkMethod {
 		return errors.Errorf("expected method ID %d, got %d", BasicGetOkMethod, id)
+	} else {
+		f.MethodMeta.MethodID = id
 	}
 	if n, err := buf.Read(x[:8]); err != nil {
 		return errors.Wrap(err, "field delivery-tag: read longlong failed")
@@ -3377,9 +4121,9 @@ func (f *BasicGetOk) Marshal() ([]byte, error) {
 	var bits byte = 0
 	_ = bits
 	buf := bytes.Buffer{}
-	endian.PutUint16(x[:2], BasicClass)
+	endian.PutUint16(x[:2], uint16(BasicClass))
 	buf.Write(x[:2])
-	endian.PutUint16(x[:2], BasicGetOkMethod)
+	endian.PutUint16(x[:2], uint16(BasicGetOkMethod))
 	buf.Write(x[:2])
 	endian.PutUint64(x[:8], f.DeliveryTag)
 	buf.Write(x[:8])
@@ -3406,11 +4150,24 @@ func (f *BasicGetOk) Marshal() ([]byte, error) {
 }
 
 type BasicGetEmpty struct {
+	FrameMeta
+	MethodMeta
 	Reserved1 string
 }
 
+func (f *BasicGetEmpty) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+func (f *BasicGetEmpty) FrameClassID() ClassID {
+	return f.MethodMeta.ClassID
+}
+
+func (f *BasicGetEmpty) FrameMethodID() MethodID {
+	return f.MethodMeta.MethodID
+}
+
 func (f *BasicGetEmpty) Unmarshal(data []byte) error {
-	*f = BasicGetEmpty{}
 	var x [8]byte
 	_ = x
 	buf := bytes.NewBuffer(data)
@@ -3420,16 +4177,20 @@ func (f *BasicGetEmpty) Unmarshal(data []byte) error {
 	} else if n < 2 {
 		return errors.New("read class ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != BasicClass {
+	if id := ClassID(endian.Uint16(x[:2])); id != BasicClass {
 		return errors.Errorf("expected class ID %d, got %d", BasicClass, id)
+	} else {
+		f.MethodMeta.ClassID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "read method ID failed")
 	} else if n < 2 {
 		return errors.New("read method ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != BasicGetEmptyMethod {
+	if id := MethodID(endian.Uint16(x[:2])); id != BasicGetEmptyMethod {
 		return errors.Errorf("expected method ID %d, got %d", BasicGetEmptyMethod, id)
+	} else {
+		f.MethodMeta.MethodID = id
 	}
 	if b, err := buf.ReadByte(); err != nil {
 		return errors.Wrap(err, "field reserved-1: read shortstr failed")
@@ -3450,9 +4211,9 @@ func (f *BasicGetEmpty) Marshal() ([]byte, error) {
 	var bits byte = 0
 	_ = bits
 	buf := bytes.Buffer{}
-	endian.PutUint16(x[:2], BasicClass)
+	endian.PutUint16(x[:2], uint16(BasicClass))
 	buf.Write(x[:2])
-	endian.PutUint16(x[:2], BasicGetEmptyMethod)
+	endian.PutUint16(x[:2], uint16(BasicGetEmptyMethod))
 	buf.Write(x[:2])
 	if l := len(f.Reserved1); l > math.MaxUint8 {
 		return nil, errors.Errorf("reserved-1 can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
@@ -3464,12 +4225,25 @@ func (f *BasicGetEmpty) Marshal() ([]byte, error) {
 }
 
 type BasicAck struct {
+	FrameMeta
+	MethodMeta
 	DeliveryTag uint64
 	Multiple    bool
 }
 
+func (f *BasicAck) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+func (f *BasicAck) FrameClassID() ClassID {
+	return f.MethodMeta.ClassID
+}
+
+func (f *BasicAck) FrameMethodID() MethodID {
+	return f.MethodMeta.MethodID
+}
+
 func (f *BasicAck) Unmarshal(data []byte) error {
-	*f = BasicAck{}
 	var x [8]byte
 	_ = x
 	buf := bytes.NewBuffer(data)
@@ -3479,16 +4253,20 @@ func (f *BasicAck) Unmarshal(data []byte) error {
 	} else if n < 2 {
 		return errors.New("read class ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != BasicClass {
+	if id := ClassID(endian.Uint16(x[:2])); id != BasicClass {
 		return errors.Errorf("expected class ID %d, got %d", BasicClass, id)
+	} else {
+		f.MethodMeta.ClassID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "read method ID failed")
 	} else if n < 2 {
 		return errors.New("read method ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != BasicAckMethod {
+	if id := MethodID(endian.Uint16(x[:2])); id != BasicAckMethod {
 		return errors.Errorf("expected method ID %d, got %d", BasicAckMethod, id)
+	} else {
+		f.MethodMeta.MethodID = id
 	}
 	if n, err := buf.Read(x[:8]); err != nil {
 		return errors.Wrap(err, "field delivery-tag: read longlong failed")
@@ -3506,9 +4284,9 @@ func (f *BasicAck) Marshal() ([]byte, error) {
 	var bits byte = 0
 	_ = bits
 	buf := bytes.Buffer{}
-	endian.PutUint16(x[:2], BasicClass)
+	endian.PutUint16(x[:2], uint16(BasicClass))
 	buf.Write(x[:2])
-	endian.PutUint16(x[:2], BasicAckMethod)
+	endian.PutUint16(x[:2], uint16(BasicAckMethod))
 	buf.Write(x[:2])
 	endian.PutUint64(x[:8], f.DeliveryTag)
 	buf.Write(x[:8])
@@ -3521,12 +4299,25 @@ func (f *BasicAck) Marshal() ([]byte, error) {
 }
 
 type BasicReject struct {
+	FrameMeta
+	MethodMeta
 	DeliveryTag uint64
 	Requeue     bool
 }
 
+func (f *BasicReject) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+func (f *BasicReject) FrameClassID() ClassID {
+	return f.MethodMeta.ClassID
+}
+
+func (f *BasicReject) FrameMethodID() MethodID {
+	return f.MethodMeta.MethodID
+}
+
 func (f *BasicReject) Unmarshal(data []byte) error {
-	*f = BasicReject{}
 	var x [8]byte
 	_ = x
 	buf := bytes.NewBuffer(data)
@@ -3536,16 +4327,20 @@ func (f *BasicReject) Unmarshal(data []byte) error {
 	} else if n < 2 {
 		return errors.New("read class ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != BasicClass {
+	if id := ClassID(endian.Uint16(x[:2])); id != BasicClass {
 		return errors.Errorf("expected class ID %d, got %d", BasicClass, id)
+	} else {
+		f.MethodMeta.ClassID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "read method ID failed")
 	} else if n < 2 {
 		return errors.New("read method ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != BasicRejectMethod {
+	if id := MethodID(endian.Uint16(x[:2])); id != BasicRejectMethod {
 		return errors.Errorf("expected method ID %d, got %d", BasicRejectMethod, id)
+	} else {
+		f.MethodMeta.MethodID = id
 	}
 	if n, err := buf.Read(x[:8]); err != nil {
 		return errors.Wrap(err, "field delivery-tag: read longlong failed")
@@ -3563,9 +4358,9 @@ func (f *BasicReject) Marshal() ([]byte, error) {
 	var bits byte = 0
 	_ = bits
 	buf := bytes.Buffer{}
-	endian.PutUint16(x[:2], BasicClass)
+	endian.PutUint16(x[:2], uint16(BasicClass))
 	buf.Write(x[:2])
-	endian.PutUint16(x[:2], BasicRejectMethod)
+	endian.PutUint16(x[:2], uint16(BasicRejectMethod))
 	buf.Write(x[:2])
 	endian.PutUint64(x[:8], f.DeliveryTag)
 	buf.Write(x[:8])
@@ -3578,11 +4373,24 @@ func (f *BasicReject) Marshal() ([]byte, error) {
 }
 
 type BasicRecoverAsync struct {
+	FrameMeta
+	MethodMeta
 	Requeue bool
 }
 
+func (f *BasicRecoverAsync) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+func (f *BasicRecoverAsync) FrameClassID() ClassID {
+	return f.MethodMeta.ClassID
+}
+
+func (f *BasicRecoverAsync) FrameMethodID() MethodID {
+	return f.MethodMeta.MethodID
+}
+
 func (f *BasicRecoverAsync) Unmarshal(data []byte) error {
-	*f = BasicRecoverAsync{}
 	var x [8]byte
 	_ = x
 	buf := bytes.NewBuffer(data)
@@ -3592,16 +4400,20 @@ func (f *BasicRecoverAsync) Unmarshal(data []byte) error {
 	} else if n < 2 {
 		return errors.New("read class ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != BasicClass {
+	if id := ClassID(endian.Uint16(x[:2])); id != BasicClass {
 		return errors.Errorf("expected class ID %d, got %d", BasicClass, id)
+	} else {
+		f.MethodMeta.ClassID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "read method ID failed")
 	} else if n < 2 {
 		return errors.New("read method ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != BasicRecoverAsyncMethod {
+	if id := MethodID(endian.Uint16(x[:2])); id != BasicRecoverAsyncMethod {
 		return errors.Errorf("expected method ID %d, got %d", BasicRecoverAsyncMethod, id)
+	} else {
+		f.MethodMeta.MethodID = id
 	}
 	// TODO: end bit fields
 	return nil
@@ -3613,9 +4425,9 @@ func (f *BasicRecoverAsync) Marshal() ([]byte, error) {
 	var bits byte = 0
 	_ = bits
 	buf := bytes.Buffer{}
-	endian.PutUint16(x[:2], BasicClass)
+	endian.PutUint16(x[:2], uint16(BasicClass))
 	buf.Write(x[:2])
-	endian.PutUint16(x[:2], BasicRecoverAsyncMethod)
+	endian.PutUint16(x[:2], uint16(BasicRecoverAsyncMethod))
 	buf.Write(x[:2])
 	if f.Requeue {
 		bits |= 1 << 0
@@ -3626,11 +4438,24 @@ func (f *BasicRecoverAsync) Marshal() ([]byte, error) {
 }
 
 type BasicRecover struct {
+	FrameMeta
+	MethodMeta
 	Requeue bool
 }
 
+func (f *BasicRecover) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+func (f *BasicRecover) FrameClassID() ClassID {
+	return f.MethodMeta.ClassID
+}
+
+func (f *BasicRecover) FrameMethodID() MethodID {
+	return f.MethodMeta.MethodID
+}
+
 func (f *BasicRecover) Unmarshal(data []byte) error {
-	*f = BasicRecover{}
 	var x [8]byte
 	_ = x
 	buf := bytes.NewBuffer(data)
@@ -3640,16 +4465,20 @@ func (f *BasicRecover) Unmarshal(data []byte) error {
 	} else if n < 2 {
 		return errors.New("read class ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != BasicClass {
+	if id := ClassID(endian.Uint16(x[:2])); id != BasicClass {
 		return errors.Errorf("expected class ID %d, got %d", BasicClass, id)
+	} else {
+		f.MethodMeta.ClassID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "read method ID failed")
 	} else if n < 2 {
 		return errors.New("read method ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != BasicRecoverMethod {
+	if id := MethodID(endian.Uint16(x[:2])); id != BasicRecoverMethod {
 		return errors.Errorf("expected method ID %d, got %d", BasicRecoverMethod, id)
+	} else {
+		f.MethodMeta.MethodID = id
 	}
 	// TODO: end bit fields
 	return nil
@@ -3661,9 +4490,9 @@ func (f *BasicRecover) Marshal() ([]byte, error) {
 	var bits byte = 0
 	_ = bits
 	buf := bytes.Buffer{}
-	endian.PutUint16(x[:2], BasicClass)
+	endian.PutUint16(x[:2], uint16(BasicClass))
 	buf.Write(x[:2])
-	endian.PutUint16(x[:2], BasicRecoverMethod)
+	endian.PutUint16(x[:2], uint16(BasicRecoverMethod))
 	buf.Write(x[:2])
 	if f.Requeue {
 		bits |= 1 << 0
@@ -3674,10 +4503,23 @@ func (f *BasicRecover) Marshal() ([]byte, error) {
 }
 
 type BasicRecoverOk struct {
+	FrameMeta
+	MethodMeta
+}
+
+func (f *BasicRecoverOk) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+func (f *BasicRecoverOk) FrameClassID() ClassID {
+	return f.MethodMeta.ClassID
+}
+
+func (f *BasicRecoverOk) FrameMethodID() MethodID {
+	return f.MethodMeta.MethodID
 }
 
 func (f *BasicRecoverOk) Unmarshal(data []byte) error {
-	*f = BasicRecoverOk{}
 	var x [8]byte
 	_ = x
 	buf := bytes.NewBuffer(data)
@@ -3687,16 +4529,20 @@ func (f *BasicRecoverOk) Unmarshal(data []byte) error {
 	} else if n < 2 {
 		return errors.New("read class ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != BasicClass {
+	if id := ClassID(endian.Uint16(x[:2])); id != BasicClass {
 		return errors.Errorf("expected class ID %d, got %d", BasicClass, id)
+	} else {
+		f.MethodMeta.ClassID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "read method ID failed")
 	} else if n < 2 {
 		return errors.New("read method ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != BasicRecoverOkMethod {
+	if id := MethodID(endian.Uint16(x[:2])); id != BasicRecoverOkMethod {
 		return errors.Errorf("expected method ID %d, got %d", BasicRecoverOkMethod, id)
+	} else {
+		f.MethodMeta.MethodID = id
 	}
 	return nil
 }
@@ -3707,18 +4553,31 @@ func (f *BasicRecoverOk) Marshal() ([]byte, error) {
 	var bits byte = 0
 	_ = bits
 	buf := bytes.Buffer{}
-	endian.PutUint16(x[:2], BasicClass)
+	endian.PutUint16(x[:2], uint16(BasicClass))
 	buf.Write(x[:2])
-	endian.PutUint16(x[:2], BasicRecoverOkMethod)
+	endian.PutUint16(x[:2], uint16(BasicRecoverOkMethod))
 	buf.Write(x[:2])
 	return buf.Bytes(), nil
 }
 
 type TxSelect struct {
+	FrameMeta
+	MethodMeta
+}
+
+func (f *TxSelect) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+func (f *TxSelect) FrameClassID() ClassID {
+	return f.MethodMeta.ClassID
+}
+
+func (f *TxSelect) FrameMethodID() MethodID {
+	return f.MethodMeta.MethodID
 }
 
 func (f *TxSelect) Unmarshal(data []byte) error {
-	*f = TxSelect{}
 	var x [8]byte
 	_ = x
 	buf := bytes.NewBuffer(data)
@@ -3728,16 +4587,20 @@ func (f *TxSelect) Unmarshal(data []byte) error {
 	} else if n < 2 {
 		return errors.New("read class ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != TxClass {
+	if id := ClassID(endian.Uint16(x[:2])); id != TxClass {
 		return errors.Errorf("expected class ID %d, got %d", TxClass, id)
+	} else {
+		f.MethodMeta.ClassID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "read method ID failed")
 	} else if n < 2 {
 		return errors.New("read method ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != TxSelectMethod {
+	if id := MethodID(endian.Uint16(x[:2])); id != TxSelectMethod {
 		return errors.Errorf("expected method ID %d, got %d", TxSelectMethod, id)
+	} else {
+		f.MethodMeta.MethodID = id
 	}
 	return nil
 }
@@ -3748,18 +4611,31 @@ func (f *TxSelect) Marshal() ([]byte, error) {
 	var bits byte = 0
 	_ = bits
 	buf := bytes.Buffer{}
-	endian.PutUint16(x[:2], TxClass)
+	endian.PutUint16(x[:2], uint16(TxClass))
 	buf.Write(x[:2])
-	endian.PutUint16(x[:2], TxSelectMethod)
+	endian.PutUint16(x[:2], uint16(TxSelectMethod))
 	buf.Write(x[:2])
 	return buf.Bytes(), nil
 }
 
 type TxSelectOk struct {
+	FrameMeta
+	MethodMeta
+}
+
+func (f *TxSelectOk) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+func (f *TxSelectOk) FrameClassID() ClassID {
+	return f.MethodMeta.ClassID
+}
+
+func (f *TxSelectOk) FrameMethodID() MethodID {
+	return f.MethodMeta.MethodID
 }
 
 func (f *TxSelectOk) Unmarshal(data []byte) error {
-	*f = TxSelectOk{}
 	var x [8]byte
 	_ = x
 	buf := bytes.NewBuffer(data)
@@ -3769,16 +4645,20 @@ func (f *TxSelectOk) Unmarshal(data []byte) error {
 	} else if n < 2 {
 		return errors.New("read class ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != TxClass {
+	if id := ClassID(endian.Uint16(x[:2])); id != TxClass {
 		return errors.Errorf("expected class ID %d, got %d", TxClass, id)
+	} else {
+		f.MethodMeta.ClassID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "read method ID failed")
 	} else if n < 2 {
 		return errors.New("read method ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != TxSelectOkMethod {
+	if id := MethodID(endian.Uint16(x[:2])); id != TxSelectOkMethod {
 		return errors.Errorf("expected method ID %d, got %d", TxSelectOkMethod, id)
+	} else {
+		f.MethodMeta.MethodID = id
 	}
 	return nil
 }
@@ -3789,18 +4669,31 @@ func (f *TxSelectOk) Marshal() ([]byte, error) {
 	var bits byte = 0
 	_ = bits
 	buf := bytes.Buffer{}
-	endian.PutUint16(x[:2], TxClass)
+	endian.PutUint16(x[:2], uint16(TxClass))
 	buf.Write(x[:2])
-	endian.PutUint16(x[:2], TxSelectOkMethod)
+	endian.PutUint16(x[:2], uint16(TxSelectOkMethod))
 	buf.Write(x[:2])
 	return buf.Bytes(), nil
 }
 
 type TxCommit struct {
+	FrameMeta
+	MethodMeta
+}
+
+func (f *TxCommit) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+func (f *TxCommit) FrameClassID() ClassID {
+	return f.MethodMeta.ClassID
+}
+
+func (f *TxCommit) FrameMethodID() MethodID {
+	return f.MethodMeta.MethodID
 }
 
 func (f *TxCommit) Unmarshal(data []byte) error {
-	*f = TxCommit{}
 	var x [8]byte
 	_ = x
 	buf := bytes.NewBuffer(data)
@@ -3810,16 +4703,20 @@ func (f *TxCommit) Unmarshal(data []byte) error {
 	} else if n < 2 {
 		return errors.New("read class ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != TxClass {
+	if id := ClassID(endian.Uint16(x[:2])); id != TxClass {
 		return errors.Errorf("expected class ID %d, got %d", TxClass, id)
+	} else {
+		f.MethodMeta.ClassID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "read method ID failed")
 	} else if n < 2 {
 		return errors.New("read method ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != TxCommitMethod {
+	if id := MethodID(endian.Uint16(x[:2])); id != TxCommitMethod {
 		return errors.Errorf("expected method ID %d, got %d", TxCommitMethod, id)
+	} else {
+		f.MethodMeta.MethodID = id
 	}
 	return nil
 }
@@ -3830,18 +4727,31 @@ func (f *TxCommit) Marshal() ([]byte, error) {
 	var bits byte = 0
 	_ = bits
 	buf := bytes.Buffer{}
-	endian.PutUint16(x[:2], TxClass)
+	endian.PutUint16(x[:2], uint16(TxClass))
 	buf.Write(x[:2])
-	endian.PutUint16(x[:2], TxCommitMethod)
+	endian.PutUint16(x[:2], uint16(TxCommitMethod))
 	buf.Write(x[:2])
 	return buf.Bytes(), nil
 }
 
 type TxCommitOk struct {
+	FrameMeta
+	MethodMeta
+}
+
+func (f *TxCommitOk) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+func (f *TxCommitOk) FrameClassID() ClassID {
+	return f.MethodMeta.ClassID
+}
+
+func (f *TxCommitOk) FrameMethodID() MethodID {
+	return f.MethodMeta.MethodID
 }
 
 func (f *TxCommitOk) Unmarshal(data []byte) error {
-	*f = TxCommitOk{}
 	var x [8]byte
 	_ = x
 	buf := bytes.NewBuffer(data)
@@ -3851,16 +4761,20 @@ func (f *TxCommitOk) Unmarshal(data []byte) error {
 	} else if n < 2 {
 		return errors.New("read class ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != TxClass {
+	if id := ClassID(endian.Uint16(x[:2])); id != TxClass {
 		return errors.Errorf("expected class ID %d, got %d", TxClass, id)
+	} else {
+		f.MethodMeta.ClassID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "read method ID failed")
 	} else if n < 2 {
 		return errors.New("read method ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != TxCommitOkMethod {
+	if id := MethodID(endian.Uint16(x[:2])); id != TxCommitOkMethod {
 		return errors.Errorf("expected method ID %d, got %d", TxCommitOkMethod, id)
+	} else {
+		f.MethodMeta.MethodID = id
 	}
 	return nil
 }
@@ -3871,18 +4785,31 @@ func (f *TxCommitOk) Marshal() ([]byte, error) {
 	var bits byte = 0
 	_ = bits
 	buf := bytes.Buffer{}
-	endian.PutUint16(x[:2], TxClass)
+	endian.PutUint16(x[:2], uint16(TxClass))
 	buf.Write(x[:2])
-	endian.PutUint16(x[:2], TxCommitOkMethod)
+	endian.PutUint16(x[:2], uint16(TxCommitOkMethod))
 	buf.Write(x[:2])
 	return buf.Bytes(), nil
 }
 
 type TxRollback struct {
+	FrameMeta
+	MethodMeta
+}
+
+func (f *TxRollback) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+func (f *TxRollback) FrameClassID() ClassID {
+	return f.MethodMeta.ClassID
+}
+
+func (f *TxRollback) FrameMethodID() MethodID {
+	return f.MethodMeta.MethodID
 }
 
 func (f *TxRollback) Unmarshal(data []byte) error {
-	*f = TxRollback{}
 	var x [8]byte
 	_ = x
 	buf := bytes.NewBuffer(data)
@@ -3892,16 +4819,20 @@ func (f *TxRollback) Unmarshal(data []byte) error {
 	} else if n < 2 {
 		return errors.New("read class ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != TxClass {
+	if id := ClassID(endian.Uint16(x[:2])); id != TxClass {
 		return errors.Errorf("expected class ID %d, got %d", TxClass, id)
+	} else {
+		f.MethodMeta.ClassID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "read method ID failed")
 	} else if n < 2 {
 		return errors.New("read method ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != TxRollbackMethod {
+	if id := MethodID(endian.Uint16(x[:2])); id != TxRollbackMethod {
 		return errors.Errorf("expected method ID %d, got %d", TxRollbackMethod, id)
+	} else {
+		f.MethodMeta.MethodID = id
 	}
 	return nil
 }
@@ -3912,18 +4843,31 @@ func (f *TxRollback) Marshal() ([]byte, error) {
 	var bits byte = 0
 	_ = bits
 	buf := bytes.Buffer{}
-	endian.PutUint16(x[:2], TxClass)
+	endian.PutUint16(x[:2], uint16(TxClass))
 	buf.Write(x[:2])
-	endian.PutUint16(x[:2], TxRollbackMethod)
+	endian.PutUint16(x[:2], uint16(TxRollbackMethod))
 	buf.Write(x[:2])
 	return buf.Bytes(), nil
 }
 
 type TxRollbackOk struct {
+	FrameMeta
+	MethodMeta
+}
+
+func (f *TxRollbackOk) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+func (f *TxRollbackOk) FrameClassID() ClassID {
+	return f.MethodMeta.ClassID
+}
+
+func (f *TxRollbackOk) FrameMethodID() MethodID {
+	return f.MethodMeta.MethodID
 }
 
 func (f *TxRollbackOk) Unmarshal(data []byte) error {
-	*f = TxRollbackOk{}
 	var x [8]byte
 	_ = x
 	buf := bytes.NewBuffer(data)
@@ -3933,16 +4877,20 @@ func (f *TxRollbackOk) Unmarshal(data []byte) error {
 	} else if n < 2 {
 		return errors.New("read class ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != TxClass {
+	if id := ClassID(endian.Uint16(x[:2])); id != TxClass {
 		return errors.Errorf("expected class ID %d, got %d", TxClass, id)
+	} else {
+		f.MethodMeta.ClassID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "read method ID failed")
 	} else if n < 2 {
 		return errors.New("read method ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != TxRollbackOkMethod {
+	if id := MethodID(endian.Uint16(x[:2])); id != TxRollbackOkMethod {
 		return errors.Errorf("expected method ID %d, got %d", TxRollbackOkMethod, id)
+	} else {
+		f.MethodMeta.MethodID = id
 	}
 	return nil
 }
@@ -3953,9 +4901,9 @@ func (f *TxRollbackOk) Marshal() ([]byte, error) {
 	var bits byte = 0
 	_ = bits
 	buf := bytes.Buffer{}
-	endian.PutUint16(x[:2], TxClass)
+	endian.PutUint16(x[:2], uint16(TxClass))
 	buf.Write(x[:2])
-	endian.PutUint16(x[:2], TxRollbackOkMethod)
+	endian.PutUint16(x[:2], uint16(TxRollbackOkMethod))
 	buf.Write(x[:2])
 	return buf.Bytes(), nil
 }

@@ -280,28 +280,71 @@ import (
 	"github.com/pkg/errors"
 )
 
+type FrameType uint8
+type ClassID uint16
+type MethodID uint16
+
 const (
 	Major = {{ .Major }}
 	Minor = {{ .Minor }}
 	Revision = {{ .Revision }}
 	Port = {{ .Port }}
 {{- range .Constants }}
-	{{ .Name|convertCase }} = {{ .Value }}
+	{{ .Name|convertCase }}{{ if in .Name "frame-method" "frame-header" "frame-body" "frame-heartbeat" }} FrameType{{ end }} = {{ .Value }}
 {{- end }}
 {{- range $class := .Classes }}
 
-	{{ $class.Name|convertCase }}Class = {{ $class.Index }}
+	{{ $class.Name|convertCase }}Class ClassID = {{ $class.Index }}
 	{{- range $method := .Methods }}
-		{{ $class.Name|convertCase }}{{ $method.Name|convertCase }}Method = {{ $method.Index }}
+		{{ $class.Name|convertCase }}{{ $method.Name|convertCase }}Method MethodID = {{ $method.Index }}
 	{{- end }}
 {{- end }}
 )
+
+type Frame interface {
+	FrameType() FrameType
+}
+
+type MethodFrame interface {
+	Frame
+	FrameClassID() ClassID
+	FrameMethodID() MethodID
+}
+
+type FrameMeta struct {
+	Type FrameType
+	Channel uint16
+	Size uint32
+}
+
+type MethodMeta struct {
+	ClassID ClassID
+	MethodID MethodID
+}
+
+type ContentFrame struct {
+	FrameMeta
+	Data []byte
+}
+
+func (f *ContentFrame) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+type HeartbeatFrame struct {
+	FrameMeta
+}
+
+func (f *HeartbeatFrame) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
 
 var endian = binary.BigEndian
 
 {{ range $class := .Classes }}
 {{ if gt ($class.Fields|len) 0 }}
-type ContentHeader struct {
+type ContentHeaderFrame struct {
+	FrameMeta
 	ClassID uint16
 	Weight uint16
 	BodySize uint64
@@ -310,11 +353,15 @@ type ContentHeader struct {
 	{{- end }}
 }
 
-func (f *ContentHeader) Unmarshal(buf []byte) error {
+func (f *ContentHeaderFrame) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+func (f *ContentHeaderFrame) Unmarshal(buf []byte) error {
 	panic("implement me")
 }
 
-func (f *ContentHeader) Marshal() ([]byte, error) {
+func (f *ContentHeaderFrame) Marshal() ([]byte, error) {
 	var x [8]byte
 	_ = x
 	var flags uint16
@@ -355,13 +402,26 @@ func (f *ContentHeader) Marshal() ([]byte, error) {
 {{ range $method := .Methods }}
 {{ $frame := join ($class.Name|convertCase) ($method.Name|convertCase) }}
 type {{ $frame }} struct {
+	FrameMeta
+	MethodMeta
 	{{- range $field := $method.Fields }}
 	{{ $field.Name|convertCase }} {{ $field.Type|goType }}
 	{{- end }}
 }
 
+func (f *{{ $frame }}) FrameType() FrameType {
+	return f.FrameMeta.Type
+}
+
+func (f *{{ $frame }}) FrameClassID() ClassID {
+	return f.MethodMeta.ClassID
+}
+
+func (f *{{ $frame }}) FrameMethodID() MethodID {
+	return f.MethodMeta.MethodID
+}
+
 func (f *{{ $frame }}) Unmarshal(data []byte) error {
-	*f = {{ $frame }}{}
 	var x [8]byte
 	_ = x
 	buf := bytes.NewBuffer(data)
@@ -371,16 +431,20 @@ func (f *{{ $frame }}) Unmarshal(data []byte) error {
 	} else if n < 2 {
 		return errors.New("read class ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != {{ $class.Name|convertCase }}Class {
+	if id := ClassID(endian.Uint16(x[:2])); id != {{ $class.Name|convertCase }}Class {
 		return errors.Errorf("expected class ID %d, got %d", {{ $class.Name|convertCase }}Class, id)
+	} else {
+		f.MethodMeta.ClassID = id
 	}
 	if n, err := buf.Read(x[:2]); err != nil {
 		return errors.Wrap(err, "read method ID failed")
 	} else if n < 2 {
 		return errors.New("read method ID failed")
 	}
-	if id := endian.Uint16(x[:2]); id != {{ $class.Name|convertCase }}{{ $method.Name|convertCase }}Method {
+	if id := MethodID(endian.Uint16(x[:2])); id != {{ $class.Name|convertCase }}{{ $method.Name|convertCase }}Method {
 		return errors.Errorf("expected method ID %d, got %d", {{ $class.Name|convertCase }}{{ $method.Name|convertCase }}Method, id)
+	} else {
+		f.MethodMeta.MethodID = id
 	}
 	{{- $bitFields := 0 }}
 	{{- range $field := $method.Fields }}
@@ -413,9 +477,9 @@ func (f *{{ $frame }}) Marshal() ([]byte, error) {
 	var bits byte = 0
 	_ = bits
 	buf := bytes.Buffer{}
-	endian.PutUint16(x[:2], {{ $class.Name|convertCase }}Class)
+	endian.PutUint16(x[:2], uint16({{ $class.Name|convertCase }}Class))
 	buf.Write(x[:2])
-	endian.PutUint16(x[:2], {{ $class.Name|convertCase }}{{ $method.Name|convertCase }}Method)
+	endian.PutUint16(x[:2], uint16({{ $class.Name|convertCase }}{{ $method.Name|convertCase }}Method))
 	buf.Write(x[:2])
 	{{- $bitFields := 0 }}
 	{{- range $field := $method.Fields }}
