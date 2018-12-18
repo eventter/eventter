@@ -272,7 +272,6 @@ package v{{ .Major }}
 
 import (
 	"bytes"
-	"encoding/binary"
 	"math"
 	"time"
 
@@ -338,8 +337,6 @@ type HeartbeatFrame struct {
 func (f *HeartbeatFrame) FrameType() FrameType {
 	return f.FrameMeta.Type
 }
-
-var endian = binary.BigEndian
 
 {{ range $class := .Classes }}
 {{ if gt ($class.Fields|len) 0 }}
@@ -468,6 +465,9 @@ func (f *{{ $frame }}) Unmarshal(data []byte) error {
 		// TODO: end bit fields
 		{{- $bitFields = 0 -}}
 	{{- end }}
+	if remains := buf.Len(); remains != 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
+	}
 	return nil
 }
 
@@ -507,6 +507,33 @@ func (f *{{ $frame }}) Marshal() ([]byte, error) {
 }
 {{ end }}
 {{ end }}
+
+func decodeMethodFrame(frameMeta FrameMeta, data []byte) (MethodFrame, error) {
+	if len(data) < 4 {
+		return nil, errors.New("method frame too short")
+	}
+
+	classID := ClassID(endian.Uint16(data[0:2]))
+	methodID := MethodID(endian.Uint16(data[2:4]))
+
+	switch classID {
+	{{- range $class := .Classes }}
+	case {{ $class.Name|convertCase }}Class:
+		switch methodID {
+		{{- range $method := $class.Methods }}
+		{{- $frame := join ($class.Name|convertCase) ($method.Name|convertCase) }}
+		case {{ $class.Name|convertCase }}{{ $method.Name|convertCase }}Method:
+			f := &{{ $frame }}{FrameMeta: frameMeta}
+			return f, f.Unmarshal(data)
+		{{ end }}
+		default:
+			return nil, errors.Errorf("unhandled method ID %d of class {{ $class.Name }}", methodID)
+		}
+	{{ end }}
+	default:
+		return nil, errors.Errorf("unhandled class ID %d", classID)
+	}
+}
 
 {{ end }}
 `))

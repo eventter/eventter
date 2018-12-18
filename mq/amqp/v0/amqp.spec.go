@@ -5,7 +5,6 @@ package v0
 
 import (
 	"bytes"
-	"encoding/binary"
 	"math"
 	"time"
 
@@ -151,8 +150,6 @@ func (f *HeartbeatFrame) FrameType() FrameType {
 	return f.FrameMeta.Type
 }
 
-var endian = binary.BigEndian
-
 type ConnectionStart struct {
 	FrameMeta
 	MethodMeta
@@ -247,6 +244,9 @@ func (f *ConnectionStart) Unmarshal(data []byte) error {
 			return errors.New("field locales: read longstr failed")
 		}
 		f.Locales = string(s)
+	}
+	if remains := buf.Len(); remains != 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
 	}
 	return nil
 }
@@ -379,6 +379,9 @@ func (f *ConnectionStartOk) Unmarshal(data []byte) error {
 		}
 		f.Locale = string(s)
 	}
+	if remains := buf.Len(); remains != 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
+	}
 	return nil
 }
 
@@ -476,6 +479,9 @@ func (f *ConnectionSecure) Unmarshal(data []byte) error {
 		}
 		f.Challenge = string(s)
 	}
+	if remains := buf.Len(); remains != 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
+	}
 	return nil
 }
 
@@ -553,6 +559,9 @@ func (f *ConnectionSecureOk) Unmarshal(data []byte) error {
 			return errors.New("field response: read longstr failed")
 		}
 		f.Response = string(s)
+	}
+	if remains := buf.Len(); remains != 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
 	}
 	return nil
 }
@@ -640,6 +649,9 @@ func (f *ConnectionTune) Unmarshal(data []byte) error {
 		return errors.New("field heartbeat: read short failed")
 	}
 	f.Heartbeat = endian.Uint16(x[:2])
+	if remains := buf.Len(); remains != 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
+	}
 	return nil
 }
 
@@ -725,6 +737,9 @@ func (f *ConnectionTuneOk) Unmarshal(data []byte) error {
 		return errors.New("field heartbeat: read short failed")
 	}
 	f.Heartbeat = endian.Uint16(x[:2])
+	if remains := buf.Len(); remains != 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
+	}
 	return nil
 }
 
@@ -813,6 +828,9 @@ func (f *ConnectionOpen) Unmarshal(data []byte) error {
 		f.Reserved1 = string(s)
 	}
 	// TODO: end bit fields
+	if remains := buf.Len(); remains != 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
+	}
 	return nil
 }
 
@@ -898,6 +916,9 @@ func (f *ConnectionOpenOk) Unmarshal(data []byte) error {
 			return errors.New("field reserved-1: read shortstr failed")
 		}
 		f.Reserved1 = string(s)
+	}
+	if remains := buf.Len(); remains != 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
 	}
 	return nil
 }
@@ -995,6 +1016,9 @@ func (f *ConnectionClose) Unmarshal(data []byte) error {
 		return errors.New("field method-id: read short failed")
 	}
 	f.MethodID = endian.Uint16(x[:2])
+	if remains := buf.Len(); remains != 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
+	}
 	return nil
 }
 
@@ -1065,6 +1089,9 @@ func (f *ConnectionCloseOk) Unmarshal(data []byte) error {
 	} else {
 		f.MethodMeta.MethodID = id
 	}
+	if remains := buf.Len(); remains != 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
+	}
 	return nil
 }
 
@@ -1133,6 +1160,9 @@ func (f *ChannelOpen) Unmarshal(data []byte) error {
 			return errors.New("field reserved-1: read shortstr failed")
 		}
 		f.Reserved1 = string(s)
+	}
+	if remains := buf.Len(); remains != 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
 	}
 	return nil
 }
@@ -1211,6 +1241,9 @@ func (f *ChannelOpenOk) Unmarshal(data []byte) error {
 		}
 		f.Reserved1 = string(s)
 	}
+	if remains := buf.Len(); remains != 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
+	}
 	return nil
 }
 
@@ -1278,6 +1311,9 @@ func (f *ChannelFlow) Unmarshal(data []byte) error {
 		f.MethodMeta.MethodID = id
 	}
 	// TODO: end bit fields
+	if remains := buf.Len(); remains != 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
+	}
 	return nil
 }
 
@@ -1343,6 +1379,9 @@ func (f *ChannelFlowOk) Unmarshal(data []byte) error {
 		f.MethodMeta.MethodID = id
 	}
 	// TODO: end bit fields
+	if remains := buf.Len(); remains != 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
+	}
 	return nil
 }
 
@@ -1438,6 +1477,9 @@ func (f *ChannelClose) Unmarshal(data []byte) error {
 		return errors.New("field method-id: read short failed")
 	}
 	f.MethodID = endian.Uint16(x[:2])
+	if remains := buf.Len(); remains != 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
+	}
 	return nil
 }
 
@@ -1507,6 +1549,9 @@ func (f *ChannelCloseOk) Unmarshal(data []byte) error {
 		return errors.Errorf("expected method ID %d, got %d", ChannelCloseOkMethod, id)
 	} else {
 		f.MethodMeta.MethodID = id
+	}
+	if remains := buf.Len(); remains != 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
 	}
 	return nil
 }
@@ -1622,6 +1667,9 @@ func (f *ExchangeDeclare) Unmarshal(data []byte) error {
 			return errors.Wrap(err, "field arguments: read table failed")
 		}
 	}
+	if remains := buf.Len(); remains != 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
+	}
 	return nil
 }
 
@@ -1722,6 +1770,9 @@ func (f *ExchangeDeclareOk) Unmarshal(data []byte) error {
 	} else {
 		f.MethodMeta.MethodID = id
 	}
+	if remains := buf.Len(); remains != 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
+	}
 	return nil
 }
 
@@ -1802,6 +1853,9 @@ func (f *ExchangeDelete) Unmarshal(data []byte) error {
 	}
 
 	// TODO: end bit fields
+	if remains := buf.Len(); remains != 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
+	}
 	return nil
 }
 
@@ -1876,6 +1930,9 @@ func (f *ExchangeDeleteOk) Unmarshal(data []byte) error {
 		return errors.Errorf("expected method ID %d, got %d", ExchangeDeleteOkMethod, id)
 	} else {
 		f.MethodMeta.MethodID = id
+	}
+	if remains := buf.Len(); remains != 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
 	}
 	return nil
 }
@@ -1979,6 +2036,9 @@ func (f *QueueDeclare) Unmarshal(data []byte) error {
 		if f.Arguments, err = unmarshalTable(b); err != nil {
 			return errors.Wrap(err, "field arguments: read table failed")
 		}
+	}
+	if remains := buf.Len(); remains != 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
 	}
 	return nil
 }
@@ -2099,6 +2159,9 @@ func (f *QueueDeclareOk) Unmarshal(data []byte) error {
 		return errors.New("field consumer-count: read long failed")
 	}
 	f.ConsumerCount = endian.Uint32(x[:4])
+	if remains := buf.Len(); remains != 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
+	}
 	return nil
 }
 
@@ -2229,6 +2292,9 @@ func (f *QueueBind) Unmarshal(data []byte) error {
 			return errors.Wrap(err, "field arguments: read table failed")
 		}
 	}
+	if remains := buf.Len(); remains != 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
+	}
 	return nil
 }
 
@@ -2318,6 +2384,9 @@ func (f *QueueBindOk) Unmarshal(data []byte) error {
 		return errors.Errorf("expected method ID %d, got %d", QueueBindOkMethod, id)
 	} else {
 		f.MethodMeta.MethodID = id
+	}
+	if remains := buf.Len(); remains != 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
 	}
 	return nil
 }
@@ -2432,6 +2501,9 @@ func (f *QueueUnbind) Unmarshal(data []byte) error {
 			return errors.Wrap(err, "field arguments: read table failed")
 		}
 	}
+	if remains := buf.Len(); remains != 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
+	}
 	return nil
 }
 
@@ -2517,6 +2589,9 @@ func (f *QueueUnbindOk) Unmarshal(data []byte) error {
 	} else {
 		f.MethodMeta.MethodID = id
 	}
+	if remains := buf.Len(); remains != 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
+	}
 	return nil
 }
 
@@ -2595,6 +2670,9 @@ func (f *QueuePurge) Unmarshal(data []byte) error {
 		f.Queue = string(s)
 	}
 	// TODO: end bit fields
+	if remains := buf.Len(); remains != 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
+	}
 	return nil
 }
 
@@ -2673,6 +2751,9 @@ func (f *QueuePurgeOk) Unmarshal(data []byte) error {
 		return errors.New("field message-count: read long failed")
 	}
 	f.MessageCount = endian.Uint32(x[:4])
+	if remains := buf.Len(); remains != 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
+	}
 	return nil
 }
 
@@ -2756,6 +2837,9 @@ func (f *QueueDelete) Unmarshal(data []byte) error {
 	}
 
 	// TODO: end bit fields
+	if remains := buf.Len(); remains != 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
+	}
 	return nil
 }
 
@@ -2842,6 +2926,9 @@ func (f *QueueDeleteOk) Unmarshal(data []byte) error {
 		return errors.New("field message-count: read long failed")
 	}
 	f.MessageCount = endian.Uint32(x[:4])
+	if remains := buf.Len(); remains != 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
+	}
 	return nil
 }
 
@@ -3108,6 +3195,9 @@ func (f *BasicQos) Unmarshal(data []byte) error {
 	}
 	f.PrefetchCount = endian.Uint16(x[:2])
 	// TODO: end bit fields
+	if remains := buf.Len(); remains != 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
+	}
 	return nil
 }
 
@@ -3174,6 +3264,9 @@ func (f *BasicQosOk) Unmarshal(data []byte) error {
 		return errors.Errorf("expected method ID %d, got %d", BasicQosOkMethod, id)
 	} else {
 		f.MethodMeta.MethodID = id
+	}
+	if remains := buf.Len(); remains != 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
 	}
 	return nil
 }
@@ -3288,6 +3381,9 @@ func (f *BasicConsume) Unmarshal(data []byte) error {
 			return errors.Wrap(err, "field arguments: read table failed")
 		}
 	}
+	if remains := buf.Len(); remains != 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
+	}
 	return nil
 }
 
@@ -3395,6 +3491,9 @@ func (f *BasicConsumeOk) Unmarshal(data []byte) error {
 		}
 		f.ConsumerTag = string(s)
 	}
+	if remains := buf.Len(); remains != 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
+	}
 	return nil
 }
 
@@ -3472,6 +3571,9 @@ func (f *BasicCancel) Unmarshal(data []byte) error {
 		f.ConsumerTag = string(s)
 	}
 	// TODO: end bit fields
+	if remains := buf.Len(); remains != 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
+	}
 	return nil
 }
 
@@ -3551,6 +3653,9 @@ func (f *BasicCancelOk) Unmarshal(data []byte) error {
 			return errors.New("field consumer-tag: read shortstr failed")
 		}
 		f.ConsumerTag = string(s)
+	}
+	if remains := buf.Len(); remains != 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
 	}
 	return nil
 }
@@ -3649,6 +3754,9 @@ func (f *BasicPublish) Unmarshal(data []byte) error {
 	}
 
 	// TODO: end bit fields
+	if remains := buf.Len(); remains != 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
+	}
 	return nil
 }
 
@@ -3769,6 +3877,9 @@ func (f *BasicReturn) Unmarshal(data []byte) error {
 			return errors.New("field routing-key: read shortstr failed")
 		}
 		f.RoutingKey = string(s)
+	}
+	if remains := buf.Len(); remains != 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
 	}
 	return nil
 }
@@ -3895,6 +4006,9 @@ func (f *BasicDeliver) Unmarshal(data []byte) error {
 		}
 		f.RoutingKey = string(s)
 	}
+	if remains := buf.Len(); remains != 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
+	}
 	return nil
 }
 
@@ -3998,6 +4112,9 @@ func (f *BasicGet) Unmarshal(data []byte) error {
 		f.Queue = string(s)
 	}
 	// TODO: end bit fields
+	if remains := buf.Len(); remains != 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
+	}
 	return nil
 }
 
@@ -4112,6 +4229,9 @@ func (f *BasicGetOk) Unmarshal(data []byte) error {
 		return errors.New("field message-count: read long failed")
 	}
 	f.MessageCount = endian.Uint32(x[:4])
+	if remains := buf.Len(); remains != 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
+	}
 	return nil
 }
 
@@ -4202,6 +4322,9 @@ func (f *BasicGetEmpty) Unmarshal(data []byte) error {
 		}
 		f.Reserved1 = string(s)
 	}
+	if remains := buf.Len(); remains != 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
+	}
 	return nil
 }
 
@@ -4275,6 +4398,9 @@ func (f *BasicAck) Unmarshal(data []byte) error {
 	}
 	f.DeliveryTag = endian.Uint64(x[:8])
 	// TODO: end bit fields
+	if remains := buf.Len(); remains != 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
+	}
 	return nil
 }
 
@@ -4349,6 +4475,9 @@ func (f *BasicReject) Unmarshal(data []byte) error {
 	}
 	f.DeliveryTag = endian.Uint64(x[:8])
 	// TODO: end bit fields
+	if remains := buf.Len(); remains != 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
+	}
 	return nil
 }
 
@@ -4416,6 +4545,9 @@ func (f *BasicRecoverAsync) Unmarshal(data []byte) error {
 		f.MethodMeta.MethodID = id
 	}
 	// TODO: end bit fields
+	if remains := buf.Len(); remains != 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
+	}
 	return nil
 }
 
@@ -4481,6 +4613,9 @@ func (f *BasicRecover) Unmarshal(data []byte) error {
 		f.MethodMeta.MethodID = id
 	}
 	// TODO: end bit fields
+	if remains := buf.Len(); remains != 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
+	}
 	return nil
 }
 
@@ -4544,6 +4679,9 @@ func (f *BasicRecoverOk) Unmarshal(data []byte) error {
 	} else {
 		f.MethodMeta.MethodID = id
 	}
+	if remains := buf.Len(); remains != 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
+	}
 	return nil
 }
 
@@ -4601,6 +4739,9 @@ func (f *TxSelect) Unmarshal(data []byte) error {
 		return errors.Errorf("expected method ID %d, got %d", TxSelectMethod, id)
 	} else {
 		f.MethodMeta.MethodID = id
+	}
+	if remains := buf.Len(); remains != 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
 	}
 	return nil
 }
@@ -4660,6 +4801,9 @@ func (f *TxSelectOk) Unmarshal(data []byte) error {
 	} else {
 		f.MethodMeta.MethodID = id
 	}
+	if remains := buf.Len(); remains != 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
+	}
 	return nil
 }
 
@@ -4717,6 +4861,9 @@ func (f *TxCommit) Unmarshal(data []byte) error {
 		return errors.Errorf("expected method ID %d, got %d", TxCommitMethod, id)
 	} else {
 		f.MethodMeta.MethodID = id
+	}
+	if remains := buf.Len(); remains != 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
 	}
 	return nil
 }
@@ -4776,6 +4923,9 @@ func (f *TxCommitOk) Unmarshal(data []byte) error {
 	} else {
 		f.MethodMeta.MethodID = id
 	}
+	if remains := buf.Len(); remains != 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
+	}
 	return nil
 }
 
@@ -4833,6 +4983,9 @@ func (f *TxRollback) Unmarshal(data []byte) error {
 		return errors.Errorf("expected method ID %d, got %d", TxRollbackMethod, id)
 	} else {
 		f.MethodMeta.MethodID = id
+	}
+	if remains := buf.Len(); remains != 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
 	}
 	return nil
 }
@@ -4892,6 +5045,9 @@ func (f *TxRollbackOk) Unmarshal(data []byte) error {
 	} else {
 		f.MethodMeta.MethodID = id
 	}
+	if remains := buf.Len(); remains != 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
+	}
 	return nil
 }
 
@@ -4906,4 +5062,266 @@ func (f *TxRollbackOk) Marshal() ([]byte, error) {
 	endian.PutUint16(x[:2], uint16(TxRollbackOkMethod))
 	buf.Write(x[:2])
 	return buf.Bytes(), nil
+}
+
+func decodeMethodFrame(frameMeta FrameMeta, data []byte) (MethodFrame, error) {
+	if len(data) < 4 {
+		return nil, errors.New("method frame too short")
+	}
+
+	classID := ClassID(endian.Uint16(data[0:2]))
+	methodID := MethodID(endian.Uint16(data[2:4]))
+
+	switch classID {
+	case ConnectionClass:
+		switch methodID {
+		case ConnectionStartMethod:
+			f := &ConnectionStart{FrameMeta: frameMeta}
+			return f, f.Unmarshal(data)
+
+		case ConnectionStartOkMethod:
+			f := &ConnectionStartOk{FrameMeta: frameMeta}
+			return f, f.Unmarshal(data)
+
+		case ConnectionSecureMethod:
+			f := &ConnectionSecure{FrameMeta: frameMeta}
+			return f, f.Unmarshal(data)
+
+		case ConnectionSecureOkMethod:
+			f := &ConnectionSecureOk{FrameMeta: frameMeta}
+			return f, f.Unmarshal(data)
+
+		case ConnectionTuneMethod:
+			f := &ConnectionTune{FrameMeta: frameMeta}
+			return f, f.Unmarshal(data)
+
+		case ConnectionTuneOkMethod:
+			f := &ConnectionTuneOk{FrameMeta: frameMeta}
+			return f, f.Unmarshal(data)
+
+		case ConnectionOpenMethod:
+			f := &ConnectionOpen{FrameMeta: frameMeta}
+			return f, f.Unmarshal(data)
+
+		case ConnectionOpenOkMethod:
+			f := &ConnectionOpenOk{FrameMeta: frameMeta}
+			return f, f.Unmarshal(data)
+
+		case ConnectionCloseMethod:
+			f := &ConnectionClose{FrameMeta: frameMeta}
+			return f, f.Unmarshal(data)
+
+		case ConnectionCloseOkMethod:
+			f := &ConnectionCloseOk{FrameMeta: frameMeta}
+			return f, f.Unmarshal(data)
+
+		default:
+			return nil, errors.Errorf("unhandled method ID %d of class connection", methodID)
+		}
+
+	case ChannelClass:
+		switch methodID {
+		case ChannelOpenMethod:
+			f := &ChannelOpen{FrameMeta: frameMeta}
+			return f, f.Unmarshal(data)
+
+		case ChannelOpenOkMethod:
+			f := &ChannelOpenOk{FrameMeta: frameMeta}
+			return f, f.Unmarshal(data)
+
+		case ChannelFlowMethod:
+			f := &ChannelFlow{FrameMeta: frameMeta}
+			return f, f.Unmarshal(data)
+
+		case ChannelFlowOkMethod:
+			f := &ChannelFlowOk{FrameMeta: frameMeta}
+			return f, f.Unmarshal(data)
+
+		case ChannelCloseMethod:
+			f := &ChannelClose{FrameMeta: frameMeta}
+			return f, f.Unmarshal(data)
+
+		case ChannelCloseOkMethod:
+			f := &ChannelCloseOk{FrameMeta: frameMeta}
+			return f, f.Unmarshal(data)
+
+		default:
+			return nil, errors.Errorf("unhandled method ID %d of class channel", methodID)
+		}
+
+	case ExchangeClass:
+		switch methodID {
+		case ExchangeDeclareMethod:
+			f := &ExchangeDeclare{FrameMeta: frameMeta}
+			return f, f.Unmarshal(data)
+
+		case ExchangeDeclareOkMethod:
+			f := &ExchangeDeclareOk{FrameMeta: frameMeta}
+			return f, f.Unmarshal(data)
+
+		case ExchangeDeleteMethod:
+			f := &ExchangeDelete{FrameMeta: frameMeta}
+			return f, f.Unmarshal(data)
+
+		case ExchangeDeleteOkMethod:
+			f := &ExchangeDeleteOk{FrameMeta: frameMeta}
+			return f, f.Unmarshal(data)
+
+		default:
+			return nil, errors.Errorf("unhandled method ID %d of class exchange", methodID)
+		}
+
+	case QueueClass:
+		switch methodID {
+		case QueueDeclareMethod:
+			f := &QueueDeclare{FrameMeta: frameMeta}
+			return f, f.Unmarshal(data)
+
+		case QueueDeclareOkMethod:
+			f := &QueueDeclareOk{FrameMeta: frameMeta}
+			return f, f.Unmarshal(data)
+
+		case QueueBindMethod:
+			f := &QueueBind{FrameMeta: frameMeta}
+			return f, f.Unmarshal(data)
+
+		case QueueBindOkMethod:
+			f := &QueueBindOk{FrameMeta: frameMeta}
+			return f, f.Unmarshal(data)
+
+		case QueueUnbindMethod:
+			f := &QueueUnbind{FrameMeta: frameMeta}
+			return f, f.Unmarshal(data)
+
+		case QueueUnbindOkMethod:
+			f := &QueueUnbindOk{FrameMeta: frameMeta}
+			return f, f.Unmarshal(data)
+
+		case QueuePurgeMethod:
+			f := &QueuePurge{FrameMeta: frameMeta}
+			return f, f.Unmarshal(data)
+
+		case QueuePurgeOkMethod:
+			f := &QueuePurgeOk{FrameMeta: frameMeta}
+			return f, f.Unmarshal(data)
+
+		case QueueDeleteMethod:
+			f := &QueueDelete{FrameMeta: frameMeta}
+			return f, f.Unmarshal(data)
+
+		case QueueDeleteOkMethod:
+			f := &QueueDeleteOk{FrameMeta: frameMeta}
+			return f, f.Unmarshal(data)
+
+		default:
+			return nil, errors.Errorf("unhandled method ID %d of class queue", methodID)
+		}
+
+	case BasicClass:
+		switch methodID {
+		case BasicQosMethod:
+			f := &BasicQos{FrameMeta: frameMeta}
+			return f, f.Unmarshal(data)
+
+		case BasicQosOkMethod:
+			f := &BasicQosOk{FrameMeta: frameMeta}
+			return f, f.Unmarshal(data)
+
+		case BasicConsumeMethod:
+			f := &BasicConsume{FrameMeta: frameMeta}
+			return f, f.Unmarshal(data)
+
+		case BasicConsumeOkMethod:
+			f := &BasicConsumeOk{FrameMeta: frameMeta}
+			return f, f.Unmarshal(data)
+
+		case BasicCancelMethod:
+			f := &BasicCancel{FrameMeta: frameMeta}
+			return f, f.Unmarshal(data)
+
+		case BasicCancelOkMethod:
+			f := &BasicCancelOk{FrameMeta: frameMeta}
+			return f, f.Unmarshal(data)
+
+		case BasicPublishMethod:
+			f := &BasicPublish{FrameMeta: frameMeta}
+			return f, f.Unmarshal(data)
+
+		case BasicReturnMethod:
+			f := &BasicReturn{FrameMeta: frameMeta}
+			return f, f.Unmarshal(data)
+
+		case BasicDeliverMethod:
+			f := &BasicDeliver{FrameMeta: frameMeta}
+			return f, f.Unmarshal(data)
+
+		case BasicGetMethod:
+			f := &BasicGet{FrameMeta: frameMeta}
+			return f, f.Unmarshal(data)
+
+		case BasicGetOkMethod:
+			f := &BasicGetOk{FrameMeta: frameMeta}
+			return f, f.Unmarshal(data)
+
+		case BasicGetEmptyMethod:
+			f := &BasicGetEmpty{FrameMeta: frameMeta}
+			return f, f.Unmarshal(data)
+
+		case BasicAckMethod:
+			f := &BasicAck{FrameMeta: frameMeta}
+			return f, f.Unmarshal(data)
+
+		case BasicRejectMethod:
+			f := &BasicReject{FrameMeta: frameMeta}
+			return f, f.Unmarshal(data)
+
+		case BasicRecoverAsyncMethod:
+			f := &BasicRecoverAsync{FrameMeta: frameMeta}
+			return f, f.Unmarshal(data)
+
+		case BasicRecoverMethod:
+			f := &BasicRecover{FrameMeta: frameMeta}
+			return f, f.Unmarshal(data)
+
+		case BasicRecoverOkMethod:
+			f := &BasicRecoverOk{FrameMeta: frameMeta}
+			return f, f.Unmarshal(data)
+
+		default:
+			return nil, errors.Errorf("unhandled method ID %d of class basic", methodID)
+		}
+
+	case TxClass:
+		switch methodID {
+		case TxSelectMethod:
+			f := &TxSelect{FrameMeta: frameMeta}
+			return f, f.Unmarshal(data)
+
+		case TxSelectOkMethod:
+			f := &TxSelectOk{FrameMeta: frameMeta}
+			return f, f.Unmarshal(data)
+
+		case TxCommitMethod:
+			f := &TxCommit{FrameMeta: frameMeta}
+			return f, f.Unmarshal(data)
+
+		case TxCommitOkMethod:
+			f := &TxCommitOk{FrameMeta: frameMeta}
+			return f, f.Unmarshal(data)
+
+		case TxRollbackMethod:
+			f := &TxRollback{FrameMeta: frameMeta}
+			return f, f.Unmarshal(data)
+
+		case TxRollbackOkMethod:
+			f := &TxRollbackOk{FrameMeta: frameMeta}
+			return f, f.Unmarshal(data)
+
+		default:
+			return nil, errors.Errorf("unhandled method ID %d of class tx", methodID)
+		}
+
+	default:
+		return nil, errors.Errorf("unhandled class ID %d", classID)
+	}
 }

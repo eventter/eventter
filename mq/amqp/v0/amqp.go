@@ -2,12 +2,15 @@ package v0
 
 import (
 	"bytes"
+	"encoding/binary"
 	"io"
 	"math"
 
 	"github.com/gogo/protobuf/types"
 	"github.com/pkg/errors"
 )
+
+var endian = binary.BigEndian
 
 func marshalTable(table *types.Struct) ([]byte, error) {
 	if table == nil || table.Fields == nil {
