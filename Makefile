@@ -5,11 +5,14 @@ all: generate fmt vet test
 dependencies:
 	go install -v github.com/gogo/protobuf/protoc-gen-gogofaster
 
-generate: proto
+generate: proto amqp
 
 proto:
 	cd mq/client; protoc -I. -I$$(go list -m -f '{{ .Dir }}' github.com/gogo/protobuf) --gogofaster_out=plugins=grpc,Mgoogle/protobuf/any.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/duration.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/struct.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/timestamp.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/wrappers.proto=github.com/gogo/protobuf/types:. client.proto
 	cd mq; protoc -I. -I./client -I$$(go list -m -f '{{ .Dir }}' github.com/gogo/protobuf) --gogofaster_out=plugins=grpc,Mgoogle/protobuf/any.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/duration.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/struct.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/timestamp.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/wrappers.proto=github.com/gogo/protobuf/types,Mclient/client.proto=eventter.io/mq/client:. cluster_state.proto discovery_rpc.proto node_rpc.proto raft_rpc.proto segments.proto
+
+amqp:
+	go generate ./mq/amqp/v0
 
 fmt:
 	go fmt $$(go list ./... | grep -v vendor)
