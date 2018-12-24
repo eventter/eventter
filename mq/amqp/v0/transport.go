@@ -19,7 +19,7 @@ func NewTransport(rw *bufio.ReadWriter) *Transport {
 	}
 }
 
-func (t *Transport) Encode(frame Frame) (err error) {
+func (t *Transport) Send(frame Frame) (err error) {
 	var (
 		frameType FrameType
 		payload   []byte
@@ -57,7 +57,7 @@ func (t *Transport) Encode(frame Frame) (err error) {
 
 	x[0] = byte(frameType)
 	endian.PutUint16(x[1:3], frame.GetFrameMeta().Channel)
-	endian.PutUint32(x[3:7], uint32(len(payload)))
+	endian.PutUint32(x[3:7], uint32(len(payload)+(end-7)))
 	x[end] = FrameEnd
 
 	if len(payload) == 0 {
@@ -87,7 +87,7 @@ func (t *Transport) Encode(frame Frame) (err error) {
 	return nil
 }
 
-func (t *Transport) Decode() (Frame, error) {
+func (t *Transport) Receive() (Frame, error) {
 	if _, err := io.ReadFull(t.rw, t.buf[:7]); err != nil {
 		return nil, errors.Wrap(err, "read frame header failed")
 	}

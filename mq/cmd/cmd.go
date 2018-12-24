@@ -14,7 +14,9 @@ import (
 	"time"
 
 	"eventter.io/mq"
+	"eventter.io/mq/about"
 	"eventter.io/mq/amqp"
+	"eventter.io/mq/amqp/authentication"
 	"eventter.io/mq/client"
 	"eventter.io/mq/segments"
 	"github.com/bbva/raft-badger"
@@ -37,7 +39,8 @@ func Cmd() *cobra.Command {
 	var join []string
 
 	cmd := &cobra.Command{
-		Use: os.Args[0],
+		Use:     about.Name,
+		Version: about.Version,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			return rootConfig.Init()
 		},
@@ -191,8 +194,16 @@ func Cmd() *cobra.Command {
 				return errors.Wrap(err, "amqp listen failed")
 			}
 			defer amqpListener.Close()
+			allowAll := func(username, password string) (bool, error) {
+				return true, nil
+			}
 			amqpServer := &amqp.Server{
 				ConnectTimeout: 10 * time.Second,
+				AuthenticationProviders: []authentication.Provider{
+					authentication.NewPLAIN(allowAll),
+					authentication.NewAMQPLAIN(allowAll),
+				},
+				Heartbeat: 10 * time.Second,
 			}
 			go amqpServer.Serve(amqpListener)
 			log.Println("amqp server started at", amqpListener.Addr())

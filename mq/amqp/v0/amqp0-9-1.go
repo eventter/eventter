@@ -102,6 +102,7 @@ const (
 	BasicRecoverAsyncMethod MethodID = 100
 	BasicRecoverMethod      MethodID = 110
 	BasicRecoverOkMethod    MethodID = 111
+	BasicNackMethod         MethodID = 120
 
 	TxClass            ClassID  = 90
 	TxSelectMethod     MethodID = 10
@@ -3784,6 +3785,70 @@ func (f *BasicRecoverOk) Marshal() ([]byte, error) {
 	return nil, nil
 }
 
+type BasicNack struct {
+	FrameMeta
+	MethodMeta
+	DeliveryTag uint64
+	Multiple    bool
+	Requeue     bool
+}
+
+func (f *BasicNack) GetFrameMeta() *FrameMeta {
+	return &f.FrameMeta
+}
+
+func (f *BasicNack) FixMethodMeta() {
+	f.MethodMeta.ClassID = BasicClass
+	f.MethodMeta.MethodID = BasicNackMethod
+}
+
+func (f *BasicNack) GetMethodMeta() *MethodMeta {
+	return &f.MethodMeta
+}
+
+func (f *BasicNack) Unmarshal(data []byte) error {
+	var x [8]byte
+	_ = x
+	buf := bytes.NewBuffer(data)
+	if n, err := buf.Read(x[:8]); err != nil {
+		return errors.Wrap(err, "field delivery-tag: read longlong failed")
+	} else if n < 8 {
+		return errors.New("field delivery-tag: read longlong failed")
+	}
+	f.DeliveryTag = endian.Uint64(x[:8])
+
+	if bits, err := buf.ReadByte(); err != nil {
+		return errors.Wrap(err, "read bits failed")
+	} else {
+		f.Multiple = (bits & 1) == 1
+		f.Requeue = (bits & 2) == 2
+	}
+	if remains := buf.Len(); remains != 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
+	}
+	return nil
+}
+
+func (f *BasicNack) Marshal() ([]byte, error) {
+	var x [8]byte
+	_ = x
+	var bits byte = 0
+	_ = bits
+	buf := bytes.Buffer{}
+	endian.PutUint64(x[:8], f.DeliveryTag)
+	buf.Write(x[:8])
+	if f.Multiple {
+		bits |= 1
+	}
+
+	if f.Requeue {
+		bits |= 2
+	}
+	buf.WriteByte(bits)
+	bits = 0
+	return buf.Bytes(), nil
+}
+
 type TxSelect struct {
 	FrameMeta
 	MethodMeta
@@ -4593,6 +4658,19 @@ func decodeMethodFrame(frameMeta FrameMeta, data []byte) (MethodFrame, error) {
 
 		case BasicRecoverOkMethod:
 			frame := &BasicRecoverOk{
+				FrameMeta: frameMeta,
+				MethodMeta: MethodMeta{
+					ClassID:  classID,
+					MethodID: methodID,
+				},
+			}
+			if err := frame.Unmarshal(data[4:]); err != nil {
+				return nil, err
+			}
+			return frame, nil
+
+		case BasicNackMethod:
+			frame := &BasicNack{
 				FrameMeta: frameMeta,
 				MethodMeta: MethodMeta{
 					ClassID:  classID,
