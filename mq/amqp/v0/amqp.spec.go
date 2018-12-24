@@ -827,7 +827,11 @@ func (f *ConnectionOpen) Unmarshal(data []byte) error {
 		}
 		f.Reserved1 = string(s)
 	}
-	// TODO: end bit fields
+	if bits, err := buf.ReadByte(); err != nil {
+		return errors.Wrap(err, "read bits failed")
+	} else {
+		f.Reserved2 = (bits & 1) == 1
+	}
 	if remains := buf.Len(); remains != 0 {
 		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
 	}
@@ -857,7 +861,7 @@ func (f *ConnectionOpen) Marshal() ([]byte, error) {
 		buf.WriteString(f.Reserved1)
 	}
 	if f.Reserved2 {
-		bits |= 1 << 0
+		bits |= 1
 	}
 	buf.WriteByte(bits)
 	bits = 0
@@ -1310,7 +1314,11 @@ func (f *ChannelFlow) Unmarshal(data []byte) error {
 	} else {
 		f.MethodMeta.MethodID = id
 	}
-	// TODO: end bit fields
+	if bits, err := buf.ReadByte(); err != nil {
+		return errors.Wrap(err, "read bits failed")
+	} else {
+		f.Active = (bits & 1) == 1
+	}
 	if remains := buf.Len(); remains != 0 {
 		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
 	}
@@ -1328,7 +1336,7 @@ func (f *ChannelFlow) Marshal() ([]byte, error) {
 	endian.PutUint16(x[:2], uint16(ChannelFlowMethod))
 	buf.Write(x[:2])
 	if f.Active {
-		bits |= 1 << 0
+		bits |= 1
 	}
 	buf.WriteByte(bits)
 	bits = 0
@@ -1378,7 +1386,11 @@ func (f *ChannelFlowOk) Unmarshal(data []byte) error {
 	} else {
 		f.MethodMeta.MethodID = id
 	}
-	// TODO: end bit fields
+	if bits, err := buf.ReadByte(); err != nil {
+		return errors.Wrap(err, "read bits failed")
+	} else {
+		f.Active = (bits & 1) == 1
+	}
 	if remains := buf.Len(); remains != 0 {
 		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
 	}
@@ -1396,7 +1408,7 @@ func (f *ChannelFlowOk) Marshal() ([]byte, error) {
 	endian.PutUint16(x[:2], uint16(ChannelFlowOkMethod))
 	buf.Write(x[:2])
 	if f.Active {
-		bits |= 1 << 0
+		bits |= 1
 	}
 	buf.WriteByte(bits)
 	bits = 0
@@ -1647,11 +1659,14 @@ func (f *ExchangeDeclare) Unmarshal(data []byte) error {
 		f.Type = string(s)
 	}
 
-	if b, err := buf.ReadByte(); err != nil {
+	if bits, err := buf.ReadByte(); err != nil {
 		return errors.Wrap(err, "read bits failed")
 	} else {
-		_ = b
-		// TODO: bit fields
+		f.Passive = bits&1 == 1
+		f.Durable = bits&2 == 2
+		f.Reserved2 = bits&4 == 4
+		f.Reserved3 = bits&8 == 8
+		f.NoWait = bits&16 == 16
 	}
 	if n, err := buf.Read(x[:4]); err != nil {
 		return errors.Wrap(err, "field arguments: read table failed")
@@ -1698,23 +1713,23 @@ func (f *ExchangeDeclare) Marshal() ([]byte, error) {
 		buf.WriteString(f.Type)
 	}
 	if f.Passive {
-		bits |= 1 << 0
+		bits |= 1
 	}
 
 	if f.Durable {
-		bits |= 1 << 1
+		bits |= 2
 	}
 
 	if f.Reserved2 {
-		bits |= 1 << 2
+		bits |= 4
 	}
 
 	if f.Reserved3 {
-		bits |= 1 << 3
+		bits |= 8
 	}
 
 	if f.NoWait {
-		bits |= 1 << 4
+		bits |= 16
 	}
 	buf.WriteByte(bits)
 	bits = 0
@@ -1852,7 +1867,12 @@ func (f *ExchangeDelete) Unmarshal(data []byte) error {
 		f.Exchange = string(s)
 	}
 
-	// TODO: end bit fields
+	if bits, err := buf.ReadByte(); err != nil {
+		return errors.Wrap(err, "read bits failed")
+	} else {
+		f.IfUnused = (bits & 1) == 1
+		f.NoWait = (bits & 2) == 2
+	}
 	if remains := buf.Len(); remains != 0 {
 		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
 	}
@@ -1878,11 +1898,11 @@ func (f *ExchangeDelete) Marshal() ([]byte, error) {
 		buf.WriteString(f.Exchange)
 	}
 	if f.IfUnused {
-		bits |= 1 << 0
+		bits |= 1
 	}
 
 	if f.NoWait {
-		bits |= 1 << 1
+		bits |= 2
 	}
 	buf.WriteByte(bits)
 	bits = 0
@@ -2017,11 +2037,14 @@ func (f *QueueDeclare) Unmarshal(data []byte) error {
 		f.Queue = string(s)
 	}
 
-	if b, err := buf.ReadByte(); err != nil {
+	if bits, err := buf.ReadByte(); err != nil {
 		return errors.Wrap(err, "read bits failed")
 	} else {
-		_ = b
-		// TODO: bit fields
+		f.Passive = bits&1 == 1
+		f.Durable = bits&2 == 2
+		f.Exclusive = bits&4 == 4
+		f.AutoDelete = bits&8 == 8
+		f.NoWait = bits&16 == 16
 	}
 	if n, err := buf.Read(x[:4]); err != nil {
 		return errors.Wrap(err, "field arguments: read table failed")
@@ -2062,23 +2085,23 @@ func (f *QueueDeclare) Marshal() ([]byte, error) {
 		buf.WriteString(f.Queue)
 	}
 	if f.Passive {
-		bits |= 1 << 0
+		bits |= 1
 	}
 
 	if f.Durable {
-		bits |= 1 << 1
+		bits |= 2
 	}
 
 	if f.Exclusive {
-		bits |= 1 << 2
+		bits |= 4
 	}
 
 	if f.AutoDelete {
-		bits |= 1 << 3
+		bits |= 8
 	}
 
 	if f.NoWait {
-		bits |= 1 << 4
+		bits |= 16
 	}
 	buf.WriteByte(bits)
 	bits = 0
@@ -2272,11 +2295,10 @@ func (f *QueueBind) Unmarshal(data []byte) error {
 		}
 		f.RoutingKey = string(s)
 	}
-	if b, err := buf.ReadByte(); err != nil {
+	if bits, err := buf.ReadByte(); err != nil {
 		return errors.Wrap(err, "read bits failed")
 	} else {
-		_ = b
-		// TODO: bit fields
+		f.NoWait = bits&1 == 1
 	}
 	if n, err := buf.Read(x[:4]); err != nil {
 		return errors.Wrap(err, "field arguments: read table failed")
@@ -2329,7 +2351,7 @@ func (f *QueueBind) Marshal() ([]byte, error) {
 		buf.WriteString(f.RoutingKey)
 	}
 	if f.NoWait {
-		bits |= 1 << 0
+		bits |= 1
 	}
 	buf.WriteByte(bits)
 	bits = 0
@@ -2669,7 +2691,11 @@ func (f *QueuePurge) Unmarshal(data []byte) error {
 		}
 		f.Queue = string(s)
 	}
-	// TODO: end bit fields
+	if bits, err := buf.ReadByte(); err != nil {
+		return errors.Wrap(err, "read bits failed")
+	} else {
+		f.NoWait = (bits & 1) == 1
+	}
 	if remains := buf.Len(); remains != 0 {
 		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
 	}
@@ -2695,7 +2721,7 @@ func (f *QueuePurge) Marshal() ([]byte, error) {
 		buf.WriteString(f.Queue)
 	}
 	if f.NoWait {
-		bits |= 1 << 0
+		bits |= 1
 	}
 	buf.WriteByte(bits)
 	bits = 0
@@ -2836,7 +2862,13 @@ func (f *QueueDelete) Unmarshal(data []byte) error {
 		f.Queue = string(s)
 	}
 
-	// TODO: end bit fields
+	if bits, err := buf.ReadByte(); err != nil {
+		return errors.Wrap(err, "read bits failed")
+	} else {
+		f.IfUnused = (bits & 1) == 1
+		f.IfEmpty = (bits & 2) == 2
+		f.NoWait = (bits & 4) == 4
+	}
 	if remains := buf.Len(); remains != 0 {
 		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
 	}
@@ -2862,15 +2894,15 @@ func (f *QueueDelete) Marshal() ([]byte, error) {
 		buf.WriteString(f.Queue)
 	}
 	if f.IfUnused {
-		bits |= 1 << 0
+		bits |= 1
 	}
 
 	if f.IfEmpty {
-		bits |= 1 << 1
+		bits |= 2
 	}
 
 	if f.NoWait {
-		bits |= 1 << 2
+		bits |= 4
 	}
 	buf.WriteByte(bits)
 	bits = 0
@@ -2949,7 +2981,7 @@ func (f *QueueDeleteOk) Marshal() ([]byte, error) {
 
 type ContentHeaderFrame struct {
 	FrameMeta
-	ClassID         uint16
+	ClassID         ClassID
 	Weight          uint16
 	BodySize        uint64
 	ContentType     string
@@ -2972,8 +3004,220 @@ func (f *ContentHeaderFrame) FrameType() FrameType {
 	return f.FrameMeta.Type
 }
 
-func (f *ContentHeaderFrame) Unmarshal(buf []byte) error {
-	panic("implement me")
+func (f *ContentHeaderFrame) Unmarshal(data []byte) error {
+	var x [8]byte
+	_ = x
+	buf := bytes.NewBuffer(data)
+
+	if n, err := buf.Read(x[:2]); err != nil {
+		return errors.Wrap(err, "read class ID failed")
+	} else if n < 2 {
+		return errors.New("read class ID failed")
+	}
+	if id := ClassID(endian.Uint16(x[:2])); id != BasicClass {
+		return errors.Errorf("expected class ID %d, got %d", BasicClass, id)
+	} else {
+		f.ClassID = id
+	}
+
+	if n, err := buf.Read(x[:2]); err != nil {
+		return errors.Wrap(err, "read weight failed")
+	} else if n < 2 {
+		return errors.New("read weight failed")
+	}
+	f.Weight = endian.Uint16(x[:2])
+
+	if n, err := buf.Read(x[:8]); err != nil {
+		return errors.Wrap(err, "read body size failed")
+	} else if n < 8 {
+		return errors.New("read body size failed")
+	}
+	f.BodySize = endian.Uint64(x[:8])
+
+	if n, err := buf.Read(x[:2]); err != nil {
+		return errors.Wrap(err, "read flags failed")
+	} else if n < 2 {
+		return errors.New("read flags failed")
+	}
+	flags := endian.Uint16(x[:2])
+
+	if flags&1 == 1 {
+		if b, err := buf.ReadByte(); err != nil {
+			return errors.Wrap(err, "field content-type: read shortstr failed")
+		} else {
+			l := int(b)
+			s := buf.Next(l)
+			if len(s) < l {
+				return errors.New("field content-type: read shortstr failed")
+			}
+			f.ContentType = string(s)
+		}
+	}
+
+	if flags&2 == 2 {
+		if b, err := buf.ReadByte(); err != nil {
+			return errors.Wrap(err, "field content-encoding: read shortstr failed")
+		} else {
+			l := int(b)
+			s := buf.Next(l)
+			if len(s) < l {
+				return errors.New("field content-encoding: read shortstr failed")
+			}
+			f.ContentEncoding = string(s)
+		}
+	}
+
+	if flags&4 == 4 {
+		if n, err := buf.Read(x[:4]); err != nil {
+			return errors.Wrap(err, "field headers: read table failed")
+		} else if n < 4 {
+			return errors.New("field headers: read table failed")
+		} else {
+			l := int(endian.Uint32(x[:4]))
+			b := buf.Next(l)
+			if len(b) < l {
+				return errors.New("field headers: read table failed")
+			}
+			if f.Headers, err = unmarshalTable(b); err != nil {
+				return errors.Wrap(err, "field headers: read table failed")
+			}
+		}
+	}
+
+	if flags&8 == 8 {
+		if b, err := buf.ReadByte(); err != nil {
+			return errors.Wrap(err, "field delivery-mode: read octet failed")
+		} else {
+			f.DeliveryMode = b
+		}
+	}
+
+	if flags&16 == 16 {
+		if b, err := buf.ReadByte(); err != nil {
+			return errors.Wrap(err, "field priority: read octet failed")
+		} else {
+			f.Priority = b
+		}
+	}
+
+	if flags&32 == 32 {
+		if b, err := buf.ReadByte(); err != nil {
+			return errors.Wrap(err, "field correlation-id: read shortstr failed")
+		} else {
+			l := int(b)
+			s := buf.Next(l)
+			if len(s) < l {
+				return errors.New("field correlation-id: read shortstr failed")
+			}
+			f.CorrelationID = string(s)
+		}
+	}
+
+	if flags&64 == 64 {
+		if b, err := buf.ReadByte(); err != nil {
+			return errors.Wrap(err, "field reply-to: read shortstr failed")
+		} else {
+			l := int(b)
+			s := buf.Next(l)
+			if len(s) < l {
+				return errors.New("field reply-to: read shortstr failed")
+			}
+			f.ReplyTo = string(s)
+		}
+	}
+
+	if flags&128 == 128 {
+		if b, err := buf.ReadByte(); err != nil {
+			return errors.Wrap(err, "field expiration: read shortstr failed")
+		} else {
+			l := int(b)
+			s := buf.Next(l)
+			if len(s) < l {
+				return errors.New("field expiration: read shortstr failed")
+			}
+			f.Expiration = string(s)
+		}
+	}
+
+	if flags&256 == 256 {
+		if b, err := buf.ReadByte(); err != nil {
+			return errors.Wrap(err, "field message-id: read shortstr failed")
+		} else {
+			l := int(b)
+			s := buf.Next(l)
+			if len(s) < l {
+				return errors.New("field message-id: read shortstr failed")
+			}
+			f.MessageID = string(s)
+		}
+	}
+
+	if flags&512 == 512 {
+		if n, err := buf.Read(x[:8]); err != nil {
+			return errors.Wrap(err, "field timestamp: read timestamp failed")
+		} else if n < 8 {
+			return errors.New("field timestamp: read timestamp failed")
+		}
+		f.Timestamp = time.Unix(int64(endian.Uint64(x[:8])), 0)
+	}
+
+	if flags&1024 == 1024 {
+		if b, err := buf.ReadByte(); err != nil {
+			return errors.Wrap(err, "field type: read shortstr failed")
+		} else {
+			l := int(b)
+			s := buf.Next(l)
+			if len(s) < l {
+				return errors.New("field type: read shortstr failed")
+			}
+			f.Type = string(s)
+		}
+	}
+
+	if flags&2048 == 2048 {
+		if b, err := buf.ReadByte(); err != nil {
+			return errors.Wrap(err, "field user-id: read shortstr failed")
+		} else {
+			l := int(b)
+			s := buf.Next(l)
+			if len(s) < l {
+				return errors.New("field user-id: read shortstr failed")
+			}
+			f.UserID = string(s)
+		}
+	}
+
+	if flags&4096 == 4096 {
+		if b, err := buf.ReadByte(); err != nil {
+			return errors.Wrap(err, "field app-id: read shortstr failed")
+		} else {
+			l := int(b)
+			s := buf.Next(l)
+			if len(s) < l {
+				return errors.New("field app-id: read shortstr failed")
+			}
+			f.AppID = string(s)
+		}
+	}
+
+	if flags&8192 == 8192 {
+		if b, err := buf.ReadByte(); err != nil {
+			return errors.Wrap(err, "field reserved: read shortstr failed")
+		} else {
+			l := int(b)
+			s := buf.Next(l)
+			if len(s) < l {
+				return errors.New("field reserved: read shortstr failed")
+			}
+			f.Reserved = string(s)
+		}
+	}
+
+	if remains := buf.Len(); remains != 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
+	}
+
+	return nil
 }
 
 func (f *ContentHeaderFrame) Marshal() ([]byte, error) {
@@ -2983,7 +3227,7 @@ func (f *ContentHeaderFrame) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
 
 	if f.ContentType != "" {
-		flags |= 1 << 0
+		flags |= 1
 
 		if l := len(f.ContentType); l > math.MaxUint8 {
 			return nil, errors.Errorf("content-type can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
@@ -2994,7 +3238,7 @@ func (f *ContentHeaderFrame) Marshal() ([]byte, error) {
 	}
 
 	if f.ContentEncoding != "" {
-		flags |= 1 << 1
+		flags |= 2
 
 		if l := len(f.ContentEncoding); l > math.MaxUint8 {
 			return nil, errors.Errorf("content-encoding can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
@@ -3005,7 +3249,7 @@ func (f *ContentHeaderFrame) Marshal() ([]byte, error) {
 	}
 
 	if f.Headers != nil {
-		flags |= 1 << 2
+		flags |= 4
 
 		if tableBuf, err := marshalTable(f.Headers); err != nil {
 			return nil, errors.Wrap(err, "headers table marshal failed")
@@ -3017,19 +3261,19 @@ func (f *ContentHeaderFrame) Marshal() ([]byte, error) {
 	}
 
 	if f.DeliveryMode > 0 {
-		flags |= 1 << 3
+		flags |= 8
 
 		buf.WriteByte(f.DeliveryMode)
 	}
 
 	if f.Priority > 0 {
-		flags |= 1 << 4
+		flags |= 16
 
 		buf.WriteByte(f.Priority)
 	}
 
 	if f.CorrelationID != "" {
-		flags |= 1 << 5
+		flags |= 32
 
 		if l := len(f.CorrelationID); l > math.MaxUint8 {
 			return nil, errors.Errorf("correlation-id can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
@@ -3040,7 +3284,7 @@ func (f *ContentHeaderFrame) Marshal() ([]byte, error) {
 	}
 
 	if f.ReplyTo != "" {
-		flags |= 1 << 6
+		flags |= 64
 
 		if l := len(f.ReplyTo); l > math.MaxUint8 {
 			return nil, errors.Errorf("reply-to can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
@@ -3051,7 +3295,7 @@ func (f *ContentHeaderFrame) Marshal() ([]byte, error) {
 	}
 
 	if f.Expiration != "" {
-		flags |= 1 << 7
+		flags |= 128
 
 		if l := len(f.Expiration); l > math.MaxUint8 {
 			return nil, errors.Errorf("expiration can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
@@ -3062,7 +3306,7 @@ func (f *ContentHeaderFrame) Marshal() ([]byte, error) {
 	}
 
 	if f.MessageID != "" {
-		flags |= 1 << 8
+		flags |= 256
 
 		if l := len(f.MessageID); l > math.MaxUint8 {
 			return nil, errors.Errorf("message-id can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
@@ -3073,14 +3317,14 @@ func (f *ContentHeaderFrame) Marshal() ([]byte, error) {
 	}
 
 	if !f.Timestamp.IsZero() {
-		flags |= 1 << 9
+		flags |= 512
 
 		endian.PutUint64(x[:8], uint64(f.Timestamp.Unix()))
 		buf.Write(x[:8])
 	}
 
 	if f.Type != "" {
-		flags |= 1 << 10
+		flags |= 1024
 
 		if l := len(f.Type); l > math.MaxUint8 {
 			return nil, errors.Errorf("type can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
@@ -3091,7 +3335,7 @@ func (f *ContentHeaderFrame) Marshal() ([]byte, error) {
 	}
 
 	if f.UserID != "" {
-		flags |= 1 << 11
+		flags |= 2048
 
 		if l := len(f.UserID); l > math.MaxUint8 {
 			return nil, errors.Errorf("user-id can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
@@ -3102,7 +3346,7 @@ func (f *ContentHeaderFrame) Marshal() ([]byte, error) {
 	}
 
 	if f.AppID != "" {
-		flags |= 1 << 12
+		flags |= 4096
 
 		if l := len(f.AppID); l > math.MaxUint8 {
 			return nil, errors.Errorf("app-id can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
@@ -3113,7 +3357,7 @@ func (f *ContentHeaderFrame) Marshal() ([]byte, error) {
 	}
 
 	if f.Reserved != "" {
-		flags |= 1 << 13
+		flags |= 8192
 
 		if l := len(f.Reserved); l > math.MaxUint8 {
 			return nil, errors.Errorf("reserved can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
@@ -3124,7 +3368,7 @@ func (f *ContentHeaderFrame) Marshal() ([]byte, error) {
 	}
 
 	ret := bytes.Buffer{}
-	endian.PutUint16(x[:2], f.ClassID)
+	endian.PutUint16(x[:2], uint16(f.ClassID))
 	ret.Write(x[:2])
 	endian.PutUint16(x[:2], f.Weight)
 	ret.Write(x[:2])
@@ -3194,7 +3438,11 @@ func (f *BasicQos) Unmarshal(data []byte) error {
 		return errors.New("field prefetch-count: read short failed")
 	}
 	f.PrefetchCount = endian.Uint16(x[:2])
-	// TODO: end bit fields
+	if bits, err := buf.ReadByte(); err != nil {
+		return errors.Wrap(err, "read bits failed")
+	} else {
+		f.Global = (bits & 1) == 1
+	}
 	if remains := buf.Len(); remains != 0 {
 		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
 	}
@@ -3216,7 +3464,7 @@ func (f *BasicQos) Marshal() ([]byte, error) {
 	endian.PutUint16(x[:2], f.PrefetchCount)
 	buf.Write(x[:2])
 	if f.Global {
-		bits |= 1 << 0
+		bits |= 1
 	}
 	buf.WriteByte(bits)
 	bits = 0
@@ -3361,11 +3609,13 @@ func (f *BasicConsume) Unmarshal(data []byte) error {
 		f.ConsumerTag = string(s)
 	}
 
-	if b, err := buf.ReadByte(); err != nil {
+	if bits, err := buf.ReadByte(); err != nil {
 		return errors.Wrap(err, "read bits failed")
 	} else {
-		_ = b
-		// TODO: bit fields
+		f.NoLocal = bits&1 == 1
+		f.NoAck = bits&2 == 2
+		f.Exclusive = bits&4 == 4
+		f.NoWait = bits&8 == 8
 	}
 	if n, err := buf.Read(x[:4]); err != nil {
 		return errors.Wrap(err, "field arguments: read table failed")
@@ -3412,19 +3662,19 @@ func (f *BasicConsume) Marshal() ([]byte, error) {
 		buf.WriteString(f.ConsumerTag)
 	}
 	if f.NoLocal {
-		bits |= 1 << 0
+		bits |= 1
 	}
 
 	if f.NoAck {
-		bits |= 1 << 1
+		bits |= 2
 	}
 
 	if f.Exclusive {
-		bits |= 1 << 2
+		bits |= 4
 	}
 
 	if f.NoWait {
-		bits |= 1 << 3
+		bits |= 8
 	}
 	buf.WriteByte(bits)
 	bits = 0
@@ -3570,7 +3820,11 @@ func (f *BasicCancel) Unmarshal(data []byte) error {
 		}
 		f.ConsumerTag = string(s)
 	}
-	// TODO: end bit fields
+	if bits, err := buf.ReadByte(); err != nil {
+		return errors.Wrap(err, "read bits failed")
+	} else {
+		f.NoWait = (bits & 1) == 1
+	}
 	if remains := buf.Len(); remains != 0 {
 		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
 	}
@@ -3594,7 +3848,7 @@ func (f *BasicCancel) Marshal() ([]byte, error) {
 		buf.WriteString(f.ConsumerTag)
 	}
 	if f.NoWait {
-		bits |= 1 << 0
+		bits |= 1
 	}
 	buf.WriteByte(bits)
 	bits = 0
@@ -3753,7 +4007,12 @@ func (f *BasicPublish) Unmarshal(data []byte) error {
 		f.RoutingKey = string(s)
 	}
 
-	// TODO: end bit fields
+	if bits, err := buf.ReadByte(); err != nil {
+		return errors.Wrap(err, "read bits failed")
+	} else {
+		f.Mandatory = (bits & 1) == 1
+		f.Immediate = (bits & 2) == 2
+	}
 	if remains := buf.Len(); remains != 0 {
 		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
 	}
@@ -3785,11 +4044,11 @@ func (f *BasicPublish) Marshal() ([]byte, error) {
 		buf.WriteString(f.RoutingKey)
 	}
 	if f.Mandatory {
-		bits |= 1 << 0
+		bits |= 1
 	}
 
 	if f.Immediate {
-		bits |= 1 << 1
+		bits |= 2
 	}
 	buf.WriteByte(bits)
 	bits = 0
@@ -3980,11 +4239,10 @@ func (f *BasicDeliver) Unmarshal(data []byte) error {
 		return errors.New("field delivery-tag: read longlong failed")
 	}
 	f.DeliveryTag = endian.Uint64(x[:8])
-	if b, err := buf.ReadByte(); err != nil {
+	if bits, err := buf.ReadByte(); err != nil {
 		return errors.Wrap(err, "read bits failed")
 	} else {
-		_ = b
-		// TODO: bit fields
+		f.Redelivered = bits&1 == 1
 	}
 	if b, err := buf.ReadByte(); err != nil {
 		return errors.Wrap(err, "field exchange: read shortstr failed")
@@ -4031,7 +4289,7 @@ func (f *BasicDeliver) Marshal() ([]byte, error) {
 	endian.PutUint64(x[:8], f.DeliveryTag)
 	buf.Write(x[:8])
 	if f.Redelivered {
-		bits |= 1 << 0
+		bits |= 1
 	}
 	buf.WriteByte(bits)
 	bits = 0
@@ -4111,7 +4369,11 @@ func (f *BasicGet) Unmarshal(data []byte) error {
 		}
 		f.Queue = string(s)
 	}
-	// TODO: end bit fields
+	if bits, err := buf.ReadByte(); err != nil {
+		return errors.Wrap(err, "read bits failed")
+	} else {
+		f.NoAck = (bits & 1) == 1
+	}
 	if remains := buf.Len(); remains != 0 {
 		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
 	}
@@ -4137,7 +4399,7 @@ func (f *BasicGet) Marshal() ([]byte, error) {
 		buf.WriteString(f.Queue)
 	}
 	if f.NoAck {
-		bits |= 1 << 0
+		bits |= 1
 	}
 	buf.WriteByte(bits)
 	bits = 0
@@ -4197,11 +4459,10 @@ func (f *BasicGetOk) Unmarshal(data []byte) error {
 		return errors.New("field delivery-tag: read longlong failed")
 	}
 	f.DeliveryTag = endian.Uint64(x[:8])
-	if b, err := buf.ReadByte(); err != nil {
+	if bits, err := buf.ReadByte(); err != nil {
 		return errors.Wrap(err, "read bits failed")
 	} else {
-		_ = b
-		// TODO: bit fields
+		f.Redelivered = bits&1 == 1
 	}
 	if b, err := buf.ReadByte(); err != nil {
 		return errors.Wrap(err, "field exchange: read shortstr failed")
@@ -4248,7 +4509,7 @@ func (f *BasicGetOk) Marshal() ([]byte, error) {
 	endian.PutUint64(x[:8], f.DeliveryTag)
 	buf.Write(x[:8])
 	if f.Redelivered {
-		bits |= 1 << 0
+		bits |= 1
 	}
 	buf.WriteByte(bits)
 	bits = 0
@@ -4397,7 +4658,11 @@ func (f *BasicAck) Unmarshal(data []byte) error {
 		return errors.New("field delivery-tag: read longlong failed")
 	}
 	f.DeliveryTag = endian.Uint64(x[:8])
-	// TODO: end bit fields
+	if bits, err := buf.ReadByte(); err != nil {
+		return errors.Wrap(err, "read bits failed")
+	} else {
+		f.Multiple = (bits & 1) == 1
+	}
 	if remains := buf.Len(); remains != 0 {
 		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
 	}
@@ -4417,7 +4682,7 @@ func (f *BasicAck) Marshal() ([]byte, error) {
 	endian.PutUint64(x[:8], f.DeliveryTag)
 	buf.Write(x[:8])
 	if f.Multiple {
-		bits |= 1 << 0
+		bits |= 1
 	}
 	buf.WriteByte(bits)
 	bits = 0
@@ -4474,7 +4739,11 @@ func (f *BasicReject) Unmarshal(data []byte) error {
 		return errors.New("field delivery-tag: read longlong failed")
 	}
 	f.DeliveryTag = endian.Uint64(x[:8])
-	// TODO: end bit fields
+	if bits, err := buf.ReadByte(); err != nil {
+		return errors.Wrap(err, "read bits failed")
+	} else {
+		f.Requeue = (bits & 1) == 1
+	}
 	if remains := buf.Len(); remains != 0 {
 		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
 	}
@@ -4494,7 +4763,7 @@ func (f *BasicReject) Marshal() ([]byte, error) {
 	endian.PutUint64(x[:8], f.DeliveryTag)
 	buf.Write(x[:8])
 	if f.Requeue {
-		bits |= 1 << 0
+		bits |= 1
 	}
 	buf.WriteByte(bits)
 	bits = 0
@@ -4544,7 +4813,11 @@ func (f *BasicRecoverAsync) Unmarshal(data []byte) error {
 	} else {
 		f.MethodMeta.MethodID = id
 	}
-	// TODO: end bit fields
+	if bits, err := buf.ReadByte(); err != nil {
+		return errors.Wrap(err, "read bits failed")
+	} else {
+		f.Requeue = (bits & 1) == 1
+	}
 	if remains := buf.Len(); remains != 0 {
 		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
 	}
@@ -4562,7 +4835,7 @@ func (f *BasicRecoverAsync) Marshal() ([]byte, error) {
 	endian.PutUint16(x[:2], uint16(BasicRecoverAsyncMethod))
 	buf.Write(x[:2])
 	if f.Requeue {
-		bits |= 1 << 0
+		bits |= 1
 	}
 	buf.WriteByte(bits)
 	bits = 0
@@ -4612,7 +4885,11 @@ func (f *BasicRecover) Unmarshal(data []byte) error {
 	} else {
 		f.MethodMeta.MethodID = id
 	}
-	// TODO: end bit fields
+	if bits, err := buf.ReadByte(); err != nil {
+		return errors.Wrap(err, "read bits failed")
+	} else {
+		f.Requeue = (bits & 1) == 1
+	}
 	if remains := buf.Len(); remains != 0 {
 		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
 	}
@@ -4630,7 +4907,7 @@ func (f *BasicRecover) Marshal() ([]byte, error) {
 	endian.PutUint16(x[:2], uint16(BasicRecoverMethod))
 	buf.Write(x[:2])
 	if f.Requeue {
-		bits |= 1 << 0
+		bits |= 1
 	}
 	buf.WriteByte(bits)
 	bits = 0

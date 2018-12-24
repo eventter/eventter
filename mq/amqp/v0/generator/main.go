@@ -139,6 +139,18 @@ var tpl = template.Must(template.New("tpl").Funcs(map[string]interface{}{
 
 		return false
 	},
+	"emptyStringSlice": func() []string {
+		return nil
+	},
+	"append": func(xs []string, x string) []string {
+		ys := make([]string, len(xs)+1)
+		copy(ys, xs)
+		ys[len(xs)] = x
+		return ys
+	},
+	"bit": func(x int) int {
+		return 1 << uint(x)
+	},
 }).Parse(`
 {{- define "marshalField" -}}
 {{- $goFieldName := .Name|convertCase -}}
@@ -256,7 +268,7 @@ var tpl = template.Must(template.New("tpl").Funcs(map[string]interface{}{
 	if n, err := buf.Read(x[:8]); err != nil {
 		return errors.Wrap(err, "field {{ .Name }}: read timestamp failed")
 	} else if n < 8 {
-		return ErrShortRead
+		return errors.New("field {{ .Name }}: read timestamp failed")
 	}
 	f.{{ $goFieldName }} = time.Unix(int64(endian.Uint64(x[:8])), 0)
 {{- else -}}
@@ -342,7 +354,7 @@ func (f *HeartbeatFrame) FrameType() FrameType {
 {{ if gt ($class.Fields|len) 0 }}
 type ContentHeaderFrame struct {
 	FrameMeta
-	ClassID uint16
+	ClassID ClassID
 	Weight uint16
 	BodySize uint64
 	{{- range $field := $class.Fields }}
@@ -354,8 +366,55 @@ func (f *ContentHeaderFrame) FrameType() FrameType {
 	return f.FrameMeta.Type
 }
 
-func (f *ContentHeaderFrame) Unmarshal(buf []byte) error {
-	panic("implement me")
+func (f *ContentHeaderFrame) Unmarshal(data []byte) error {
+	var x [8]byte
+	_ = x
+	buf := bytes.NewBuffer(data)
+
+	if n, err := buf.Read(x[:2]); err != nil {
+		return errors.Wrap(err, "read class ID failed")
+	} else if n < 2 {
+		return errors.New("read class ID failed")
+	}
+	if id := ClassID(endian.Uint16(x[:2])); id != {{ $class.Name|convertCase }}Class {
+		return errors.Errorf("expected class ID %d, got %d", {{ $class.Name|convertCase }}Class, id)
+	} else {
+		f.ClassID = id
+	}
+
+	if n, err := buf.Read(x[:2]); err != nil {
+		return errors.Wrap(err, "read weight failed")
+	} else if n < 2 {
+		return errors.New("read weight failed")
+	}
+	f.Weight = endian.Uint16(x[:2])
+
+	if n, err := buf.Read(x[:8]); err != nil {
+		return errors.Wrap(err, "read body size failed")
+	} else if n < 8 {
+		return errors.New("read body size failed")
+	}
+	f.BodySize = endian.Uint64(x[:8])
+
+	if n, err := buf.Read(x[:2]); err != nil {
+		return errors.Wrap(err, "read flags failed")
+	} else if n < 2 {
+		return errors.New("read flags failed")
+	}
+	flags := endian.Uint16(x[:2])
+
+	{{- range $index, $field := $class.Fields }}
+		{{ $goFieldName := $field.Name|convertCase }}
+		if flags & {{ bit $index }} == {{ bit $index }} {
+			{{- template "unmarshalField" $field }}
+		}
+	{{- end }}
+
+	if remains := buf.Len(); remains != 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
+	}
+
+	return nil
 }
 
 func (f *ContentHeaderFrame) Marshal() ([]byte, error) {
@@ -376,13 +435,13 @@ func (f *ContentHeaderFrame) Marshal() ([]byte, error) {
 		{{- else -}}
 			{{- panic (printf "unhandled type %s" $field.Type) -}}
 		{{- end -}}
-			flags |= 1 << {{ $index }}
+			flags |= {{ bit $index }}
 			{{ template "marshalField" $field }}
 		}
 	{{- end }}
 
 	ret := bytes.Buffer{}
-	endian.PutUint16(x[:2], f.ClassID)
+	endian.PutUint16(x[:2], uint16(f.ClassID))
 	ret.Write(x[:2])
 	endian.PutUint16(x[:2], f.Weight)
 	ret.Write(x[:2])
@@ -443,27 +502,34 @@ func (f *{{ $frame }}) Unmarshal(data []byte) error {
 	} else {
 		f.MethodMeta.MethodID = id
 	}
-	{{- $bitFields := 0 }}
+	{{- $bitFieldNames := emptyStringSlice }}
 	{{- range $field := $method.Fields }}
 		{{- $goFieldName := $field.Name|convertCase -}}
 		{{- if eq $field.Type "bit" }}
-			{{ $bitFields = inc $bitFields }}
+			{{ $bitFieldNames = append $bitFieldNames $goFieldName }}
 		{{- else -}}
-			{{- if gt $bitFields 0 -}}
-				if b, err := buf.ReadByte(); err != nil {
+			{{- if gt (len $bitFieldNames) 0 -}}
+				if bits, err := buf.ReadByte(); err != nil {
 					return errors.Wrap(err, "read bits failed")
 				} else {
-					_ = b
-					// TODO: bit fields
+					{{- range $index, $fieldName := $bitFieldNames }}
+					f.{{ $fieldName }} = bits & {{ bit $index }} == {{ bit $index }}
+					{{- end }}
 				}
-				{{- $bitFields = 0 -}}
+				{{- $bitFieldNames = emptyStringSlice -}}
 			{{- end }}
 			{{- template "unmarshalField" $field }}
 		{{- end -}}
 	{{- end }}
-	{{- if gt $bitFields 0 -}}
-		// TODO: end bit fields
-		{{- $bitFields = 0 -}}
+	{{- if gt (len $bitFieldNames) 0 -}}
+		if bits, err := buf.ReadByte(); err != nil {
+			return errors.Wrap(err, "read bits failed")
+		} else {
+			{{- range $index, $fieldName := $bitFieldNames }}
+			f.{{ $fieldName }} = (bits & {{ bit $index }}) == {{ bit $index }}
+			{{- end }}
+		}
+		{{- $bitFieldNames = emptyStringSlice -}}
 	{{- end }}
 	if remains := buf.Len(); remains != 0 {
 		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
@@ -486,7 +552,7 @@ func (f *{{ $frame }}) Marshal() ([]byte, error) {
 		{{- $goFieldName := $field.Name|convertCase -}}
 		{{- if eq $field.Type "bit" }}
 			if f.{{ $goFieldName }} {
-				bits |= 1 << {{ $bitFields }}
+				bits |= {{ bit $bitFields }}
 			}
 			{{ $bitFields = inc $bitFields }}
 		{{- else -}}

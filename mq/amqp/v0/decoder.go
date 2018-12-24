@@ -39,7 +39,7 @@ func (d *Decoder) Decode() (Frame, error) {
 		return nil, errors.Errorf("frame-end: expected %x, got %x", FrameEnd, d.buf[size])
 	}
 
-	frameMeta := FrameMeta{
+	meta := FrameMeta{
 		Type:    frameType,
 		Channel: channel,
 		Size:    size,
@@ -48,17 +48,17 @@ func (d *Decoder) Decode() (Frame, error) {
 	data := d.buf[:size]
 	switch frameType {
 	case FrameMethod:
-		return decodeMethodFrame(frameMeta, data)
+		return decodeMethodFrame(meta, data)
 	case FrameHeader:
-		contentHeader := &ContentHeaderFrame{FrameMeta: frameMeta}
+		contentHeader := &ContentHeaderFrame{FrameMeta: meta}
 		return contentHeader, contentHeader.Unmarshal(data)
 	case FrameBody:
-		return &ContentFrame{FrameMeta: frameMeta, Data: data}, nil
+		return &ContentFrame{FrameMeta: meta, Data: data}, nil
 	case FrameHeartbeat:
 		if len(data) > 0 {
 			return nil, errors.New("heartbeat frame with content")
 		}
-		return &HeartbeatFrame{FrameMeta: frameMeta}, nil
+		return &HeartbeatFrame{FrameMeta: meta}, nil
 	default:
 		return nil, errors.Errorf("unhandled frame type: %d", frameType)
 	}
