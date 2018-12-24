@@ -313,13 +313,14 @@ const (
 )
 
 type Frame interface {
-	FrameType() FrameType
+	GetFrameMeta() *FrameMeta
 }
 
 type MethodFrame interface {
 	Frame
-	FrameClassID() ClassID
-	FrameMethodID() MethodID
+	FixMethodMeta()
+	GetMethodMeta() *MethodMeta
+	Marshal() ([]byte, error)
 }
 
 type FrameMeta struct {
@@ -333,21 +334,21 @@ type MethodMeta struct {
 	MethodID MethodID
 }
 
-type ContentFrame struct {
+type ContentBodyFrame struct {
 	FrameMeta
 	Data []byte
 }
 
-func (f *ContentFrame) FrameType() FrameType {
-	return f.FrameMeta.Type
+func (f *ContentBodyFrame) GetFrameMeta() *FrameMeta {
+	return &f.FrameMeta
 }
 
 type HeartbeatFrame struct {
 	FrameMeta
 }
 
-func (f *HeartbeatFrame) FrameType() FrameType {
-	return f.FrameMeta.Type
+func (f *HeartbeatFrame) GetFrameMeta() *FrameMeta {
+	return &f.FrameMeta
 }
 
 {{ range $class := .Classes }}
@@ -362,8 +363,8 @@ type ContentHeaderFrame struct {
 	{{- end }}
 }
 
-func (f *ContentHeaderFrame) FrameType() FrameType {
-	return f.FrameMeta.Type
+func (f *ContentHeaderFrame) GetFrameMeta() *FrameMeta {
+	return &f.FrameMeta
 }
 
 func (f *ContentHeaderFrame) Unmarshal(data []byte) error {
@@ -465,43 +466,29 @@ type {{ $frame }} struct {
 	{{- end }}
 }
 
-func (f *{{ $frame }}) FrameType() FrameType {
-	return f.FrameMeta.Type
+func (f *{{ $frame }}) GetFrameMeta() *FrameMeta {
+	return &f.FrameMeta
 }
 
-func (f *{{ $frame }}) FrameClassID() ClassID {
-	return f.MethodMeta.ClassID
+func (f *{{ $frame }}) FixMethodMeta() {
+	f.MethodMeta.ClassID = {{ $class.Name|convertCase }}Class
+	f.MethodMeta.MethodID = {{ $class.Name|convertCase }}{{ $method.Name|convertCase }}Method
 }
 
-func (f *{{ $frame }}) FrameMethodID() MethodID {
-	return f.MethodMeta.MethodID
+func (f *{{ $frame }}) GetMethodMeta() *MethodMeta {
+	return &f.MethodMeta
 }
 
 func (f *{{ $frame }}) Unmarshal(data []byte) error {
+	{{- if eq (len $method.Fields) 0 }}
+	if remains := len(data); remains > 0 {
+		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
+	}
+	{{- else }}
 	var x [8]byte
 	_ = x
 	buf := bytes.NewBuffer(data)
 
-	if n, err := buf.Read(x[:2]); err != nil {
-		return errors.Wrap(err, "read class ID failed")
-	} else if n < 2 {
-		return errors.New("read class ID failed")
-	}
-	if id := ClassID(endian.Uint16(x[:2])); id != {{ $class.Name|convertCase }}Class {
-		return errors.Errorf("expected class ID %d, got %d", {{ $class.Name|convertCase }}Class, id)
-	} else {
-		f.MethodMeta.ClassID = id
-	}
-	if n, err := buf.Read(x[:2]); err != nil {
-		return errors.Wrap(err, "read method ID failed")
-	} else if n < 2 {
-		return errors.New("read method ID failed")
-	}
-	if id := MethodID(endian.Uint16(x[:2])); id != {{ $class.Name|convertCase }}{{ $method.Name|convertCase }}Method {
-		return errors.Errorf("expected method ID %d, got %d", {{ $class.Name|convertCase }}{{ $method.Name|convertCase }}Method, id)
-	} else {
-		f.MethodMeta.MethodID = id
-	}
 	{{- $bitFieldNames := emptyStringSlice }}
 	{{- range $field := $method.Fields }}
 		{{- $goFieldName := $field.Name|convertCase -}}
@@ -534,19 +521,19 @@ func (f *{{ $frame }}) Unmarshal(data []byte) error {
 	if remains := buf.Len(); remains != 0 {
 		return errors.Errorf("buffer not fully read, remains %d bytes", remains)
 	}
+	{{- end }}
 	return nil
 }
 
 func (f *{{ $frame }}) Marshal() ([]byte, error) {
+	{{- if eq (len $method.Fields) 0 }}
+	return nil, nil
+	{{- else }}
 	var x [8]byte
 	_ = x
 	var bits byte = 0
 	_ = bits
 	buf := bytes.Buffer{}
-	endian.PutUint16(x[:2], uint16({{ $class.Name|convertCase }}Class))
-	buf.Write(x[:2])
-	endian.PutUint16(x[:2], uint16({{ $class.Name|convertCase }}{{ $method.Name|convertCase }}Method))
-	buf.Write(x[:2])
 	{{- $bitFields := 0 }}
 	{{- range $field := $method.Fields }}
 		{{- $goFieldName := $field.Name|convertCase -}}
@@ -570,6 +557,7 @@ func (f *{{ $frame }}) Marshal() ([]byte, error) {
 		{{- $bitFields = 0 -}}
 	{{- end }}
 	return buf.Bytes(), nil
+	{{- end }}
 }
 {{ end }}
 {{ end }}
@@ -589,8 +577,17 @@ func decodeMethodFrame(frameMeta FrameMeta, data []byte) (MethodFrame, error) {
 		{{- range $method := $class.Methods }}
 		{{- $frame := join ($class.Name|convertCase) ($method.Name|convertCase) }}
 		case {{ $class.Name|convertCase }}{{ $method.Name|convertCase }}Method:
-			f := &{{ $frame }}{FrameMeta: frameMeta}
-			return f, f.Unmarshal(data)
+			frame := &{{ $frame }}{
+				FrameMeta: frameMeta,
+				MethodMeta: MethodMeta{
+					ClassID: classID,
+					MethodID: methodID,
+				},
+			}
+			if err := frame.Unmarshal(data[4:]); err != nil {
+				return nil, err
+			}
+			return frame, nil
 		{{ end }}
 		default:
 			return nil, errors.Errorf("unhandled method ID %d of class {{ $class.Name }}", methodID)

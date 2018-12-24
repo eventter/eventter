@@ -16,11 +16,16 @@ type Config struct {
 	BindHost      string
 	AdvertiseHost string
 	Port          int
+	AMQPPort      int
 	Dir           string
 	DirPerm       os.FileMode
 }
 
 func (c *Config) Init() error {
+	if c.AMQPPort == 0 && c.Port != 0 {
+		c.AMQPPort = c.Port + 1
+	}
+
 	if c.Dir == "" {
 		return errors.New("dir not set")
 	}

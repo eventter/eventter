@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"eventter.io/mq"
+	"eventter.io/mq/amqp"
 	"eventter.io/mq/client"
 	"eventter.io/mq/segments"
 	"github.com/bbva/raft-badger"
@@ -148,13 +149,14 @@ func Cmd() *cobra.Command {
 			client.RegisterEventterMQServer(grpcServer, server)
 			mq.RegisterNodeRPCServer(grpcServer, server)
 
-			listener, err := net.Listen("tcp", rootConfig.BindHost+":"+strconv.Itoa(rootConfig.Port))
+			grpcListener, err := net.Listen("tcp", rootConfig.BindHost+":"+strconv.Itoa(rootConfig.Port))
 			if err != nil {
-				return errors.Wrap(err, "listen failed")
+				return errors.Wrap(err, "grpc listen failed")
 			}
-			defer listener.Close()
-			go grpcServer.Serve(listener)
+			defer grpcListener.Close()
+			go grpcServer.Serve(grpcListener)
 			defer grpcServer.Stop()
+			log.Println("grpc server started on", grpcListener.Addr())
 
 			if len(join) == 0 {
 				hasExistingState, err := raft.HasExistingState(raftLogStore, raftStableStore, raftSnapshotStore)
@@ -183,6 +185,17 @@ func Cmd() *cobra.Command {
 					return errors.Wrap(err, "join failed")
 				}
 			}
+
+			amqpListener, err := net.Listen("tcp", rootConfig.BindHost+":"+strconv.Itoa(rootConfig.AMQPPort))
+			if err != nil {
+				return errors.Wrap(err, "amqp listen failed")
+			}
+			defer amqpListener.Close()
+			amqpServer := &amqp.Server{
+				ConnectTimeout: 10 * time.Second,
+			}
+			go amqpServer.Serve(amqpListener)
+			log.Println("amqp server started at", amqpListener.Addr())
 
 			interrupt := make(chan os.Signal, 1)
 			signal.Notify(interrupt, syscall.SIGINT, syscall.SIGTERM)
@@ -217,6 +230,7 @@ func Cmd() *cobra.Command {
 	cmd.PersistentFlags().IntVar(&rootConfig.Port, "port", 16000, "Node port.")
 	cmd.Flags().Uint64Var(&rootConfig.ID, "id", 0, "Node ID. Must be unique across cluster & stable.")
 	cmd.Flags().StringVar(&rootConfig.AdvertiseHost, "advertise-host", "", "Host that will the node advertise to others.")
+	cmd.Flags().IntVar(&rootConfig.AMQPPort, "amqp-port", 0, "AMQP port. If not specified, defaults to `port + 1`.")
 	cmd.Flags().StringVar(&rootConfig.Dir, "dir", "", "Persistent data directory.")
 	cmd.Flags().Uint32Var((*uint32)(&rootConfig.DirPerm), "dir-perm", 0755, "Persistent data directory permissions.")
 	cmd.Flags().StringSliceVar(&join, "join", nil, "Running peers to join.")
