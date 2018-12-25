@@ -17,14 +17,6 @@ type HandlerV0 interface {
 	ServeAMQPv0(transport *v0.Transport, token authentication.Token, heartbeat time.Duration, virtualHost string) error
 }
 
-type ServerConnV0 struct {
-	Transport   *v0.Transport
-	Token       authentication.Token
-	ChannelMax  uint16
-	Heartbeat   time.Duration
-	VirtualHost string
-}
-
 func (s *Server) initV0(transport *v0.Transport, r *bufio.Reader) (token authentication.Token, heartbeat time.Duration, virtualHost string, err error) {
 	var mechanisms []string
 	for _, provider := range s.AuthenticationProviders {

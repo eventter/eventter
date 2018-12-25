@@ -15,6 +15,10 @@ const (
 )
 
 func (s *Server) ServeAMQPv0(transport *v0.Transport, token authentication.Token, heartbeat time.Duration, virtualHost string) error {
+	if virtualHost == "/" {
+		virtualHost = "default"
+	}
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 

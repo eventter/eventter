@@ -23,9 +23,11 @@ func (s *Server) Loop(memberEventsC chan memberlist.NodeEvent) {
 		leaderTickC = c
 	}
 	leaderTicker := time.NewTicker(10 * time.Second)
+	defer leaderTicker.Stop()
 
 	var state *ClusterState = nil
 	nodeTicker := time.NewTicker(100 * time.Millisecond)
+	defer nodeTicker.Stop()
 
 	taskManager := tasks.NewManager(context.Background(), "main")
 	defer taskManager.Close()
@@ -35,6 +37,7 @@ func (s *Server) Loop(memberEventsC chan memberlist.NodeEvent) {
 	runningClosedSegmentReplications := make(map[uint64]*tasks.Task)
 
 	garbageCollectionTicker := time.NewTicker(10 * time.Second)
+	defer garbageCollectionTicker.Stop()
 
 LOOP:
 	for {
@@ -282,6 +285,9 @@ LOOP:
 }
 
 func (s *Server) Members() []*memberlist.Node {
+	if s.members == nil {
+		return nil
+	}
 	return s.members.Members()
 }
 

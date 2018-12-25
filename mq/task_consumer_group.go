@@ -92,6 +92,7 @@ func (s *Server) taskConsumerGroup(ctx context.Context, namespaceName string, co
 	defer taskManager.Close()
 
 	ticker := time.NewTicker(100 * time.Millisecond)
+	defer ticker.Stop()
 	state = nil // !!! force re-read of state and start of consumption tasks
 	running := make(map[uint64]*tasks.Task)
 	var ackImmediately []consumers.MessageAck
