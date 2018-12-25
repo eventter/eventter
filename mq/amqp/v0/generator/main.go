@@ -285,6 +285,7 @@ package v{{ .Major }}
 import (
 	"bytes"
 	"math"
+	"strconv"
 	"time"
 
 	"github.com/gogo/protobuf/types"
@@ -295,13 +296,15 @@ type FrameType uint8
 type ClassID uint16
 type MethodID uint16
 
+var ErrMalformedFrame = errors.New("malformed frame")
+
 const (
 	Major = {{ .Major }}
 	Minor = {{ .Minor }}
 	Revision = {{ .Revision }}
 	Port = {{ .Port }}
 {{- range .Constants }}
-	{{ .Name|convertCase }}{{ if in .Name "frame-method" "frame-header" "frame-body" "frame-heartbeat" }} FrameType{{ end }} = {{ .Value }}
+	{{ .Name|convertCase }}{{ if in .Name "frame-method" "frame-header" "frame-body" "frame-heartbeat" }} FrameType{{ end }} = {{ .Value }}{{ if in .Class "soft-error" "hard-error" }} // {{ .Class }}{{ end }}
 {{- end }}
 {{- range $class := .Classes }}
 
@@ -466,6 +469,12 @@ type {{ $frame }} struct {
 	{{- end }}
 }
 
+{{- if eq $method.Name "close" }}
+func (f *{{ $frame }}) Error() string {
+	return f.ReplyText + " (" + strconv.Itoa(int(f.ReplyCode)) + ")"
+}
+{{- end }}
+
 func (f *{{ $frame }}) GetFrameMeta() *FrameMeta {
 	return &f.FrameMeta
 }
@@ -564,7 +573,7 @@ func (f *{{ $frame }}) Marshal() ([]byte, error) {
 
 func decodeMethodFrame(frameMeta FrameMeta, data []byte) (MethodFrame, error) {
 	if len(data) < 4 {
-		return nil, errors.New("method frame too short")
+		return nil, ErrMalformedFrame
 	}
 
 	classID := ClassID(endian.Uint16(data[0:2]))

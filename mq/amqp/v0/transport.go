@@ -105,7 +105,7 @@ func (t *Transport) Receive() (Frame, error) {
 	}
 
 	if t.buf[size] != FrameEnd {
-		return nil, errors.Errorf("frame-end: expected %x, got %x", FrameEnd, t.buf[size])
+		return nil, ErrMalformedFrame
 	}
 
 	meta := FrameMeta{
@@ -128,10 +128,10 @@ func (t *Transport) Receive() (Frame, error) {
 		return &ContentBodyFrame{FrameMeta: meta, Data: payload}, nil
 	case FrameHeartbeat:
 		if len(payload) > 0 {
-			return nil, errors.New("heartbeat frame with content")
+			return nil, ErrMalformedFrame
 		}
 		return &HeartbeatFrame{FrameMeta: meta}, nil
 	default:
-		return nil, errors.Errorf("unhandled frame type: %d", frameType)
+		return nil, ErrMalformedFrame
 	}
 }

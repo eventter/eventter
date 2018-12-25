@@ -2,7 +2,6 @@ package amqp
 
 import (
 	"bufio"
-	"fmt"
 	"io"
 	"log"
 	"math"
@@ -22,6 +21,8 @@ const (
 	defaultHeartbeat      = 10 * time.Second
 )
 
+type HandlerV0 func(conn net.Conn, sc *v0.ServerConn) error
+
 type Server struct {
 	// Max time to establish connection.
 	ConnectTimeout time.Duration
@@ -29,6 +30,8 @@ type Server struct {
 	AuthenticationProviders []authentication.Provider
 	// Heartbeat the server tries to negotiate with clients.
 	Heartbeat time.Duration
+	// Handle AMQP 0.9.1 connection.
+	HandlerV0 HandlerV0
 }
 
 func (s *Server) Serve(l net.Listener) error {
@@ -63,58 +66,45 @@ func (s *Server) Serve(l net.Listener) error {
 }
 
 func (s *Server) handle(conn net.Conn) {
-	var x [8]byte
-
-	r := bufio.NewReader(conn)
+	defer conn.Close()
 
 	if err := conn.SetDeadline(time.Now().Add(s.ConnectTimeout)); err != nil {
-		log.Printf("deadline failed: %v", err)
-		goto VERSION_CLOSE
-	}
-
-	if _, err := io.ReadFull(r, x[:]); err != nil {
-		log.Printf("read failed: %v", err)
-		goto VERSION_CLOSE
-	}
-	if x[0] != 'A' || x[1] != 'M' || x[2] != 'Q' || x[3] != 'P' {
-		log.Printf("invalid protocol %q", fmt.Sprintf("%c%c%c%c", x[0], x[1], x[2], x[3]))
-		goto VERSION_CLOSE
-	}
-
-	if x[4] == 0 && x[5] == v0.Major && x[6] == v0.Minor && x[7] == v0.Revision {
-		c, err := s.openV0(conn, r)
-		if err != nil {
-			log.Printf("could not init v%d.%d.%d connection: %v", x[5], x[6], x[7], err)
-			goto CLOSE
-		}
-		_ = c
-		// FIXME
+		log.Printf("[AMQP %s] set deadline failed: %s", conn.RemoteAddr(), err)
 	} else {
-		goto VERSION_CLOSE
-	}
+		var x [8]byte
+		r := bufio.NewReader(conn)
+		if _, err := io.ReadFull(r, x[:]); err != nil {
+			log.Printf("[AMQP %s] read failed: %s", conn.RemoteAddr(), err)
+		} else {
+			if x[0] == 'A' && x[1] == 'M' && x[2] == 'Q' && x[3] == 'P' && x[4] == 0 &&
+				x[5] == v0.Major && x[6] == v0.Minor && x[7] == v0.Revision && s.HandlerV0 != nil {
 
-	return
+				sc, err := s.initV0(conn, r)
+				if err != nil {
+					log.Printf("[AMQP %s] init v%d.%d.%d connection failed: %s", conn.RemoteAddr(), x[5], x[6], x[7], err)
+				} else {
+					err = s.HandlerV0(conn, sc)
+				}
 
-VERSION_CLOSE:
-	x[0] = 'A'
-	x[1] = 'M'
-	x[2] = 'Q'
-	x[3] = 'P'
-	x[4] = 0
-	x[5] = v0.Major
-	x[6] = v0.Minor
-	x[7] = v0.Revision
+			} else {
+				x[0] = 'A'
+				x[1] = 'M'
+				x[2] = 'Q'
+				x[3] = 'P'
+				x[4] = 0
+				x[5] = v0.Major
+				x[6] = v0.Minor
+				x[7] = v0.Revision
 
-	if _, err := conn.Write(x[:]); err != nil {
-		log.Printf("write close failed: %v", err)
-	}
-CLOSE:
-	if err := conn.Close(); err != nil {
-		log.Printf("close failed")
+				if _, err := conn.Write(x[:]); err != nil {
+					log.Printf("[AMQP %s] write close failed: %s", conn.RemoteAddr(), err)
+				}
+			}
+		}
 	}
 }
 
-func (s *Server) openV0(conn net.Conn, r *bufio.Reader) (*v0.ServerConn, error) {
+func (s *Server) initV0(conn net.Conn, r *bufio.Reader) (*v0.ServerConn, error) {
 	rw := bufio.NewReadWriter(r, bufio.NewWriter(conn))
 	transport := v0.NewTransport(rw)
 
@@ -231,11 +221,10 @@ func (s *Server) openV0(conn net.Conn, r *bufio.Reader) (*v0.ServerConn, error) 
 
 	err = conn.SetDeadline(time.Time{})
 	if err != nil {
-		return nil, errors.Wrap(err, "deadline failed")
+		return nil, errors.Wrap(err, "reset deadline failed")
 	}
 
 	return &v0.ServerConn{
-		Conn:        conn,
 		Transport:   transport,
 		Token:       token,
 		ChannelMax:  tuneOk.ChannelMax,

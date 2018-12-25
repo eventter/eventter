@@ -6,6 +6,7 @@ package v0
 import (
 	"bytes"
 	"math"
+	"strconv"
 	"time"
 
 	"github.com/gogo/protobuf/types"
@@ -15,6 +16,8 @@ import (
 type FrameType uint8
 type ClassID uint16
 type MethodID uint16
+
+var ErrMalformedFrame = errors.New("malformed frame")
 
 const (
 	Major                        = 0
@@ -28,23 +31,23 @@ const (
 	FrameMinSize                 = 4096
 	FrameEnd                     = 206
 	ReplySuccess                 = 200
-	ContentTooLarge              = 311
-	NoConsumers                  = 313
-	ConnectionForced             = 320
-	InvalidPath                  = 402
-	AccessRefused                = 403
-	NotFound                     = 404
-	ResourceLocked               = 405
-	PreconditionFailed           = 406
-	FrameError                   = 501
-	SyntaxError                  = 502
-	CommandInvalid               = 503
-	ChannelError                 = 504
-	UnexpectedFrame              = 505
-	ResourceError                = 506
-	NotAllowed                   = 530
-	NotImplemented               = 540
-	InternalError                = 541
+	ContentTooLarge              = 311 // soft-error
+	NoConsumers                  = 313 // soft-error
+	ConnectionForced             = 320 // hard-error
+	InvalidPath                  = 402 // hard-error
+	AccessRefused                = 403 // soft-error
+	NotFound                     = 404 // soft-error
+	ResourceLocked               = 405 // soft-error
+	PreconditionFailed           = 406 // soft-error
+	FrameError                   = 501 // hard-error
+	SyntaxError                  = 502 // hard-error
+	CommandInvalid               = 503 // hard-error
+	ChannelError                 = 504 // hard-error
+	UnexpectedFrame              = 505 // hard-error
+	ResourceError                = 506 // hard-error
+	NotAllowed                   = 530 // hard-error
+	NotImplemented               = 540 // hard-error
+	InternalError                = 541 // hard-error
 
 	ConnectionClass          ClassID  = 10
 	ConnectionStartMethod    MethodID = 10
@@ -765,6 +768,10 @@ type ConnectionClose struct {
 	MethodID  uint16
 }
 
+func (f *ConnectionClose) Error() string {
+	return f.ReplyText + " (" + strconv.Itoa(int(f.ReplyCode)) + ")"
+}
+
 func (f *ConnectionClose) GetFrameMeta() *FrameMeta {
 	return &f.FrameMeta
 }
@@ -1080,6 +1087,10 @@ type ChannelClose struct {
 	ReplyText string
 	ClassID   uint16
 	MethodID  uint16
+}
+
+func (f *ChannelClose) Error() string {
+	return f.ReplyText + " (" + strconv.Itoa(int(f.ReplyCode)) + ")"
 }
 
 func (f *ChannelClose) GetFrameMeta() *FrameMeta {
@@ -4025,7 +4036,7 @@ func (f *TxRollbackOk) Marshal() ([]byte, error) {
 
 func decodeMethodFrame(frameMeta FrameMeta, data []byte) (MethodFrame, error) {
 	if len(data) < 4 {
-		return nil, errors.New("method frame too short")
+		return nil, ErrMalformedFrame
 	}
 
 	classID := ClassID(endian.Uint16(data[0:2]))
