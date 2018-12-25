@@ -156,6 +156,7 @@ func TestServer_ServeAMQPv0_ExchangeDeclare(t *testing.T) {
 			}, &response)
 			assert.NoError(err)
 			assert.NotNil(response)
+			assert.Equal(uint16(v0.NotFound), response.ReplyCode)
 		}
 	}
 }

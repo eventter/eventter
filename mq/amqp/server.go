@@ -19,6 +19,10 @@ const (
 )
 
 type Server struct {
+	// Reported as `product` field in AMQPv0 connection.start server-properties.
+	Name string
+	// Reported as `version` field in AMQPv0 connection.start server-properties.
+	Version string
 	// Max time to establish connection.
 	ConnectTimeout time.Duration
 	// Server authentication providers.
@@ -34,7 +38,7 @@ func (s *Server) Serve(l net.Listener) error {
 		s.ConnectTimeout = defaultConnectTimeout
 	}
 	if len(s.AuthenticationProviders) == 0 {
-		return errors.Errorf("no authentication provider")
+		return errors.New("no authentication provider")
 	} else {
 		m := make(map[string]bool)
 		for _, provider := range s.AuthenticationProviders {
@@ -56,50 +60,55 @@ func (s *Server) Serve(l net.Listener) error {
 		if err != nil {
 			return errors.Wrap(err, "accept failed")
 		}
-		go s.handle(conn)
+		go func(conn net.Conn) {
+			defer conn.Close()
+			err := s.Handle(conn)
+			if err != nil {
+				log.Printf("[AMQP %s] %s", conn.RemoteAddr(), err.Error())
+			}
+		}(conn)
 	}
 }
 
-func (s *Server) handle(conn net.Conn) {
-	defer conn.Close()
+func (s *Server) Handle(conn net.Conn) error {
+	err := conn.SetDeadline(time.Now().Add(s.ConnectTimeout))
+	if err != nil {
+		return errors.Wrap(err, "set deadline failed")
+	}
 
-	if err := conn.SetDeadline(time.Now().Add(s.ConnectTimeout)); err != nil {
-		log.Printf("[AMQP %s] set deadline failed: %s", conn.RemoteAddr(), err)
-	} else {
-		var x [8]byte
-		r := bufio.NewReader(conn)
-		if _, err := io.ReadFull(r, x[:]); err != nil {
-			log.Printf("[AMQP %s] read failed: %s", conn.RemoteAddr(), err)
-		} else {
-			if x[0] == 'A' && x[1] == 'M' && x[2] == 'Q' && x[3] == 'P' && x[4] == 0 &&
-				x[5] == v0.Major && x[6] == v0.Minor && x[7] == v0.Revision && s.HandlerV0 != nil {
+	var x [8]byte
+	r := bufio.NewReader(conn)
+	_, err = io.ReadFull(r, x[:])
+	if err != nil {
+		return errors.Wrap(err, "read failed")
+	}
 
-				transport := v0.NewTransportWithReader(conn, r)
-				ctx, err := s.initV0(transport)
+	if x[0] == 'A' && x[1] == 'M' && x[2] == 'Q' && x[3] == 'P' && x[4] == 0 &&
+		x[5] == v0.Major && x[6] == v0.Minor && x[7] == v0.Revision && s.HandlerV0 != nil {
 
-				if err != nil {
-					log.Printf("[AMQP %s] init v%d.%d.%d connection failed: %s", conn.RemoteAddr(), x[5], x[6], x[7], err)
-				} else {
-					err = s.HandlerV0.ServeAMQPv0(ctx, transport)
-					if err != nil {
-						log.Printf("[AMQP %s] serving v%d.%d.%d connection failed: %s", conn.RemoteAddr(), x[5], x[6], x[7], err)
-					}
-				}
-
-			} else {
-				x[0] = 'A'
-				x[1] = 'M'
-				x[2] = 'Q'
-				x[3] = 'P'
-				x[4] = 0
-				x[5] = v0.Major
-				x[6] = v0.Minor
-				x[7] = v0.Revision
-
-				if _, err := conn.Write(x[:]); err != nil {
-					log.Printf("[AMQP %s] write close failed: %s", conn.RemoteAddr(), err)
-				}
-			}
+		transport := v0.NewTransportWithReader(conn, r)
+		ctx, err := s.initV0(transport)
+		if err != nil {
+			return errors.Wrapf(err, "init v%d.%d.%d connection failed", x[5], x[6], x[7])
 		}
+
+		return s.HandlerV0.ServeAMQPv0(ctx, transport)
+
+	} else {
+		x[0] = 'A'
+		x[1] = 'M'
+		x[2] = 'Q'
+		x[3] = 'P'
+		x[4] = 0
+		x[5] = v0.Major
+		x[6] = v0.Minor
+		x[7] = v0.Revision
+
+		_, err := conn.Write(x[:])
+		if err != nil {
+			return errors.Wrap(err, "write version failed")
+		}
+
+		return nil
 	}
 }

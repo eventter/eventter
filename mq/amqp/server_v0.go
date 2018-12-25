@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"eventter.io/mq/about"
 	"eventter.io/mq/amqp/authentication"
 	"eventter.io/mq/amqp/v0"
 	"github.com/gogo/protobuf/types"
@@ -37,22 +36,25 @@ func (s *Server) initV0(transport *v0.Transport) (ctx context.Context, err error
 		mechanisms = append(mechanisms, provider.Mechanism())
 	}
 
-	err = transport.Send(&v0.ConnectionStart{
-		VersionMajor: v0.Major,
-		VersionMinor: v0.Minor,
-		ServerProperties: &types.Struct{
-			Fields: map[string]*types.Value{
-				"product": {Kind: &types.Value_StringValue{StringValue: about.Name}},
-				"version": {Kind: &types.Value_StringValue{StringValue: about.Version}},
-				"capabilities": {Kind: &types.Value_StructValue{StructValue: &types.Struct{
-					Fields: map[string]*types.Value{
-						"basic.nack": {Kind: &types.Value_BoolValue{BoolValue: true}},
-					},
-				}}},
-			},
+	serverProperties := make(map[string]*types.Value)
+	if s.Name != "" {
+		serverProperties["product"] = &types.Value{Kind: &types.Value_StringValue{StringValue: s.Name}}
+	}
+	if s.Version != "" {
+		serverProperties["version"] = &types.Value{Kind: &types.Value_StringValue{StringValue: s.Version}}
+	}
+	serverProperties["capabilities"] = &types.Value{Kind: &types.Value_StructValue{StructValue: &types.Struct{
+		Fields: map[string]*types.Value{
+			"basic.nack": {Kind: &types.Value_BoolValue{BoolValue: true}},
 		},
-		Mechanisms: strings.Join(mechanisms, " "),
-		Locales:    "en_US",
+	}}}
+
+	err = transport.Send(&v0.ConnectionStart{
+		VersionMajor:     v0.Major,
+		VersionMinor:     v0.Minor,
+		ServerProperties: &types.Struct{Fields: serverProperties},
+		Mechanisms:       strings.Join(mechanisms, " "),
+		Locales:          "en_US",
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "send connection.start failed")

@@ -198,13 +198,13 @@ func Cmd() *cobra.Command {
 				return true, nil
 			}
 			amqpServer := &amqp.Server{
-				ConnectTimeout: 10 * time.Second,
+				Name:      about.Name,
+				Version:   about.Version,
+				HandlerV0: server,
 				AuthenticationProviders: []authentication.Provider{
 					authentication.NewPLAIN(allowAll),
 					authentication.NewAMQPLAIN(allowAll),
 				},
-				Heartbeat: 10 * time.Second,
-				HandlerV0: server,
 			}
 			go amqpServer.Serve(amqpListener)
 			log.Println("amqp server started at", amqpListener.Addr())
