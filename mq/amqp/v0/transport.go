@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"io"
 	"net"
+	"reflect"
 	"time"
 
 	"github.com/pkg/errors"
@@ -20,10 +21,14 @@ type Transport struct {
 	sendTimeout    time.Duration
 }
 
-func NewTransport(conn net.Conn, rw *bufio.ReadWriter) *Transport {
+func NewTransport(conn net.Conn) *Transport {
+	return NewTransportWithReader(conn, bufio.NewReader(conn))
+}
+
+func NewTransportWithReader(conn net.Conn, r *bufio.Reader) *Transport {
 	return &Transport{
 		conn:     conn,
-		rw:       rw,
+		rw:       bufio.NewReadWriter(r, bufio.NewWriter(conn)),
 		buf:      make([]byte, FrameMinSize),
 		frameMax: FrameMinSize,
 	}
@@ -215,4 +220,31 @@ func (t *Transport) Receive() (Frame, error) {
 	default:
 		return nil, ErrMalformedFrame
 	}
+}
+
+func (t *Transport) Call(request MethodFrame, response interface{}) error {
+	responseValue := reflect.ValueOf(response).Elem()
+	if !responseValue.CanSet() {
+		return errors.New("response is not pointer")
+	}
+
+	err := t.Send(request)
+	if err != nil {
+		return errors.Wrap(err, "send failed")
+	}
+
+	frame, err := t.Receive()
+	if err != nil {
+		return errors.Wrap(err, "receive failed")
+	}
+
+	frameValue := reflect.ValueOf(frame)
+
+	if !frameValue.Type().AssignableTo(responseValue.Type()) {
+		return errors.Errorf("expected frame of type %s, got %#v", responseValue.Type(), frame)
+	}
+
+	responseValue.Set(frameValue)
+
+	return nil
 }

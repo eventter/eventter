@@ -2,10 +2,13 @@ package mq
 
 import (
 	"context"
+	"fmt"
 	"time"
 
-	"eventter.io/mq/amqp/authentication"
+	"eventter.io/mq/amqp"
 	"eventter.io/mq/amqp/v0"
+	"eventter.io/mq/client"
+	"eventter.io/mq/structvalue"
 	"github.com/pkg/errors"
 )
 
@@ -14,16 +17,19 @@ const (
 	closingState = 2
 )
 
-func (s *Server) ServeAMQPv0(transport *v0.Transport, token authentication.Token, heartbeat time.Duration, virtualHost string) error {
-	if virtualHost == "/" {
-		virtualHost = "default"
+func (s *Server) ServeAMQPv0(ctx context.Context, transport *v0.Transport) error {
+	namespace, err := amqp.VirtualHost(ctx)
+	if err != nil {
+		return errors.Wrap(err, "get virtual host from context")
+	} else if namespace == "/" {
+		namespace = "default"
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
 	frames := make(chan v0.Frame, 64)
-	errc := make(chan error, 2)
+	errc := make(chan error, 1)
 
 	go func() {
 		for {
@@ -41,8 +47,16 @@ func (s *Server) ServeAMQPv0(transport *v0.Transport, token authentication.Token
 		}
 	}()
 
-	heartbeatTicker := time.NewTicker(heartbeat)
-	defer heartbeatTicker.Stop()
+	heartbeat, err := amqp.Heartbeat(ctx)
+	if err != nil {
+		return errors.Wrap(err, "get heartbeat from context")
+	}
+	var heartbeats <-chan time.Time
+	if heartbeat > 0 {
+		heartbeatTicker := time.NewTicker(heartbeat)
+		defer heartbeatTicker.Stop()
+		heartbeats = heartbeatTicker.C
+	}
 
 	channels := make(map[uint16]*serverAMQPv0Channel)
 	defer func() {
@@ -54,7 +68,7 @@ func (s *Server) ServeAMQPv0(transport *v0.Transport, token authentication.Token
 		select {
 		case <-s.closeC:
 			return s.forceCloseAMQPv0(transport, v0.ConnectionForced, "shutdown")
-		case <-heartbeatTicker.C:
+		case <-heartbeats:
 			err := transport.Send(&v0.HeartbeatFrame{})
 			if err != nil {
 				return errors.Wrap(err, "send heartbeat failed")
@@ -80,6 +94,7 @@ func (s *Server) ServeAMQPv0(transport *v0.Transport, token authentication.Token
 							return s.forceCloseAMQPv0(transport, v0.ChannelError, "channel already open")
 						}
 						channels[meta.Channel] = &serverAMQPv0Channel{
+							id:    meta.Channel,
 							state: readyState,
 						}
 						err := transport.Send(&v0.ChannelOpenOk{FrameMeta: v0.FrameMeta{Channel: meta.Channel}})
@@ -88,8 +103,8 @@ func (s *Server) ServeAMQPv0(transport *v0.Transport, token authentication.Token
 						}
 					case *v0.ChannelClose:
 						ch, ok := channels[meta.Channel]
-						if ok {
-							return s.forceCloseAMQPv0(transport, v0.ChannelError, "channel not open")
+						if !ok {
+							return s.forceCloseAMQPv0(transport, v0.ChannelError, "trying to close channel that isn't open")
 						}
 						delete(channels, meta.Channel)
 						err := ch.Close()
@@ -118,7 +133,7 @@ func (s *Server) ServeAMQPv0(transport *v0.Transport, token authentication.Token
 						if !ok {
 							return s.forceCloseAMQPv0(transport, v0.ChannelError, "channel not open")
 						}
-						err := s.handleAMQPv0ChannelMethod(transport, virtualHost, ch, frame)
+						err := s.handleAMQPv0ChannelMethod(nil, transport, namespace, ch, frame)
 						if err != nil {
 							if connClose, ok := err.(*v0.ConnectionClose); ok {
 								return transport.Send(connClose)
@@ -142,7 +157,7 @@ func (s *Server) ServeAMQPv0(transport *v0.Transport, token authentication.Token
 				if !ok {
 					return s.forceCloseAMQPv0(transport, v0.ChannelError, "channel not open")
 				}
-				err := s.handleAMQPv0ChannelContentHeader(transport, virtualHost, ch, frame)
+				err := s.handleAMQPv0ChannelContentHeader(nil, transport, namespace, ch, frame)
 				if err != nil {
 					if connClose, ok := err.(*v0.ConnectionClose); ok {
 						return transport.Send(connClose)
@@ -164,7 +179,7 @@ func (s *Server) ServeAMQPv0(transport *v0.Transport, token authentication.Token
 				if !ok {
 					return s.forceCloseAMQPv0(transport, v0.ChannelError, "channel not open")
 				}
-				err := s.handleAMQPv0ChannelContentBody(transport, virtualHost, ch, frame)
+				err := s.handleAMQPv0ChannelContentBody(nil, transport, namespace, ch, frame)
 				if err != nil {
 					if connClose, ok := err.(*v0.ConnectionClose); ok {
 						return transport.Send(connClose)
@@ -183,7 +198,7 @@ func (s *Server) ServeAMQPv0(transport *v0.Transport, token authentication.Token
 					return s.forceCloseAMQPv0(transport, v0.SyntaxError, "heartbeat frame on non-zero channel")
 				}
 			default:
-				return errors.Errorf("unhandled frame of type %T", frame)
+				return s.forceCloseAMQPv0(transport, v0.SyntaxError, fmt.Sprintf("unhandled frame of type %T", frame))
 			}
 		case err := <-errc:
 			cause := errors.Cause(err)
@@ -196,6 +211,7 @@ func (s *Server) ServeAMQPv0(transport *v0.Transport, token authentication.Token
 }
 
 type serverAMQPv0Channel struct {
+	id    uint16
 	state int
 }
 
@@ -203,15 +219,71 @@ func (ch *serverAMQPv0Channel) Close() error {
 	return nil
 }
 
-func (s *Server) handleAMQPv0ChannelMethod(transport *v0.Transport, virtualHost string, ch *serverAMQPv0Channel, frame v0.MethodFrame) error {
+func (s *Server) handleAMQPv0ChannelMethod(ctx context.Context, transport *v0.Transport, namespaceName string, ch *serverAMQPv0Channel, frame v0.MethodFrame) error {
+	switch frame := frame.(type) {
+	case *v0.ExchangeDeclare:
+		shards, err := structvalue.Uint32(frame.Arguments, "shards", 1)
+		if err != nil {
+			return s.makeChannelClose(ch, v0.SyntaxError, errors.Wrap(err, "shards field failed"))
+		}
+		replicationFactor, err := structvalue.Uint32(frame.Arguments, "replication-factor", defaultReplicationFactor)
+		if err != nil {
+			return s.makeChannelClose(ch, v0.SyntaxError, errors.Wrap(err, "replication-factor field failed"))
+		}
+		retention, err := structvalue.Duration(frame.Arguments, "retention", 1)
+		if err != nil {
+			return s.makeChannelClose(ch, v0.SyntaxError, errors.Wrap(err, "retention field failed"))
+		}
+
+		request := &client.CreateTopicRequest{
+			Topic: client.Topic{
+				Name: client.NamespaceName{
+					Namespace: namespaceName,
+					Name:      frame.Exchange,
+				},
+				Type:              frame.Type,
+				Shards:            shards,
+				ReplicationFactor: replicationFactor,
+				Retention:         retention,
+			},
+		}
+
+		if frame.Passive {
+			if frame.NoWait {
+				return s.makeChannelClose(ch, v0.SyntaxError, errors.New("passive & no-wait doesn't make sense"))
+			}
+			state := s.clusterState.Current()
+			namespace, _ := state.FindNamespace(request.Topic.Name.Namespace)
+			topic, _ := namespace.FindTopic(request.Topic.Name.Name)
+
+			if topic == nil {
+				return s.makeChannelClose(ch, v0.NotFound, errors.New("not found"))
+			} else if topic.Type != request.Topic.Type {
+				return s.makeChannelClose(ch, v0.PreconditionFailed, errors.New("types differ"))
+			}
+		} else {
+			_, err = s.CreateTopic(ctx, request)
+			if err != nil {
+				return s.makeChannelClose(ch, v0.InternalError, errors.Wrap(err, "create failed"))
+			}
+		}
+
+		if frame.NoWait {
+			return nil
+		}
+
+		return transport.Send(&v0.ExchangeDeclareOk{FrameMeta: v0.FrameMeta{Channel: ch.id}})
+
+	default:
+		return s.makeConnectionClose(v0.SyntaxError, errors.Errorf("unexpected frame of type %T", frame))
+	}
+}
+
+func (s *Server) handleAMQPv0ChannelContentHeader(ctx context.Context, transport *v0.Transport, namespace string, ch *serverAMQPv0Channel, frame *v0.ContentHeaderFrame) error {
 	panic("implement me")
 }
 
-func (s *Server) handleAMQPv0ChannelContentHeader(transport *v0.Transport, virtualHost string, ch *serverAMQPv0Channel, frame *v0.ContentHeaderFrame) error {
-	panic("implement me")
-}
-
-func (s *Server) handleAMQPv0ChannelContentBody(transport *v0.Transport, virtualHost string, ch *serverAMQPv0Channel, frame *v0.ContentBodyFrame) error {
+func (s *Server) handleAMQPv0ChannelContentBody(ctx context.Context, transport *v0.Transport, namespace string, ch *serverAMQPv0Channel, frame *v0.ContentBodyFrame) error {
 	panic("implement me")
 }
 
@@ -224,4 +296,19 @@ func (s *Server) forceCloseAMQPv0(transport *v0.Transport, replyCode uint16, rep
 		return errors.Wrap(err, "force close failed")
 	}
 	return nil
+}
+
+func (s *Server) makeConnectionClose(code uint16, err error) *v0.ConnectionClose {
+	return &v0.ConnectionClose{
+		ReplyCode: code,
+		ReplyText: err.Error(),
+	}
+}
+
+func (s *Server) makeChannelClose(ch *serverAMQPv0Channel, code uint16, err error) *v0.ChannelClose {
+	return &v0.ChannelClose{
+		FrameMeta: v0.FrameMeta{Channel: ch.id},
+		ReplyCode: code,
+		ReplyText: err.Error(),
+	}
 }

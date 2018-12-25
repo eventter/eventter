@@ -1,7 +1,7 @@
 package amqp
 
 import (
-	"bufio"
+	"context"
 	"math"
 	"strings"
 	"time"
@@ -14,10 +14,24 @@ import (
 )
 
 type HandlerV0 interface {
-	ServeAMQPv0(transport *v0.Transport, token authentication.Token, heartbeat time.Duration, virtualHost string) error
+	ServeAMQPv0(ctx context.Context, transport *v0.Transport) error
 }
 
-func (s *Server) initV0(transport *v0.Transport, r *bufio.Reader) (token authentication.Token, heartbeat time.Duration, virtualHost string, err error) {
+func NewContextV0(parent context.Context, token authentication.Token, heartbeat time.Duration, virtualHost string) context.Context {
+	return context.WithValue(parent, contextKey, &contextValueV0{
+		token:       token,
+		heartbeat:   heartbeat,
+		virtualHost: virtualHost,
+	})
+}
+
+type contextValueV0 struct {
+	token       authentication.Token
+	heartbeat   time.Duration
+	virtualHost string
+}
+
+func (s *Server) initV0(transport *v0.Transport) (ctx context.Context, err error) {
 	var mechanisms []string
 	for _, provider := range s.AuthenticationProviders {
 		mechanisms = append(mechanisms, provider.Mechanism())
@@ -41,19 +55,22 @@ func (s *Server) initV0(transport *v0.Transport, r *bufio.Reader) (token authent
 		Locales:    "en_US",
 	})
 	if err != nil {
-		return nil, 0, "", errors.Wrap(err, "send connection.start failed")
+		return nil, errors.Wrap(err, "send connection.start failed")
 	}
 
 	frame, err := transport.Receive()
 	if err != nil {
-		return nil, 0, "", errors.Wrap(err, "receive connection.start-ok failed")
+		return nil, errors.Wrap(err, "receive connection.start-ok failed")
 	}
 	startOk, ok := frame.(*v0.ConnectionStartOk)
 	if !ok {
-		return nil, 0, "", errors.Errorf("did not receive connection.start-ok, got %T instead", frame)
+		return nil, errors.Errorf("did not receive connection.start-ok, got %T instead", frame)
 	}
 
-	var challenge string
+	var (
+		token     authentication.Token
+		challenge string
+	)
 	for _, provider := range s.AuthenticationProviders {
 		if startOk.Mechanism != provider.Mechanism() {
 			continue
@@ -61,37 +78,37 @@ func (s *Server) initV0(transport *v0.Transport, r *bufio.Reader) (token authent
 
 		token, challenge, err = provider.Authenticate(challenge, startOk.Response)
 		if err != nil {
-			return nil, 0, "", errors.Wrapf(err, "authentication using %s failed", startOk.Mechanism)
+			return nil, errors.Wrapf(err, "authentication using %s failed", startOk.Mechanism)
 		}
 
 		for token == nil {
 			err = transport.Send(&v0.ConnectionSecure{Challenge: challenge})
 			if err != nil {
-				return nil, 0, "", errors.Wrap(err, "send connection.secure failed")
+				return nil, errors.Wrap(err, "send connection.secure failed")
 			}
 			frame, err = transport.Receive()
 			if err != nil {
-				return nil, 0, "", errors.Wrap(err, "receive connection.secure-ok failed")
+				return nil, errors.Wrap(err, "receive connection.secure-ok failed")
 			}
 			secureOk, ok := frame.(*v0.ConnectionSecureOk)
 			if !ok {
-				return nil, 0, "", errors.Errorf("did not receive connection.secure-ok, got %T instead", frame)
+				return nil, errors.Errorf("did not receive connection.secure-ok, got %T instead", frame)
 			}
 
 			token, challenge, err = provider.Authenticate(challenge, secureOk.Response)
 			if err != nil {
-				return nil, 0, "", errors.Wrapf(err, "authentication using %s failed", startOk.Mechanism)
+				return nil, errors.Wrapf(err, "authentication using %s failed", startOk.Mechanism)
 			}
 		}
 
 		break
 	}
 	if token == nil {
-		return nil, 0, "", errors.Errorf("client selected unsupported authentication mechanism %s", startOk.Mechanism)
+		return nil, errors.Errorf("client selected unsupported authentication mechanism %s", startOk.Mechanism)
 	}
 
 	if !token.IsAuthenticated() {
-		return nil, 0, "", errors.Errorf("user %q not authenticated", token.Subject())
+		return nil, errors.Errorf("user %q not authenticated", token.Subject())
 	}
 
 	err = transport.Send(&v0.ConnectionTune{
@@ -100,16 +117,16 @@ func (s *Server) initV0(transport *v0.Transport, r *bufio.Reader) (token authent
 		Heartbeat:  uint16(s.Heartbeat / time.Second),
 	})
 	if err != nil {
-		return nil, 0, "", errors.Wrap(err, "send connection.tune failed")
+		return nil, errors.Wrap(err, "send connection.tune failed")
 	}
 
 	frame, err = transport.Receive()
 	if err != nil {
-		return nil, 0, "", errors.Wrap(err, "receive connection.tune-ok failed")
+		return nil, errors.Wrap(err, "receive connection.tune-ok failed")
 	}
 	tuneOk, ok := frame.(*v0.ConnectionTuneOk)
 	if !ok {
-		return nil, 0, "", errors.Errorf("did not receive connection.tune-ok, got %T instead", frame)
+		return nil, errors.Errorf("did not receive connection.tune-ok, got %T instead", frame)
 	}
 	if tuneOk.ChannelMax == 0 {
 		tuneOk.ChannelMax = math.MaxUint16
@@ -117,32 +134,32 @@ func (s *Server) initV0(transport *v0.Transport, r *bufio.Reader) (token authent
 	if tuneOk.FrameMax == 0 {
 		tuneOk.FrameMax = math.MaxUint32
 	} else if tuneOk.FrameMax < v0.FrameMinSize {
-		return nil, 0, "", errors.Errorf("client tried to negotiate frame max size %d, less than mandatory minimum", tuneOk.FrameMax)
+		return nil, errors.Errorf("client tried to negotiate frame max size %d, less than mandatory minimum", tuneOk.FrameMax)
 	}
 
-	heartbeat = time.Duration(tuneOk.Heartbeat) * time.Second
+	heartbeat := time.Duration(tuneOk.Heartbeat) * time.Second
 
 	transport.SetFrameMax(tuneOk.FrameMax)
 	if err := transport.SetReceiveTimeout(heartbeat * 2); err != nil {
-		return nil, 0, "", errors.Wrap(err, "set receive timeout failed")
+		return nil, errors.Wrap(err, "set receive timeout failed")
 	}
 	if err := transport.SetSendTimeout(heartbeat); err != nil {
-		return nil, 0, "", errors.Wrap(err, "set send timeout failed")
+		return nil, errors.Wrap(err, "set send timeout failed")
 	}
 
 	frame, err = transport.Receive()
 	if err != nil {
-		return nil, 0, "", errors.Wrap(err, "receive connection.open failed")
+		return nil, errors.Wrap(err, "receive connection.open failed")
 	}
 	open, ok := frame.(*v0.ConnectionOpen)
 	if !ok {
-		return nil, 0, "", errors.Errorf("did not receive connection.open got %T instead", frame)
+		return nil, errors.Errorf("did not receive connection.open got %T instead", frame)
 	}
 
 	err = transport.Send(&v0.ConnectionOpenOk{})
 	if err != nil {
-		return nil, 0, "", errors.Errorf("send connection.open-ok failed")
+		return nil, errors.Errorf("send connection.open-ok failed")
 	}
 
-	return token, heartbeat, open.VirtualHost, nil
+	return NewContextV0(context.Background(), token, heartbeat, open.VirtualHost), nil
 }
