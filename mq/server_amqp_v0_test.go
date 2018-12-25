@@ -12,15 +12,25 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestServer_ServeAMQPv0_ExchangeDeclare(t *testing.T) {
+func newClient(t *testing.T) (x1 *testServer, x2 *v0.Transport, cleanup func(), err error) {
 	assert := require.New(t)
 
 	ts, err := newTestServer(0)
-	assert.NoError(err)
-	defer ts.Close()
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	defer func() {
+		if err != nil {
+			ts.Close()
+		}
+	}()
 
 	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	defer func() {
+		if err != nil {
+			cancel()
+		}
+	}()
 
 	ctx = amqp.NewContextV0(ctx, nil, 0, "/")
 
@@ -33,7 +43,10 @@ func TestServer_ServeAMQPv0_ExchangeDeclare(t *testing.T) {
 	}()
 
 	client := v0.NewTransport(clientConn)
-	defer func() {
+
+	return ts, client, func() {
+		cancel()
+
 		response := &v0.ConnectionCloseOk{}
 		err := client.Call(&v0.ConnectionClose{}, &response)
 		assert.NoError(err)
@@ -41,7 +54,15 @@ func TestServer_ServeAMQPv0_ExchangeDeclare(t *testing.T) {
 
 		err = clientConn.Close()
 		assert.NoError(err)
-	}()
+	}, nil
+}
+
+func TestServer_ServeAMQPv0_ExchangeDeclare(t *testing.T) {
+	assert := require.New(t)
+
+	ts, client, cleanup, err := newClient(t)
+	assert.NoError(err)
+	defer cleanup()
 
 	{
 		var channel uint16 = 1
@@ -157,6 +178,55 @@ func TestServer_ServeAMQPv0_ExchangeDeclare(t *testing.T) {
 			assert.NoError(err)
 			assert.NotNil(response)
 			assert.Equal(uint16(v0.NotFound), response.ReplyCode)
+		}
+	}
+}
+
+func TestServer_ServeAMQPv0_ExchangeDelete(t *testing.T) {
+	assert := require.New(t)
+
+	ts, client, cleanup, err := newClient(t)
+	assert.NoError(err)
+	defer cleanup()
+
+	{
+		var channel uint16 = 1
+		{
+			var response *v0.ChannelOpenOk
+			err := client.Call(&v0.ChannelOpen{FrameMeta: v0.FrameMeta{Channel: channel}}, &response)
+			assert.NoError(err)
+			assert.NotNil(response)
+		}
+
+		{
+			var response *v0.ExchangeDeclareOk
+			err := client.Call(&v0.ExchangeDeclare{
+				FrameMeta: v0.FrameMeta{Channel: channel},
+				Exchange:  "test-exchange-delete",
+				Type:      "fanout",
+			}, &response)
+			assert.NoError(err)
+			assert.NotNil(response)
+
+			ns, _ := ts.ClusterStateStore.Current().FindNamespace("default")
+			assert.NotNil(ns)
+			tp, _ := ns.FindTopic("test-exchange-delete")
+			assert.NotNil(tp)
+		}
+
+		{
+			var response *v0.ExchangeDeleteOk
+			err := client.Call(&v0.ExchangeDelete{
+				FrameMeta: v0.FrameMeta{Channel: channel},
+				Exchange:  "test-exchange-delete",
+			}, &response)
+			assert.NoError(err)
+			assert.NotNil(response)
+
+			ns, _ := ts.ClusterStateStore.Current().FindNamespace("default")
+			assert.NotNil(ns)
+			tp, _ := ns.FindTopic("test-exchange-delete")
+			assert.Nil(tp)
 		}
 	}
 }

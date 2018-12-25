@@ -273,6 +273,26 @@ func (s *Server) handleAMQPv0ChannelMethod(ctx context.Context, transport *v0.Tr
 
 		return transport.Send(&v0.ExchangeDeclareOk{FrameMeta: v0.FrameMeta{Channel: ch.id}})
 
+	case *v0.ExchangeDelete:
+		request := &client.DeleteTopicRequest{
+			Topic: client.NamespaceName{
+				Namespace: namespaceName,
+				Name:      frame.Exchange,
+			},
+			IfUnused: frame.IfUnused,
+		}
+
+		_, err := s.DeleteTopic(ctx, request)
+		if err != nil {
+			return s.makeConnectionClose(v0.InternalError, errors.Wrapf(err, "delete failed"))
+		}
+
+		if frame.NoWait {
+			return nil
+		}
+
+		return transport.Send(&v0.ExchangeDeleteOk{FrameMeta: v0.FrameMeta{Channel: ch.id}})
+
 	default:
 		return s.makeConnectionClose(v0.SyntaxError, errors.Errorf("unexpected frame of type %T", frame))
 	}
