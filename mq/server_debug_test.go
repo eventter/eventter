@@ -4,11 +4,11 @@ import (
 	"context"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestServer_Debug(t *testing.T) {
-	assert := assert.New(t)
+	assert := require.New(t)
 
 	ts, err := newTestServer(0)
 	assert.NoError(err)

@@ -56,7 +56,7 @@ func marshalValue(value *types.Value, buf *bytes.Buffer) error {
 				buf.WriteByte('b')
 				buf.WriteByte(byte(intValue))
 			} else if intValue >= math.MinInt16 && intValue <= math.MaxInt16 {
-				buf.WriteByte('U')
+				buf.WriteByte('s')
 				endian.PutUint16(x[:2], uint16(intValue))
 				buf.Write(x[:2])
 			} else if intValue >= math.MinInt32 && intValue <= math.MaxInt32 {
@@ -64,7 +64,7 @@ func marshalValue(value *types.Value, buf *bytes.Buffer) error {
 				endian.PutUint32(x[:4], uint32(intValue))
 				buf.Write(x[:4])
 			} else {
-				buf.WriteByte('L')
+				buf.WriteByte('l')
 				endian.PutUint64(x[:8], uint64(intValue))
 				buf.Write(x[:8])
 			}
@@ -76,11 +76,7 @@ func marshalValue(value *types.Value, buf *bytes.Buffer) error {
 		}
 	case *types.Value_StringValue:
 		l := len(value.StringValue)
-		if l <= math.MaxUint8 {
-			buf.WriteByte('s')
-			buf.WriteByte(byte(l))
-			buf.WriteString(value.StringValue)
-		} else if l <= math.MaxUint32 {
+		if l <= math.MaxUint32 {
 			buf.WriteByte('S')
 			endian.PutUint32(x[:4], uint32(l))
 			buf.Write(x[:4])
@@ -212,6 +208,8 @@ func unmarshalValue(buf *bytes.Buffer) (*types.Value, error) {
 		}
 		value.Kind = &types.Value_NumberValue{NumberValue: float64(uint8(bb))}
 	case 'U':
+		fallthrough
+	case 's':
 		if n, err := buf.Read(x[:2]); err != nil {
 			return nil, errors.Wrap(err, "read int16 failed")
 		} else if n < 2 {
@@ -239,14 +237,14 @@ func unmarshalValue(buf *bytes.Buffer) (*types.Value, error) {
 			return nil, errors.New("read uint32 failed")
 		}
 		value.Kind = &types.Value_NumberValue{NumberValue: float64(uint32(endian.Uint32(x[:4])))}
-	case 'L':
+	case 'l':
 		if n, err := buf.Read(x[:8]); err != nil {
 			return nil, errors.Wrap(err, "read int64 failed")
 		} else if n < 8 {
 			return nil, errors.New("read int64 failed")
 		}
 		value.Kind = &types.Value_NumberValue{NumberValue: float64(int64(endian.Uint64(x[:8])))}
-	case 'l':
+	case 'L':
 		if n, err := buf.Read(x[:8]); err != nil {
 			return nil, errors.Wrap(err, "read uint64 failed")
 		} else if n < 8 {
@@ -269,17 +267,8 @@ func unmarshalValue(buf *bytes.Buffer) (*types.Value, error) {
 		value.Kind = &types.Value_NumberValue{NumberValue: float64(math.Float64frombits(endian.Uint64(x[:8])))}
 	case 'D':
 		return nil, errors.New("decimal not implemented")
-	case 's':
-		lb, err := buf.ReadByte()
-		if err != nil {
-			return nil, errors.Wrap(err, "read shortstr failed")
-		}
-		l := int(lb)
-		s := buf.Next(l)
-		if len(s) < l {
-			return nil, errors.New("read shortstr failed")
-		}
-		value.Kind = &types.Value_StringValue{StringValue: string(s)}
+	case 'x': // bytes
+		fallthrough
 	case 'S':
 		if n, err := buf.Read(x[:4]); err != nil {
 			return nil, errors.Wrap(err, "read longstr failed")
@@ -328,6 +317,8 @@ func unmarshalValue(buf *bytes.Buffer) (*types.Value, error) {
 		} else {
 			value.Kind = &types.Value_StructValue{StructValue: tableValue}
 		}
+	case 'V':
+		value.Kind = &types.Value_NullValue{}
 	default:
 		return nil, errors.Errorf("unhandled field type %c", tb)
 	}

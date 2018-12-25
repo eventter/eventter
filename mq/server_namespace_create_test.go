@@ -5,11 +5,11 @@ import (
 	"testing"
 
 	"eventter.io/mq/client"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestServer_CreateNamespace(t *testing.T) {
-	assert := assert.New(t)
+	assert := require.New(t)
 
 	ts, err := newTestServer(0)
 	assert.NoError(err)

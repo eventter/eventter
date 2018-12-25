@@ -224,15 +224,15 @@ func (s *Server) handleAMQPv0ChannelMethod(ctx context.Context, transport *v0.Tr
 	case *v0.ExchangeDeclare:
 		shards, err := structvalue.Uint32(frame.Arguments, "shards", 1)
 		if err != nil {
-			return s.makeChannelClose(ch, v0.SyntaxError, errors.Wrap(err, "shards field failed"))
+			return s.makeConnectionClose(v0.SyntaxError, errors.Wrap(err, "shards field failed"))
 		}
 		replicationFactor, err := structvalue.Uint32(frame.Arguments, "replication-factor", defaultReplicationFactor)
 		if err != nil {
-			return s.makeChannelClose(ch, v0.SyntaxError, errors.Wrap(err, "replication-factor field failed"))
+			return s.makeConnectionClose(v0.SyntaxError, errors.Wrap(err, "replication-factor field failed"))
 		}
 		retention, err := structvalue.Duration(frame.Arguments, "retention", 1)
 		if err != nil {
-			return s.makeChannelClose(ch, v0.SyntaxError, errors.Wrap(err, "retention field failed"))
+			return s.makeConnectionClose(v0.SyntaxError, errors.Wrap(err, "retention field failed"))
 		}
 
 		request := &client.CreateTopicRequest{
@@ -249,22 +249,21 @@ func (s *Server) handleAMQPv0ChannelMethod(ctx context.Context, transport *v0.Tr
 		}
 
 		if frame.Passive {
-			if frame.NoWait {
-				return s.makeChannelClose(ch, v0.SyntaxError, errors.New("passive & no-wait doesn't make sense"))
-			}
 			state := s.clusterState.Current()
 			namespace, _ := state.FindNamespace(request.Topic.Name.Namespace)
-			topic, _ := namespace.FindTopic(request.Topic.Name.Name)
-
-			if topic == nil {
-				return s.makeChannelClose(ch, v0.NotFound, errors.New("not found"))
-			} else if topic.Type != request.Topic.Type {
-				return s.makeChannelClose(ch, v0.PreconditionFailed, errors.New("types differ"))
+			if namespace == nil {
+				return s.makeChannelClose(ch, v0.NotFound, errors.Errorf("namespace %q not found", request.Topic.Name.Namespace))
 			}
+
+			topic, _ := namespace.FindTopic(request.Topic.Name.Name)
+			if topic == nil {
+				return s.makeChannelClose(ch, v0.NotFound, errors.Errorf("topic %q not found", request.Topic.Name.Name))
+			}
+
 		} else {
 			_, err = s.CreateTopic(ctx, request)
 			if err != nil {
-				return s.makeChannelClose(ch, v0.InternalError, errors.Wrap(err, "create failed"))
+				return s.makeConnectionClose(v0.InternalError, errors.Wrap(err, "create failed"))
 			}
 		}
 

@@ -113,11 +113,12 @@ func (s *Server) initV0(transport *v0.Transport) (ctx context.Context, err error
 		return nil, errors.Errorf("user %q not authenticated", token.Subject())
 	}
 
-	err = transport.Send(&v0.ConnectionTune{
-		ChannelMax: math.MaxUint16,
+	tune := &v0.ConnectionTune{
+		ChannelMax: 2047, // see https://github.com/rabbitmq/rabbitmq-server/issues/1593
 		FrameMax:   math.MaxUint32,
 		Heartbeat:  uint16(s.Heartbeat / time.Second),
-	})
+	}
+	err = transport.Send(tune)
 	if err != nil {
 		return nil, errors.Wrap(err, "send connection.tune failed")
 	}
@@ -131,10 +132,10 @@ func (s *Server) initV0(transport *v0.Transport) (ctx context.Context, err error
 		return nil, errors.Errorf("did not receive connection.tune-ok, got %T instead", frame)
 	}
 	if tuneOk.ChannelMax == 0 {
-		tuneOk.ChannelMax = math.MaxUint16
+		tuneOk.ChannelMax = tune.ChannelMax
 	}
 	if tuneOk.FrameMax == 0 {
-		tuneOk.FrameMax = math.MaxUint32
+		tuneOk.FrameMax = tune.FrameMax
 	} else if tuneOk.FrameMax < v0.FrameMinSize {
 		return nil, errors.Errorf("client tried to negotiate frame max size %d, less than mandatory minimum", tuneOk.FrameMax)
 	}
