@@ -378,6 +378,34 @@ func (s *Server) handleAMQPv0ChannelMethod(ctx context.Context, transport *v0.Tr
 			Queue:     request.ConsumerGroup.Name.Name,
 		})
 
+	case *v0.QueueDelete:
+		if frame.IfUnused {
+			return s.makeConnectionClose(v0.NotImplemented, errors.New("queue.delete if-unused not implemented"))
+		}
+		if frame.IfEmpty {
+			return s.makeConnectionClose(v0.NotImplemented, errors.New("queue.delete if-empty not implemented"))
+		}
+
+		request := &client.DeleteConsumerGroupRequest{
+			ConsumerGroup: client.NamespaceName{
+				Namespace: namespaceName,
+				Name:      frame.Queue,
+			},
+		}
+
+		_, err := s.DeleteConsumerGroup(ctx, request)
+		if err != nil {
+			return s.makeConnectionClose(v0.InternalError, errors.Wrapf(err, "delete failed"))
+		}
+
+		if frame.NoWait {
+			return nil
+		}
+
+		return transport.Send(&v0.QueueDeleteOk{
+			FrameMeta: v0.FrameMeta{Channel: ch.id},
+		})
+
 	default:
 		return s.makeConnectionClose(v0.SyntaxError, errors.Errorf("unexpected frame of type %T", frame))
 	}
