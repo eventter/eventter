@@ -53,3 +53,20 @@ func Duration(s *types.Struct, field string, defaultValue time.Duration) (time.D
 		return defaultValue, errors.Errorf("unexpected value kind %T", value)
 	}
 }
+
+func String(s *types.Struct, field string, defaultValue string) (string, error) {
+	if s == nil || s.Fields == nil {
+		return defaultValue, nil
+	}
+	value, ok := s.Fields[field]
+	if !ok {
+		return defaultValue, nil
+	}
+
+	switch value := value.Kind.(type) {
+	case *types.Value_StringValue:
+		return value.StringValue, nil
+	default:
+		return defaultValue, errors.Errorf("unexpected value kind %T", value)
+	}
+}

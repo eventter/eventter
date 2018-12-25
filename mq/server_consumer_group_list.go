@@ -42,31 +42,10 @@ func (s *Server) ListConsumerGroups(ctx context.Context, request *client.ListCon
 	var consumerGroups []*client.ConsumerGroup
 
 	for _, cg := range namespace.ListConsumerGroups(request.ConsumerGroup.Namespace, request.ConsumerGroup.Name) {
-		var bindings []*client.ConsumerGroup_Binding
+		var clientBindings []*client.ConsumerGroup_Binding
 
-		for _, b := range cg.Bindings {
-			clientBinding := &client.ConsumerGroup_Binding{
-				TopicName: b.TopicName,
-			}
-			switch by := b.By.(type) {
-			case nil:
-				// do nothing
-			case *ClusterConsumerGroup_Binding_RoutingKey:
-				clientBinding.By = &client.ConsumerGroup_Binding_RoutingKey{
-					RoutingKey: by.RoutingKey,
-				}
-			case *ClusterConsumerGroup_Binding_HeadersAll:
-				clientBinding.By = &client.ConsumerGroup_Binding_HeadersAll{
-					HeadersAll: by.HeadersAll,
-				}
-			case *ClusterConsumerGroup_Binding_HeadersAny:
-				clientBinding.By = &client.ConsumerGroup_Binding_HeadersAny{
-					HeadersAny: by.HeadersAny,
-				}
-			default:
-				panic("unhandled binding by")
-			}
-			bindings = append(bindings, clientBinding)
+		for _, binding := range cg.Bindings {
+			clientBindings = append(clientBindings, s.convertBinding(binding))
 		}
 
 		consumerGroups = append(consumerGroups, &client.ConsumerGroup{
@@ -74,7 +53,7 @@ func (s *Server) ListConsumerGroups(ctx context.Context, request *client.ListCon
 				Namespace: request.ConsumerGroup.Namespace,
 				Name:      cg.Name,
 			},
-			Bindings: bindings,
+			Bindings: clientBindings,
 			Size_:    cg.Size_,
 		})
 	}
@@ -84,4 +63,30 @@ func (s *Server) ListConsumerGroups(ctx context.Context, request *client.ListCon
 		Index:          state.Index,
 		ConsumerGroups: consumerGroups,
 	}, nil
+}
+
+func (s *Server) convertBinding(clusterBinding *ClusterConsumerGroup_Binding) *client.ConsumerGroup_Binding {
+	clientBinding := &client.ConsumerGroup_Binding{
+		TopicName: clusterBinding.TopicName,
+	}
+	switch by := clusterBinding.By.(type) {
+	case nil:
+		// do nothing
+	case *ClusterConsumerGroup_Binding_RoutingKey:
+		clientBinding.By = &client.ConsumerGroup_Binding_RoutingKey{
+			RoutingKey: by.RoutingKey,
+		}
+	case *ClusterConsumerGroup_Binding_HeadersAll:
+		clientBinding.By = &client.ConsumerGroup_Binding_HeadersAll{
+			HeadersAll: by.HeadersAll,
+		}
+	case *ClusterConsumerGroup_Binding_HeadersAny:
+		clientBinding.By = &client.ConsumerGroup_Binding_HeadersAny{
+			HeadersAny: by.HeadersAny,
+		}
+	default:
+		panic("unhandled binding by")
+	}
+
+	return clientBinding
 }
