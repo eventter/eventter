@@ -9,6 +9,7 @@ import (
 	"eventter.io/mq/amqp/v0"
 	"eventter.io/mq/client"
 	"eventter.io/mq/structvalue"
+	"github.com/hashicorp/go-uuid"
 	"github.com/pkg/errors"
 )
 
@@ -248,16 +249,16 @@ func (s *Server) handleAMQPv0ChannelMethod(ctx context.Context, transport *v0.Tr
 			},
 		}
 
-		if frame.Passive {
-			state := s.clusterState.Current()
-			namespace, _ := state.FindNamespace(request.Topic.Name.Namespace)
-			if namespace == nil {
-				return s.makeChannelClose(ch, v0.NotFound, errors.Errorf("namespace %q not found", request.Topic.Name.Namespace))
-			}
+		state := s.clusterState.Current()
+		namespace, _ := state.FindNamespace(request.Topic.Name.Namespace)
+		if namespace == nil {
+			return s.makeChannelClose(ch, v0.NotFound, errors.Errorf("vhost %q not found", request.Topic.Name.Namespace))
+		}
 
+		if frame.Passive {
 			topic, _ := namespace.FindTopic(request.Topic.Name.Name)
 			if topic == nil {
-				return s.makeChannelClose(ch, v0.NotFound, errors.Errorf("topic %q not found", request.Topic.Name.Name))
+				return s.makeChannelClose(ch, v0.NotFound, errors.Errorf("exchange %q not found", request.Topic.Name.Name))
 			}
 
 		} else {
@@ -271,7 +272,9 @@ func (s *Server) handleAMQPv0ChannelMethod(ctx context.Context, transport *v0.Tr
 			return nil
 		}
 
-		return transport.Send(&v0.ExchangeDeclareOk{FrameMeta: v0.FrameMeta{Channel: ch.id}})
+		return transport.Send(&v0.ExchangeDeclareOk{
+			FrameMeta: v0.FrameMeta{Channel: ch.id},
+		})
 
 	case *v0.ExchangeDelete:
 		request := &client.DeleteTopicRequest{
@@ -291,7 +294,89 @@ func (s *Server) handleAMQPv0ChannelMethod(ctx context.Context, transport *v0.Tr
 			return nil
 		}
 
-		return transport.Send(&v0.ExchangeDeleteOk{FrameMeta: v0.FrameMeta{Channel: ch.id}})
+		return transport.Send(&v0.ExchangeDeleteOk{
+			FrameMeta: v0.FrameMeta{Channel: ch.id},
+		})
+
+	case *v0.QueueDeclare:
+		size, err := structvalue.Uint32(frame.Arguments, "size", defaultConsumerGroupSize)
+		if err != nil {
+			return s.makeConnectionClose(v0.SyntaxError, errors.Wrap(err, "size field failed"))
+		}
+
+		request := &client.CreateConsumerGroupRequest{
+			ConsumerGroup: client.ConsumerGroup{
+				Name: client.NamespaceName{
+					Namespace: namespaceName,
+					Name:      frame.Queue,
+				},
+				Size_: size,
+			},
+		}
+
+		if request.ConsumerGroup.Name.Name == "" {
+			generated, err := uuid.GenerateUUID()
+			if err != nil {
+				return s.makeConnectionClose(v0.InternalError, errors.Wrap(err, "generate queue name failed"))
+			}
+
+			request.ConsumerGroup.Name.Name = "amq-" + generated
+		}
+
+		state := s.clusterState.Current()
+		namespace, _ := state.FindNamespace(request.ConsumerGroup.Name.Namespace)
+		if namespace == nil {
+			return s.makeChannelClose(ch, v0.NotFound, errors.Errorf("vhost %q not found", request.ConsumerGroup.Name.Namespace))
+		}
+
+		cg, _ := namespace.FindConsumerGroup(request.ConsumerGroup.Name.Name)
+
+		if cg != nil {
+			for _, b := range cg.Bindings {
+				clientBinding := &client.ConsumerGroup_Binding{
+					TopicName: b.TopicName,
+				}
+				switch by := b.By.(type) {
+				case nil:
+					// do nothing
+				case *ClusterConsumerGroup_Binding_RoutingKey:
+					clientBinding.By = &client.ConsumerGroup_Binding_RoutingKey{
+						RoutingKey: by.RoutingKey,
+					}
+				case *ClusterConsumerGroup_Binding_HeadersAll:
+					clientBinding.By = &client.ConsumerGroup_Binding_HeadersAll{
+						HeadersAll: by.HeadersAll,
+					}
+				case *ClusterConsumerGroup_Binding_HeadersAny:
+					clientBinding.By = &client.ConsumerGroup_Binding_HeadersAny{
+						HeadersAny: by.HeadersAny,
+					}
+				default:
+					panic("unhandled binding by")
+				}
+				request.ConsumerGroup.Bindings = append(request.ConsumerGroup.Bindings, clientBinding)
+			}
+		}
+
+		if frame.Passive {
+			if cg == nil {
+				return s.makeChannelClose(ch, v0.NotFound, errors.Errorf("queue %q not found", request.ConsumerGroup.Name.Name))
+			}
+		} else {
+			_, err = s.CreateConsumerGroup(ctx, request)
+			if err != nil {
+				return s.makeConnectionClose(v0.InternalError, errors.Wrap(err, "create failed"))
+			}
+		}
+
+		if frame.NoWait {
+			return nil
+		}
+
+		return transport.Send(&v0.QueueDeclareOk{
+			FrameMeta: v0.FrameMeta{Channel: ch.id},
+			Queue:     request.ConsumerGroup.Name.Name,
+		})
 
 	default:
 		return s.makeConnectionClose(v0.SyntaxError, errors.Errorf("unexpected frame of type %T", frame))
