@@ -3,23 +3,90 @@ package v0
 import (
 	"bufio"
 	"io"
+	"net"
+	"time"
 
 	"github.com/pkg/errors"
 )
 
+var ErrFrameTooBig = errors.New("frame size over limit")
+
 type Transport struct {
-	rw  *bufio.ReadWriter
-	buf []byte
+	conn           net.Conn
+	rw             *bufio.ReadWriter
+	buf            []byte
+	frameMax       uint32
+	receiveTimeout time.Duration
+	sendTimeout    time.Duration
 }
 
-func NewTransport(rw *bufio.ReadWriter) *Transport {
+func NewTransport(conn net.Conn, rw *bufio.ReadWriter) *Transport {
 	return &Transport{
-		rw:  rw,
-		buf: make([]byte, FrameMinSize),
+		conn:     conn,
+		rw:       rw,
+		buf:      make([]byte, FrameMinSize),
+		frameMax: FrameMinSize,
 	}
 }
 
+func (t *Transport) SetFrameMax(frameMax uint32) {
+	t.frameMax = frameMax
+}
+
+func (t *Transport) SetReceiveTimeout(receiveTimeout time.Duration) error {
+	t.receiveTimeout = receiveTimeout
+	if t.receiveTimeout == 0 {
+		err := t.conn.SetReadDeadline(time.Time{})
+		if err != nil {
+			return errors.Wrap(err, "set read deadline failed")
+		}
+	}
+	return nil
+}
+
+func (t *Transport) SetSendTimeout(sendTimeout time.Duration) error {
+	t.sendTimeout = sendTimeout
+	if t.sendTimeout == 0 {
+		err := t.conn.SetWriteDeadline(time.Time{})
+		if err != nil {
+			return errors.Wrap(err, "set write deadline failed")
+		}
+	}
+	return nil
+}
+
+func (t *Transport) SendBody(channel uint16, data []byte) error {
+	var (
+		start  uint32 = 0
+		end           = t.frameMax
+		length        = uint32(len(data))
+	)
+	for start < length {
+		if end > length {
+			end = length
+		}
+		err := t.Send(&ContentBodyFrame{
+			FrameMeta: FrameMeta{
+				Channel: channel,
+			},
+			Data: data[start:end],
+		})
+		if err != nil {
+			return err
+		}
+		start, end = end, end+t.frameMax
+	}
+	return nil
+}
+
 func (t *Transport) Send(frame Frame) (err error) {
+	if t.sendTimeout > 0 {
+		err = t.conn.SetWriteDeadline(time.Now().Add(t.sendTimeout))
+		if err != nil {
+			return errors.Wrap(err, "set write deadline failed")
+		}
+	}
+
 	var (
 		frameType FrameType
 		payload   []byte
@@ -55,6 +122,10 @@ func (t *Transport) Send(frame Frame) (err error) {
 		return errors.Errorf("unhandled frame type %T", frame)
 	}
 
+	if uint32(len(payload)+end+1) > t.frameMax {
+		return ErrFrameTooBig
+	}
+
 	x[0] = byte(frameType)
 	endian.PutUint16(x[1:3], frame.GetFrameMeta().Channel)
 	endian.PutUint32(x[3:7], uint32(len(payload)+(end-7)))
@@ -88,6 +159,12 @@ func (t *Transport) Send(frame Frame) (err error) {
 }
 
 func (t *Transport) Receive() (Frame, error) {
+	if t.receiveTimeout > 0 {
+		err := t.conn.SetReadDeadline(time.Now().Add(t.receiveTimeout))
+		if err != nil {
+			return nil, errors.Wrap(err, "set read deadline failed")
+		}
+	}
 	if _, err := io.ReadFull(t.rw, t.buf[:7]); err != nil {
 		return nil, errors.Wrap(err, "read frame header failed")
 	}
@@ -95,6 +172,10 @@ func (t *Transport) Receive() (Frame, error) {
 	frameType := FrameType(t.buf[0])
 	channel := endian.Uint16(t.buf[1:3])
 	size := endian.Uint32(t.buf[3:7])
+
+	if size+8 > t.frameMax {
+		return nil, ErrFrameTooBig
+	}
 
 	if size+1 > uint32(len(t.buf)) {
 		t.buf = make([]byte, size+1)
