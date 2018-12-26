@@ -556,6 +556,18 @@ func (s *Server) handleAMQPv0ChannelMethod(ctx context.Context, transport *v0.Tr
 			FrameMeta: v0.FrameMeta{Channel: ch.id},
 		})
 
+	case *v0.QueuePurge:
+		return s.makeConnectionClose(v0.NotImplemented, errors.New("queue.purge not implemented"))
+
+	case *v0.TxSelect:
+		return s.makeConnectionClose(v0.NotImplemented, errors.New("tx.select not implemented"))
+
+	case *v0.TxCommit:
+		return s.makeConnectionClose(v0.NotImplemented, errors.New("tx.commit not implemented"))
+
+	case *v0.TxRollback:
+		return s.makeConnectionClose(v0.NotImplemented, errors.New("tx.rollback not implemented"))
+
 	default:
 		return s.makeConnectionClose(v0.SyntaxError, errors.Errorf("unexpected frame of type %T", frame))
 	}
