@@ -127,7 +127,7 @@ func (s *Server) CreateConsumerGroup(ctx context.Context, request *client.Create
 	namespace, _ = state.FindNamespace(request.ConsumerGroup.Name.Namespace)
 	consumerGroup, _ := namespace.FindConsumerGroup(request.ConsumerGroup.Name.Name)
 
-	if newIndex := s.reconciler.ReconcileConsumerGroupOffsetCommits(state, namespace, consumerGroup); newIndex > 0 {
+	if newIndex := s.reconciler.ReconcileConsumerGroup(state, namespace, consumerGroup); newIndex > 0 {
 		index = newIndex
 	}
 

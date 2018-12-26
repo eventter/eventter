@@ -133,6 +133,27 @@ func newTestServer(nodeID uint64) (ret *testServer, err error) {
 	return ts, nil
 }
 
+func (ts *testServer) WaitForConsumerGroup(namespace string, name string) {
+	key := namespace + "/" + name
+	deadline := time.Now().Add(1 * time.Second)
+
+	for {
+		ts.Server.groupMutex.Lock()
+		_, ok := ts.Server.groupMap[key]
+		ts.Server.groupMutex.Unlock()
+
+		if ok {
+			return
+		}
+
+		if time.Now().After(deadline) {
+			panic("consumer group " + key + " did not start")
+		}
+
+		time.Sleep(time.Millisecond)
+	}
+}
+
 func (ts *testServer) Close() error {
 	ts.Server.Close()
 	ts.Dir.Close()

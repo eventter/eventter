@@ -15,9 +15,15 @@ func (r *Reconciler) ReconcileConsumerGroups(state *ClusterState) {
 	for _, namespace := range state.Namespaces {
 		for _, consumerGroup := range namespace.ConsumerGroups {
 			r.reconcileConsumerGroupOffsetCommitsSegment(state, namespace, consumerGroup, nodeSegmentCounts)
-			r.ReconcileConsumerGroupOffsetCommits(state, namespace, consumerGroup)
+			r.reconcileConsumerGroupOffsetCommits(state, namespace, consumerGroup)
 		}
 	}
+}
+
+func (r *Reconciler) ReconcileConsumerGroup(state *ClusterState, namespace *ClusterNamespace, consumerGroup *ClusterConsumerGroup) uint64 {
+	nodeSegmentCounts := state.CountSegmentsPerNode()
+	r.reconcileConsumerGroupOffsetCommitsSegment(state, namespace, consumerGroup, nodeSegmentCounts)
+	return r.reconcileConsumerGroupOffsetCommits(state, namespace, consumerGroup)
 }
 
 func (r *Reconciler) reconcileConsumerGroupOffsetCommitsSegment(state *ClusterState, namespace *ClusterNamespace, consumerGroup *ClusterConsumerGroup, nodeSegmentCounts map[uint64]int) {
@@ -78,7 +84,7 @@ func (r *Reconciler) reconcileConsumerGroupOffsetCommitsSegment(state *ClusterSt
 	nodeSegmentCounts[primaryNodeID]++
 }
 
-func (r *Reconciler) ReconcileConsumerGroupOffsetCommits(state *ClusterState, namespace *ClusterNamespace, consumerGroup *ClusterConsumerGroup) uint64 {
+func (r *Reconciler) reconcileConsumerGroupOffsetCommits(state *ClusterState, namespace *ClusterNamespace, consumerGroup *ClusterConsumerGroup) uint64 {
 	boundTopicNames := make(map[string]bool)
 	for _, binding := range consumerGroup.Bindings {
 		boundTopicNames[binding.TopicName] = true
