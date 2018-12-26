@@ -27,8 +27,7 @@ type Group struct {
 	read     int
 	write    int
 	closed   uint32
-	Ack      <-chan MessageAck
-	sendAck  chan<- MessageAck
+	Commits  chan Commit
 }
 
 func NewGroup(n int) (*Group, error) {
@@ -36,13 +35,9 @@ func NewGroup(n int) (*Group, error) {
 		return nil, errors.New("n must be positive")
 	}
 
-	ack := make(chan MessageAck, n)
-
 	g := &Group{
 		n:        n,
 		messages: make([]Message, n+1),
-		Ack:      ack,
-		sendAck:  ack,
 	}
 
 	g.cond = sync.NewCond(&g.mutex)
@@ -56,10 +51,10 @@ func (g *Group) Offer(message *Message) error {
 	}
 
 	g.mutex.Lock()
-	defer g.mutex.Unlock()
 
 	for (g.write+1)%len(g.messages) == g.read {
 		if atomic.LoadUint32(&g.closed) == 1 {
+			g.mutex.Unlock()
 			return ErrGroupClosed
 		}
 		g.cond.Wait()
@@ -71,6 +66,7 @@ func (g *Group) Offer(message *Message) error {
 	g.write = (g.write + 1) % len(g.messages)
 
 	g.cond.Broadcast()
+	g.mutex.Unlock()
 
 	return nil
 }
@@ -92,7 +88,7 @@ func (g *Group) SubscribeN(n int) *Subscription {
 func (g *Group) Close() error {
 	g.mutex.Lock()
 	atomic.StoreUint32(&g.closed, 1)
-	g.sendAck = nil
+	g.Commits = nil
 	g.cond.Broadcast()
 	g.mutex.Unlock()
 	return nil

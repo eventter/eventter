@@ -73,6 +73,7 @@ func (s *Server) taskConsumerGroup(ctx context.Context, namespaceName string, co
 	if err != nil {
 		return errors.Wrap(err, "group create failed")
 	}
+	group.Commits = make(chan consumers.Commit, int(consumerGroup.Size_))
 
 	s.groupMutex.Lock()
 	mapKey := namespaceName + "/" + consumerGroupName
@@ -95,10 +96,10 @@ func (s *Server) taskConsumerGroup(ctx context.Context, namespaceName string, co
 	defer ticker.Stop()
 	state = nil // !!! force re-read of state and start of consumption tasks
 	running := make(map[uint64]*tasks.Task)
-	var ackImmediately []consumers.MessageAck
+	var ackImmediately []consumers.Commit
 
 	for {
-		var ack consumers.MessageAck
+		var ack consumers.Commit
 
 		if len(ackImmediately) > 0 {
 			ack = ackImmediately[0]
@@ -149,7 +150,7 @@ func (s *Server) taskConsumerGroup(ctx context.Context, namespaceName string, co
 						continue
 					}
 					if segment.ClosedAt.Before(consumerGroup.CreatedAt) {
-						ackImmediately = append(ackImmediately, consumers.MessageAck{
+						ackImmediately = append(ackImmediately, consumers.Commit{
 							SegmentID:    offsetSegmentID,
 							CommitOffset: segment.Size_,
 						})
@@ -238,7 +239,7 @@ func (s *Server) taskConsumerGroup(ctx context.Context, namespaceName string, co
 					state = nil // !!! force re-read of state and possibly restart the task
 					if segment != nil {
 						// segment closed => commit the whole segment
-						ack = consumers.MessageAck{
+						ack = consumers.Commit{
 							SegmentID:    offsetSegmentID,
 							CommitOffset: segment.Size_,
 						}
@@ -249,7 +250,7 @@ func (s *Server) taskConsumerGroup(ctx context.Context, namespaceName string, co
 				}
 			}
 
-		case ack = <-group.Ack:
+		case ack = <-group.Commits:
 			goto COMMIT
 
 		case <-ctx.Done():

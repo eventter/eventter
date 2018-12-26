@@ -1,7 +1,6 @@
 package consumers
 
 import (
-	"context"
 	"fmt"
 	"strconv"
 	"sync"
@@ -23,19 +22,6 @@ func TestGroup_Offer(t *testing.T) {
 			}
 		}
 		g.Close()
-	}()
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	go func() {
-		for {
-			select {
-			case <-g.Ack:
-				// discard acks
-			case <-ctx.Done():
-				return
-			}
-		}
 	}()
 
 	subscription := g.Subscribe()
@@ -157,19 +143,6 @@ func benchmarkGroup(b *testing.B, size int, messages int, producers int, consume
 	if err != nil {
 		b.Fatal(err)
 	}
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	go func() {
-		for {
-			select {
-			case <-g.Ack:
-				// discard acks
-			case <-ctx.Done():
-				return
-			}
-		}
-	}()
 
 	produceWg := sync.WaitGroup{}
 	for i := 0; i < producers; i++ {

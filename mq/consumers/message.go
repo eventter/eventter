@@ -20,7 +20,7 @@ func (m *Message) Reset() {
 	*m = Message{}
 }
 
-type MessageAck struct {
+type Commit struct {
 	SegmentID    uint64
 	CommitOffset int64
 }
