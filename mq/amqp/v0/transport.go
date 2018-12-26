@@ -71,10 +71,8 @@ func (t *Transport) SendBody(channel uint16, data []byte) error {
 			end = length
 		}
 		err := t.Send(&ContentBodyFrame{
-			FrameMeta: FrameMeta{
-				Channel: channel,
-			},
-			Data: data[start:end],
+			FrameMeta: FrameMeta{Channel: channel},
+			Data:      data[start:end],
 		})
 		if err != nil {
 			return err
@@ -127,7 +125,8 @@ func (t *Transport) Send(frame Frame) (err error) {
 		return errors.Errorf("unhandled frame type %T", frame)
 	}
 
-	if uint32(len(payload)+end+1) > t.frameMax {
+	// ignore frame max for non-body frames, see https://www.rabbitmq.com/amqp-0-9-1-errata.html#section_11
+	if frameType == FrameBody && uint32(len(payload)+end+1) > t.frameMax {
 		return ErrFrameTooBig
 	}
 
@@ -212,7 +211,9 @@ func (t *Transport) Receive() (Frame, error) {
 		}
 		return frame, nil
 	case FrameBody:
-		return &ContentBodyFrame{FrameMeta: meta, Data: payload}, nil
+		data := make([]byte, len(payload))
+		copy(data, payload)
+		return &ContentBodyFrame{FrameMeta: meta, Data: data}, nil
 	case FrameHeartbeat:
 		if len(payload) > 0 {
 			return nil, ErrMalformedFrame

@@ -9,13 +9,16 @@ import (
 	"eventter.io/mq/amqp/v0"
 	"eventter.io/mq/client"
 	"eventter.io/mq/structvalue"
+	"github.com/gogo/protobuf/types"
 	"github.com/hashicorp/go-uuid"
 	"github.com/pkg/errors"
 )
 
 const (
-	readyState   = 1
-	closingState = 2
+	readyState          = 1
+	closingState        = 2
+	awaitingHeaderState = 3
+	awaitingBodyState   = 4
 )
 
 func (s *Server) ServeAMQPv0(ctx context.Context, transport *v0.Transport) error {
@@ -118,7 +121,7 @@ func (s *Server) ServeAMQPv0(ctx context.Context, transport *v0.Transport) error
 						if !ok {
 							return s.forceCloseAMQPv0(transport, v0.ChannelError, "channel not open")
 						}
-						err := s.handleAMQPv0ChannelMethod(nil, transport, namespace, ch, frame)
+						err := s.handleAMQPv0ChannelMethod(ctx, transport, namespace, ch, frame)
 						if err != nil {
 							if connClose, ok := err.(*v0.ConnectionClose); ok {
 								return transport.Send(connClose)
@@ -142,7 +145,7 @@ func (s *Server) ServeAMQPv0(ctx context.Context, transport *v0.Transport) error
 				if !ok {
 					return s.forceCloseAMQPv0(transport, v0.ChannelError, "channel not open")
 				}
-				err := s.handleAMQPv0ChannelContentHeader(nil, transport, namespace, ch, frame)
+				err := s.handleAMQPv0ChannelContentHeader(ctx, transport, namespace, ch, frame)
 				if err != nil {
 					if connClose, ok := err.(*v0.ConnectionClose); ok {
 						return transport.Send(connClose)
@@ -164,7 +167,7 @@ func (s *Server) ServeAMQPv0(ctx context.Context, transport *v0.Transport) error
 				if !ok {
 					return s.forceCloseAMQPv0(transport, v0.ChannelError, "channel not open")
 				}
-				err := s.handleAMQPv0ChannelContentBody(nil, transport, namespace, ch, frame)
+				err := s.handleAMQPv0ChannelContentBody(ctx, transport, namespace, ch, frame)
 				if err != nil {
 					if connClose, ok := err.(*v0.ConnectionClose); ok {
 						return transport.Send(connClose)
@@ -196,9 +199,24 @@ func (s *Server) ServeAMQPv0(ctx context.Context, transport *v0.Transport) error
 }
 
 type serverAMQPv0Channel struct {
-	id            uint16
-	state         int
-	prefetchCount int
+	id                uint16
+	state             int
+	prefetchCount     int
+	publishExchange   string
+	publishRoutingKey string
+	publishProperties *client.Message_Properties
+	publishHeaders    *types.Struct
+	publishData       []byte
+	publishRemaining  int
+}
+
+func (ch *serverAMQPv0Channel) ResetPublish() {
+	ch.publishExchange = ""
+	ch.publishRoutingKey = ""
+	ch.publishProperties = nil
+	ch.publishHeaders = nil
+	ch.publishData = nil
+	ch.publishRemaining = 0
 }
 
 func (ch *serverAMQPv0Channel) Close() error {
@@ -206,6 +224,12 @@ func (ch *serverAMQPv0Channel) Close() error {
 }
 
 func (s *Server) handleAMQPv0ChannelMethod(ctx context.Context, transport *v0.Transport, namespaceName string, ch *serverAMQPv0Channel, frame v0.MethodFrame) error {
+	if ch.state == closingState {
+		return nil
+	} else if ch.state != readyState {
+		return s.makeConnectionClose(v0.UnexpectedFrame, errors.New("expected method frame"))
+	}
+
 	switch frame := frame.(type) {
 	case *v0.ExchangeDeclare:
 		shards, err := structvalue.Uint32(frame.Arguments, "shards", 1)
@@ -552,6 +576,12 @@ func (s *Server) handleAMQPv0ChannelMethod(ctx context.Context, transport *v0.Tr
 			FrameMeta: v0.FrameMeta{Channel: ch.id},
 		})
 
+	case *v0.BasicPublish:
+		ch.publishExchange = frame.Exchange
+		ch.publishRoutingKey = frame.RoutingKey
+		ch.state = awaitingHeaderState
+		return nil
+
 	case *v0.TxSelect:
 		return s.makeConnectionClose(v0.NotImplemented, errors.New("tx.select not implemented"))
 
@@ -567,11 +597,131 @@ func (s *Server) handleAMQPv0ChannelMethod(ctx context.Context, transport *v0.Tr
 }
 
 func (s *Server) handleAMQPv0ChannelContentHeader(ctx context.Context, transport *v0.Transport, namespace string, ch *serverAMQPv0Channel, frame *v0.ContentHeaderFrame) error {
-	panic("implement me")
+	if ch.state == closingState {
+		return nil
+	} else if ch.state != awaitingHeaderState {
+		return s.makeConnectionClose(v0.UnexpectedFrame, errors.New("expected header frame"))
+	}
+
+	ch.publishRemaining = int(frame.BodySize)
+
+	if frame.ContentType != "" {
+		if ch.publishProperties == nil {
+			ch.publishProperties = &client.Message_Properties{}
+		}
+		ch.publishProperties.ContentType = frame.ContentType
+	}
+	if frame.ContentEncoding != "" {
+		if ch.publishProperties == nil {
+			ch.publishProperties = &client.Message_Properties{}
+		}
+		ch.publishProperties.ContentEncoding = frame.ContentEncoding
+	}
+	ch.publishHeaders = frame.Headers
+	if frame.DeliveryMode != 0 {
+		if ch.publishProperties == nil {
+			ch.publishProperties = &client.Message_Properties{}
+		}
+		ch.publishProperties.DeliveryMode = int32(frame.DeliveryMode)
+	}
+	if frame.Priority != 0 {
+		if ch.publishProperties == nil {
+			ch.publishProperties = &client.Message_Properties{}
+		}
+		ch.publishProperties.Priority = int32(frame.Priority)
+	}
+	if frame.CorrelationID != "" {
+		if ch.publishProperties == nil {
+			ch.publishProperties = &client.Message_Properties{}
+		}
+		ch.publishProperties.CorrelationID = frame.CorrelationID
+	}
+	if frame.ReplyTo != "" {
+		if ch.publishProperties == nil {
+			ch.publishProperties = &client.Message_Properties{}
+		}
+		ch.publishProperties.ReplyTo = frame.ReplyTo
+	}
+	if frame.Expiration != "" {
+		if ch.publishProperties == nil {
+			ch.publishProperties = &client.Message_Properties{}
+		}
+		ch.publishProperties.Expiration = frame.Expiration
+	}
+	if frame.MessageID != "" {
+		if ch.publishProperties == nil {
+			ch.publishProperties = &client.Message_Properties{}
+		}
+		ch.publishProperties.MessageID = frame.MessageID
+	}
+	if !frame.Timestamp.IsZero() {
+		if ch.publishProperties == nil {
+			ch.publishProperties = &client.Message_Properties{}
+		}
+		ch.publishProperties.Timestamp = frame.Timestamp
+	}
+	if frame.Type != "" {
+		if ch.publishProperties == nil {
+			ch.publishProperties = &client.Message_Properties{}
+		}
+		ch.publishProperties.Type = frame.Type
+	}
+	if frame.UserID != "" {
+		if ch.publishProperties == nil {
+			ch.publishProperties = &client.Message_Properties{}
+		}
+		ch.publishProperties.UserID = frame.UserID
+	}
+	if frame.AppID != "" {
+		if ch.publishProperties == nil {
+			ch.publishProperties = &client.Message_Properties{}
+		}
+		ch.publishProperties.AppID = frame.AppID
+	}
+
+	ch.state = awaitingBodyState
+
+	return nil
 }
 
-func (s *Server) handleAMQPv0ChannelContentBody(ctx context.Context, transport *v0.Transport, namespace string, ch *serverAMQPv0Channel, frame *v0.ContentBodyFrame) error {
-	panic("implement me")
+func (s *Server) handleAMQPv0ChannelContentBody(ctx context.Context, transport *v0.Transport, namespaceName string, ch *serverAMQPv0Channel, frame *v0.ContentBodyFrame) error {
+	if ch.state == closingState {
+		return nil
+	} else if ch.state != awaitingBodyState {
+		return s.makeConnectionClose(v0.UnexpectedFrame, errors.New("expected body frame"))
+	}
+
+	if len(frame.Data) > ch.publishRemaining {
+		return s.makeConnectionClose(v0.FrameError, errors.Errorf("body remaining %d, got %d", ch.publishRemaining, len(frame.Data)))
+	}
+
+	ch.publishData = append(ch.publishData, frame.Data...)
+	ch.publishRemaining -= len(frame.Data)
+
+	if ch.publishRemaining > 0 {
+		return nil
+	}
+
+	_, err := s.Publish(ctx, &client.PublishRequest{
+		Topic: client.NamespaceName{
+			Namespace: namespaceName,
+			Name:      ch.publishExchange,
+		},
+		Message: &client.Message{
+			RoutingKey: ch.publishRoutingKey,
+			Properties: ch.publishProperties,
+			Headers:    ch.publishHeaders,
+			Data:       ch.publishData,
+		},
+	})
+	if err != nil {
+		return s.makeConnectionClose(v0.InternalError, errors.Wrap(err, "publish failed"))
+	}
+
+	ch.ResetPublish()
+	ch.state = readyState
+
+	return nil
 }
 
 func (s *Server) forceCloseAMQPv0(transport *v0.Transport, replyCode uint16, replyText string) error {
