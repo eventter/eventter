@@ -178,7 +178,8 @@ func (t *Transport) Receive() (Frame, error) {
 	channel := endian.Uint16(t.buf[1:3])
 	size := endian.Uint32(t.buf[3:7])
 
-	if size+8 > t.frameMax {
+	// ignore frame max for non-body frames, see https://www.rabbitmq.com/amqp-0-9-1-errata.html#section_11
+	if frameType == FrameBody && size+8 > t.frameMax {
 		return nil, ErrFrameTooBig
 	}
 

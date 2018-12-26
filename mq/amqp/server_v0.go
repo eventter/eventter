@@ -43,11 +43,15 @@ func (s *Server) initV0(transport *v0.Transport) (ctx context.Context, err error
 	if s.Version != "" {
 		serverProperties["version"] = &types.Value{Kind: &types.Value_StringValue{StringValue: s.Version}}
 	}
-	serverProperties["capabilities"] = &types.Value{Kind: &types.Value_StructValue{StructValue: &types.Struct{
-		Fields: map[string]*types.Value{
-			"basic.nack": {Kind: &types.Value_BoolValue{BoolValue: true}},
-		},
-	}}}
+	if len(s.CapabilitiesV0) > 0 {
+		fields := make(map[string]*types.Value)
+		for _, capability := range s.CapabilitiesV0 {
+			fields[capability] = &types.Value{Kind: &types.Value_BoolValue{BoolValue: true}}
+		}
+		serverProperties["capabilities"] = &types.Value{Kind: &types.Value_StructValue{StructValue: &types.Struct{
+			Fields: fields,
+		}}}
+	}
 
 	err = transport.Send(&v0.ConnectionStart{
 		VersionMajor:     v0.Major,
@@ -133,11 +137,15 @@ func (s *Server) initV0(transport *v0.Transport) (ctx context.Context, err error
 	}
 	if tuneOk.ChannelMax == 0 {
 		tuneOk.ChannelMax = tune.ChannelMax
+	} else if tuneOk.ChannelMax > tune.ChannelMax {
+		return nil, errors.Errorf("client tried to raise channel max (server=%d, client=%d)", tune.ChannelMax, tuneOk.ChannelMax)
 	}
 	if tuneOk.FrameMax == 0 {
 		tuneOk.FrameMax = tune.FrameMax
 	} else if tuneOk.FrameMax < v0.FrameMinSize {
 		return nil, errors.Errorf("client tried to negotiate frame max size %d, less than mandatory minimum", tuneOk.FrameMax)
+	} else if tuneOk.FrameMax > tune.FrameMax {
+		return nil, errors.Errorf("client tried to raise frame max (server=%d, client=%d)", tune.FrameMax, tuneOk.FrameMax)
 	}
 
 	heartbeat := time.Duration(tuneOk.Heartbeat) * time.Second

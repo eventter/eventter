@@ -198,9 +198,10 @@ func Cmd() *cobra.Command {
 				return true, nil
 			}
 			amqpServer := &amqp.Server{
-				Name:      about.Name,
-				Version:   about.Version,
-				HandlerV0: server,
+				Name:           about.Name,
+				Version:        about.Version,
+				CapabilitiesV0: []string{"basic.nack"},
+				HandlerV0:      server,
 				AuthenticationProviders: []authentication.Provider{
 					authentication.NewPLAIN(allowAll),
 					authentication.NewAMQPLAIN(allowAll),

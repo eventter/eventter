@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"reflect"
-	"time"
 
 	"eventter.io/mq/amqp"
 	"eventter.io/mq/amqp/v0"
@@ -49,17 +48,6 @@ func (s *Server) ServeAMQPv0(ctx context.Context, transport *v0.Transport) error
 		}
 	}()
 
-	heartbeat, err := amqp.Heartbeat(ctx)
-	if err != nil {
-		return errors.Wrap(err, "get heartbeat from context")
-	}
-	var heartbeats <-chan time.Time
-	if heartbeat > 0 {
-		heartbeatTicker := time.NewTicker(heartbeat)
-		defer heartbeatTicker.Stop()
-		heartbeats = heartbeatTicker.C
-	}
-
 	channels := make(map[uint16]*serverAMQPv0Channel)
 	defer func() {
 		for _, ch := range channels {
@@ -70,11 +58,6 @@ func (s *Server) ServeAMQPv0(ctx context.Context, transport *v0.Transport) error
 		select {
 		case <-s.closeC:
 			return s.forceCloseAMQPv0(transport, v0.ConnectionForced, "shutdown")
-		case <-heartbeats:
-			err := transport.Send(&v0.HeartbeatFrame{})
-			if err != nil {
-				return errors.Wrap(err, "send heartbeat failed")
-			}
 		case frame := <-frames:
 			switch frame := frame.(type) {
 			case v0.MethodFrame:

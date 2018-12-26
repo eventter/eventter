@@ -19,9 +19,9 @@ const (
 )
 
 type Server struct {
-	// Reported as `product` field in AMQPv0 connection.start server-properties.
+	// Reported as `product` field in AMQPv0 `connection.start` `server-properties`.
 	Name string
-	// Reported as `version` field in AMQPv0 connection.start server-properties.
+	// Reported as `version` field in AMQPv0 `connection.start` `server-properties`.
 	Version string
 	// Max time to establish connection.
 	ConnectTimeout time.Duration
@@ -29,7 +29,10 @@ type Server struct {
 	AuthenticationProviders []authentication.Provider
 	// Heartbeat the server tries to negotiate with clients.
 	Heartbeat time.Duration
-	// Handle AMQP 0.9.1 connection.
+	// Will be transformed to map with strings as keys & `true` as values and sent to client as `capabilities`
+	// field in `connection.start` `server-properties`.
+	CapabilitiesV0 []string
+	// Handle AMQPv0 connection.
 	HandlerV0 HandlerV0
 }
 
