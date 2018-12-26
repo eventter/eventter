@@ -99,7 +99,12 @@ func (s *Server) Subscribe(request *client.SubscribeRequest, stream client.Event
 		)
 	}
 
-	subscription := group.Subscribe() // TODO: max in-flight message count
+	var subscription *consumers.Subscription
+	if request.Size_ == 0 {
+		subscription = group.Subscribe()
+	} else {
+		subscription = group.SubscribeN(int(request.Size_))
+	}
 	s.groupMutex.Lock()
 	s.subscriptionMap[subscription.ID] = subscription
 	s.groupMutex.Unlock()

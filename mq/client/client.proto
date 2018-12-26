@@ -173,6 +173,8 @@ message SubscribeRequest {
     // If true and node does not manage consumer group, request will fail.
     bool do_not_forward = 99;
     NamespaceName consumer_group = 1 [(gogoproto.nullable) = false];
+    // Max number of messages in-flight. Zero means there is no limit.
+    uint32 size = 2;
 }
 
 message SubscribeResponse {

@@ -16,6 +16,10 @@ type Message struct {
 	SeqNo          uint64
 }
 
+func (m *Message) Reset() {
+	*m = Message{}
+}
+
 type MessageAck struct {
 	SegmentID    uint64
 	CommitOffset int64

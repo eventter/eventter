@@ -20,6 +20,7 @@ var (
 type Subscription struct {
 	ID     uint64
 	group  *Group
+	n      int
 	closed uint32
 	seq    uint64
 }
@@ -34,21 +35,23 @@ func (s *Subscription) Next() (*Message, error) {
 
 	var i int
 	for {
-		i = -1
-		for j := s.group.read; j != s.group.write; j = (j + 1) % len(s.group.messages) {
-			if s.group.messages[j].SubscriptionID == ready {
-				i = j
+		if s.n != 0 {
+			i = -1
+			for j := s.group.read; j != s.group.write; j = (j + 1) % len(s.group.messages) {
+				if s.group.messages[j].SubscriptionID == ready {
+					i = j
+					break
+				}
+			}
+			if i != -1 {
 				break
 			}
-		}
-		if i != -1 {
-			break
-		}
-		if atomic.LoadUint32(&s.closed) == 1 {
-			return nil, ErrSubscriptionClosed
-		}
-		if s.group.read == s.group.write && atomic.LoadUint32(&s.group.closed) == 1 {
-			return nil, ErrGroupClosed
+			if atomic.LoadUint32(&s.closed) == 1 {
+				return nil, ErrSubscriptionClosed
+			}
+			if s.group.read == s.group.write && atomic.LoadUint32(&s.group.closed) == 1 {
+				return nil, ErrGroupClosed
+			}
 		}
 		s.group.cond.Wait()
 	}
@@ -56,6 +59,9 @@ func (s *Subscription) Next() (*Message, error) {
 	s.seq++
 	s.group.messages[i].SubscriptionID = s.ID
 	s.group.messages[i].SeqNo = s.seq
+	if s.n > 0 {
+		s.n--
+	}
 
 	return &s.group.messages[i], nil
 }
@@ -77,6 +83,9 @@ func (s *Subscription) Ack(seqNo uint64) error {
 
 	s.group.messages[i].SubscriptionID = ack
 	s.group.messages[i].SeqNo = zeroSeqNo
+	if s.n >= 0 {
+		s.n++
+	}
 
 	messageAcks := messageAcksPool.Get().([]MessageAck)[:0]
 
@@ -86,6 +95,7 @@ func (s *Subscription) Ack(seqNo uint64) error {
 			SegmentID:    s.group.messages[j].SegmentID,
 			CommitOffset: s.group.messages[j].CommitOffset,
 		})
+		s.group.messages[j].Reset()
 	}
 	s.group.read = j
 
@@ -121,6 +131,9 @@ func (s *Subscription) Nack(seqNo uint64) error {
 
 	s.group.messages[i].SubscriptionID = ready
 	s.group.messages[i].SeqNo = zeroSeqNo
+	if s.n >= 0 {
+		s.n++
+	}
 
 	s.group.cond.Broadcast()
 
