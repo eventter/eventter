@@ -196,8 +196,9 @@ func (s *Server) ServeAMQPv0(ctx context.Context, transport *v0.Transport) error
 }
 
 type serverAMQPv0Channel struct {
-	id    uint16
-	state int
+	id            uint16
+	state         int
+	prefetchCount int
 }
 
 func (ch *serverAMQPv0Channel) Close() error {
@@ -541,6 +542,15 @@ func (s *Server) handleAMQPv0ChannelMethod(ctx context.Context, transport *v0.Tr
 
 	case *v0.QueuePurge:
 		return s.makeConnectionClose(v0.NotImplemented, errors.New("queue.purge not implemented"))
+
+	case *v0.BasicQos:
+		// prefetch-size is ignored
+		ch.prefetchCount = int(frame.PrefetchCount)
+		// global is ignored
+
+		return transport.Send(&v0.BasicQosOk{
+			FrameMeta: v0.FrameMeta{Channel: ch.id},
+		})
 
 	case *v0.TxSelect:
 		return s.makeConnectionClose(v0.NotImplemented, errors.New("tx.select not implemented"))
