@@ -317,7 +317,7 @@ func (s *Server) handleAMQPv0ChannelMethod(ctx context.Context, transport *v0.Tr
 		} else {
 			_, err = s.CreateTopic(ctx, request)
 			if err != nil {
-				return s.makeConnectionClose(v0.InternalError, errors.Wrap(err, "create failed"))
+				return errors.Wrap(err, "create failed")
 			}
 		}
 
@@ -346,7 +346,7 @@ func (s *Server) handleAMQPv0ChannelMethod(ctx context.Context, transport *v0.Tr
 
 		_, err := s.DeleteTopic(ctx, request)
 		if err != nil {
-			return s.makeConnectionClose(v0.InternalError, errors.Wrapf(err, "delete failed"))
+			return errors.Wrapf(err, "delete failed")
 		}
 
 		if frame.NoWait {
@@ -376,7 +376,7 @@ func (s *Server) handleAMQPv0ChannelMethod(ctx context.Context, transport *v0.Tr
 		if request.ConsumerGroup.Name.Name == "" {
 			generated, err := uuid.GenerateUUID()
 			if err != nil {
-				return s.makeConnectionClose(v0.InternalError, errors.Wrap(err, "generate queue name failed"))
+				return errors.Wrap(err, "generate queue name failed")
 			}
 			request.ConsumerGroup.Name.Name = "amq-" + generated
 		}
@@ -402,14 +402,14 @@ func (s *Server) handleAMQPv0ChannelMethod(ctx context.Context, transport *v0.Tr
 		} else {
 			_, err = s.CreateConsumerGroup(ctx, request)
 			if err != nil {
-				return s.makeConnectionClose(v0.InternalError, errors.Wrap(err, "create failed"))
+				return errors.Wrap(err, "create failed")
 			}
 
 			_, err = s.ConsumerGroupWait(ctx, &ConsumerGroupWaitRequest{
 				ConsumerGroup: request.ConsumerGroup.Name,
 			})
 			if err != nil {
-				return s.makeConnectionClose(v0.InternalError, errors.Wrap(err, "wait failed"))
+				return errors.Wrap(err, "wait failed")
 			}
 		}
 
@@ -438,7 +438,7 @@ func (s *Server) handleAMQPv0ChannelMethod(ctx context.Context, transport *v0.Tr
 
 		_, err := s.DeleteConsumerGroup(ctx, request)
 		if err != nil {
-			return s.makeConnectionClose(v0.InternalError, errors.Wrapf(err, "delete failed"))
+			return errors.Wrap(err, "delete failed")
 		}
 
 		if frame.NoWait {
@@ -528,7 +528,7 @@ func (s *Server) handleAMQPv0ChannelMethod(ctx context.Context, transport *v0.Tr
 
 		_, err := s.CreateConsumerGroup(ctx, request)
 		if err != nil {
-			return s.makeConnectionClose(v0.InternalError, errors.Wrap(err, "create failed"))
+			return errors.Wrap(err, "create failed")
 		}
 
 		if frame.NoWait {
@@ -612,7 +612,7 @@ func (s *Server) handleAMQPv0ChannelMethod(ctx context.Context, transport *v0.Tr
 
 		_, err := s.CreateConsumerGroup(ctx, request)
 		if err != nil {
-			return s.makeConnectionClose(v0.InternalError, errors.Wrap(err, "create failed"))
+			return errors.Wrap(err, "create failed")
 		}
 
 		return transport.Send(&v0.QueueUnbindOk{
@@ -645,7 +645,7 @@ func (s *Server) handleAMQPv0ChannelMethod(ctx context.Context, transport *v0.Tr
 		if frame.ConsumerTag == "" {
 			generated, err := uuid.GenerateUUID()
 			if err != nil {
-				return s.makeConnectionClose(v0.InternalError, errors.Wrap(err, "generate consumer tag failed"))
+				return errors.Wrap(err, "generate consumer tag failed")
 			}
 			frame.ConsumerTag = "ctag-" + generated
 		}
@@ -702,6 +702,52 @@ func (s *Server) handleAMQPv0ChannelMethod(ctx context.Context, transport *v0.Tr
 			FrameMeta:   v0.FrameMeta{Channel: ch.id},
 			ConsumerTag: frame.ConsumerTag,
 		})
+
+	case *v0.BasicAck:
+		if frame.Multiple {
+			i := 0
+			n := 0
+			for ; i < len(ch.inflight) && ch.inflight[i].deliveryTag <= frame.DeliveryTag; i++ {
+				_, err := s.Ack(ctx, &client.AckRequest{
+					NodeID:         ch.inflight[i].nodeID,
+					SubscriptionID: ch.inflight[i].subscriptionID,
+					SeqNo:          ch.inflight[i].seqNo,
+				})
+				if err != nil {
+					return errors.Wrap(err, "ack failed")
+				}
+				n++
+			}
+			if n == 0 {
+				return s.makeChannelClose(ch, v0.PreconditionFailed, errors.Errorf("delivery tag %d doesn't exist", frame.DeliveryTag))
+			}
+			ch.inflight = ch.inflight[i:]
+		} else {
+			i := -1
+			for j := 0; j < len(ch.inflight); j++ {
+				if ch.inflight[j].deliveryTag == frame.DeliveryTag {
+					i = j
+					break
+				}
+			}
+
+			if i == -1 {
+				return s.makeChannelClose(ch, v0.PreconditionFailed, errors.Errorf("delivery tag %d doesn't exist", frame.DeliveryTag))
+			}
+
+			_, err := s.Ack(ctx, &client.AckRequest{
+				NodeID:         ch.inflight[i].nodeID,
+				SubscriptionID: ch.inflight[i].subscriptionID,
+				SeqNo:          ch.inflight[i].seqNo,
+			})
+			if err != nil {
+				return errors.Wrap(err, "ack failed")
+			}
+
+			ch.inflight = ch.inflight[:i+copy(ch.inflight[i:], ch.inflight[i+1:])]
+		}
+
+		return nil
 
 	case *v0.BasicRecover:
 		return s.makeConnectionClose(v0.NotImplemented, errors.New("basic.recover not implemented"))

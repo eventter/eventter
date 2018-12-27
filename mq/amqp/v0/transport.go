@@ -230,9 +230,11 @@ func (t *Transport) Call(request MethodFrame, response interface{}) error {
 		return errors.New("response is not pointer")
 	}
 
-	err := t.Send(request)
-	if err != nil {
-		return errors.Wrap(err, "send failed")
+	if request != nil {
+		err := t.Send(request)
+		if err != nil {
+			return errors.Wrap(err, "send failed")
+		}
 	}
 
 	frame, err := t.Receive()
