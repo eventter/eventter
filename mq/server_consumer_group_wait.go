@@ -70,7 +70,7 @@ func (s *Server) ConsumerGroupWait(ctx context.Context, request *ConsumerGroupWa
 		case <-ctx.Done():
 			return nil, ctx.Err()
 		default:
-			time.Sleep(time.Millisecond)
+			time.Sleep(1 * time.Millisecond)
 		}
 	}
 }

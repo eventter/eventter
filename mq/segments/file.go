@@ -136,8 +136,10 @@ func (f *File) Write(message []byte) error {
 	buf = buf[:n+len(message)]
 
 	if n, err := f.file.Write(buf); err != nil || n < len(buf) {
-		if err := f.file.Truncate(currentOffset); err != nil {
-			panic("segment file " + f.path + " might be corrupted, truncate failed: " + err.Error())
+		if err, ok := err.(*os.PathError); !ok || err.Err != os.ErrClosed {
+			if err := f.file.Truncate(currentOffset); err != nil {
+				panic("segment file " + f.path + " might be corrupted, truncate failed: " + err.Error())
+			}
 		}
 		return errors.Wrap(err, "write failed")
 	}

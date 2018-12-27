@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 	"time"
 
@@ -132,6 +133,14 @@ func newTestServer(nodeID uint64) (ret *testServer, err error) {
 		}
 	}
 
+	{ // wait for node
+		state := ts.ClusterStateStore.Current()
+		for state.GetNode(ts.Server.nodeID) == nil {
+			runtime.Gosched()
+			state = ts.ClusterStateStore.Current()
+		}
+	}
+
 	return ts, nil
 }
 
@@ -143,8 +152,8 @@ func (ts *testServer) WaitForConsumerGroup(t *testing.T, ctx context.Context, na
 
 	response, err := ts.Server.ConsumerGroupWait(ctx, &ConsumerGroupWaitRequest{
 		ConsumerGroup: client.NamespaceName{
-			Namespace: "default",
-			Name:      "test-subscribe-consumer-group",
+			Namespace: namespace,
+			Name:      name,
 		},
 	})
 	assert.NoError(err)
