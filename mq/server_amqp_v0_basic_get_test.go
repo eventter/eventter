@@ -1,8 +1,8 @@
 package mq
 
 import (
+	"context"
 	"testing"
-	"time"
 
 	"eventter.io/mq/amqp/v0"
 	"github.com/stretchr/testify/require"
@@ -11,9 +11,12 @@ import (
 func TestServer_ServeAMQPv0_BasicGet(t *testing.T) {
 	assert := require.New(t)
 
-	_, client, cleanup, err := newClient(t)
+	ts, client, cleanup, err := newClient(t)
 	assert.NoError(err)
 	defer cleanup()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	{
 		var channel uint16 = 1
@@ -87,9 +90,9 @@ func TestServer_ServeAMQPv0_BasicGet(t *testing.T) {
 			assert.NoError(err)
 		}
 
-		time.Sleep(1 * time.Second)
-
 		{
+			ts.WaitForMessage(t, ctx, "default", "q")
+
 			var response *v0.BasicGetOk
 			err := client.Call(&v0.BasicGet{
 				FrameMeta: v0.FrameMeta{Channel: channel},

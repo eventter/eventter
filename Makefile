@@ -29,7 +29,7 @@ vet:
 	go vet $$(go list ./... | grep -v vendor)
 
 test:
-	go test -v -race -count=1 $$(go list ./... | grep -v vendor)
+	go test -race -count=1 $$(go list ./... | grep -v vendor)
 
 install:
 	go install -v ./bin/livereload-example

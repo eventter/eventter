@@ -9,6 +9,10 @@ import (
 )
 
 func (s *Server) handleAMQPv0ExchangeDelete(ctx context.Context, transport *v0.Transport, namespaceName string, ch *serverAMQPv0Channel, frame *v0.ExchangeDelete) error {
+	if frame.Exchange == "" || frame.Exchange == defaultExchangeTopicName {
+		return s.makeConnectionClose(v0.SyntaxError, errors.New("trying to delete default exchange"))
+	}
+
 	state := s.clusterState.Current()
 	namespace, _ := state.FindNamespace(namespaceName)
 	if namespace == nil {

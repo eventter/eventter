@@ -3,7 +3,6 @@ package mq
 import (
 	"context"
 	"testing"
-	"time"
 
 	"eventter.io/mq/client"
 	"github.com/stretchr/testify/require"
@@ -73,9 +72,9 @@ func TestServer_Ack(t *testing.T) {
 		assert.True(response.OK)
 	}
 
-	time.Sleep(1 * time.Second)
-
 	{
+		ts.WaitForMessage(t, ctx, "default", "test-ack-consumer-group")
+
 		stream := newSubscribeConsumer(ctx, 0, "", nil)
 
 		go func() {

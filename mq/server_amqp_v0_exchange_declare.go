@@ -10,6 +10,10 @@ import (
 )
 
 func (s *Server) handleAMQPv0ExchangeDeclare(ctx context.Context, transport *v0.Transport, namespaceName string, ch *serverAMQPv0Channel, frame *v0.ExchangeDeclare) error {
+	if frame.Exchange == "" || frame.Exchange == defaultExchangeTopicName {
+		return s.makeConnectionClose(v0.SyntaxError, errors.New("trying to declare default exchange"))
+	}
+
 	shards, err := structvalue.Uint32(frame.Arguments, "shards", 1)
 	if err != nil {
 		return s.makeConnectionClose(v0.SyntaxError, errors.Wrap(err, "shards field failed"))

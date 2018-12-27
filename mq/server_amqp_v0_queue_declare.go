@@ -11,9 +11,42 @@ import (
 )
 
 func (s *Server) handleAMQPv0QueueDeclare(ctx context.Context, transport *v0.Transport, namespaceName string, ch *serverAMQPv0Channel, frame *v0.QueueDeclare) error {
+	state := s.clusterState.Current()
+	namespace, _ := state.FindNamespace(namespaceName)
+	if namespace == nil {
+		return s.makeChannelClose(ch, v0.NotFound, errors.Errorf("vhost %q not found", namespaceName))
+	}
+
+	defaultTopic, _ := namespace.FindTopic(defaultExchangeTopicName)
+	if defaultTopic == nil {
+		_, err := s.CreateTopic(ctx, &client.CreateTopicRequest{
+			Topic: client.Topic{
+				Name: client.NamespaceName{
+					Namespace: namespaceName,
+					Name:      defaultExchangeTopicName,
+				},
+				Type:              client.ExchangeTypeDirect,
+				Shards:            1,
+				ReplicationFactor: defaultReplicationFactor,
+				Retention:         1,
+			},
+		})
+		if err != nil {
+			return errors.Wrap(err, "create default exchange failed")
+		}
+	}
+
 	size, err := structvalue.Uint32(frame.Arguments, "size", defaultConsumerGroupSize)
 	if err != nil {
 		return s.makeConnectionClose(v0.SyntaxError, errors.Wrap(err, "size field failed"))
+	}
+
+	if frame.Queue == "" {
+		generated, err := uuid.GenerateUUID()
+		if err != nil {
+			return errors.Wrap(err, "generate queue name failed")
+		}
+		frame.Queue = "amq-" + generated
 	}
 
 	request := &client.CreateConsumerGroupRequest{
@@ -23,21 +56,13 @@ func (s *Server) handleAMQPv0QueueDeclare(ctx context.Context, transport *v0.Tra
 				Name:      frame.Queue,
 			},
 			Size_: size,
+			Bindings: []*client.ConsumerGroup_Binding{
+				{
+					TopicName: defaultExchangeTopicName,
+					By:        &client.ConsumerGroup_Binding_RoutingKey{RoutingKey: frame.Queue},
+				},
+			},
 		},
-	}
-
-	if request.ConsumerGroup.Name.Name == "" {
-		generated, err := uuid.GenerateUUID()
-		if err != nil {
-			return errors.Wrap(err, "generate queue name failed")
-		}
-		request.ConsumerGroup.Name.Name = "amq-" + generated
-	}
-
-	state := s.clusterState.Current()
-	namespace, _ := state.FindNamespace(request.ConsumerGroup.Name.Namespace)
-	if namespace == nil {
-		return s.makeChannelClose(ch, v0.NotFound, errors.Errorf("vhost %q not found", request.ConsumerGroup.Name.Namespace))
 	}
 
 	cg, _ := namespace.FindConsumerGroup(request.ConsumerGroup.Name.Name)

@@ -3,7 +3,6 @@ package mq
 import (
 	"context"
 	"testing"
-	"time"
 
 	"eventter.io/mq/client"
 	"github.com/stretchr/testify/require"
@@ -24,7 +23,7 @@ func TestServer_Nack(t *testing.T) {
 			Topic: client.Topic{
 				Name: client.NamespaceName{
 					Namespace: "default",
-					Name:      "test-ack-topic",
+					Name:      "test-nack-topic",
 				},
 				Type: client.ExchangeTypeFanout,
 			},
@@ -39,10 +38,10 @@ func TestServer_Nack(t *testing.T) {
 			ConsumerGroup: client.ConsumerGroup{
 				Name: client.NamespaceName{
 					Namespace: "default",
-					Name:      "test-ack-consumer-group",
+					Name:      "test-nack-consumer-group",
 				},
 				Bindings: []*client.ConsumerGroup_Binding{
-					{TopicName: "test-ack-topic"},
+					{TopicName: "test-nack-topic"},
 				},
 			},
 		})
@@ -52,17 +51,17 @@ func TestServer_Nack(t *testing.T) {
 
 		ns, _ := ts.ClusterStateStore.Current().FindNamespace("default")
 		assert.NotNil(ns)
-		cg, _ := ns.FindConsumerGroup("test-ack-consumer-group")
+		cg, _ := ns.FindConsumerGroup("test-nack-consumer-group")
 		assert.NotNil(cg)
 
-		ts.WaitForConsumerGroup(t, ctx, "default", "test-ack-consumer-group")
+		ts.WaitForConsumerGroup(t, ctx, "default", "test-nack-consumer-group")
 	}
 
 	{
 		response, err := ts.Server.Publish(ctx, &client.PublishRequest{
 			Topic: client.NamespaceName{
 				Namespace: "default",
-				Name:      "test-ack-topic",
+				Name:      "test-nack-topic",
 			},
 			Message: &client.Message{
 				Data: []byte("hello, world"),
@@ -73,9 +72,9 @@ func TestServer_Nack(t *testing.T) {
 		assert.True(response.OK)
 	}
 
-	time.Sleep(1 * time.Second)
-
 	{
+		ts.WaitForMessage(t, ctx, "default", "test-nack-consumer-group")
+
 		stream := newSubscribeConsumer(ctx, 0, "", nil)
 
 		go func() {
@@ -84,7 +83,7 @@ func TestServer_Nack(t *testing.T) {
 			err := ts.Server.Subscribe(&client.SubscribeRequest{
 				ConsumerGroup: client.NamespaceName{
 					Namespace: "default",
-					Name:      "test-ack-consumer-group",
+					Name:      "test-nack-consumer-group",
 				},
 				Size_:      1,
 				DoNotBlock: true,

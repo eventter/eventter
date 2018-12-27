@@ -72,7 +72,7 @@ func TestServer_ServeAMQPv0_QueueBind(t *testing.T) {
 					assert.NotNil(ns)
 					cg, _ := ns.FindConsumerGroup("q")
 					assert.NotNil(cg)
-					assert.Len(cg.Bindings, 0)
+					assert.Len(cg.Bindings, 1)
 				}
 
 				{
@@ -91,8 +91,8 @@ func TestServer_ServeAMQPv0_QueueBind(t *testing.T) {
 					assert.NotNil(ns)
 					cg, _ := ns.FindConsumerGroup("q")
 					assert.NotNil(cg)
-					assert.Len(cg.Bindings, 1)
-					assert.Equal("xchng", cg.Bindings[0].TopicName)
+					assert.Len(cg.Bindings, 2)
+					assert.Equal("xchng", cg.Bindings[1].TopicName)
 				}
 			}
 		})

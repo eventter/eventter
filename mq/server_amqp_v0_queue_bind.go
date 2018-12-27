@@ -11,6 +11,10 @@ import (
 )
 
 func (s *Server) handleAMQPv0QueueBind(ctx context.Context, transport *v0.Transport, namespaceName string, ch *serverAMQPv0Channel, frame *v0.QueueBind) error {
+	if frame.Exchange == "" {
+		return s.makeConnectionClose(v0.SyntaxError, errors.New("trying to bind to default exchange"))
+	}
+
 	state := s.clusterState.Current()
 	namespace, _ := state.FindNamespace(namespaceName)
 	if namespace == nil {

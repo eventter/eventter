@@ -160,6 +160,36 @@ func (ts *testServer) WaitForConsumerGroup(t *testing.T, ctx context.Context, na
 	assert.NotNil(response)
 }
 
+func (ts *testServer) WaitForMessage(t *testing.T, ctx context.Context, namespace string, name string) {
+	assert := require.New(t)
+
+	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
+	defer cancel()
+
+	ts.WaitForConsumerGroup(t, ctx, namespace, name)
+
+	ts.Server.groupMutex.Lock()
+	g := ts.Server.groups[ts.Server.makeConsumerGroupMapKey(namespace, name)]
+	ts.Server.groupMutex.Unlock()
+	assert.NotNil(g)
+
+	subscription := g.Subscribe()
+	defer subscription.Close()
+	subscription.SetSize(1)
+
+	go func() {
+		<-ctx.Done()
+		subscription.Close()
+	}()
+
+	m, err := subscription.Next()
+	assert.NoError(err)
+	assert.NotNil(m)
+
+	err = subscription.Nack(m.SeqNo)
+	assert.NoError(err)
+}
+
 func (ts *testServer) Close() error {
 	ts.Server.Close()
 	ts.Dir.Close()

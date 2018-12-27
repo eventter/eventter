@@ -37,7 +37,7 @@ func TestServer_ServeAMQPv0_QueueDeclare(t *testing.T) {
 			assert.NotNil(ns)
 			cg, _ := ns.FindConsumerGroup("test-queue-declare")
 			assert.NotNil(cg)
-			assert.Len(cg.Bindings, 0)
+			assert.Len(cg.Bindings, 1)
 			assert.Equal(uint32(defaultConsumerGroupSize), cg.Size_)
 			assert.Len(cg.OffsetCommits, 0)
 		}
@@ -70,7 +70,7 @@ func TestServer_ServeAMQPv0_QueueDeclare(t *testing.T) {
 			assert.NotNil(ns)
 			cg, _ := ns.FindConsumerGroup("test-queue-declare-size")
 			assert.NotNil(cg)
-			assert.Len(cg.Bindings, 0)
+			assert.Len(cg.Bindings, 1)
 			assert.Equal(uint32(50), cg.Size_)
 			assert.Len(cg.OffsetCommits, 0)
 		}
@@ -126,7 +126,7 @@ func TestServer_ServeAMQPv0_QueueDeclare(t *testing.T) {
 			assert.NotNil(ns)
 			cg, _ := ns.FindConsumerGroup("test-queue-declare-nowait")
 			assert.NotNil(cg)
-			assert.Len(cg.Bindings, 0)
+			assert.Len(cg.Bindings, 1)
 			assert.Equal(uint32(defaultConsumerGroupSize), cg.Size_)
 			assert.Len(cg.OffsetCommits, 0)
 		}
@@ -155,7 +155,7 @@ func TestServer_ServeAMQPv0_QueueDeclare(t *testing.T) {
 			assert.NotNil(ns)
 			cg, _ := ns.FindConsumerGroup(response.Queue)
 			assert.NotNil(cg)
-			assert.Len(cg.Bindings, 0)
+			assert.Len(cg.Bindings, 1)
 			assert.Equal(uint32(defaultConsumerGroupSize), cg.Size_)
 			assert.Len(cg.OffsetCommits, 0)
 		}

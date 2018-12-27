@@ -11,10 +11,11 @@ import (
 )
 
 const (
-	readyState          = 1
-	closingState        = 2
-	awaitingHeaderState = 3
-	awaitingBodyState   = 4
+	channelStateReady          = 1
+	channelStateClosing        = 2
+	channelStateAwaitingHeader = 3
+	channelStateAwaitingBody   = 4
+	defaultExchangeTopicName   = "default"
 )
 
 func (s *Server) ServeAMQPv0(ctx context.Context, transport *v0.Transport) error {
@@ -83,7 +84,7 @@ func (s *Server) ServeAMQPv0(ctx context.Context, transport *v0.Transport) error
 						}
 						channels[meta.Channel] = &serverAMQPv0Channel{
 							id:              meta.Channel,
-							state:           readyState,
+							state:           channelStateReady,
 							subscribeErrors: subscribeErrors,
 							deliveries:      deliveries,
 							consumers:       make(map[string]*subscribeConsumer),
@@ -111,7 +112,7 @@ func (s *Server) ServeAMQPv0(ctx context.Context, transport *v0.Transport) error
 						if !ok {
 							return s.forceCloseAMQPv0(transport, v0.ChannelError, errors.New("channel not open"))
 						}
-						if ch.state != closingState {
+						if ch.state != channelStateClosing {
 							return s.forceCloseAMQPv0(transport, v0.SyntaxError, errors.New("channel not closing"))
 						}
 						delete(channels, meta.Channel)
@@ -129,7 +130,7 @@ func (s *Server) ServeAMQPv0(ctx context.Context, transport *v0.Transport) error
 							if connClose, ok := err.(*v0.ConnectionClose); ok {
 								return transport.Send(connClose)
 							} else if chanClose, ok := err.(*v0.ChannelClose); ok {
-								ch.state = closingState
+								ch.state = channelStateClosing
 								err = transport.Send(chanClose)
 								if err != nil {
 									return s.forceCloseAMQPv0(transport, v0.InternalError, err)
@@ -153,7 +154,7 @@ func (s *Server) ServeAMQPv0(ctx context.Context, transport *v0.Transport) error
 					if connClose, ok := err.(*v0.ConnectionClose); ok {
 						return transport.Send(connClose)
 					} else if chanClose, ok := err.(*v0.ChannelClose); ok {
-						ch.state = closingState
+						ch.state = channelStateClosing
 						err = transport.Send(chanClose)
 						if err != nil {
 							return s.forceCloseAMQPv0(transport, v0.InternalError, err)
@@ -175,7 +176,7 @@ func (s *Server) ServeAMQPv0(ctx context.Context, transport *v0.Transport) error
 					if connClose, ok := err.(*v0.ConnectionClose); ok {
 						return transport.Send(connClose)
 					} else if chanClose, ok := err.(*v0.ChannelClose); ok {
-						ch.state = closingState
+						ch.state = channelStateClosing
 						err = transport.Send(chanClose)
 						if err != nil {
 							return s.forceCloseAMQPv0(transport, v0.InternalError, err)
@@ -212,7 +213,7 @@ func (s *Server) ServeAMQPv0(ctx context.Context, transport *v0.Transport) error
 				if connClose, ok := err.(*v0.ConnectionClose); ok {
 					return transport.Send(connClose)
 				} else if chanClose, ok := err.(*v0.ChannelClose); ok {
-					ch.state = closingState
+					ch.state = channelStateClosing
 					err = transport.Send(chanClose)
 					if err != nil {
 						return s.forceCloseAMQPv0(transport, v0.InternalError, err)
@@ -266,9 +267,9 @@ func (ch *serverAMQPv0Channel) Close() error {
 }
 
 func (s *Server) handleAMQPv0ChannelMethod(ctx context.Context, transport *v0.Transport, namespaceName string, ch *serverAMQPv0Channel, frame v0.MethodFrame) error {
-	if ch.state == closingState {
+	if ch.state == channelStateClosing {
 		return nil
-	} else if ch.state != readyState {
+	} else if ch.state != channelStateReady {
 		return s.makeConnectionClose(v0.UnexpectedFrame, errors.New("expected method frame"))
 	}
 

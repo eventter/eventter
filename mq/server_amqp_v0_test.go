@@ -63,7 +63,7 @@ func newClient(t *testing.T) (x1 *testServer, x2 *v0.Transport, cleanup func(), 
 func TestServer_ServeAMQPv0_QueuePurge(t *testing.T) {
 	assert := require.New(t)
 
-	ts, client, cleanup, err := newClient(t)
+	_, client, cleanup, err := newClient(t)
 	assert.NoError(err)
 	defer cleanup()
 
@@ -84,14 +84,6 @@ func TestServer_ServeAMQPv0_QueuePurge(t *testing.T) {
 			}, &response)
 			assert.NoError(err)
 			assert.NotNil(response)
-
-			ns, _ := ts.ClusterStateStore.Current().FindNamespace("default")
-			assert.NotNil(ns)
-			cg, _ := ns.FindConsumerGroup("q")
-			assert.NotNil(cg)
-			assert.Len(cg.Bindings, 0)
-			assert.Equal(uint32(defaultConsumerGroupSize), cg.Size_)
-			assert.Len(cg.OffsetCommits, 0)
 		}
 
 		{
@@ -118,7 +110,7 @@ func TestServer_ServeAMQPv0_BasicRecover(t *testing.T) {
 		t.Run(fmt.Sprintf("requeue=%t", test.requeue), func(t *testing.T) {
 			assert := require.New(t)
 
-			ts, client, cleanup, err := newClient(t)
+			_, client, cleanup, err := newClient(t)
 			assert.NoError(err)
 			defer cleanup()
 
@@ -139,14 +131,6 @@ func TestServer_ServeAMQPv0_BasicRecover(t *testing.T) {
 					}, &response)
 					assert.NoError(err)
 					assert.NotNil(response)
-
-					ns, _ := ts.ClusterStateStore.Current().FindNamespace("default")
-					assert.NotNil(ns)
-					cg, _ := ns.FindConsumerGroup("q")
-					assert.NotNil(cg)
-					assert.Len(cg.Bindings, 0)
-					assert.Equal(uint32(defaultConsumerGroupSize), cg.Size_)
-					assert.Len(cg.OffsetCommits, 0)
 				}
 
 				{
@@ -175,7 +159,7 @@ func TestServer_ServeAMQPv0_BasicRecoverAsync(t *testing.T) {
 		t.Run(fmt.Sprintf("requeue=%t", test.requeue), func(t *testing.T) {
 			assert := require.New(t)
 
-			ts, client, cleanup, err := newClient(t)
+			_, client, cleanup, err := newClient(t)
 			assert.NoError(err)
 			defer cleanup()
 
@@ -196,14 +180,6 @@ func TestServer_ServeAMQPv0_BasicRecoverAsync(t *testing.T) {
 					}, &response)
 					assert.NoError(err)
 					assert.NotNil(response)
-
-					ns, _ := ts.ClusterStateStore.Current().FindNamespace("default")
-					assert.NotNil(ns)
-					cg, _ := ns.FindConsumerGroup("q")
-					assert.NotNil(cg)
-					assert.Len(cg.Bindings, 0)
-					assert.Equal(uint32(defaultConsumerGroupSize), cg.Size_)
-					assert.Len(cg.OffsetCommits, 0)
 				}
 
 				{

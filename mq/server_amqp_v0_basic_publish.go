@@ -17,14 +17,14 @@ func (s *Server) handleAMQPv0BasicPublish(ctx context.Context, transport *v0.Tra
 
 	ch.publishExchange = frame.Exchange
 	ch.publishRoutingKey = frame.RoutingKey
-	ch.state = awaitingHeaderState
+	ch.state = channelStateAwaitingHeader
 	return nil
 }
 
 func (s *Server) handleAMQPv0ChannelContentHeader(ctx context.Context, transport *v0.Transport, namespace string, ch *serverAMQPv0Channel, frame *v0.ContentHeaderFrame) error {
-	if ch.state == closingState {
+	if ch.state == channelStateClosing {
 		return nil
-	} else if ch.state != awaitingHeaderState {
+	} else if ch.state != channelStateAwaitingHeader {
 		return s.makeConnectionClose(v0.UnexpectedFrame, errors.New("expected header frame"))
 	}
 
@@ -104,15 +104,15 @@ func (s *Server) handleAMQPv0ChannelContentHeader(ctx context.Context, transport
 		ch.publishProperties.AppID = frame.AppID
 	}
 
-	ch.state = awaitingBodyState
+	ch.state = channelStateAwaitingBody
 
 	return nil
 }
 
 func (s *Server) handleAMQPv0ChannelContentBody(ctx context.Context, transport *v0.Transport, namespaceName string, ch *serverAMQPv0Channel, frame *v0.ContentBodyFrame) error {
-	if ch.state == closingState {
+	if ch.state == channelStateClosing {
 		return nil
-	} else if ch.state != awaitingBodyState {
+	} else if ch.state != channelStateAwaitingBody {
 		return s.makeConnectionClose(v0.UnexpectedFrame, errors.New("expected body frame"))
 	}
 
@@ -144,7 +144,7 @@ func (s *Server) handleAMQPv0ChannelContentBody(ctx context.Context, transport *
 	}
 
 	ch.ResetPublish()
-	ch.state = readyState
+	ch.state = channelStateReady
 
 	return nil
 }
