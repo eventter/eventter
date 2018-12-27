@@ -749,6 +749,44 @@ func (s *Server) handleAMQPv0ChannelMethod(ctx context.Context, transport *v0.Tr
 
 		return nil
 
+	case *v0.BasicReject:
+		i := -1
+		for j := 0; j < len(ch.inflight); j++ {
+			if ch.inflight[j].deliveryTag == frame.DeliveryTag {
+				i = j
+				break
+			}
+		}
+
+		if i == -1 {
+			return s.makeChannelClose(ch, v0.PreconditionFailed, errors.Errorf("delivery tag %d doesn't exist", frame.DeliveryTag))
+		}
+
+		if frame.Requeue {
+			_, err := s.Nack(ctx, &client.NackRequest{
+				NodeID:         ch.inflight[i].nodeID,
+				SubscriptionID: ch.inflight[i].subscriptionID,
+				SeqNo:          ch.inflight[i].seqNo,
+			})
+			if err != nil {
+				return errors.Wrap(err, "nack failed")
+			}
+
+		} else {
+			_, err := s.Ack(ctx, &client.AckRequest{
+				NodeID:         ch.inflight[i].nodeID,
+				SubscriptionID: ch.inflight[i].subscriptionID,
+				SeqNo:          ch.inflight[i].seqNo,
+			})
+			if err != nil {
+				return errors.Wrap(err, "ack failed")
+			}
+		}
+
+		ch.inflight = ch.inflight[:i+copy(ch.inflight[i:], ch.inflight[i+1:])]
+
+		return nil
+
 	case *v0.BasicRecover:
 		return s.makeConnectionClose(v0.NotImplemented, errors.New("basic.recover not implemented"))
 

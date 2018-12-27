@@ -35,7 +35,7 @@ func (s *Server) Nack(ctx context.Context, request *client.NackRequest) (*client
 	}
 
 	if err := subscription.Nack(request.SeqNo); err != nil {
-		return nil, errors.Wrap(err, "ack failed")
+		return nil, errors.Wrap(err, "nack failed")
 	}
 
 	return &client.NackResponse{OK: true}, nil
