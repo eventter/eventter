@@ -12,7 +12,22 @@ toc = true
 
 #### Build from source
 
-TODO
+You will need:
+
+- [Git](https://git-scm.com/downloads)
+- [Go](https://golang.org/dl/) (1.11 or newer)
+
+First download source code from the project public repository:
+
+```sh
+git clone https://github.com/eventter/eventter.git
+```
+
+Then go to the root of the downloaded repository and build `eventtermq` binary:
+
+```sh
+go build -o eventtermq ./bin/eventtermq
+```
 
 #### Docker
 
