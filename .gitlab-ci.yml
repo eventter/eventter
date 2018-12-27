@@ -7,15 +7,27 @@ stages:
 - test
 - build
 
+before_script:
+- mkdir -p .gopath
+- export GOPATH=$(pwd)/.gopath
+
 vet:
   stage: test
   script:
   - make vet
+  cache:
+    key: go1.11
+    paths:
+    - .gopath
 
 test:
   stage: test
   script:
   - make test
+  cache:
+    key: go1.11
+    paths:
+    - .gopath
 
 build:
   only:
