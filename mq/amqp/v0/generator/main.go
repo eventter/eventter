@@ -181,7 +181,7 @@ var tpl = template.Must(template.New("tpl").Funcs(map[string]interface{}{
 		buf.WriteString(f.{{ $goFieldName }})
 	}
 {{- else if eq .Type "table" }}
-	if tableBuf, err := marshalTable(f.{{ $goFieldName }}); err != nil {
+	if tableBuf, err := MarshalTable(f.{{ $goFieldName }}); err != nil {
 		return nil, errors.Wrap(err, "{{ .Name }} table marshal failed")
 	} else {
 		endian.PutUint32(x[:4], uint32(len(tableBuf)))
@@ -260,7 +260,7 @@ var tpl = template.Must(template.New("tpl").Funcs(map[string]interface{}{
 		if len(b) < l {
 			return errors.New("field {{ .Name }}: read table failed")
 		}
-		if f.{{ $goFieldName }}, err = unmarshalTable(b); err != nil {
+		if f.{{ $goFieldName }}, err = UnmarshalTable(b); err != nil {
 			return errors.Wrap(err, "field {{ .Name }}: read table failed")
 		}
 	}

@@ -202,7 +202,7 @@ func (f *ConnectionStart) Unmarshal(data []byte) error {
 		if len(b) < l {
 			return errors.New("field server-properties: read table failed")
 		}
-		if f.ServerProperties, err = unmarshalTable(b); err != nil {
+		if f.ServerProperties, err = UnmarshalTable(b); err != nil {
 			return errors.Wrap(err, "field server-properties: read table failed")
 		}
 	}
@@ -244,7 +244,7 @@ func (f *ConnectionStart) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
 	buf.WriteByte(f.VersionMajor)
 	buf.WriteByte(f.VersionMinor)
-	if tableBuf, err := marshalTable(f.ServerProperties); err != nil {
+	if tableBuf, err := MarshalTable(f.ServerProperties); err != nil {
 		return nil, errors.Wrap(err, "server-properties table marshal failed")
 	} else {
 		endian.PutUint32(x[:4], uint32(len(tableBuf)))
@@ -304,7 +304,7 @@ func (f *ConnectionStartOk) Unmarshal(data []byte) error {
 		if len(b) < l {
 			return errors.New("field client-properties: read table failed")
 		}
-		if f.ClientProperties, err = unmarshalTable(b); err != nil {
+		if f.ClientProperties, err = UnmarshalTable(b); err != nil {
 			return errors.Wrap(err, "field client-properties: read table failed")
 		}
 	}
@@ -352,7 +352,7 @@ func (f *ConnectionStartOk) Marshal() ([]byte, error) {
 	var bits byte = 0
 	_ = bits
 	buf := bytes.Buffer{}
-	if tableBuf, err := marshalTable(f.ClientProperties); err != nil {
+	if tableBuf, err := MarshalTable(f.ClientProperties); err != nil {
 		return nil, errors.Wrap(err, "client-properties table marshal failed")
 	} else {
 		endian.PutUint32(x[:4], uint32(len(tableBuf)))
@@ -1271,7 +1271,7 @@ func (f *ExchangeDeclare) Unmarshal(data []byte) error {
 		if len(b) < l {
 			return errors.New("field arguments: read table failed")
 		}
-		if f.Arguments, err = unmarshalTable(b); err != nil {
+		if f.Arguments, err = UnmarshalTable(b); err != nil {
 			return errors.Wrap(err, "field arguments: read table failed")
 		}
 	}
@@ -1322,7 +1322,7 @@ func (f *ExchangeDeclare) Marshal() ([]byte, error) {
 	}
 	buf.WriteByte(bits)
 	bits = 0
-	if tableBuf, err := marshalTable(f.Arguments); err != nil {
+	if tableBuf, err := MarshalTable(f.Arguments); err != nil {
 		return nil, errors.Wrap(err, "arguments table marshal failed")
 	} else {
 		endian.PutUint32(x[:4], uint32(len(tableBuf)))
@@ -1537,7 +1537,7 @@ func (f *QueueDeclare) Unmarshal(data []byte) error {
 		if len(b) < l {
 			return errors.New("field arguments: read table failed")
 		}
-		if f.Arguments, err = unmarshalTable(b); err != nil {
+		if f.Arguments, err = UnmarshalTable(b); err != nil {
 			return errors.Wrap(err, "field arguments: read table failed")
 		}
 	}
@@ -1582,7 +1582,7 @@ func (f *QueueDeclare) Marshal() ([]byte, error) {
 	}
 	buf.WriteByte(bits)
 	bits = 0
-	if tableBuf, err := marshalTable(f.Arguments); err != nil {
+	if tableBuf, err := MarshalTable(f.Arguments); err != nil {
 		return nil, errors.Wrap(err, "arguments table marshal failed")
 	} else {
 		endian.PutUint32(x[:4], uint32(len(tableBuf)))
@@ -1743,7 +1743,7 @@ func (f *QueueBind) Unmarshal(data []byte) error {
 		if len(b) < l {
 			return errors.New("field arguments: read table failed")
 		}
-		if f.Arguments, err = unmarshalTable(b); err != nil {
+		if f.Arguments, err = UnmarshalTable(b); err != nil {
 			return errors.Wrap(err, "field arguments: read table failed")
 		}
 	}
@@ -1784,7 +1784,7 @@ func (f *QueueBind) Marshal() ([]byte, error) {
 	}
 	buf.WriteByte(bits)
 	bits = 0
-	if tableBuf, err := marshalTable(f.Arguments); err != nil {
+	if tableBuf, err := MarshalTable(f.Arguments); err != nil {
 		return nil, errors.Wrap(err, "arguments table marshal failed")
 	} else {
 		endian.PutUint32(x[:4], uint32(len(tableBuf)))
@@ -1896,7 +1896,7 @@ func (f *QueueUnbind) Unmarshal(data []byte) error {
 		if len(b) < l {
 			return errors.New("field arguments: read table failed")
 		}
-		if f.Arguments, err = unmarshalTable(b); err != nil {
+		if f.Arguments, err = UnmarshalTable(b); err != nil {
 			return errors.Wrap(err, "field arguments: read table failed")
 		}
 	}
@@ -1932,7 +1932,7 @@ func (f *QueueUnbind) Marshal() ([]byte, error) {
 		buf.WriteByte(byte(l))
 		buf.WriteString(f.RoutingKey)
 	}
-	if tableBuf, err := marshalTable(f.Arguments); err != nil {
+	if tableBuf, err := MarshalTable(f.Arguments); err != nil {
 		return nil, errors.Wrap(err, "arguments table marshal failed")
 	} else {
 		endian.PutUint32(x[:4], uint32(len(tableBuf)))
@@ -2323,7 +2323,7 @@ func (f *ContentHeaderFrame) Unmarshal(data []byte) error {
 			if len(b) < l {
 				return errors.New("field headers: read table failed")
 			}
-			if f.Headers, err = unmarshalTable(b); err != nil {
+			if f.Headers, err = UnmarshalTable(b); err != nil {
 				return errors.Wrap(err, "field headers: read table failed")
 			}
 		}
@@ -2496,7 +2496,7 @@ func (f *ContentHeaderFrame) Marshal() ([]byte, error) {
 	if f.Headers != nil {
 		flags |= 4
 
-		if tableBuf, err := marshalTable(f.Headers); err != nil {
+		if tableBuf, err := MarshalTable(f.Headers); err != nil {
 			return nil, errors.Wrap(err, "headers table marshal failed")
 		} else {
 			endian.PutUint32(x[:4], uint32(len(tableBuf)))
@@ -2796,7 +2796,7 @@ func (f *BasicConsume) Unmarshal(data []byte) error {
 		if len(b) < l {
 			return errors.New("field arguments: read table failed")
 		}
-		if f.Arguments, err = unmarshalTable(b); err != nil {
+		if f.Arguments, err = UnmarshalTable(b); err != nil {
 			return errors.Wrap(err, "field arguments: read table failed")
 		}
 	}
@@ -2843,7 +2843,7 @@ func (f *BasicConsume) Marshal() ([]byte, error) {
 	}
 	buf.WriteByte(bits)
 	bits = 0
-	if tableBuf, err := marshalTable(f.Arguments); err != nil {
+	if tableBuf, err := MarshalTable(f.Arguments); err != nil {
 		return nil, errors.Wrap(err, "arguments table marshal failed")
 	} else {
 		endian.PutUint32(x[:4], uint32(len(tableBuf)))

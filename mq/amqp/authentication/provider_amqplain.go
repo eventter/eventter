@@ -1,10 +1,8 @@
 package authentication
 
 import (
-	"bytes"
-	"encoding/binary"
-	"io"
-
+	"eventter.io/mq/amqp/v0"
+	"eventter.io/mq/structvalue"
 	"github.com/pkg/errors"
 )
 
@@ -21,63 +19,23 @@ func (p *amqplainProvider) Mechanism() string {
 }
 
 func (p *amqplainProvider) Authenticate(challenge string, response string) (token Token, nextChallenge string, err error) {
-	buf := bytes.NewBuffer([]byte(response))
-	var username, password string
-	for {
-		lb, err := buf.ReadByte()
-		if err == io.EOF {
-			break
-		} else if err != nil {
-			return nil, "", errors.Wrap(err, "read field name failed")
-		}
+	table, err := v0.UnmarshalTable([]byte(response))
+	if err != nil {
+		return nil, "", errors.Wrap(err, "unmarshal failed")
+	}
 
-		l := int(lb)
-		name := string(buf.Next(l))
-		if len(name) < l {
-			return nil, "", errors.New("read field name failed")
-		}
+	username, err := structvalue.String(table, "LOGIN", "")
+	if err != nil {
+		return nil, "", errors.Wrap(err, "get LOGIN failed")
+	} else if username == "" {
+		return nil, "", errors.New("LOGIN not found / empty")
+	}
 
-		tb, err := buf.ReadByte()
-		if err != nil {
-			return nil, "", errors.Wrap(err, "read field type failed")
-		}
-
-		var value string
-		switch tb {
-		case 's':
-			lb, err = buf.ReadByte()
-			if err != nil {
-				return nil, "", errors.Wrap(err, "read shortstr failed")
-			}
-			l = int(lb)
-			value = string(buf.Next(l))
-			if len(value) < l {
-				return nil, "", errors.New("read shortstr failed")
-			}
-		case 'S':
-			var x [4]byte
-			if n, err := buf.Read(x[:4]); err != nil {
-				return nil, "", errors.Wrap(err, "read longstr failed")
-			} else if n < 4 {
-				return nil, "", errors.New("read longstr failed")
-			}
-			l := int(binary.BigEndian.Uint32(x[:4]))
-			value = string(buf.Next(l))
-			if len(value) < l {
-				return nil, "", errors.New("read longstr failed")
-			}
-		default:
-			return nil, "", errors.Errorf("expected shortstr/longstr field, got %c", tb)
-		}
-
-		switch name {
-		case "LOGIN":
-			username = value
-		case "PASSWORD":
-			password = value
-		default:
-			return nil, "", errors.Errorf("unhandled field %s", name)
-		}
+	password, err := structvalue.String(table, "PASSWORD", "")
+	if err != nil {
+		return nil, "", errors.Wrap(err, "get PASSWORD failed")
+	} else if password == "" {
+		return nil, "", errors.New("PASSWORD not found / empty")
 	}
 
 	ok, err := p.verify(username, password)

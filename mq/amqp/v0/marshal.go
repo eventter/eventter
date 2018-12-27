@@ -12,7 +12,7 @@ import (
 
 var endian = binary.BigEndian
 
-func marshalTable(table *types.Struct) ([]byte, error) {
+func MarshalTable(table *types.Struct) ([]byte, error) {
 	if table == nil || table.Fields == nil {
 		return nil, nil
 	}
@@ -92,7 +92,7 @@ func marshalValue(value *types.Value, buf *bytes.Buffer) error {
 			buf.WriteByte(0)
 		}
 	case *types.Value_StructValue:
-		if tableBuf, err := marshalTable(value.StructValue); err != nil {
+		if tableBuf, err := MarshalTable(value.StructValue); err != nil {
 			return errors.Wrap(err, "table marshal failed")
 		} else if l := len(tableBuf); l > math.MaxUint32 {
 			return errors.Errorf("table value can be at most %d bytes long, got %d bytes", math.MaxUint32, l)
@@ -119,7 +119,7 @@ func marshalValue(value *types.Value, buf *bytes.Buffer) error {
 	return nil
 }
 
-func unmarshalTable(data []byte) (*types.Struct, error) {
+func UnmarshalTable(data []byte) (*types.Struct, error) {
 	if len(data) == 0 {
 		return nil, nil
 	}
@@ -312,7 +312,7 @@ func unmarshalValue(buf *bytes.Buffer) (*types.Value, error) {
 			return nil, errors.New("read table failed")
 		}
 
-		if tableValue, err := unmarshalTable(data); err != nil {
+		if tableValue, err := UnmarshalTable(data); err != nil {
 			return nil, errors.Wrap(err, "read table failed")
 		} else {
 			value.Kind = &types.Value_StructValue{StructValue: tableValue}
