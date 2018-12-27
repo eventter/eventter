@@ -177,6 +177,10 @@ message SubscribeRequest {
     uint32 size = 2;
     // If true, messages will be acked immediately after being sent.
     bool auto_ack = 3;
+    // If true, response stream will be closed as soon as there are no waiting messages (either to be consumed, or acked).
+    bool do_not_block = 4;
+    // If not zero, response stream will be closed as soon as there are no
+    uint64 max_messages = 5;
 }
 
 message SubscribeResponse {

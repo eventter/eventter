@@ -10,6 +10,7 @@ import (
 var (
 	ErrSubscriptionClosed = errors.New("subscription is closed")
 	ErrNotLeased          = errors.New("cannot (n)ack message, it is not leased to this subscription")
+	ErrEmpty              = errors.New("subscription is empty")
 	commitsPool           = sync.Pool{
 		New: func() interface{} {
 			return make([]Commit, 64)
@@ -18,11 +19,39 @@ var (
 )
 
 type Subscription struct {
-	ID     uint64
-	group  *Group
-	n      int
-	closed uint32
-	seq    uint64
+	ID          uint64
+	group       *Group
+	size        uint32
+	inflight    uint32
+	maxMessages uint64
+	blocking    bool
+	closed      uint32
+	seq         uint64
+}
+
+// Subscription size is max number of in-flight messages. Zero means there is no limit.
+func (s *Subscription) SetSize(size uint32) {
+	s.group.mutex.Lock()
+	s.size = size
+	if s.size == 0 {
+		s.inflight = 0
+	}
+	s.group.cond.Broadcast()
+	s.group.mutex.Unlock()
+}
+
+func (s *Subscription) SetMaxMessages(maxMessages uint64) {
+	s.group.mutex.Lock()
+	s.maxMessages = maxMessages
+	s.group.cond.Broadcast()
+	s.group.mutex.Unlock()
+}
+
+func (s *Subscription) SetBlocking(blocking bool) {
+	s.group.mutex.Lock()
+	s.blocking = blocking
+	s.group.cond.Broadcast()
+	s.group.mutex.Unlock()
 }
 
 func (s *Subscription) Next() (*Message, error) {
@@ -34,7 +63,7 @@ func (s *Subscription) Next() (*Message, error) {
 
 	var i int
 	for {
-		if s.n != 0 {
+		if (s.size == 0 || s.inflight < s.size) && (s.maxMessages == 0 || s.seq < s.maxMessages) {
 			i = -1
 			for j := s.group.read; j != s.group.write; j = (j + 1) % len(s.group.messages) {
 				if s.group.messages[j].SubscriptionID == ready {
@@ -54,15 +83,19 @@ func (s *Subscription) Next() (*Message, error) {
 				return nil, ErrGroupClosed
 			}
 		}
+
+		if s.inflight == 0 && (!s.blocking || (s.maxMessages != 0 && s.seq >= s.maxMessages)) {
+			s.group.mutex.Unlock()
+			return nil, ErrEmpty
+		}
+
 		s.group.cond.Wait()
 	}
 
 	s.seq++
 	s.group.messages[i].SubscriptionID = s.ID
 	s.group.messages[i].SeqNo = s.seq
-	if s.n > 0 {
-		s.n--
-	}
+	s.inflight++
 
 	s.group.mutex.Unlock()
 
@@ -86,9 +119,7 @@ func (s *Subscription) Ack(seqNo uint64) error {
 
 	s.group.messages[i].SubscriptionID = ack
 	s.group.messages[i].SeqNo = zeroSeqNo
-	if s.n >= 0 {
-		s.n++
-	}
+	s.inflight--
 
 	c := s.group.Commits
 	var commits []Commit
@@ -139,9 +170,7 @@ func (s *Subscription) Nack(seqNo uint64) error {
 
 	s.group.messages[i].SubscriptionID = ready
 	s.group.messages[i].SeqNo = zeroSeqNo
-	if s.n >= 0 {
-		s.n++
-	}
+	s.inflight--
 
 	s.group.cond.Broadcast()
 	s.group.mutex.Unlock()

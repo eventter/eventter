@@ -69,9 +69,10 @@ func TestServer_Subscribe(t *testing.T) {
 
 	{
 		stream := newSubscribeConsumer(ctx, 0, "", nil)
-		defer stream.Close()
 
 		go func() {
+			defer stream.Close()
+
 			err := ts.Server.Subscribe(&client.SubscribeRequest{
 				ConsumerGroup: client.NamespaceName{
 					Namespace: "default",
@@ -83,6 +84,7 @@ func TestServer_Subscribe(t *testing.T) {
 
 		delivery := <-stream.C
 		response := delivery.Response
+		assert.NotNil(response)
 		assert.Equal("default", response.Topic.Namespace)
 		assert.Equal("test-subscribe-topic", response.Topic.Name)
 		assert.NotNil(response.Message)

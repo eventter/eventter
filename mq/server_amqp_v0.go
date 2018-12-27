@@ -715,6 +715,80 @@ func (s *Server) handleAMQPv0ChannelMethod(ctx context.Context, transport *v0.Tr
 		ch.state = awaitingHeaderState
 		return nil
 
+	case *v0.BasicGet:
+		state := s.clusterState.Current()
+		namespace, _ := state.FindNamespace(namespaceName)
+		if namespace == nil {
+			return s.makeChannelClose(ch, v0.NotFound, errors.Errorf("vhost %q not found", namespaceName))
+		}
+		cg, _ := namespace.FindConsumerGroup(frame.Queue)
+		if cg == nil {
+			return s.makeChannelClose(ch, v0.NotFound, errors.Errorf("queue %q not found", frame.Queue))
+		}
+
+		request := &client.SubscribeRequest{
+			ConsumerGroup: client.NamespaceName{
+				Namespace: namespaceName,
+				Name:      frame.Queue,
+			},
+			Size_:       1,
+			AutoAck:     frame.NoAck,
+			DoNotBlock:  true,
+			MaxMessages: 1,
+		}
+		stream := newSubscribeConsumer(ctx, ch.id, "", nil)
+
+		go func() {
+			defer stream.Close()
+			err := s.Subscribe(request, stream)
+			if err != nil {
+				ch.subscribeErrors <- err
+				return
+			}
+		}()
+
+		delivery, ok := <-stream.C
+		if !ok {
+			return transport.Send(&v0.BasicGetEmpty{
+				FrameMeta: v0.FrameMeta{Channel: ch.id},
+			})
+		}
+
+		ch.deliveryTag++
+
+		err := transport.Send(&v0.BasicGetOk{
+			FrameMeta:   v0.FrameMeta{Channel: ch.id},
+			DeliveryTag: ch.deliveryTag,
+			Exchange:    delivery.Response.Topic.Name,
+			RoutingKey:  delivery.Response.Message.RoutingKey,
+		})
+		if err != nil {
+			return errors.Wrap(err, "send basic.get-ok failed")
+		}
+
+		err = transport.Send(s.convertAMQPv0ContentHeader(ch, delivery.Response))
+		if err != nil {
+			return errors.Wrap(err, "send content header failed")
+		}
+
+		err = transport.SendBody(ch.id, delivery.Response.Message.Data)
+		if err != nil {
+			return errors.Wrap(err, "send content body failed")
+		}
+
+		// node ID / subscription ID / seq no of zero means that the subscription is in auto-ack mode
+		// => do not track such in-flight messages as (n)acks won't ever arrive
+		if delivery.Response.NodeID != 0 {
+			ch.inflight = append(ch.inflight, serverAMQPv0ChannelInflight{
+				deliveryTag:    ch.deliveryTag,
+				nodeID:         delivery.Response.NodeID,
+				subscriptionID: delivery.Response.SubscriptionID,
+				seqNo:          delivery.Response.SeqNo,
+			})
+		}
+
+		return nil
+
 	case *v0.BasicAck:
 		if frame.Multiple {
 			i := 0
@@ -1035,27 +1109,7 @@ func (s *Server) handleAMQPv0ChannelDelivery(ctx context.Context, transport *v0.
 		return errors.Wrap(err, "send basic.deliver failed")
 	}
 
-	contentHeader := &v0.ContentHeaderFrame{
-		FrameMeta: v0.FrameMeta{Channel: ch.id},
-		ClassID:   v0.BasicClass,
-		BodySize:  uint64(len(response.Message.Data)),
-	}
-	if response.Message.Properties != nil {
-		contentHeader.ContentType = response.Message.Properties.ContentType
-		contentHeader.ContentEncoding = response.Message.Properties.ContentEncoding
-		contentHeader.DeliveryMode = uint8(response.Message.Properties.DeliveryMode)
-		contentHeader.Priority = uint8(response.Message.Properties.Priority)
-		contentHeader.CorrelationID = response.Message.Properties.CorrelationID
-		contentHeader.ReplyTo = response.Message.Properties.ReplyTo
-		contentHeader.Expiration = response.Message.Properties.Expiration
-		contentHeader.MessageID = response.Message.Properties.MessageID
-		contentHeader.Timestamp = response.Message.Properties.Timestamp
-		contentHeader.Type = response.Message.Properties.Type
-		contentHeader.UserID = response.Message.Properties.UserID
-		contentHeader.AppID = response.Message.Properties.AppID
-	}
-	contentHeader.Headers = response.Message.Headers
-	err = transport.Send(contentHeader)
+	err = transport.Send(s.convertAMQPv0ContentHeader(ch, response))
 	if err != nil {
 		return errors.Wrap(err, "send content header failed")
 	}
@@ -1077,6 +1131,30 @@ func (s *Server) handleAMQPv0ChannelDelivery(ctx context.Context, transport *v0.
 	}
 
 	return nil
+}
+
+func (s *Server) convertAMQPv0ContentHeader(ch *serverAMQPv0Channel, response *client.SubscribeResponse) *v0.ContentHeaderFrame {
+	contentHeader := &v0.ContentHeaderFrame{
+		FrameMeta: v0.FrameMeta{Channel: ch.id},
+		ClassID:   v0.BasicClass,
+		BodySize:  uint64(len(response.Message.Data)),
+	}
+	if response.Message.Properties != nil {
+		contentHeader.ContentType = response.Message.Properties.ContentType
+		contentHeader.ContentEncoding = response.Message.Properties.ContentEncoding
+		contentHeader.DeliveryMode = uint8(response.Message.Properties.DeliveryMode)
+		contentHeader.Priority = uint8(response.Message.Properties.Priority)
+		contentHeader.CorrelationID = response.Message.Properties.CorrelationID
+		contentHeader.ReplyTo = response.Message.Properties.ReplyTo
+		contentHeader.Expiration = response.Message.Properties.Expiration
+		contentHeader.MessageID = response.Message.Properties.MessageID
+		contentHeader.Timestamp = response.Message.Properties.Timestamp
+		contentHeader.Type = response.Message.Properties.Type
+		contentHeader.UserID = response.Message.Properties.UserID
+		contentHeader.AppID = response.Message.Properties.AppID
+	}
+	contentHeader.Headers = response.Message.Headers
+	return contentHeader
 }
 
 func (s *Server) forceCloseAMQPv0(transport *v0.Transport, code uint16, err error) error {

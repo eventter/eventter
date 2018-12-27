@@ -99,22 +99,26 @@ func (s *Server) Subscribe(request *client.SubscribeRequest, stream client.Event
 		)
 	}
 
-	var subscription *consumers.Subscription
-	if request.Size_ == 0 {
-		subscription = group.Subscribe()
-	} else {
-		subscription = group.SubscribeN(int(request.Size_))
-	}
+	subscription := group.Subscribe()
 	s.groupMutex.Lock()
 	s.subscriptions[subscription.ID] = subscription
 	s.groupMutex.Unlock()
-
 	defer func() {
 		subscription.Close()
 		s.groupMutex.Lock()
 		delete(s.subscriptions, subscription.ID)
 		s.groupMutex.Unlock()
 	}()
+
+	if request.Size_ != 0 {
+		subscription.SetSize(request.Size_)
+	}
+	if request.MaxMessages != 0 {
+		subscription.SetMaxMessages(request.MaxMessages)
+	}
+	if request.DoNotBlock {
+		subscription.SetBlocking(false)
+	}
 
 	go func() {
 		<-ctx.Done()
@@ -123,7 +127,7 @@ func (s *Server) Subscribe(request *client.SubscribeRequest, stream client.Event
 
 	for {
 		message, err := subscription.Next()
-		if err == consumers.ErrSubscriptionClosed {
+		if err == consumers.ErrSubscriptionClosed || err == consumers.ErrEmpty {
 			return nil
 		} else if err != nil {
 			return errors.Wrap(err, "next failed")

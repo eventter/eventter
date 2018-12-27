@@ -71,17 +71,11 @@ func (g *Group) Offer(message *Message) error {
 	return nil
 }
 
-// Subscribe to consumer group with unlimited messages in-flight.
 func (g *Group) Subscribe() *Subscription {
-	return g.SubscribeN(-1)
-}
-
-// Subscribe to consumer group with limited messages in-flight. Negative `n` means no limit.
-func (g *Group) SubscribeN(n int) *Subscription {
 	return &Subscription{
-		ID:    atomic.AddUint64(&currentSubscriptionID, 1),
-		n:     n,
-		group: g,
+		ID:       atomic.AddUint64(&currentSubscriptionID, 1),
+		group:    g,
+		blocking: true,
 	}
 }
 

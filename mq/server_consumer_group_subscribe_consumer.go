@@ -8,11 +8,12 @@ import (
 )
 
 type subscribeConsumer struct {
-	C           chan subscribeDelivery
-	channel     uint16
-	consumerTag string
-	ctx         context.Context
-	cancel      func()
+	C             chan subscribeDelivery
+	closeDelivery bool
+	channel       uint16
+	consumerTag   string
+	ctx           context.Context
+	cancel        func()
 }
 
 type subscribeDelivery struct {
@@ -24,16 +25,20 @@ type subscribeDelivery struct {
 func newSubscribeConsumer(ctx context.Context, channel uint16, consumerTag string, deliveries chan subscribeDelivery) *subscribeConsumer {
 	ctx, cancel := context.WithCancel(ctx)
 
+	closeDelivery := false
+
 	if deliveries == nil {
 		deliveries = make(chan subscribeDelivery)
+		closeDelivery = true
 	}
 
 	return &subscribeConsumer{
-		C:           deliveries,
-		channel:     channel,
-		consumerTag: consumerTag,
-		ctx:         ctx,
-		cancel:      cancel,
+		C:             deliveries,
+		closeDelivery: closeDelivery,
+		channel:       channel,
+		consumerTag:   consumerTag,
+		ctx:           ctx,
+		cancel:        cancel,
 	}
 }
 
@@ -72,5 +77,8 @@ func (s *subscribeConsumer) RecvMsg(m interface{}) error {
 
 func (s *subscribeConsumer) Close() error {
 	s.cancel()
+	if s.closeDelivery {
+		close(s.C)
+	}
 	return nil
 }
