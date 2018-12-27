@@ -682,6 +682,27 @@ func (s *Server) handleAMQPv0ChannelMethod(ctx context.Context, transport *v0.Tr
 			ConsumerTag: frame.ConsumerTag,
 		})
 
+	case *v0.BasicCancel:
+		consumer, ok := ch.consumers[frame.ConsumerTag]
+		if !ok {
+			return s.makeChannelClose(ch, v0.PreconditionFailed, errors.Errorf("consumer tag %s not registered", frame.ConsumerTag))
+		}
+		delete(ch.consumers, frame.ConsumerTag)
+
+		err := consumer.Close()
+		if err != nil {
+			return errors.Wrap(err, "consumer close failed")
+		}
+
+		if frame.NoWait {
+			return nil
+		}
+
+		return transport.Send(&v0.BasicCancelOk{
+			FrameMeta:   v0.FrameMeta{Channel: ch.id},
+			ConsumerTag: frame.ConsumerTag,
+		})
+
 	case *v0.BasicPublish:
 		state := s.clusterState.Current()
 		namespace, _ := state.FindNamespace(namespaceName)
