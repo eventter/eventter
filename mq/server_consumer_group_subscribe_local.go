@@ -7,51 +7,70 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
-type SubscribeStreamLocal struct {
-	C      chan *client.SubscribeResponse
-	ctx    context.Context
-	cancel func()
+type subscribeConsumer struct {
+	C           chan subscribeDelivery
+	channel     uint16
+	consumerTag string
+	ctx         context.Context
+	cancel      func()
 }
 
-func NewSubscribeStreamLocal(ctx context.Context) *SubscribeStreamLocal {
+type subscribeDelivery struct {
+	Channel     uint16
+	ConsumerTag string
+	Response    *client.SubscribeResponse
+}
+
+func newSubscribeConsumer(ctx context.Context, channel uint16, consumerTag string, deliveries chan subscribeDelivery) *subscribeConsumer {
 	ctx, cancel := context.WithCancel(ctx)
-	return &SubscribeStreamLocal{
-		C:      make(chan *client.SubscribeResponse),
-		ctx:    ctx,
-		cancel: cancel,
+
+	if deliveries == nil {
+		deliveries = make(chan subscribeDelivery)
+	}
+
+	return &subscribeConsumer{
+		C:           deliveries,
+		channel:     channel,
+		consumerTag: consumerTag,
+		ctx:         ctx,
+		cancel:      cancel,
 	}
 }
 
-func (s *SubscribeStreamLocal) Send(m *client.SubscribeResponse) error {
-	s.C <- m
+func (s *subscribeConsumer) Send(response *client.SubscribeResponse) error {
+	s.C <- subscribeDelivery{
+		Channel:     s.channel,
+		ConsumerTag: s.consumerTag,
+		Response:    response,
+	}
 	return nil
 }
 
-func (s *SubscribeStreamLocal) SetHeader(metadata.MD) error {
+func (s *subscribeConsumer) SetHeader(metadata.MD) error {
 	panic("local")
 }
 
-func (s *SubscribeStreamLocal) SendHeader(metadata.MD) error {
+func (s *subscribeConsumer) SendHeader(metadata.MD) error {
 	panic("local")
 }
 
-func (s *SubscribeStreamLocal) SetTrailer(metadata.MD) {
+func (s *subscribeConsumer) SetTrailer(metadata.MD) {
 	panic("local")
 }
 
-func (s *SubscribeStreamLocal) Context() context.Context {
+func (s *subscribeConsumer) Context() context.Context {
 	return s.ctx
 }
 
-func (s *SubscribeStreamLocal) SendMsg(m interface{}) error {
+func (s *subscribeConsumer) SendMsg(m interface{}) error {
 	panic("local")
 }
 
-func (s *SubscribeStreamLocal) RecvMsg(m interface{}) error {
+func (s *subscribeConsumer) RecvMsg(m interface{}) error {
 	panic("local")
 }
 
-func (s *SubscribeStreamLocal) Close() error {
+func (s *subscribeConsumer) Close() error {
 	s.cancel()
 	return nil
 }

@@ -49,7 +49,7 @@ func TestServer_Subscribe(t *testing.T) {
 		assert.NotNil(response)
 		assert.True(response.OK)
 
-		ts.WaitForConsumerGroup("default", "test-subscribe-consumer-group")
+		ts.WaitForConsumerGroup(t, ctx, "default", "test-subscribe-consumer-group")
 	}
 
 	{
@@ -68,7 +68,7 @@ func TestServer_Subscribe(t *testing.T) {
 	}
 
 	{
-		stream := NewSubscribeStreamLocal(ctx)
+		stream := newSubscribeConsumer(ctx, 0, "", nil)
 		defer stream.Close()
 
 		go func() {
@@ -81,7 +81,8 @@ func TestServer_Subscribe(t *testing.T) {
 			assert.NoError(err)
 		}()
 
-		response := <-stream.C
+		delivery := <-stream.C
+		response := delivery.Response
 		assert.Equal("default", response.Topic.Namespace)
 		assert.Equal("test-subscribe-topic", response.Topic.Name)
 		assert.NotNil(response.Message)

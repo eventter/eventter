@@ -86,9 +86,9 @@ func (s *Server) Subscribe(request *client.SubscribeRequest, stream client.Event
 		return nil
 	}
 
+	mapKey := s.makeConsumerGroupMapKey(request.ConsumerGroup.Namespace, request.ConsumerGroup.Name)
 	s.groupMutex.Lock()
-	mapKey := request.ConsumerGroup.Namespace + "/" + request.ConsumerGroup.Name
-	group, ok := s.groupMap[mapKey]
+	group, ok := s.groups[mapKey]
 	s.groupMutex.Unlock()
 
 	if !ok {
@@ -106,13 +106,13 @@ func (s *Server) Subscribe(request *client.SubscribeRequest, stream client.Event
 		subscription = group.SubscribeN(int(request.Size_))
 	}
 	s.groupMutex.Lock()
-	s.subscriptionMap[subscription.ID] = subscription
+	s.subscriptions[subscription.ID] = subscription
 	s.groupMutex.Unlock()
 
 	defer func() {
 		subscription.Close()
 		s.groupMutex.Lock()
-		delete(s.subscriptionMap, subscription.ID)
+		delete(s.subscriptions, subscription.ID)
 		s.groupMutex.Unlock()
 	}()
 
@@ -129,15 +129,26 @@ func (s *Server) Subscribe(request *client.SubscribeRequest, stream client.Event
 			return errors.Wrap(err, "next failed")
 		}
 
-		err = stream.Send(&client.SubscribeResponse{
-			NodeID:         s.nodeID,
-			SubscriptionID: subscription.ID,
-			SeqNo:          message.SeqNo,
-			Topic:          message.Topic,
-			Message:        message.Message,
-		})
+		response := &client.SubscribeResponse{
+			Topic:   message.Topic,
+			Message: message.Message,
+		}
+		if !request.AutoAck {
+			response.NodeID = s.nodeID
+			response.SubscriptionID = subscription.ID
+			response.SeqNo = message.SeqNo
+		}
+
+		err = stream.Send(response)
 		if err != nil {
 			return errors.Wrap(err, "send failed")
+		}
+
+		if request.AutoAck {
+			err = subscription.Ack(message.SeqNo)
+			if err != nil {
+				return errors.Wrap(err, "ack failed")
+			}
 		}
 	}
 }

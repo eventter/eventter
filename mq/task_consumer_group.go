@@ -75,15 +75,15 @@ func (s *Server) taskConsumerGroup(ctx context.Context, namespaceName string, co
 	}
 	group.Commits = make(chan consumers.Commit, int(consumerGroup.Size_))
 
+	mapKey := s.makeConsumerGroupMapKey(namespaceName, consumerGroupName)
 	s.groupMutex.Lock()
-	mapKey := namespaceName + "/" + consumerGroupName
-	s.groupMap[mapKey] = group
+	s.groups[mapKey] = group
 	s.groupMutex.Unlock()
 	defer func() {
 		group.Close()
 
 		s.groupMutex.Lock()
-		delete(s.groupMap, mapKey)
+		delete(s.groups, mapKey)
 		s.groupMutex.Unlock()
 	}()
 

@@ -18,6 +18,14 @@ message DebugResponse {
     repeated string segments = 2;
 }
 
+message ConsumerGroupWaitRequest {
+    bool do_not_forward = 99;
+    NamespaceName consumer_group = 1 [(gogoproto.nullable) = false];
+}
+
+message ConsumerGroupWaitResponse {
+}
+
 message SegmentOpenRequest {
     // If true and node is not a leader, request will fail.
     bool leader_only = 99;
@@ -72,6 +80,7 @@ message SegmentReadResponse {
 
 service NodeRPC {
     rpc Debug (DebugRequest) returns (DebugResponse);
+    rpc ConsumerGroupWait (ConsumerGroupWaitRequest) returns (ConsumerGroupWaitResponse);
     rpc SegmentOpen (SegmentOpenRequest) returns (SegmentOpenResponse);
     rpc SegmentRotate (SegmentCloseRequest) returns (SegmentOpenResponse);
     rpc SegmentClose (SegmentCloseRequest) returns (SegmentCloseResponse);

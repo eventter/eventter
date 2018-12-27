@@ -278,7 +278,7 @@ LOOP:
 				}
 			}
 
-		case <-s.closeC:
+		case <-s.closed:
 			break LOOP
 		}
 	}

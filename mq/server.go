@@ -40,10 +40,10 @@ type Server struct {
 	segmentDir       *segments.Dir
 	tx               sync.Mutex
 	publishForwardRR uint32
-	closeC           chan struct{}
+	closed           chan struct{}
 	groupMutex       sync.RWMutex
-	groupMap         map[string]*consumers.Group
-	subscriptionMap  map[uint64]*consumers.Subscription
+	groups           map[string]*consumers.Group
+	subscriptions    map[uint64]*consumers.Subscription
 	reconciler       *Reconciler
 }
 
@@ -54,15 +54,15 @@ var (
 
 func NewServer(nodeID uint64, members *memberlist.Memberlist, raftNode *raft.Raft, pool *ClientConnPool, clusterState *ClusterStateStore, segmentDir *segments.Dir) *Server {
 	s := &Server{
-		nodeID:          nodeID,
-		members:         members,
-		raftNode:        raftNode,
-		pool:            pool,
-		clusterState:    clusterState,
-		segmentDir:      segmentDir,
-		closeC:          make(chan struct{}),
-		groupMap:        make(map[string]*consumers.Group),
-		subscriptionMap: make(map[uint64]*consumers.Subscription),
+		nodeID:        nodeID,
+		members:       members,
+		raftNode:      raftNode,
+		pool:          pool,
+		clusterState:  clusterState,
+		segmentDir:    segmentDir,
+		closed:        make(chan struct{}),
+		groups:        make(map[string]*consumers.Group),
+		subscriptions: make(map[uint64]*consumers.Subscription),
 	}
 	s.reconciler = NewReconciler(s)
 	return s
@@ -83,7 +83,11 @@ func (s *Server) releaseTransaction() {
 	s.tx.Unlock()
 }
 
+func (s *Server) makeConsumerGroupMapKey(namespace string, name string) string {
+	return namespace + "/" + name
+}
+
 func (s *Server) Close() error {
-	close(s.closeC)
+	close(s.closed)
 	return nil
 }

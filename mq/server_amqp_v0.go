@@ -2,7 +2,6 @@ package mq
 
 import (
 	"context"
-	"fmt"
 	"reflect"
 
 	"eventter.io/mq/amqp"
@@ -33,7 +32,7 @@ func (s *Server) ServeAMQPv0(ctx context.Context, transport *v0.Transport) error
 	defer cancel()
 
 	frames := make(chan v0.Frame, 64)
-	errc := make(chan error, 1)
+	receiveErrors := make(chan error, 1)
 
 	go func() {
 		for {
@@ -43,7 +42,7 @@ func (s *Server) ServeAMQPv0(ctx context.Context, transport *v0.Transport) error
 			default:
 				frame, err := transport.Receive()
 				if err != nil {
-					errc <- errors.Wrap(err, "receive failed")
+					receiveErrors <- errors.Wrap(err, "receive failed")
 					return
 				}
 				frames <- frame
@@ -57,10 +56,14 @@ func (s *Server) ServeAMQPv0(ctx context.Context, transport *v0.Transport) error
 			ch.Close()
 		}
 	}()
+
+	subscribeErrors := make(chan error, 1)
+	deliveries := make(chan subscribeDelivery)
+
 	for {
 		select {
-		case <-s.closeC:
-			return s.forceCloseAMQPv0(transport, v0.ConnectionForced, "shutdown")
+		case <-s.closed:
+			return s.forceCloseAMQPv0(transport, v0.ConnectionForced, errors.New("shutdown"))
 		case frame := <-frames:
 			switch frame := frame.(type) {
 			case v0.MethodFrame:
@@ -73,53 +76,56 @@ func (s *Server) ServeAMQPv0(ctx context.Context, transport *v0.Transport) error
 						}
 						return transport.Send(&v0.ConnectionCloseOk{})
 					default:
-						return s.forceCloseAMQPv0(transport, v0.SyntaxError, "non-close frame")
+						return s.forceCloseAMQPv0(transport, v0.SyntaxError, errors.New("non-close frame"))
 					}
 				} else {
 					switch frame.(type) {
 					case *v0.ChannelOpen:
 						if _, ok := channels[meta.Channel]; ok {
-							return s.forceCloseAMQPv0(transport, v0.ChannelError, "channel already open")
+							return s.forceCloseAMQPv0(transport, v0.ChannelError, errors.New("channel already open"))
 						}
 						channels[meta.Channel] = &serverAMQPv0Channel{
-							id:    meta.Channel,
-							state: readyState,
+							id:              meta.Channel,
+							state:           readyState,
+							subscribeErrors: subscribeErrors,
+							deliveries:      deliveries,
+							consumers:       make(map[string]*subscribeConsumer),
 						}
 						err := transport.Send(&v0.ChannelOpenOk{FrameMeta: v0.FrameMeta{Channel: meta.Channel}})
 						if err != nil {
-							return s.forceCloseAMQPv0(transport, v0.InternalError, err.Error())
+							return s.forceCloseAMQPv0(transport, v0.InternalError, err)
 						}
 					case *v0.ChannelClose:
 						ch, ok := channels[meta.Channel]
 						if !ok {
-							return s.forceCloseAMQPv0(transport, v0.ChannelError, "trying to close channel that isn't open")
+							return s.forceCloseAMQPv0(transport, v0.ChannelError, errors.New("trying to close channel that isn't open"))
 						}
 						delete(channels, meta.Channel)
 						err := ch.Close()
 						if err != nil {
-							return s.forceCloseAMQPv0(transport, v0.InternalError, err.Error())
+							return s.forceCloseAMQPv0(transport, v0.InternalError, err)
 						}
 						err = transport.Send(&v0.ChannelCloseOk{FrameMeta: v0.FrameMeta{Channel: meta.Channel}})
 						if err != nil {
-							return s.forceCloseAMQPv0(transport, v0.InternalError, err.Error())
+							return s.forceCloseAMQPv0(transport, v0.InternalError, err)
 						}
 					case *v0.ChannelCloseOk:
 						ch, ok := channels[meta.Channel]
 						if !ok {
-							return s.forceCloseAMQPv0(transport, v0.ChannelError, "channel not open")
+							return s.forceCloseAMQPv0(transport, v0.ChannelError, errors.New("channel not open"))
 						}
 						if ch.state != closingState {
-							return s.forceCloseAMQPv0(transport, v0.SyntaxError, "channel not closing")
+							return s.forceCloseAMQPv0(transport, v0.SyntaxError, errors.New("channel not closing"))
 						}
 						delete(channels, meta.Channel)
 						err := ch.Close()
 						if err != nil {
-							return s.forceCloseAMQPv0(transport, v0.InternalError, err.Error())
+							return s.forceCloseAMQPv0(transport, v0.InternalError, err)
 						}
 					default:
 						ch, ok := channels[meta.Channel]
 						if !ok {
-							return s.forceCloseAMQPv0(transport, v0.ChannelError, "channel not open")
+							return s.forceCloseAMQPv0(transport, v0.ChannelError, errors.New("channel not open"))
 						}
 						err := s.handleAMQPv0ChannelMethod(ctx, transport, namespace, ch, frame)
 						if err != nil {
@@ -129,21 +135,21 @@ func (s *Server) ServeAMQPv0(ctx context.Context, transport *v0.Transport) error
 								ch.state = closingState
 								err = transport.Send(chanClose)
 								if err != nil {
-									return s.forceCloseAMQPv0(transport, v0.InternalError, err.Error())
+									return s.forceCloseAMQPv0(transport, v0.InternalError, err)
 								}
 							} else {
-								return s.forceCloseAMQPv0(transport, v0.InternalError, err.Error())
+								return s.forceCloseAMQPv0(transport, v0.InternalError, err)
 							}
 						}
 					}
 				}
 			case *v0.ContentHeaderFrame:
 				if frame.FrameMeta.Channel == 0 {
-					return s.forceCloseAMQPv0(transport, v0.SyntaxError, "content header frame on zero channel")
+					return s.forceCloseAMQPv0(transport, v0.SyntaxError, errors.New("content header frame on zero channel"))
 				}
 				ch, ok := channels[frame.FrameMeta.Channel]
 				if !ok {
-					return s.forceCloseAMQPv0(transport, v0.ChannelError, "channel not open")
+					return s.forceCloseAMQPv0(transport, v0.ChannelError, errors.New("channel not open"))
 				}
 				err := s.handleAMQPv0ChannelContentHeader(ctx, transport, namespace, ch, frame)
 				if err != nil {
@@ -153,19 +159,19 @@ func (s *Server) ServeAMQPv0(ctx context.Context, transport *v0.Transport) error
 						ch.state = closingState
 						err = transport.Send(chanClose)
 						if err != nil {
-							return s.forceCloseAMQPv0(transport, v0.InternalError, err.Error())
+							return s.forceCloseAMQPv0(transport, v0.InternalError, err)
 						}
 					} else {
-						return s.forceCloseAMQPv0(transport, v0.InternalError, err.Error())
+						return s.forceCloseAMQPv0(transport, v0.InternalError, err)
 					}
 				}
 			case *v0.ContentBodyFrame:
 				if frame.FrameMeta.Channel == 0 {
-					return s.forceCloseAMQPv0(transport, v0.SyntaxError, "content body frame on zero channel")
+					return s.forceCloseAMQPv0(transport, v0.SyntaxError, errors.New("content body frame on zero channel"))
 				}
 				ch, ok := channels[frame.FrameMeta.Channel]
 				if !ok {
-					return s.forceCloseAMQPv0(transport, v0.ChannelError, "channel not open")
+					return s.forceCloseAMQPv0(transport, v0.ChannelError, errors.New("channel not open"))
 				}
 				err := s.handleAMQPv0ChannelContentBody(ctx, transport, namespace, ch, frame)
 				if err != nil {
@@ -175,25 +181,48 @@ func (s *Server) ServeAMQPv0(ctx context.Context, transport *v0.Transport) error
 						ch.state = closingState
 						err = transport.Send(chanClose)
 						if err != nil {
-							return s.forceCloseAMQPv0(transport, v0.InternalError, err.Error())
+							return s.forceCloseAMQPv0(transport, v0.InternalError, err)
 						}
 					} else {
-						return s.forceCloseAMQPv0(transport, v0.InternalError, err.Error())
+						return s.forceCloseAMQPv0(transport, v0.InternalError, err)
 					}
 				}
 			case *v0.HeartbeatFrame:
 				if frame.FrameMeta.Channel != 0 {
-					return s.forceCloseAMQPv0(transport, v0.SyntaxError, "heartbeat frame on non-zero channel")
+					return s.forceCloseAMQPv0(transport, v0.SyntaxError, errors.New("heartbeat frame on non-zero channel"))
 				}
 			default:
-				return s.forceCloseAMQPv0(transport, v0.SyntaxError, fmt.Sprintf("unhandled frame of type %T", frame))
+				return s.forceCloseAMQPv0(transport, v0.SyntaxError, errors.Errorf("unhandled frame of type %T", frame))
 			}
-		case err := <-errc:
+		case err := <-receiveErrors:
 			cause := errors.Cause(err)
 			if cause == v0.ErrMalformedFrame {
-				err = s.forceCloseAMQPv0(transport, v0.FrameError, "malformed frame")
+				err = s.forceCloseAMQPv0(transport, v0.FrameError, errors.New("malformed frame"))
 			}
 			return err
+		case err := <-subscribeErrors:
+			return s.forceCloseAMQPv0(transport, v0.InternalError, errors.Wrap(err, "subscribe failed"))
+		case delivery := <-deliveries:
+			ch, ok := channels[delivery.Channel]
+			if !ok {
+				// ignore deliveries on closed channels => consumer, hence subscription, will be closed by channel,
+				// therefore messages will be released and do not need need to be (n)acked
+				continue
+			}
+			err := s.handleAMQPv0ChannelDelivery(ctx, transport, namespace, ch, delivery.ConsumerTag, delivery.Response)
+			if err != nil {
+				if connClose, ok := err.(*v0.ConnectionClose); ok {
+					return transport.Send(connClose)
+				} else if chanClose, ok := err.(*v0.ChannelClose); ok {
+					ch.state = closingState
+					err = transport.Send(chanClose)
+					if err != nil {
+						return s.forceCloseAMQPv0(transport, v0.InternalError, err)
+					}
+				} else {
+					return s.forceCloseAMQPv0(transport, v0.InternalError, err)
+				}
+			}
 		}
 	}
 }
@@ -201,13 +230,25 @@ func (s *Server) ServeAMQPv0(ctx context.Context, transport *v0.Transport) error
 type serverAMQPv0Channel struct {
 	id                uint16
 	state             int
-	prefetchCount     int
+	prefetchCount     uint32
 	publishExchange   string
 	publishRoutingKey string
 	publishProperties *client.Message_Properties
 	publishHeaders    *types.Struct
 	publishData       []byte
 	publishRemaining  int
+	subscribeErrors   chan error
+	consumers         map[string]*subscribeConsumer
+	deliveries        chan subscribeDelivery
+	deliveryTag       uint64
+	inflight          []serverAMQPv0ChannelInflight
+}
+
+type serverAMQPv0ChannelInflight struct {
+	deliveryTag    uint64
+	nodeID         uint64
+	subscriptionID uint64
+	seqNo          uint64
 }
 
 func (ch *serverAMQPv0Channel) ResetPublish() {
@@ -220,6 +261,9 @@ func (ch *serverAMQPv0Channel) ResetPublish() {
 }
 
 func (ch *serverAMQPv0Channel) Close() error {
+	for _, consumer := range ch.consumers {
+		consumer.Close()
+	}
 	return nil
 }
 
@@ -286,6 +330,12 @@ func (s *Server) handleAMQPv0ChannelMethod(ctx context.Context, transport *v0.Tr
 		})
 
 	case *v0.ExchangeDelete:
+		state := s.clusterState.Current()
+		namespace, _ := state.FindNamespace(namespaceName)
+		if namespace == nil {
+			return s.makeChannelClose(ch, v0.NotFound, errors.Errorf("vhost %q not found", namespaceName))
+		}
+
 		request := &client.DeleteTopicRequest{
 			Topic: client.NamespaceName{
 				Namespace: namespaceName,
@@ -328,7 +378,6 @@ func (s *Server) handleAMQPv0ChannelMethod(ctx context.Context, transport *v0.Tr
 			if err != nil {
 				return s.makeConnectionClose(v0.InternalError, errors.Wrap(err, "generate queue name failed"))
 			}
-
 			request.ConsumerGroup.Name.Name = "amq-" + generated
 		}
 
@@ -355,6 +404,13 @@ func (s *Server) handleAMQPv0ChannelMethod(ctx context.Context, transport *v0.Tr
 			if err != nil {
 				return s.makeConnectionClose(v0.InternalError, errors.Wrap(err, "create failed"))
 			}
+
+			_, err = s.ConsumerGroupWait(ctx, &ConsumerGroupWaitRequest{
+				ConsumerGroup: request.ConsumerGroup.Name,
+			})
+			if err != nil {
+				return s.makeConnectionClose(v0.InternalError, errors.Wrap(err, "wait failed"))
+			}
 		}
 
 		if frame.NoWait {
@@ -367,11 +423,10 @@ func (s *Server) handleAMQPv0ChannelMethod(ctx context.Context, transport *v0.Tr
 		})
 
 	case *v0.QueueDelete:
-		if frame.IfUnused {
-			return s.makeConnectionClose(v0.NotImplemented, errors.New("queue.delete if-unused not implemented"))
-		}
-		if frame.IfEmpty {
-			return s.makeConnectionClose(v0.NotImplemented, errors.New("queue.delete if-empty not implemented"))
+		state := s.clusterState.Current()
+		namespace, _ := state.FindNamespace(namespaceName)
+		if namespace == nil {
+			return s.makeChannelClose(ch, v0.NotFound, errors.Errorf("vhost %q not found", namespaceName))
 		}
 
 		request := &client.DeleteConsumerGroupRequest{
@@ -569,14 +624,71 @@ func (s *Server) handleAMQPv0ChannelMethod(ctx context.Context, transport *v0.Tr
 
 	case *v0.BasicQos:
 		// prefetch-size is ignored
-		ch.prefetchCount = int(frame.PrefetchCount)
+		ch.prefetchCount = uint32(frame.PrefetchCount)
 		// global is ignored
 
 		return transport.Send(&v0.BasicQosOk{
 			FrameMeta: v0.FrameMeta{Channel: ch.id},
 		})
 
+	case *v0.BasicConsume:
+		state := s.clusterState.Current()
+		namespace, _ := state.FindNamespace(namespaceName)
+		if namespace == nil {
+			return s.makeChannelClose(ch, v0.NotFound, errors.Errorf("vhost %q not found", namespaceName))
+		}
+		cg, _ := namespace.FindConsumerGroup(frame.Queue)
+		if cg == nil {
+			return s.makeChannelClose(ch, v0.NotFound, errors.Errorf("queue %q not found", frame.Queue))
+		}
+
+		if frame.ConsumerTag == "" {
+			generated, err := uuid.GenerateUUID()
+			if err != nil {
+				return s.makeConnectionClose(v0.InternalError, errors.Wrap(err, "generate consumer tag failed"))
+			}
+			frame.ConsumerTag = "ctag-" + generated
+		}
+
+		if _, ok := ch.consumers[frame.ConsumerTag]; ok {
+			return s.makeChannelClose(ch, v0.PreconditionFailed, errors.Errorf("consumer tag %s already registered", frame.ConsumerTag))
+		}
+
+		request := &client.SubscribeRequest{
+			ConsumerGroup: client.NamespaceName{
+				Namespace: namespaceName,
+				Name:      frame.Queue,
+			},
+			Size_:   ch.prefetchCount,
+			AutoAck: frame.NoAck,
+		}
+		stream := newSubscribeConsumer(ctx, ch.id, frame.ConsumerTag, ch.deliveries)
+
+		go func() {
+			err := s.Subscribe(request, stream)
+			if err != nil {
+				ch.subscribeErrors <- err
+			}
+		}()
+
+		ch.consumers[frame.ConsumerTag] = stream
+
+		if frame.NoWait {
+			return nil
+		}
+
+		return transport.Send(&v0.BasicConsumeOk{
+			FrameMeta:   v0.FrameMeta{Channel: ch.id},
+			ConsumerTag: frame.ConsumerTag,
+		})
+
 	case *v0.BasicPublish:
+		state := s.clusterState.Current()
+		namespace, _ := state.FindNamespace(namespaceName)
+		if namespace == nil {
+			return s.makeChannelClose(ch, v0.NotFound, errors.Errorf("vhost %q not found", namespaceName))
+		}
+
 		ch.publishExchange = frame.Exchange
 		ch.publishRoutingKey = frame.RoutingKey
 		ch.state = awaitingHeaderState
@@ -724,10 +836,74 @@ func (s *Server) handleAMQPv0ChannelContentBody(ctx context.Context, transport *
 	return nil
 }
 
-func (s *Server) forceCloseAMQPv0(transport *v0.Transport, replyCode uint16, replyText string) error {
-	err := transport.Send(&v0.ConnectionClose{
-		ReplyCode: replyCode,
-		ReplyText: replyText,
+func (s *Server) handleAMQPv0ChannelDelivery(ctx context.Context, transport *v0.Transport, namespaceName string, ch *serverAMQPv0Channel, consumerTag string, response *client.SubscribeResponse) error {
+	if _, ok := ch.consumers[consumerTag]; !ok {
+		// ignore deliveries for unknown consumer tags => consumer, hence subscription, was closed, therefore messages
+		// will be released and do not need need to be (n)acked
+		return nil
+	}
+
+	ch.deliveryTag++
+
+	err := transport.Send(&v0.BasicDeliver{
+		FrameMeta:   v0.FrameMeta{Channel: ch.id},
+		ConsumerTag: consumerTag,
+		DeliveryTag: ch.deliveryTag,
+		Exchange:    response.Topic.Name,
+		RoutingKey:  response.Message.RoutingKey,
+	})
+	if err != nil {
+		return errors.Wrap(err, "send basic.deliver failed")
+	}
+
+	contentHeader := &v0.ContentHeaderFrame{
+		FrameMeta: v0.FrameMeta{Channel: ch.id},
+		ClassID:   v0.BasicClass,
+		BodySize:  uint64(len(response.Message.Data)),
+	}
+	if response.Message.Properties != nil {
+		contentHeader.ContentType = response.Message.Properties.ContentType
+		contentHeader.ContentEncoding = response.Message.Properties.ContentEncoding
+		contentHeader.DeliveryMode = uint8(response.Message.Properties.DeliveryMode)
+		contentHeader.Priority = uint8(response.Message.Properties.Priority)
+		contentHeader.CorrelationID = response.Message.Properties.CorrelationID
+		contentHeader.ReplyTo = response.Message.Properties.ReplyTo
+		contentHeader.Expiration = response.Message.Properties.Expiration
+		contentHeader.MessageID = response.Message.Properties.MessageID
+		contentHeader.Timestamp = response.Message.Properties.Timestamp
+		contentHeader.Type = response.Message.Properties.Type
+		contentHeader.UserID = response.Message.Properties.UserID
+		contentHeader.AppID = response.Message.Properties.AppID
+	}
+	contentHeader.Headers = response.Message.Headers
+	err = transport.Send(contentHeader)
+	if err != nil {
+		return errors.Wrap(err, "send content header failed")
+	}
+
+	err = transport.SendBody(ch.id, response.Message.Data)
+	if err != nil {
+		return errors.Wrap(err, "send content body failed")
+	}
+
+	// node ID / subscription ID / seq no of zero means that the subscription is in auto-ack mode
+	// => do not track such in-flight messages as (n)acks won't ever arrive
+	if response.NodeID != 0 {
+		ch.inflight = append(ch.inflight, serverAMQPv0ChannelInflight{
+			deliveryTag:    ch.deliveryTag,
+			nodeID:         response.NodeID,
+			subscriptionID: response.SubscriptionID,
+			seqNo:          response.SeqNo,
+		})
+	}
+
+	return nil
+}
+
+func (s *Server) forceCloseAMQPv0(transport *v0.Transport, code uint16, err error) error {
+	err = transport.Send(&v0.ConnectionClose{
+		ReplyCode: code,
+		ReplyText: err.Error(),
 	})
 	if err != nil {
 		return errors.Wrap(err, "force close failed")

@@ -27,7 +27,7 @@ func (s *Server) Ack(ctx context.Context, request *client.AckRequest) (*client.A
 	}
 
 	s.groupMutex.RLock()
-	subscription, ok := s.subscriptionMap[request.SubscriptionID]
+	subscription, ok := s.subscriptions[request.SubscriptionID]
 	s.groupMutex.RUnlock()
 
 	if !ok {

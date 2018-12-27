@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
+	"testing"
 	"time"
 
 	"eventter.io/mq/client"
@@ -14,6 +15,7 @@ import (
 	"github.com/hashicorp/memberlist"
 	"github.com/hashicorp/raft"
 	"github.com/pkg/errors"
+	"github.com/stretchr/testify/require"
 )
 
 type testServer struct {
@@ -133,25 +135,20 @@ func newTestServer(nodeID uint64) (ret *testServer, err error) {
 	return ts, nil
 }
 
-func (ts *testServer) WaitForConsumerGroup(namespace string, name string) {
-	key := namespace + "/" + name
-	deadline := time.Now().Add(1 * time.Second)
+func (ts *testServer) WaitForConsumerGroup(t *testing.T, ctx context.Context, namespace string, name string) {
+	assert := require.New(t)
 
-	for {
-		ts.Server.groupMutex.Lock()
-		_, ok := ts.Server.groupMap[key]
-		ts.Server.groupMutex.Unlock()
+	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
+	defer cancel()
 
-		if ok {
-			return
-		}
-
-		if time.Now().After(deadline) {
-			panic("consumer group " + key + " did not start")
-		}
-
-		time.Sleep(time.Millisecond)
-	}
+	response, err := ts.Server.ConsumerGroupWait(ctx, &ConsumerGroupWaitRequest{
+		ConsumerGroup: client.NamespaceName{
+			Namespace: "default",
+			Name:      "test-subscribe-consumer-group",
+		},
+	})
+	assert.NoError(err)
+	assert.NotNil(response)
 }
 
 func (ts *testServer) Close() error {

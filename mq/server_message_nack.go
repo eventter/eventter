@@ -27,7 +27,7 @@ func (s *Server) Nack(ctx context.Context, request *client.NackRequest) (*client
 	}
 
 	s.groupMutex.RLock()
-	subscription, ok := s.subscriptionMap[request.SubscriptionID]
+	subscription, ok := s.subscriptions[request.SubscriptionID]
 	s.groupMutex.RUnlock()
 
 	if !ok {
