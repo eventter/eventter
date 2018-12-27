@@ -42,7 +42,11 @@ build_web:
   - wget https://github.com/gohugoio/hugo/releases/download/v0.53/hugo_0.53_Linux-64bit.deb -O /tmp/hugo.deb
   - dpkg -i /tmp/hugo.deb
   - eval $(ssh-agent -s)
-  - echo "$WEB_SSH_PRIVATE_KEY" | ssh-add -
+  - mkdir -p ~/.ssh && chmod 700 ~/.ssh
+  - ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
+  - echo "$WEB_SSH_PRIVATE_KEY" | ssh-add - > /dev/null
+  - git config --global user.email git@gitlab.com
+  - git config --global user.name "Gitlab CI"
   - cd web
   - git clone git@github.com:eventter/eventter.github.io.git public
   - hugo
