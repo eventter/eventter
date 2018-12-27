@@ -33,6 +33,7 @@ func TestServer_ServeAMQPv0_BasicGet(t *testing.T) {
 				FrameMeta: v0.FrameMeta{Channel: channel},
 				Exchange:  "xchng",
 				Type:      "fanout",
+				Durable:   true,
 			}, &response)
 			assert.NoError(err)
 			assert.NotNil(response)

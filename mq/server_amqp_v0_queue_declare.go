@@ -11,6 +11,16 @@ import (
 )
 
 func (s *Server) handleAMQPv0QueueDeclare(ctx context.Context, transport *v0.Transport, namespaceName string, ch *serverAMQPv0Channel, frame *v0.QueueDeclare) error {
+	if !frame.Durable {
+		return s.makeConnectionClose(v0.NotImplemented, errors.New("non-durable queues not implemented"))
+	}
+	if frame.Exclusive {
+		return s.makeConnectionClose(v0.NotImplemented, errors.New("exclusive queues not implemented"))
+	}
+	if frame.AutoDelete {
+		return s.makeConnectionClose(v0.NotImplemented, errors.New("auto-delete queues not implemented"))
+	}
+
 	state := s.clusterState.Current()
 	namespace, _ := state.FindNamespace(namespaceName)
 	if namespace == nil {

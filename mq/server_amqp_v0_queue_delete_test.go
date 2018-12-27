@@ -28,6 +28,7 @@ func TestServer_ServeAMQPv0_QueueDelete(t *testing.T) {
 			err := client.Call(&v0.QueueDeclare{
 				FrameMeta: v0.FrameMeta{Channel: channel},
 				Queue:     "test-queue-delete",
+				Durable:   true,
 			}, &response)
 			assert.NoError(err)
 			assert.NotNil(response)

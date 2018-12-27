@@ -55,6 +55,7 @@ func TestServer_ServeAMQPv0_QueueBind(t *testing.T) {
 						FrameMeta: v0.FrameMeta{Channel: channel},
 						Exchange:  "xchng",
 						Type:      test.exchangeType,
+						Durable:   true,
 					}, &response)
 					assert.NoError(err)
 				}
@@ -64,6 +65,7 @@ func TestServer_ServeAMQPv0_QueueBind(t *testing.T) {
 					err := client.Call(&v0.QueueDeclare{
 						FrameMeta: v0.FrameMeta{Channel: channel},
 						Queue:     "q",
+						Durable:   true,
 					}, &response)
 					assert.NoError(err)
 					assert.NotNil(response)

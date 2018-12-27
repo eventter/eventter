@@ -81,6 +81,7 @@ func TestServer_ServeAMQPv0_QueuePurge(t *testing.T) {
 			err := client.Call(&v0.QueueDeclare{
 				FrameMeta: v0.FrameMeta{Channel: channel},
 				Queue:     "q",
+				Durable:   true,
 			}, &response)
 			assert.NoError(err)
 			assert.NotNil(response)
@@ -128,6 +129,7 @@ func TestServer_ServeAMQPv0_BasicRecover(t *testing.T) {
 					err := client.Call(&v0.QueueDeclare{
 						FrameMeta: v0.FrameMeta{Channel: channel},
 						Queue:     "q",
+						Durable:   true,
 					}, &response)
 					assert.NoError(err)
 					assert.NotNil(response)
@@ -177,6 +179,7 @@ func TestServer_ServeAMQPv0_BasicRecoverAsync(t *testing.T) {
 					err := client.Call(&v0.QueueDeclare{
 						FrameMeta: v0.FrameMeta{Channel: channel},
 						Queue:     "q",
+						Durable:   true,
 					}, &response)
 					assert.NoError(err)
 					assert.NotNil(response)

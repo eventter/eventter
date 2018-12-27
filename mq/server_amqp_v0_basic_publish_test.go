@@ -32,6 +32,7 @@ func TestServer_ServeAMQPv0_BasicPublish(t *testing.T) {
 				FrameMeta: v0.FrameMeta{Channel: channel},
 				Exchange:  "test-basic-publish",
 				Type:      "fanout",
+				Durable:   true,
 			}, &response)
 			assert.NoError(err)
 			assert.NotNil(response)

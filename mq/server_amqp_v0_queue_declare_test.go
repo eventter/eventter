@@ -29,6 +29,7 @@ func TestServer_ServeAMQPv0_QueueDeclare(t *testing.T) {
 			err := client.Call(&v0.QueueDeclare{
 				FrameMeta: v0.FrameMeta{Channel: channel},
 				Queue:     "test-queue-declare",
+				Durable:   true,
 			}, &response)
 			assert.NoError(err)
 			assert.NotNil(response)
@@ -57,6 +58,7 @@ func TestServer_ServeAMQPv0_QueueDeclare(t *testing.T) {
 			err := client.Call(&v0.QueueDeclare{
 				FrameMeta: v0.FrameMeta{Channel: channel},
 				Queue:     "test-queue-declare-size",
+				Durable:   true,
 				Arguments: &types.Struct{
 					Fields: map[string]*types.Value{
 						"size": {Kind: &types.Value_NumberValue{NumberValue: 50}},
@@ -90,6 +92,7 @@ func TestServer_ServeAMQPv0_QueueDeclare(t *testing.T) {
 			err := client.Call(&v0.QueueDeclare{
 				FrameMeta: v0.FrameMeta{Channel: channel},
 				Queue:     "not-exists",
+				Durable:   true,
 				Passive:   true,
 			}, &response)
 			assert.NoError(err)
@@ -111,6 +114,7 @@ func TestServer_ServeAMQPv0_QueueDeclare(t *testing.T) {
 			err := client.Send(&v0.QueueDeclare{
 				FrameMeta: v0.FrameMeta{Channel: channel},
 				Queue:     "test-queue-declare-nowait",
+				Durable:   true,
 				NoWait:    true,
 			})
 			assert.NoError(err)
@@ -146,6 +150,7 @@ func TestServer_ServeAMQPv0_QueueDeclare(t *testing.T) {
 			err := client.Call(&v0.QueueDeclare{
 				FrameMeta: v0.FrameMeta{Channel: channel},
 				Queue:     "",
+				Durable:   true,
 			}, &response)
 			assert.NoError(err)
 			assert.NotNil(response)

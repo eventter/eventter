@@ -29,6 +29,7 @@ func TestServer_ServeAMQPv0_ExchangeDelete(t *testing.T) {
 				FrameMeta: v0.FrameMeta{Channel: channel},
 				Exchange:  "test-exchange-delete",
 				Type:      "fanout",
+				Durable:   true,
 			}, &response)
 			assert.NoError(err)
 			assert.NotNil(response)

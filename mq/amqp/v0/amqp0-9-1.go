@@ -1197,15 +1197,15 @@ func (f *ChannelCloseOk) Marshal() ([]byte, error) {
 type ExchangeDeclare struct {
 	FrameMeta
 	MethodMeta
-	Reserved1 uint16
-	Exchange  string
-	Type      string
-	Passive   bool
-	Durable   bool
-	Reserved2 bool
-	Reserved3 bool
-	NoWait    bool
-	Arguments *types.Struct
+	Reserved1  uint16
+	Exchange   string
+	Type       string
+	Passive    bool
+	Durable    bool
+	AutoDelete bool
+	Internal   bool
+	NoWait     bool
+	Arguments  *types.Struct
 }
 
 func (f *ExchangeDeclare) GetFrameMeta() *FrameMeta {
@@ -1257,8 +1257,8 @@ func (f *ExchangeDeclare) Unmarshal(data []byte) error {
 	} else {
 		f.Passive = bits&1 == 1
 		f.Durable = bits&2 == 2
-		f.Reserved2 = bits&4 == 4
-		f.Reserved3 = bits&8 == 8
+		f.AutoDelete = bits&4 == 4
+		f.Internal = bits&8 == 8
 		f.NoWait = bits&16 == 16
 	}
 	if n, err := buf.Read(x[:4]); err != nil {
@@ -1309,11 +1309,11 @@ func (f *ExchangeDeclare) Marshal() ([]byte, error) {
 		bits |= 2
 	}
 
-	if f.Reserved2 {
+	if f.AutoDelete {
 		bits |= 4
 	}
 
-	if f.Reserved3 {
+	if f.Internal {
 		bits |= 8
 	}
 

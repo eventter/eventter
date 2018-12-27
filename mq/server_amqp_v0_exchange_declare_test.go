@@ -31,6 +31,7 @@ func TestServer_ServeAMQPv0_ExchangeDeclare(t *testing.T) {
 				FrameMeta: v0.FrameMeta{Channel: channel},
 				Exchange:  "test-exchange-declare",
 				Type:      "fanout",
+				Durable:   true,
 			}, &response)
 			assert.NoError(err)
 			assert.NotNil(response)
@@ -51,6 +52,7 @@ func TestServer_ServeAMQPv0_ExchangeDeclare(t *testing.T) {
 				FrameMeta: v0.FrameMeta{Channel: channel},
 				Exchange:  "test-exchange-declare",
 				Type:      "fanout",
+				Durable:   true,
 				Passive:   true,
 			}, &response)
 			assert.NoError(err)
@@ -81,6 +83,7 @@ func TestServer_ServeAMQPv0_ExchangeDeclare(t *testing.T) {
 				FrameMeta: v0.FrameMeta{Channel: channel},
 				Exchange:  "test-exchange-declare-nowait",
 				Type:      "direct",
+				Durable:   true,
 				Arguments: &types.Struct{
 					Fields: map[string]*types.Value{
 						"shards":             {Kind: &types.Value_NumberValue{NumberValue: 5}},
@@ -125,6 +128,7 @@ func TestServer_ServeAMQPv0_ExchangeDeclare(t *testing.T) {
 				FrameMeta: v0.FrameMeta{Channel: channel},
 				Exchange:  "not-exists",
 				Type:      "fanout",
+				Durable:   true,
 				Passive:   true,
 			}, &response)
 			assert.NoError(err)

@@ -13,6 +13,15 @@ func (s *Server) handleAMQPv0ExchangeDeclare(ctx context.Context, transport *v0.
 	if frame.Exchange == "" || frame.Exchange == defaultExchangeTopicName {
 		return s.makeConnectionClose(v0.SyntaxError, errors.New("trying to declare default exchange"))
 	}
+	if !frame.Durable {
+		return s.makeConnectionClose(v0.NotImplemented, errors.New("non-durable exchanges not implemented"))
+	}
+	if frame.AutoDelete {
+		return s.makeConnectionClose(v0.NotImplemented, errors.New("auto-delete exchanges not implemented"))
+	}
+	if frame.Internal {
+		return s.makeConnectionClose(v0.NotImplemented, errors.New("internal exchanges not implemented"))
+	}
 
 	shards, err := structvalue.Uint32(frame.Arguments, "shards", 1)
 	if err != nil {
