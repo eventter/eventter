@@ -703,6 +703,12 @@ func (s *Server) handleAMQPv0ChannelMethod(ctx context.Context, transport *v0.Tr
 			ConsumerTag: frame.ConsumerTag,
 		})
 
+	case *v0.BasicRecover:
+		return s.makeConnectionClose(v0.NotImplemented, errors.New("basic.recover not implemented"))
+
+	case *v0.BasicRecoverAsync:
+		return s.makeConnectionClose(v0.NotImplemented, errors.New("basic.recover-async not implemented"))
+
 	case *v0.BasicPublish:
 		state := s.clusterState.Current()
 		namespace, _ := state.FindNamespace(namespaceName)
