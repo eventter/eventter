@@ -34,3 +34,6 @@ test:
 install:
 	go install -v ./bin/livereload-example
 	go install -v ./bin/eventtermq
+
+web-serve:
+	cd web; hugo serve

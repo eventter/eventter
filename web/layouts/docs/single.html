@@ -1,0 +1,39 @@
+{{ define "title"}}
+    {{- .Title }} | {{ .Site.Title -}}
+{{ end }}
+
+{{ define "header"}}
+    {{- partial "header" . -}}
+{{ end }}
+
+{{ define "main"}}
+    <div id="main">
+        <div id="hero">
+            <h1> {{ .Title}} </h1>
+            <p class="hero-lead">
+                {{ .Params.bref | safeHTML }}.
+            </p>
+
+        </div>
+        <div id="kube-component" class="content">
+            {{ partial "toc" .}}
+
+            {{ .Content }}
+
+            <hr/>
+
+            <h6>Getting Help</h6>
+
+            <p>If you have any question, please create a new <a href="https://github.com/eventter/eventter/issues">GitHub issue</a>.</p>
+
+            <h6>Improve this Page</h6>
+
+            <p>Is there something missing? Are some information confusing? The code for this site <a href="https://github.com/eventter/eventter/tree/master/web">available at GitHub</a>. Feel free to fork the repository and submit pull request. Thank you!</p>
+
+        </div>
+    </div>
+{{ end }}
+
+{{ define "footer"}}
+    {{- partial "footer" . -}}
+{{ end }}

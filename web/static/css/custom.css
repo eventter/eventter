@@ -1,0 +1,11 @@
+#footer {
+    margin: 24px 0;
+}
+
+#footer .copyright {
+    margin-bottom: 0;
+}
+
+#kube-features .row:first-child {
+    border-bottom: 0 none;
+}

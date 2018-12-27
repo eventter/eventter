@@ -1,0 +1,45 @@
+{{ define "title"}}
+    {{- .Site.Title -}}
+{{ end }}
+
+{{ define "header"}}
+    {{- partial "header" . -}}
+{{ end }}
+
+{{ define "main"}}
+    <div id="main">
+        <div id="hero">
+            <h1>EventterMQ</h1>
+            <p>Distributed message queue &amp; streaming server</p>
+        </div>
+        <div id="action-buttons">
+            <a class="button primary big" href="/docs/getting-started/">Get Started</a>
+            <a class="button outline big" href="https://github.com/eventter/eventter">View on GitHub</a>
+            {{/*<p>note</p>*/}}
+        </div>
+        {{/*<div class="message focus" data-component="message">*/}}
+            {{/*<span class="close small"></span>*/}}
+            {{/*message*/}}
+        {{/*</div>*/}}
+        <div id="kube-features">
+            <div class="row gutters">
+                <div class="col col-4 item">
+                    <h3>Fast Messaging</h3>
+                    <p>Supports multiple standard messaging <a href="/docs/protocols/">protocols</a>, reliable delivery, message acknowledgements &amp; flexible routing.</p>
+                </div>
+                <div class="col col-4 item">
+                    <h3>Reliable Stream Data Storage</h3>
+                    <p>Persist <a href="/docs/use-cases/">stream data</a> (e.g. user events, metrics, logs) to be accessed, searched &amp; processed later with configurable retention.</p>
+                </div>
+                <div class="col col-4 item">
+                    <h3>Distributed &amp; Fault-tolerant</h3>
+                    <p>Built from the beginning to be run as a cluster that can tolerate failure of minority of the servers by using <a href="https://raft.github.io/" target="_blank">Raft</a> consensus algorithm &amp; replication.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+{{ end }}
+
+{{ define "footer"}}
+    {{- partial "footer" . -}}
+{{ end }}
