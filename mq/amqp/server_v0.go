@@ -154,7 +154,7 @@ func (s *Server) initV0(transport *v0.Transport) (ctx context.Context, err error
 	if err := transport.SetReceiveTimeout(heartbeat * 2); err != nil {
 		return nil, errors.Wrap(err, "set receive timeout failed")
 	}
-	if err := transport.SetSendTimeout(heartbeat); err != nil {
+	if err := transport.SetSendTimeout(heartbeat / 2); err != nil {
 		return nil, errors.Wrap(err, "set send timeout failed")
 	}
 
