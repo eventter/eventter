@@ -703,6 +703,18 @@ func (s *Server) handleAMQPv0ChannelMethod(ctx context.Context, transport *v0.Tr
 			ConsumerTag: frame.ConsumerTag,
 		})
 
+	case *v0.BasicPublish:
+		state := s.clusterState.Current()
+		namespace, _ := state.FindNamespace(namespaceName)
+		if namespace == nil {
+			return s.makeChannelClose(ch, v0.NotFound, errors.Errorf("vhost %q not found", namespaceName))
+		}
+
+		ch.publishExchange = frame.Exchange
+		ch.publishRoutingKey = frame.RoutingKey
+		ch.state = awaitingHeaderState
+		return nil
+
 	case *v0.BasicAck:
 		if frame.Multiple {
 			i := 0
@@ -793,16 +805,72 @@ func (s *Server) handleAMQPv0ChannelMethod(ctx context.Context, transport *v0.Tr
 	case *v0.BasicRecoverAsync:
 		return s.makeConnectionClose(v0.NotImplemented, errors.New("basic.recover-async not implemented"))
 
-	case *v0.BasicPublish:
-		state := s.clusterState.Current()
-		namespace, _ := state.FindNamespace(namespaceName)
-		if namespace == nil {
-			return s.makeChannelClose(ch, v0.NotFound, errors.Errorf("vhost %q not found", namespaceName))
+	case *v0.BasicNack:
+		if frame.Multiple {
+			i := 0
+			n := 0
+			for ; i < len(ch.inflight) && ch.inflight[i].deliveryTag <= frame.DeliveryTag; i++ {
+				if frame.Requeue {
+					_, err := s.Nack(ctx, &client.NackRequest{
+						NodeID:         ch.inflight[i].nodeID,
+						SubscriptionID: ch.inflight[i].subscriptionID,
+						SeqNo:          ch.inflight[i].seqNo,
+					})
+					if err != nil {
+						return errors.Wrap(err, "nack failed")
+					}
+				} else {
+					_, err := s.Ack(ctx, &client.AckRequest{
+						NodeID:         ch.inflight[i].nodeID,
+						SubscriptionID: ch.inflight[i].subscriptionID,
+						SeqNo:          ch.inflight[i].seqNo,
+					})
+					if err != nil {
+						return errors.Wrap(err, "ack failed")
+					}
+				}
+				n++
+			}
+			if n == 0 {
+				return s.makeChannelClose(ch, v0.PreconditionFailed, errors.Errorf("delivery tag %d doesn't exist", frame.DeliveryTag))
+			}
+			ch.inflight = ch.inflight[i:]
+		} else {
+			i := -1
+			for j := 0; j < len(ch.inflight); j++ {
+				if ch.inflight[j].deliveryTag == frame.DeliveryTag {
+					i = j
+					break
+				}
+			}
+
+			if i == -1 {
+				return s.makeChannelClose(ch, v0.PreconditionFailed, errors.Errorf("delivery tag %d doesn't exist", frame.DeliveryTag))
+			}
+
+			if frame.Requeue {
+				_, err := s.Nack(ctx, &client.NackRequest{
+					NodeID:         ch.inflight[i].nodeID,
+					SubscriptionID: ch.inflight[i].subscriptionID,
+					SeqNo:          ch.inflight[i].seqNo,
+				})
+				if err != nil {
+					return errors.Wrap(err, "nack failed")
+				}
+			} else {
+				_, err := s.Ack(ctx, &client.AckRequest{
+					NodeID:         ch.inflight[i].nodeID,
+					SubscriptionID: ch.inflight[i].subscriptionID,
+					SeqNo:          ch.inflight[i].seqNo,
+				})
+				if err != nil {
+					return errors.Wrap(err, "ack failed")
+				}
+			}
+
+			ch.inflight = ch.inflight[:i+copy(ch.inflight[i:], ch.inflight[i+1:])]
 		}
 
-		ch.publishExchange = frame.Exchange
-		ch.publishRoutingKey = frame.RoutingKey
-		ch.state = awaitingHeaderState
 		return nil
 
 	case *v0.TxSelect:
