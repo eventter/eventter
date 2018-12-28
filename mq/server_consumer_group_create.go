@@ -45,6 +45,8 @@ func (s *Server) CreateConsumerGroup(ctx context.Context, request *emq.CreateCon
 		return nil, errors.Errorf(namespaceNotFoundErrorFormat, request.ConsumerGroup.Name.Namespace)
 	}
 
+	cg, _ := namespace.FindConsumerGroup(request.ConsumerGroup.Name.Name)
+
 	cmd := &ClusterCommandConsumerGroupCreate{
 		Namespace: request.ConsumerGroup.Name.Namespace,
 		ConsumerGroup: &ClusterConsumerGroup{
@@ -55,7 +57,11 @@ func (s *Server) CreateConsumerGroup(ctx context.Context, request *emq.CreateCon
 	}
 
 	if cmd.ConsumerGroup.Since.IsZero() {
-		cmd.ConsumerGroup.Since = time.Now()
+		if cg == nil {
+			cmd.ConsumerGroup.Since = time.Now()
+		} else {
+			cmd.ConsumerGroup.Since = cg.Since
+		}
 	}
 
 	for _, clientBinding := range request.ConsumerGroup.Bindings {

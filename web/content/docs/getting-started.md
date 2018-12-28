@@ -205,6 +205,6 @@ $ eventtermq subscribe my-cg
 
 ### What next?
 
-In your application code you probably don't want to communicate with the broker by executing CLI commands. Learn about [protocols](/docs/protocols/) the broker supports and libraries to use.
+Do you still hesitate whether EventterMQ is the right tool for the job? Read about its [use cases](/docs/use-cases/).
 
-Do you still hesitate whether EventterMQ is right tool for the job? Read about its [use cases](/docs/use-cases/).
+In your application code you probably don't want to communicate with the broker by executing CLI commands. Learn about [protocols](/docs/protocols/) the broker supports and libraries to use.
