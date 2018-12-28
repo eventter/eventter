@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"eventter.io/mq/client"
+	"eventter.io/mq/emq"
 	"github.com/stretchr/testify/require"
 )
 
@@ -19,13 +19,13 @@ func TestServer_Nack(t *testing.T) {
 	defer cancel()
 
 	{
-		response, err := ts.Server.CreateTopic(ctx, &client.CreateTopicRequest{
-			Topic: client.Topic{
-				Name: client.NamespaceName{
+		response, err := ts.Server.CreateTopic(ctx, &emq.CreateTopicRequest{
+			Topic: emq.Topic{
+				Name: emq.NamespaceName{
 					Namespace: "default",
 					Name:      "test-nack-topic",
 				},
-				Type: client.ExchangeTypeFanout,
+				Type: emq.ExchangeTypeFanout,
 			},
 		})
 		assert.NoError(err)
@@ -34,13 +34,13 @@ func TestServer_Nack(t *testing.T) {
 	}
 
 	{
-		response, err := ts.Server.CreateConsumerGroup(ctx, &client.CreateConsumerGroupRequest{
-			ConsumerGroup: client.ConsumerGroup{
-				Name: client.NamespaceName{
+		response, err := ts.Server.CreateConsumerGroup(ctx, &emq.CreateConsumerGroupRequest{
+			ConsumerGroup: emq.ConsumerGroup{
+				Name: emq.NamespaceName{
 					Namespace: "default",
 					Name:      "test-nack-consumer-group",
 				},
-				Bindings: []*client.ConsumerGroup_Binding{
+				Bindings: []*emq.ConsumerGroup_Binding{
 					{TopicName: "test-nack-topic"},
 				},
 			},
@@ -58,12 +58,12 @@ func TestServer_Nack(t *testing.T) {
 	}
 
 	{
-		response, err := ts.Server.Publish(ctx, &client.PublishRequest{
-			Topic: client.NamespaceName{
+		response, err := ts.Server.Publish(ctx, &emq.PublishRequest{
+			Topic: emq.NamespaceName{
 				Namespace: "default",
 				Name:      "test-nack-topic",
 			},
-			Message: &client.Message{
+			Message: &emq.Message{
 				Data: []byte("hello, world"),
 			},
 		})
@@ -80,8 +80,8 @@ func TestServer_Nack(t *testing.T) {
 		go func() {
 			defer stream.Close()
 
-			err := ts.Server.Subscribe(&client.SubscribeRequest{
-				ConsumerGroup: client.NamespaceName{
+			err := ts.Server.Subscribe(&emq.SubscribeRequest{
+				ConsumerGroup: emq.NamespaceName{
 					Namespace: "default",
 					Name:      "test-nack-consumer-group",
 				},
@@ -95,7 +95,7 @@ func TestServer_Nack(t *testing.T) {
 		assert.True(ok)
 		assert.Equal("hello, world", string(delivery.Response.Message.Data))
 
-		response, err := ts.Server.Nack(ctx, &client.NackRequest{
+		response, err := ts.Server.Nack(ctx, &emq.NackRequest{
 			NodeID:         delivery.Response.NodeID,
 			SubscriptionID: delivery.Response.SubscriptionID,
 			SeqNo:          delivery.Response.SeqNo,

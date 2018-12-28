@@ -10,13 +10,13 @@ import (
 	"os"
 	"time"
 
-	"eventter.io/mq/client"
+	"eventter.io/mq/emq"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 )
 
 func subscribeCmd() *cobra.Command {
-	request := &client.SubscribeRequest{}
+	request := &emq.SubscribeRequest{}
 
 	cmd := &cobra.Command{
 		Use:     "subscribe <consumer-group>",
@@ -58,7 +58,7 @@ func subscribeCmd() *cobra.Command {
 				}
 				fmt.Println(string(response.Message.Data))
 
-				_, err = c.Ack(ctx, &client.AckRequest{
+				_, err = c.Ack(ctx, &emq.AckRequest{
 					NodeID:         response.NodeID,
 					SubscriptionID: response.SubscriptionID,
 					SeqNo:          response.SeqNo,

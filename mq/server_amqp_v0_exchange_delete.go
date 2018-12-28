@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"eventter.io/mq/amqp/v0"
-	"eventter.io/mq/client"
+	"eventter.io/mq/emq"
 	"github.com/pkg/errors"
 )
 
@@ -19,8 +19,8 @@ func (s *Server) handleAMQPv0ExchangeDelete(ctx context.Context, transport *v0.T
 		return s.makeChannelClose(ch, v0.NotFound, errors.Errorf("vhost %q not found", namespaceName))
 	}
 
-	request := &client.DeleteTopicRequest{
-		Topic: client.NamespaceName{
+	request := &emq.DeleteTopicRequest{
+		Topic: emq.NamespaceName{
 			Namespace: namespaceName,
 			Name:      frame.Exchange,
 		},

@@ -3,12 +3,12 @@ package mq
 import (
 	"context"
 
-	"eventter.io/mq/client"
+	"eventter.io/mq/emq"
 	"github.com/hashicorp/raft"
 	"github.com/pkg/errors"
 )
 
-func (s *Server) ListConsumerGroups(ctx context.Context, request *client.ListConsumerGroupsRequest) (*client.ListConsumerGroupsResponse, error) {
+func (s *Server) ListConsumerGroups(ctx context.Context, request *emq.ListConsumerGroupsRequest) (*emq.ListConsumerGroupsResponse, error) {
 	if s.raftNode.State() != raft.Leader {
 		if request.LeaderOnly {
 			return nil, errNotALeader
@@ -25,7 +25,7 @@ func (s *Server) ListConsumerGroups(ctx context.Context, request *client.ListCon
 		defer s.pool.Put(conn)
 
 		request.LeaderOnly = true
-		return client.NewEventterMQClient(conn).ListConsumerGroups(ctx, request)
+		return emq.NewEventterMQClient(conn).ListConsumerGroups(ctx, request)
 	}
 
 	if err := request.Validate(); err != nil {
@@ -39,17 +39,17 @@ func (s *Server) ListConsumerGroups(ctx context.Context, request *client.ListCon
 		return nil, errors.Errorf(namespaceNotFoundErrorFormat, request.ConsumerGroup.Namespace)
 	}
 
-	var consumerGroups []*client.ConsumerGroup
+	var consumerGroups []*emq.ConsumerGroup
 
 	for _, cg := range namespace.ListConsumerGroups(request.ConsumerGroup.Namespace, request.ConsumerGroup.Name) {
-		var clientBindings []*client.ConsumerGroup_Binding
+		var clientBindings []*emq.ConsumerGroup_Binding
 
 		for _, binding := range cg.Bindings {
 			clientBindings = append(clientBindings, s.convertBinding(binding))
 		}
 
-		consumerGroups = append(consumerGroups, &client.ConsumerGroup{
-			Name: client.NamespaceName{
+		consumerGroups = append(consumerGroups, &emq.ConsumerGroup{
+			Name: emq.NamespaceName{
 				Namespace: request.ConsumerGroup.Namespace,
 				Name:      cg.Name,
 			},
@@ -58,30 +58,30 @@ func (s *Server) ListConsumerGroups(ctx context.Context, request *client.ListCon
 		})
 	}
 
-	return &client.ListConsumerGroupsResponse{
+	return &emq.ListConsumerGroupsResponse{
 		OK:             true,
 		Index:          state.Index,
 		ConsumerGroups: consumerGroups,
 	}, nil
 }
 
-func (s *Server) convertBinding(clusterBinding *ClusterConsumerGroup_Binding) *client.ConsumerGroup_Binding {
-	clientBinding := &client.ConsumerGroup_Binding{
+func (s *Server) convertBinding(clusterBinding *ClusterConsumerGroup_Binding) *emq.ConsumerGroup_Binding {
+	clientBinding := &emq.ConsumerGroup_Binding{
 		TopicName: clusterBinding.TopicName,
 	}
 	switch by := clusterBinding.By.(type) {
 	case nil:
 		// do nothing
 	case *ClusterConsumerGroup_Binding_RoutingKey:
-		clientBinding.By = &client.ConsumerGroup_Binding_RoutingKey{
+		clientBinding.By = &emq.ConsumerGroup_Binding_RoutingKey{
 			RoutingKey: by.RoutingKey,
 		}
 	case *ClusterConsumerGroup_Binding_HeadersAll:
-		clientBinding.By = &client.ConsumerGroup_Binding_HeadersAll{
+		clientBinding.By = &emq.ConsumerGroup_Binding_HeadersAll{
 			HeadersAll: by.HeadersAll,
 		}
 	case *ClusterConsumerGroup_Binding_HeadersAny:
-		clientBinding.By = &client.ConsumerGroup_Binding_HeadersAny{
+		clientBinding.By = &emq.ConsumerGroup_Binding_HeadersAny{
 			HeadersAny: by.HeadersAny,
 		}
 	default:

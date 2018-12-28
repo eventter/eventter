@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"eventter.io/mq/amqp/v0"
-	"eventter.io/mq/client"
+	"eventter.io/mq/emq"
 	"github.com/pkg/errors"
 )
 
@@ -15,8 +15,8 @@ func (s *Server) handleAMQPv0QueueDelete(ctx context.Context, transport *v0.Tran
 		return s.makeChannelClose(ch, v0.NotFound, errors.Errorf("vhost %q not found", namespaceName))
 	}
 
-	request := &client.DeleteConsumerGroupRequest{
-		ConsumerGroup: client.NamespaceName{
+	request := &emq.DeleteConsumerGroupRequest{
+		ConsumerGroup: emq.NamespaceName{
 			Namespace: namespaceName,
 			Name:      frame.Queue,
 		},

@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"eventter.io/mq/amqp/v0"
-	"eventter.io/mq/client"
+	"eventter.io/mq/emq"
 	"github.com/pkg/errors"
 )
 
@@ -19,8 +19,8 @@ func (s *Server) handleAMQPv0BasicGet(ctx context.Context, transport *v0.Transpo
 		return s.makeChannelClose(ch, v0.NotFound, errors.Errorf("queue %q not found", frame.Queue))
 	}
 
-	request := &client.SubscribeRequest{
-		ConsumerGroup: client.NamespaceName{
+	request := &emq.SubscribeRequest{
+		ConsumerGroup: emq.NamespaceName{
 			Namespace: namespaceName,
 			Name:      frame.Queue,
 		},

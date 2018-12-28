@@ -6,13 +6,13 @@ import (
 	"time"
 
 	"eventter.io/mq"
-	"eventter.io/mq/client"
+	"eventter.io/mq/emq"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 )
 
 func debugCmd() *cobra.Command {
-	request := &client.ListTopicsRequest{}
+	request := &emq.ListTopicsRequest{}
 
 	cmd := &cobra.Command{
 		Use:     "debug",

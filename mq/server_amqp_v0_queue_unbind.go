@@ -5,7 +5,7 @@ import (
 	"reflect"
 
 	"eventter.io/mq/amqp/v0"
-	"eventter.io/mq/client"
+	"eventter.io/mq/emq"
 	"eventter.io/mq/structvalue"
 	"github.com/pkg/errors"
 )
@@ -31,18 +31,18 @@ func (s *Server) handleAMQPv0QueueUnbind(ctx context.Context, transport *v0.Tran
 		return s.makeChannelClose(ch, v0.NotFound, errors.Errorf("exchange %q not found", frame.Exchange))
 	}
 
-	unbinding := &client.ConsumerGroup_Binding{
+	unbinding := &emq.ConsumerGroup_Binding{
 		TopicName: tp.Name,
 	}
 
 	switch tp.Type {
-	case client.ExchangeTypeFanout:
+	case emq.ExchangeTypeFanout:
 		// do nothing
-	case client.ExchangeTypeDirect:
+	case emq.ExchangeTypeDirect:
 		fallthrough
-	case client.ExchangeTypeTopic:
-		unbinding.By = &client.ConsumerGroup_Binding_RoutingKey{RoutingKey: frame.RoutingKey}
-	case client.ExchangeTypeHeaders:
+	case emq.ExchangeTypeTopic:
+		unbinding.By = &emq.ConsumerGroup_Binding_RoutingKey{RoutingKey: frame.RoutingKey}
+	case emq.ExchangeTypeHeaders:
 		if frame.Arguments == nil || frame.Arguments.Fields == nil {
 			return s.makeConnectionClose(v0.SyntaxError, errors.New("trying to bind to headers exchange, but arguments not set"))
 		}
@@ -58,9 +58,9 @@ func (s *Server) handleAMQPv0QueueUnbind(ctx context.Context, transport *v0.Tran
 		case "":
 			return s.makeConnectionClose(v0.SyntaxError, errors.Errorf("trying to bind to headers exchange, but %q not set", "x-match"))
 		case "all":
-			unbinding.By = &client.ConsumerGroup_Binding_HeadersAll{HeadersAll: frame.Arguments}
+			unbinding.By = &emq.ConsumerGroup_Binding_HeadersAll{HeadersAll: frame.Arguments}
 		case "any":
-			unbinding.By = &client.ConsumerGroup_Binding_HeadersAny{HeadersAny: frame.Arguments}
+			unbinding.By = &emq.ConsumerGroup_Binding_HeadersAny{HeadersAny: frame.Arguments}
 		default:
 			return s.makeConnectionClose(v0.SyntaxError, errors.Errorf("unknown matching algorithm %q", algo))
 		}
@@ -68,9 +68,9 @@ func (s *Server) handleAMQPv0QueueUnbind(ctx context.Context, transport *v0.Tran
 		panic("unhandled exchange type")
 	}
 
-	request := &client.CreateConsumerGroupRequest{
-		ConsumerGroup: client.ConsumerGroup{
-			Name: client.NamespaceName{
+	request := &emq.CreateConsumerGroupRequest{
+		ConsumerGroup: emq.ConsumerGroup{
+			Name: emq.NamespaceName{
 				Namespace: namespaceName,
 				Name:      frame.Queue,
 			},

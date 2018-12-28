@@ -3,11 +3,11 @@ package mq
 import (
 	"context"
 
-	"eventter.io/mq/client"
+	"eventter.io/mq/emq"
 	"github.com/pkg/errors"
 )
 
-func (s *Server) Nack(ctx context.Context, request *client.NackRequest) (*client.NackResponse, error) {
+func (s *Server) Nack(ctx context.Context, request *emq.NackRequest) (*emq.NackResponse, error) {
 	if request.NodeID != s.nodeID {
 		if request.DoNotForward {
 			return nil, errWontForward
@@ -23,7 +23,7 @@ func (s *Server) Nack(ctx context.Context, request *client.NackRequest) (*client
 		defer s.pool.Put(conn)
 
 		request.DoNotForward = true
-		return client.NewEventterMQClient(conn).Nack(ctx, request)
+		return emq.NewEventterMQClient(conn).Nack(ctx, request)
 	}
 
 	s.groupMutex.RLock()
@@ -38,5 +38,5 @@ func (s *Server) Nack(ctx context.Context, request *client.NackRequest) (*client
 		return nil, errors.Wrap(err, "nack failed")
 	}
 
-	return &client.NackResponse{OK: true}, nil
+	return &emq.NackResponse{OK: true}, nil
 }

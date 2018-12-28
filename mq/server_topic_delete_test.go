@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"eventter.io/mq/client"
+	"eventter.io/mq/emq"
 	"github.com/stretchr/testify/require"
 )
 
@@ -19,8 +19,8 @@ func TestServer_DeleteTopic(t *testing.T) {
 	defer cancel()
 
 	{
-		response, err := ts.Server.DeleteTopic(ctx, &client.DeleteTopicRequest{
-			Topic: client.NamespaceName{
+		response, err := ts.Server.DeleteTopic(ctx, &emq.DeleteTopicRequest{
+			Topic: emq.NamespaceName{
 				Namespace: "default",
 				Name:      "test-delete-topic",
 			},
@@ -30,13 +30,13 @@ func TestServer_DeleteTopic(t *testing.T) {
 	}
 
 	{
-		response, err := ts.Server.CreateTopic(ctx, &client.CreateTopicRequest{
-			Topic: client.Topic{
-				Name: client.NamespaceName{
+		response, err := ts.Server.CreateTopic(ctx, &emq.CreateTopicRequest{
+			Topic: emq.Topic{
+				Name: emq.NamespaceName{
 					Namespace: "default",
 					Name:      "test-delete-topic",
 				},
-				Type:              client.ExchangeTypeFanout,
+				Type:              emq.ExchangeTypeFanout,
 				Shards:            1,
 				ReplicationFactor: 1,
 				Retention:         1,
@@ -51,8 +51,8 @@ func TestServer_DeleteTopic(t *testing.T) {
 	}
 
 	{
-		response, err := ts.Server.DeleteTopic(ctx, &client.DeleteTopicRequest{
-			Topic: client.NamespaceName{
+		response, err := ts.Server.DeleteTopic(ctx, &emq.DeleteTopicRequest{
+			Topic: emq.NamespaceName{
 				Namespace: "default",
 				Name:      "test-delete-topic",
 			},

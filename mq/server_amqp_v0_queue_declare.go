@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"eventter.io/mq/amqp/v0"
-	"eventter.io/mq/client"
+	"eventter.io/mq/emq"
 	"eventter.io/mq/structvalue"
 	"github.com/hashicorp/go-uuid"
 	"github.com/pkg/errors"
@@ -29,13 +29,13 @@ func (s *Server) handleAMQPv0QueueDeclare(ctx context.Context, transport *v0.Tra
 
 	defaultTopic, _ := namespace.FindTopic(defaultExchangeTopicName)
 	if defaultTopic == nil {
-		_, err := s.CreateTopic(ctx, &client.CreateTopicRequest{
-			Topic: client.Topic{
-				Name: client.NamespaceName{
+		_, err := s.CreateTopic(ctx, &emq.CreateTopicRequest{
+			Topic: emq.Topic{
+				Name: emq.NamespaceName{
 					Namespace: namespaceName,
 					Name:      defaultExchangeTopicName,
 				},
-				Type:              client.ExchangeTypeDirect,
+				Type:              emq.ExchangeTypeDirect,
 				Shards:            1,
 				ReplicationFactor: defaultReplicationFactor,
 				Retention:         1,
@@ -59,17 +59,17 @@ func (s *Server) handleAMQPv0QueueDeclare(ctx context.Context, transport *v0.Tra
 		frame.Queue = "amq-" + generated
 	}
 
-	request := &client.CreateConsumerGroupRequest{
-		ConsumerGroup: client.ConsumerGroup{
-			Name: client.NamespaceName{
+	request := &emq.CreateConsumerGroupRequest{
+		ConsumerGroup: emq.ConsumerGroup{
+			Name: emq.NamespaceName{
 				Namespace: namespaceName,
 				Name:      frame.Queue,
 			},
 			Size_: size,
-			Bindings: []*client.ConsumerGroup_Binding{
+			Bindings: []*emq.ConsumerGroup_Binding{
 				{
 					TopicName: defaultExchangeTopicName,
-					By:        &client.ConsumerGroup_Binding_RoutingKey{RoutingKey: frame.Queue},
+					By:        &emq.ConsumerGroup_Binding_RoutingKey{RoutingKey: frame.Queue},
 				},
 			},
 		},

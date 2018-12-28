@@ -17,7 +17,7 @@ import (
 	"eventter.io/mq/about"
 	"eventter.io/mq/amqp"
 	"eventter.io/mq/amqp/authentication"
-	"eventter.io/mq/client"
+	"eventter.io/mq/emq"
 	"eventter.io/mq/segments"
 	"github.com/bbva/raft-badger"
 	"github.com/hashicorp/memberlist"
@@ -31,8 +31,8 @@ const defaultNamespace = "default"
 
 var rootConfig = &mq.Config{}
 
-func newClient(ctx context.Context) (client.Client, error) {
-	return client.DialContext(ctx, fmt.Sprintf("%s:%d", rootConfig.BindHost, rootConfig.Port), grpc.WithInsecure())
+func newClient(ctx context.Context) (emq.Client, error) {
+	return emq.DialContext(ctx, fmt.Sprintf("%s:%d", rootConfig.BindHost, rootConfig.Port), grpc.WithInsecure())
 }
 
 func Cmd() *cobra.Command {
@@ -149,7 +149,7 @@ func Cmd() *cobra.Command {
 			go server.Loop(memberEventC)
 			defer server.Close()
 
-			client.RegisterEventterMQServer(grpcServer, server)
+			emq.RegisterEventterMQServer(grpcServer, server)
 			mq.RegisterNodeRPCServer(grpcServer, server)
 
 			grpcListener, err := net.Listen("tcp", rootConfig.BindHost+":"+strconv.Itoa(rootConfig.Port))

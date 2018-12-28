@@ -3,12 +3,12 @@ package mq
 import (
 	"context"
 
-	"eventter.io/mq/client"
+	"eventter.io/mq/emq"
 	"github.com/hashicorp/raft"
 	"github.com/pkg/errors"
 )
 
-func (s *Server) CreateNamespace(ctx context.Context, request *client.CreateNamespaceRequest) (*client.CreateNamespaceResponse, error) {
+func (s *Server) CreateNamespace(ctx context.Context, request *emq.CreateNamespaceRequest) (*emq.CreateNamespaceResponse, error) {
 	if s.raftNode.State() != raft.Leader {
 		if request.LeaderOnly {
 			return nil, errNotALeader
@@ -25,7 +25,7 @@ func (s *Server) CreateNamespace(ctx context.Context, request *client.CreateName
 		defer s.pool.Put(conn)
 
 		request.LeaderOnly = true
-		return client.NewEventterMQClient(conn).CreateNamespace(ctx, request)
+		return emq.NewEventterMQClient(conn).CreateNamespace(ctx, request)
 	}
 
 	if err := request.Validate(); err != nil {
@@ -42,7 +42,7 @@ func (s *Server) CreateNamespace(ctx context.Context, request *client.CreateName
 		return nil, errors.Wrap(err, "apply failed")
 	}
 
-	return &client.CreateNamespaceResponse{
+	return &emq.CreateNamespaceResponse{
 		OK:    true,
 		Index: index,
 	}, nil

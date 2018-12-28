@@ -3,15 +3,15 @@ package consumers
 import (
 	"time"
 
-	"eventter.io/mq/client"
+	"eventter.io/mq/emq"
 )
 
 type Message struct {
-	Topic          client.NamespaceName
+	Topic          emq.NamespaceName
 	SegmentID      uint64
 	CommitOffset   int64
 	Time           time.Time
-	Message        *client.Message
+	Message        *emq.Message
 	SubscriptionID uint64
 	SeqNo          uint64
 }

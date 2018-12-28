@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"eventter.io/mq/client"
+	"eventter.io/mq/emq"
 	"github.com/stretchr/testify/require"
 )
 
@@ -20,9 +20,9 @@ func TestServer_ConsumerGroupWait(t *testing.T) {
 	defer cancel()
 
 	{
-		response, err := ts.Server.CreateConsumerGroup(ctx, &client.CreateConsumerGroupRequest{
-			ConsumerGroup: client.ConsumerGroup{
-				Name: client.NamespaceName{
+		response, err := ts.Server.CreateConsumerGroup(ctx, &emq.CreateConsumerGroupRequest{
+			ConsumerGroup: emq.ConsumerGroup{
+				Name: emq.NamespaceName{
 					Namespace: "default",
 					Name:      "test-subscribe-consumer-group",
 				},
@@ -38,7 +38,7 @@ func TestServer_ConsumerGroupWait(t *testing.T) {
 		defer cancel()
 
 		response, err := ts.Server.ConsumerGroupWait(ctx, &ConsumerGroupWaitRequest{
-			ConsumerGroup: client.NamespaceName{
+			ConsumerGroup: emq.NamespaceName{
 				Namespace: "default",
 				Name:      "test-subscribe-consumer-group",
 			},

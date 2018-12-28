@@ -3,12 +3,12 @@ package mq
 import (
 	"context"
 
-	"eventter.io/mq/client"
+	"eventter.io/mq/emq"
 	"github.com/hashicorp/raft"
 	"github.com/pkg/errors"
 )
 
-func (s *Server) CreateTopic(ctx context.Context, request *client.CreateTopicRequest) (*client.CreateTopicResponse, error) {
+func (s *Server) CreateTopic(ctx context.Context, request *emq.CreateTopicRequest) (*emq.CreateTopicResponse, error) {
 	if s.raftNode.State() != raft.Leader {
 		if request.LeaderOnly {
 			return nil, errNotALeader
@@ -25,7 +25,7 @@ func (s *Server) CreateTopic(ctx context.Context, request *client.CreateTopicReq
 		defer s.pool.Put(conn)
 
 		request.LeaderOnly = true
-		return client.NewEventterMQClient(conn).CreateTopic(ctx, request)
+		return emq.NewEventterMQClient(conn).CreateTopic(ctx, request)
 	}
 
 	if err := request.Validate(); err != nil {
@@ -77,7 +77,7 @@ func (s *Server) CreateTopic(ctx context.Context, request *client.CreateTopicReq
 		return nil, err
 	}
 
-	return &client.CreateTopicResponse{
+	return &emq.CreateTopicResponse{
 		OK:    true,
 		Index: index,
 	}, nil

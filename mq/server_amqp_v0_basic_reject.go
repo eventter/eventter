@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"eventter.io/mq/amqp/v0"
-	"eventter.io/mq/client"
+	"eventter.io/mq/emq"
 	"github.com/pkg/errors"
 )
 
@@ -22,7 +22,7 @@ func (s *Server) handleAMQPv0BasicReject(ctx context.Context, transport *v0.Tran
 	}
 
 	if frame.Requeue {
-		_, err := s.Nack(ctx, &client.NackRequest{
+		_, err := s.Nack(ctx, &emq.NackRequest{
 			NodeID:         ch.inflight[i].nodeID,
 			SubscriptionID: ch.inflight[i].subscriptionID,
 			SeqNo:          ch.inflight[i].seqNo,
@@ -32,7 +32,7 @@ func (s *Server) handleAMQPv0BasicReject(ctx context.Context, transport *v0.Tran
 		}
 
 	} else {
-		_, err := s.Ack(ctx, &client.AckRequest{
+		_, err := s.Ack(ctx, &emq.AckRequest{
 			NodeID:         ch.inflight[i].nodeID,
 			SubscriptionID: ch.inflight[i].subscriptionID,
 			SeqNo:          ch.inflight[i].seqNo,

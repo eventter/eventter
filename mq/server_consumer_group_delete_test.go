@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"eventter.io/mq/client"
+	"eventter.io/mq/emq"
 	"github.com/stretchr/testify/require"
 )
 
@@ -19,9 +19,9 @@ func TestServer_DeleteConsumerGroup(t *testing.T) {
 	defer cancel()
 
 	{
-		response, err := ts.Server.CreateConsumerGroup(ctx, &client.CreateConsumerGroupRequest{
-			ConsumerGroup: client.ConsumerGroup{
-				Name: client.NamespaceName{
+		response, err := ts.Server.CreateConsumerGroup(ctx, &emq.CreateConsumerGroupRequest{
+			ConsumerGroup: emq.ConsumerGroup{
+				Name: emq.NamespaceName{
 					Namespace: "default",
 					Name:      "test-delete-consumer-group",
 				},
@@ -37,8 +37,8 @@ func TestServer_DeleteConsumerGroup(t *testing.T) {
 	}
 
 	{
-		response, err := ts.Server.DeleteConsumerGroup(ctx, &client.DeleteConsumerGroupRequest{
-			ConsumerGroup: client.NamespaceName{
+		response, err := ts.Server.DeleteConsumerGroup(ctx, &emq.DeleteConsumerGroupRequest{
+			ConsumerGroup: emq.NamespaceName{
 				Namespace: "default",
 				Name:      "test-delete-consumer-group",
 			},

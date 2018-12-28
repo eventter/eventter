@@ -6,7 +6,7 @@ import (
 	"sync"
 	"testing"
 
-	"eventter.io/mq/client"
+	"eventter.io/mq/emq"
 )
 
 func TestGroup_Offer(t *testing.T) {
@@ -17,7 +17,7 @@ func TestGroup_Offer(t *testing.T) {
 
 	go func() {
 		for i := 1; i <= 50; i++ {
-			if err := g.Offer(&Message{Message: &client.Message{Data: []byte(strconv.Itoa(i))}}); err != nil {
+			if err := g.Offer(&Message{Message: &emq.Message{Data: []byte(strconv.Itoa(i))}}); err != nil {
 				t.Fatal(err)
 			}
 		}
@@ -151,7 +151,7 @@ func benchmarkGroup(b *testing.B, size int, messages int, producers int, consume
 			defer produceWg.Done()
 
 			for j := 0; j < messagesPerProducer[i]; j++ {
-				m := &Message{Message: &client.Message{Data: []byte(".")}}
+				m := &Message{Message: &emq.Message{Data: []byte(".")}}
 				if err := g.Offer(m); err != nil {
 					b.Fatal(err)
 				}

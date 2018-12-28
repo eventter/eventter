@@ -1,4 +1,4 @@
-package client
+package emq
 
 const (
 	ExchangeTypeDirect  = "direct"

@@ -4,12 +4,12 @@ import (
 	"context"
 	"time"
 
-	"eventter.io/mq/client"
+	"eventter.io/mq/emq"
 	"github.com/hashicorp/raft"
 	"github.com/pkg/errors"
 )
 
-func (s *Server) CreateConsumerGroup(ctx context.Context, request *client.CreateConsumerGroupRequest) (*client.CreateConsumerGroupResponse, error) {
+func (s *Server) CreateConsumerGroup(ctx context.Context, request *emq.CreateConsumerGroupRequest) (*emq.CreateConsumerGroupResponse, error) {
 	if s.raftNode.State() != raft.Leader {
 		if request.LeaderOnly {
 			return nil, errNotALeader
@@ -26,7 +26,7 @@ func (s *Server) CreateConsumerGroup(ctx context.Context, request *client.Create
 		defer s.pool.Put(conn)
 
 		request.LeaderOnly = true
-		return client.NewEventterMQClient(conn).CreateConsumerGroup(ctx, request)
+		return emq.NewEventterMQClient(conn).CreateConsumerGroup(ctx, request)
 	}
 
 	if err := request.Validate(); err != nil {
@@ -64,11 +64,11 @@ func (s *Server) CreateConsumerGroup(ctx context.Context, request *client.Create
 			TopicName: binding.TopicName,
 		}
 		switch topic.Type {
-		case client.ExchangeTypeDirect:
+		case emq.ExchangeTypeDirect:
 			fallthrough
-		case client.ExchangeTypeTopic:
+		case emq.ExchangeTypeTopic:
 			switch by := binding.By.(type) {
-			case *client.ConsumerGroup_Binding_RoutingKey:
+			case *emq.ConsumerGroup_Binding_RoutingKey:
 				clusterBinding.By = &ClusterConsumerGroup_Binding_RoutingKey{
 					RoutingKey: by.RoutingKey,
 				}
@@ -81,13 +81,13 @@ func (s *Server) CreateConsumerGroup(ctx context.Context, request *client.Create
 					topic.Type,
 				)
 			}
-		case client.ExchangeTypeHeaders:
+		case emq.ExchangeTypeHeaders:
 			switch by := binding.By.(type) {
-			case *client.ConsumerGroup_Binding_HeadersAny:
+			case *emq.ConsumerGroup_Binding_HeadersAny:
 				clusterBinding.By = &ClusterConsumerGroup_Binding_HeadersAny{
 					HeadersAny: by.HeadersAny,
 				}
-			case *client.ConsumerGroup_Binding_HeadersAll:
+			case *emq.ConsumerGroup_Binding_HeadersAll:
 				clusterBinding.By = &ClusterConsumerGroup_Binding_HeadersAll{
 					HeadersAll: by.HeadersAll,
 				}
@@ -100,7 +100,7 @@ func (s *Server) CreateConsumerGroup(ctx context.Context, request *client.Create
 					topic.Type,
 				)
 			}
-		case client.ExchangeTypeFanout:
+		case emq.ExchangeTypeFanout:
 			// leave by to null
 		default:
 			return nil, errors.Errorf("unhandled topic type: %s", topic.Type)
@@ -131,7 +131,7 @@ func (s *Server) CreateConsumerGroup(ctx context.Context, request *client.Create
 		index = newIndex
 	}
 
-	return &client.CreateConsumerGroupResponse{
+	return &emq.CreateConsumerGroupResponse{
 		OK:    true,
 		Index: index,
 	}, nil

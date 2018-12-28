@@ -6,12 +6,12 @@ import (
 	"os"
 	"time"
 
-	"eventter.io/mq/client"
+	"eventter.io/mq/emq"
 	"github.com/spf13/cobra"
 )
 
 func listTopicsCmd() *cobra.Command {
-	request := &client.ListTopicsRequest{}
+	request := &emq.ListTopicsRequest{}
 
 	cmd := &cobra.Command{
 		Use:     "list-topics [name]",

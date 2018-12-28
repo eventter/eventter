@@ -3,12 +3,12 @@ package mq
 import (
 	"context"
 
-	"eventter.io/mq/client"
+	"eventter.io/mq/emq"
 	"github.com/hashicorp/raft"
 	"github.com/pkg/errors"
 )
 
-func (s *Server) ListTopics(ctx context.Context, request *client.ListTopicsRequest) (*client.ListTopicsResponse, error) {
+func (s *Server) ListTopics(ctx context.Context, request *emq.ListTopicsRequest) (*emq.ListTopicsResponse, error) {
 	if s.raftNode.State() != raft.Leader {
 		if request.LeaderOnly {
 			return nil, errNotALeader
@@ -25,7 +25,7 @@ func (s *Server) ListTopics(ctx context.Context, request *client.ListTopicsReque
 		defer s.pool.Put(conn)
 
 		request.LeaderOnly = true
-		return client.NewEventterMQClient(conn).ListTopics(ctx, request)
+		return emq.NewEventterMQClient(conn).ListTopics(ctx, request)
 	}
 
 	if err := request.Validate(); err != nil {
@@ -39,10 +39,10 @@ func (s *Server) ListTopics(ctx context.Context, request *client.ListTopicsReque
 		return nil, errors.Errorf(namespaceNotFoundErrorFormat, request.Topic.Namespace)
 	}
 
-	var topics []*client.Topic
+	var topics []*emq.Topic
 	for _, t := range namespace.ListTopics(request.Topic.Namespace, request.Topic.Name) {
-		topics = append(topics, &client.Topic{
-			Name: client.NamespaceName{
+		topics = append(topics, &emq.Topic{
+			Name: emq.NamespaceName{
 				Namespace: request.Topic.Namespace,
 				Name:      t.Name,
 			},
@@ -53,7 +53,7 @@ func (s *Server) ListTopics(ctx context.Context, request *client.ListTopicsReque
 		})
 	}
 
-	return &client.ListTopicsResponse{
+	return &emq.ListTopicsResponse{
 		OK:     true,
 		Index:  state.Index,
 		Topics: topics,

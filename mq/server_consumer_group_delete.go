@@ -3,12 +3,12 @@ package mq
 import (
 	"context"
 
-	"eventter.io/mq/client"
+	"eventter.io/mq/emq"
 	"github.com/hashicorp/raft"
 	"github.com/pkg/errors"
 )
 
-func (s *Server) DeleteConsumerGroup(ctx context.Context, request *client.DeleteConsumerGroupRequest) (*client.DeleteConsumerGroupResponse, error) {
+func (s *Server) DeleteConsumerGroup(ctx context.Context, request *emq.DeleteConsumerGroupRequest) (*emq.DeleteConsumerGroupResponse, error) {
 	if s.raftNode.State() != raft.Leader {
 		if request.LeaderOnly {
 			return nil, errNotALeader
@@ -25,7 +25,7 @@ func (s *Server) DeleteConsumerGroup(ctx context.Context, request *client.Delete
 		defer s.pool.Put(conn)
 
 		request.LeaderOnly = true
-		return client.NewEventterMQClient(conn).DeleteConsumerGroup(ctx, request)
+		return emq.NewEventterMQClient(conn).DeleteConsumerGroup(ctx, request)
 	}
 
 	if err := request.Validate(); err != nil {
@@ -71,7 +71,7 @@ func (s *Server) DeleteConsumerGroup(ctx context.Context, request *client.Delete
 		}
 	}
 
-	return &client.DeleteConsumerGroupResponse{
+	return &emq.DeleteConsumerGroupResponse{
 		OK:    true,
 		Index: index,
 	}, nil

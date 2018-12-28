@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"eventter.io/mq/client"
+	"eventter.io/mq/emq"
 	"github.com/stretchr/testify/require"
 )
 
@@ -19,13 +19,13 @@ func TestServer_DeleteNamespace(t *testing.T) {
 	defer cancel()
 
 	{
-		response, err := ts.Server.DeleteNamespace(ctx, &client.DeleteNamespaceRequest{Namespace: "does-not-exit"})
+		response, err := ts.Server.DeleteNamespace(ctx, &emq.DeleteNamespaceRequest{Namespace: "does-not-exit"})
 		assert.Error(err)
 		assert.Nil(response)
 	}
 
 	{
-		response, err := ts.Server.CreateNamespace(ctx, &client.CreateNamespaceRequest{Namespace: "test-delete-namespace"})
+		response, err := ts.Server.CreateNamespace(ctx, &emq.CreateNamespaceRequest{Namespace: "test-delete-namespace"})
 		assert.NoError(err)
 		assert.True(response.OK)
 
@@ -34,7 +34,7 @@ func TestServer_DeleteNamespace(t *testing.T) {
 	}
 
 	{
-		response, err := ts.Server.DeleteNamespace(ctx, &client.DeleteNamespaceRequest{Namespace: "test-delete-namespace"})
+		response, err := ts.Server.DeleteNamespace(ctx, &emq.DeleteNamespaceRequest{Namespace: "test-delete-namespace"})
 		assert.NoError(err)
 		assert.True(response.OK)
 	}

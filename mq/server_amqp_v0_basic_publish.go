@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"eventter.io/mq/amqp/v0"
-	"eventter.io/mq/client"
+	"eventter.io/mq/emq"
 	"github.com/pkg/errors"
 )
 
@@ -32,74 +32,74 @@ func (s *Server) handleAMQPv0ChannelContentHeader(ctx context.Context, transport
 
 	if frame.ContentType != "" {
 		if ch.publishProperties == nil {
-			ch.publishProperties = &client.Message_Properties{}
+			ch.publishProperties = &emq.Message_Properties{}
 		}
 		ch.publishProperties.ContentType = frame.ContentType
 	}
 	if frame.ContentEncoding != "" {
 		if ch.publishProperties == nil {
-			ch.publishProperties = &client.Message_Properties{}
+			ch.publishProperties = &emq.Message_Properties{}
 		}
 		ch.publishProperties.ContentEncoding = frame.ContentEncoding
 	}
 	ch.publishHeaders = frame.Headers
 	if frame.DeliveryMode != 0 {
 		if ch.publishProperties == nil {
-			ch.publishProperties = &client.Message_Properties{}
+			ch.publishProperties = &emq.Message_Properties{}
 		}
 		ch.publishProperties.DeliveryMode = int32(frame.DeliveryMode)
 	}
 	if frame.Priority != 0 {
 		if ch.publishProperties == nil {
-			ch.publishProperties = &client.Message_Properties{}
+			ch.publishProperties = &emq.Message_Properties{}
 		}
 		ch.publishProperties.Priority = int32(frame.Priority)
 	}
 	if frame.CorrelationID != "" {
 		if ch.publishProperties == nil {
-			ch.publishProperties = &client.Message_Properties{}
+			ch.publishProperties = &emq.Message_Properties{}
 		}
 		ch.publishProperties.CorrelationID = frame.CorrelationID
 	}
 	if frame.ReplyTo != "" {
 		if ch.publishProperties == nil {
-			ch.publishProperties = &client.Message_Properties{}
+			ch.publishProperties = &emq.Message_Properties{}
 		}
 		ch.publishProperties.ReplyTo = frame.ReplyTo
 	}
 	if frame.Expiration != "" {
 		if ch.publishProperties == nil {
-			ch.publishProperties = &client.Message_Properties{}
+			ch.publishProperties = &emq.Message_Properties{}
 		}
 		ch.publishProperties.Expiration = frame.Expiration
 	}
 	if frame.MessageID != "" {
 		if ch.publishProperties == nil {
-			ch.publishProperties = &client.Message_Properties{}
+			ch.publishProperties = &emq.Message_Properties{}
 		}
 		ch.publishProperties.MessageID = frame.MessageID
 	}
 	if !frame.Timestamp.IsZero() {
 		if ch.publishProperties == nil {
-			ch.publishProperties = &client.Message_Properties{}
+			ch.publishProperties = &emq.Message_Properties{}
 		}
 		ch.publishProperties.Timestamp = frame.Timestamp
 	}
 	if frame.Type != "" {
 		if ch.publishProperties == nil {
-			ch.publishProperties = &client.Message_Properties{}
+			ch.publishProperties = &emq.Message_Properties{}
 		}
 		ch.publishProperties.Type = frame.Type
 	}
 	if frame.UserID != "" {
 		if ch.publishProperties == nil {
-			ch.publishProperties = &client.Message_Properties{}
+			ch.publishProperties = &emq.Message_Properties{}
 		}
 		ch.publishProperties.UserID = frame.UserID
 	}
 	if frame.AppID != "" {
 		if ch.publishProperties == nil {
-			ch.publishProperties = &client.Message_Properties{}
+			ch.publishProperties = &emq.Message_Properties{}
 		}
 		ch.publishProperties.AppID = frame.AppID
 	}
@@ -127,12 +127,12 @@ func (s *Server) handleAMQPv0ChannelContentBody(ctx context.Context, transport *
 		return nil
 	}
 
-	_, err := s.Publish(ctx, &client.PublishRequest{
-		Topic: client.NamespaceName{
+	_, err := s.Publish(ctx, &emq.PublishRequest{
+		Topic: emq.NamespaceName{
 			Namespace: namespaceName,
 			Name:      ch.publishExchange,
 		},
-		Message: &client.Message{
+		Message: &emq.Message{
 			RoutingKey: ch.publishRoutingKey,
 			Properties: ch.publishProperties,
 			Headers:    ch.publishHeaders,

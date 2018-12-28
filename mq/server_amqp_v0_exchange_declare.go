@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"eventter.io/mq/amqp/v0"
-	"eventter.io/mq/client"
+	"eventter.io/mq/emq"
 	"eventter.io/mq/structvalue"
 	"github.com/pkg/errors"
 )
@@ -36,9 +36,9 @@ func (s *Server) handleAMQPv0ExchangeDeclare(ctx context.Context, transport *v0.
 		return s.makeConnectionClose(v0.SyntaxError, errors.Wrap(err, "retention field failed"))
 	}
 
-	request := &client.CreateTopicRequest{
-		Topic: client.Topic{
-			Name: client.NamespaceName{
+	request := &emq.CreateTopicRequest{
+		Topic: emq.Topic{
+			Name: emq.NamespaceName{
 				Namespace: namespaceName,
 				Name:      frame.Exchange,
 			},

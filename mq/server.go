@@ -4,8 +4,8 @@ import (
 	"sync"
 	"time"
 
-	"eventter.io/mq/client"
 	"eventter.io/mq/consumers"
+	"eventter.io/mq/emq"
 	"eventter.io/mq/segments"
 	"github.com/hashicorp/memberlist"
 	"github.com/hashicorp/raft"
@@ -48,8 +48,8 @@ type Server struct {
 }
 
 var (
-	_ client.EventterMQServer = (*Server)(nil)
-	_ NodeRPCServer           = (*Server)(nil)
+	_ emq.EventterMQServer = (*Server)(nil)
+	_ NodeRPCServer        = (*Server)(nil)
 )
 
 func NewServer(nodeID uint64, members *memberlist.Memberlist, raftNode *raft.Raft, pool *ClientConnPool, clusterState *ClusterStateStore, segmentDir *segments.Dir) *Server {

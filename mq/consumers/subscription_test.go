@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"testing"
 
-	"eventter.io/mq/client"
+	"eventter.io/mq/emq"
 )
 
 func TestSubscription_Next(t *testing.T) {
@@ -16,7 +16,7 @@ func TestSubscription_Next(t *testing.T) {
 	}
 
 	for i := 1; i <= n; i++ {
-		if err := g.Offer(&Message{Message: &client.Message{Data: []byte(strconv.Itoa(i))}}); err != nil {
+		if err := g.Offer(&Message{Message: &emq.Message{Data: []byte(strconv.Itoa(i))}}); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -51,13 +51,13 @@ func TestSubscription_Ack(t *testing.T) {
 	}
 	defer g.Close()
 
-	if err := g.Offer(&Message{Message: &client.Message{Data: []byte("1")}}); err != nil {
+	if err := g.Offer(&Message{Message: &emq.Message{Data: []byte("1")}}); err != nil {
 		t.Fatal(err)
 	}
-	if err := g.Offer(&Message{Message: &client.Message{Data: []byte("2")}}); err != nil {
+	if err := g.Offer(&Message{Message: &emq.Message{Data: []byte("2")}}); err != nil {
 		t.Fatal(err)
 	}
-	if err := g.Offer(&Message{Message: &client.Message{Data: []byte("3")}}); err != nil {
+	if err := g.Offer(&Message{Message: &emq.Message{Data: []byte("3")}}); err != nil {
 		t.Fatal(err)
 	}
 
@@ -130,13 +130,13 @@ func TestSubscription_Nack(t *testing.T) {
 	}
 	defer g.Close()
 
-	if err := g.Offer(&Message{Message: &client.Message{Data: []byte("1")}}); err != nil {
+	if err := g.Offer(&Message{Message: &emq.Message{Data: []byte("1")}}); err != nil {
 		t.Fatal(err)
 	}
-	if err := g.Offer(&Message{Message: &client.Message{Data: []byte("2")}}); err != nil {
+	if err := g.Offer(&Message{Message: &emq.Message{Data: []byte("2")}}); err != nil {
 		t.Fatal(err)
 	}
-	if err := g.Offer(&Message{Message: &client.Message{Data: []byte("3")}}); err != nil {
+	if err := g.Offer(&Message{Message: &emq.Message{Data: []byte("3")}}); err != nil {
 		t.Fatal(err)
 	}
 

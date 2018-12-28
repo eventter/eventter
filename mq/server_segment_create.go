@@ -6,7 +6,7 @@ import (
 	"math/rand"
 	"time"
 
-	"eventter.io/mq/client"
+	"eventter.io/mq/emq"
 	"github.com/hashicorp/raft"
 	"github.com/pkg/errors"
 )
@@ -39,7 +39,7 @@ func (s *Server) SegmentOpen(ctx context.Context, request *SegmentOpenRequest) (
 	return s.txSegmentOpen(s.clusterState.Current(), request.NodeID, request.Owner, request.Type)
 }
 
-func (s *Server) txSegmentOpen(state *ClusterState, primaryNodeID uint64, owner client.NamespaceName, segmentType ClusterSegment_Type) (*SegmentOpenResponse, error) {
+func (s *Server) txSegmentOpen(state *ClusterState, primaryNodeID uint64, owner emq.NamespaceName, segmentType ClusterSegment_Type) (*SegmentOpenResponse, error) {
 	node := state.GetNode(primaryNodeID)
 	if node == nil {
 		return nil, errors.Errorf("node %d not found", primaryNodeID)

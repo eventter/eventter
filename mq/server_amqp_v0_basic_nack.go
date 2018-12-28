@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"eventter.io/mq/amqp/v0"
-	"eventter.io/mq/client"
+	"eventter.io/mq/emq"
 	"github.com/pkg/errors"
 )
 
@@ -14,7 +14,7 @@ func (s *Server) handleAMQPv0BasicNack(ctx context.Context, transport *v0.Transp
 		n := 0
 		for ; i < len(ch.inflight) && ch.inflight[i].deliveryTag <= frame.DeliveryTag; i++ {
 			if frame.Requeue {
-				_, err := s.Nack(ctx, &client.NackRequest{
+				_, err := s.Nack(ctx, &emq.NackRequest{
 					NodeID:         ch.inflight[i].nodeID,
 					SubscriptionID: ch.inflight[i].subscriptionID,
 					SeqNo:          ch.inflight[i].seqNo,
@@ -23,7 +23,7 @@ func (s *Server) handleAMQPv0BasicNack(ctx context.Context, transport *v0.Transp
 					return errors.Wrap(err, "nack failed")
 				}
 			} else {
-				_, err := s.Ack(ctx, &client.AckRequest{
+				_, err := s.Ack(ctx, &emq.AckRequest{
 					NodeID:         ch.inflight[i].nodeID,
 					SubscriptionID: ch.inflight[i].subscriptionID,
 					SeqNo:          ch.inflight[i].seqNo,
@@ -52,7 +52,7 @@ func (s *Server) handleAMQPv0BasicNack(ctx context.Context, transport *v0.Transp
 		}
 
 		if frame.Requeue {
-			_, err := s.Nack(ctx, &client.NackRequest{
+			_, err := s.Nack(ctx, &emq.NackRequest{
 				NodeID:         ch.inflight[i].nodeID,
 				SubscriptionID: ch.inflight[i].subscriptionID,
 				SeqNo:          ch.inflight[i].seqNo,
@@ -61,7 +61,7 @@ func (s *Server) handleAMQPv0BasicNack(ctx context.Context, transport *v0.Transp
 				return errors.Wrap(err, "nack failed")
 			}
 		} else {
-			_, err := s.Ack(ctx, &client.AckRequest{
+			_, err := s.Ack(ctx, &emq.AckRequest{
 				NodeID:         ch.inflight[i].nodeID,
 				SubscriptionID: ch.inflight[i].subscriptionID,
 				SeqNo:          ch.inflight[i].seqNo,

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"eventter.io/mq/client"
+	"eventter.io/mq/emq"
 	"github.com/stretchr/testify/require"
 )
 
@@ -22,9 +22,9 @@ func TestServer_ListConsumerGroups(t *testing.T) {
 	for i := 0; i < 5; i++ {
 		cgName := fmt.Sprintf("test-list-consumer-group-%d", i)
 
-		response, err := ts.Server.CreateConsumerGroup(ctx, &client.CreateConsumerGroupRequest{
-			ConsumerGroup: client.ConsumerGroup{
-				Name: client.NamespaceName{
+		response, err := ts.Server.CreateConsumerGroup(ctx, &emq.CreateConsumerGroupRequest{
+			ConsumerGroup: emq.ConsumerGroup{
+				Name: emq.NamespaceName{
 					Namespace: "default",
 					Name:      cgName,
 				},
@@ -36,8 +36,8 @@ func TestServer_ListConsumerGroups(t *testing.T) {
 	}
 
 	{
-		response, err := ts.Server.ListConsumerGroups(ctx, &client.ListConsumerGroupsRequest{
-			ConsumerGroup: client.NamespaceName{
+		response, err := ts.Server.ListConsumerGroups(ctx, &emq.ListConsumerGroupsRequest{
+			ConsumerGroup: emq.NamespaceName{
 				Namespace: "default",
 			},
 		})

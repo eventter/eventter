@@ -8,8 +8,8 @@ dependencies:
 generate: proto amqp
 
 proto:
-	cd mq/client; protoc -I. -I$$(go list -m -f '{{ .Dir }}' github.com/gogo/protobuf) --gogofaster_out=plugins=grpc,Mgoogle/protobuf/any.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/duration.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/struct.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/timestamp.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/wrappers.proto=github.com/gogo/protobuf/types:. client.proto
-	cd mq; protoc -I. -I./client -I$$(go list -m -f '{{ .Dir }}' github.com/gogo/protobuf) --gogofaster_out=plugins=grpc,Mgoogle/protobuf/any.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/duration.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/struct.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/timestamp.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/wrappers.proto=github.com/gogo/protobuf/types,Mclient/client.proto=eventter.io/mq/client:. cluster_state.proto discovery_rpc.proto node_rpc.proto raft_rpc.proto segments.proto
+	cd mq/emq; protoc -I. -I$$(go list -m -f '{{ .Dir }}' github.com/gogo/protobuf) --gogofaster_out=plugins=grpc,Mgoogle/protobuf/any.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/duration.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/struct.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/timestamp.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/wrappers.proto=github.com/gogo/protobuf/types:. emq.proto
+	cd mq; protoc -I. -I./emq -I$$(go list -m -f '{{ .Dir }}' github.com/gogo/protobuf) --gogofaster_out=plugins=grpc,Mgoogle/protobuf/any.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/duration.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/struct.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/timestamp.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/wrappers.proto=github.com/gogo/protobuf/types,Memq/emq.proto=eventter.io/mq/emq:. cluster_state.proto discovery_rpc.proto node_rpc.proto raft_rpc.proto segments.proto
 
 amqp:
 	go generate ./mq/amqp/v0
@@ -18,7 +18,7 @@ fmt:
 	go fmt $$(go list ./... | grep -v vendor)
 
 download-proto:
-	cd mq/client ; \
+	cd mq/emq ; \
 		rm -rf google googleapis-master ; \
 		curl -sSL https://github.com/googleapis/googleapis/archive/master.tar.gz | tar xzf - ; \
 		mkdir -p google/api ; \

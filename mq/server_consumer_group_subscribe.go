@@ -3,12 +3,12 @@ package mq
 import (
 	"io"
 
-	"eventter.io/mq/client"
 	"eventter.io/mq/consumers"
+	"eventter.io/mq/emq"
 	"github.com/pkg/errors"
 )
 
-func (s *Server) Subscribe(request *client.SubscribeRequest, stream client.EventterMQ_SubscribeServer) error {
+func (s *Server) Subscribe(request *emq.SubscribeRequest, stream emq.EventterMQ_SubscribeServer) error {
 	if err := request.Validate(); err != nil {
 		return err
 	}
@@ -60,7 +60,7 @@ func (s *Server) Subscribe(request *client.SubscribeRequest, stream client.Event
 		defer s.pool.Put(conn)
 
 		request.DoNotForward = true
-		c, err := client.NewEventterMQClient(conn).Subscribe(ctx, request)
+		c, err := emq.NewEventterMQClient(conn).Subscribe(ctx, request)
 		if err != nil {
 			return errors.Wrap(err, "request failed")
 		}
@@ -133,7 +133,7 @@ func (s *Server) Subscribe(request *client.SubscribeRequest, stream client.Event
 			return errors.Wrap(err, "next failed")
 		}
 
-		response := &client.SubscribeResponse{
+		response := &emq.SubscribeResponse{
 			Topic:   message.Topic,
 			Message: message.Message,
 		}

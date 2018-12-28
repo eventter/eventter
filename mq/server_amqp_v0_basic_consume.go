@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"eventter.io/mq/amqp/v0"
-	"eventter.io/mq/client"
+	"eventter.io/mq/emq"
 	"github.com/hashicorp/go-uuid"
 	"github.com/pkg/errors"
 )
@@ -32,8 +32,8 @@ func (s *Server) handleAMQPv0BasicConsume(ctx context.Context, transport *v0.Tra
 		return s.makeChannelClose(ch, v0.PreconditionFailed, errors.Errorf("consumer tag %s already registered", frame.ConsumerTag))
 	}
 
-	request := &client.SubscribeRequest{
-		ConsumerGroup: client.NamespaceName{
+	request := &emq.SubscribeRequest{
+		ConsumerGroup: emq.NamespaceName{
 			Namespace: namespaceName,
 			Name:      frame.Queue,
 		},
@@ -61,7 +61,7 @@ func (s *Server) handleAMQPv0BasicConsume(ctx context.Context, transport *v0.Tra
 	})
 }
 
-func (s *Server) handleAMQPv0ChannelDelivery(ctx context.Context, transport *v0.Transport, namespaceName string, ch *serverAMQPv0Channel, consumerTag string, response *client.SubscribeResponse) error {
+func (s *Server) handleAMQPv0ChannelDelivery(ctx context.Context, transport *v0.Transport, namespaceName string, ch *serverAMQPv0Channel, consumerTag string, response *emq.SubscribeResponse) error {
 	if _, ok := ch.consumers[consumerTag]; !ok {
 		// ignore deliveries for unknown consumer tags => consumer, hence subscription, was closed, therefore messages
 		// will be released and do not need need to be (n)acked

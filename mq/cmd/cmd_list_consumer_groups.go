@@ -6,12 +6,12 @@ import (
 	"os"
 	"time"
 
-	"eventter.io/mq/client"
+	"eventter.io/mq/emq"
 	"github.com/spf13/cobra"
 )
 
 func listConsumerGroupsCmd() *cobra.Command {
-	request := &client.ListConsumerGroupsRequest{}
+	request := &emq.ListConsumerGroupsRequest{}
 
 	cmd := &cobra.Command{
 		Use:     "list-consumer-groups [name]",

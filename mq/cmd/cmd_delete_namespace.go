@@ -6,12 +6,12 @@ import (
 	"os"
 	"time"
 
-	"eventter.io/mq/client"
+	"eventter.io/mq/emq"
 	"github.com/spf13/cobra"
 )
 
 func deleteNamespaceCmd() *cobra.Command {
-	request := &client.DeleteNamespaceRequest{}
+	request := &emq.DeleteNamespaceRequest{}
 
 	cmd := &cobra.Command{
 		Use:   "delete-namespace <name>",

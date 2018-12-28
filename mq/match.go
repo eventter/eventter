@@ -5,16 +5,16 @@ import (
 	"strings"
 	"time"
 
-	"eventter.io/mq/client"
+	"eventter.io/mq/emq"
 )
 
-func messageMatches(message *client.Message, messageTime time.Time, topic *ClusterTopic, consumerGroup *ClusterConsumerGroup) bool {
+func messageMatches(message *emq.Message, messageTime time.Time, topic *ClusterTopic, consumerGroup *ClusterConsumerGroup) bool {
 	if messageTime.Before(consumerGroup.CreatedAt) {
 		return false
 	}
 
 	switch topic.Type {
-	case client.ExchangeTypeDirect:
+	case emq.ExchangeTypeDirect:
 		for _, binding := range consumerGroup.Bindings {
 			if binding.TopicName != topic.Name {
 				continue
@@ -26,10 +26,10 @@ func messageMatches(message *client.Message, messageTime time.Time, topic *Clust
 		}
 		return false
 
-	case client.ExchangeTypeFanout:
+	case emq.ExchangeTypeFanout:
 		return true
 
-	case client.ExchangeTypeTopic:
+	case emq.ExchangeTypeTopic:
 		for _, binding := range consumerGroup.Bindings {
 			if binding.TopicName != topic.Name {
 				continue
@@ -41,7 +41,7 @@ func messageMatches(message *client.Message, messageTime time.Time, topic *Clust
 		}
 		return false
 
-	case client.ExchangeTypeHeaders:
+	case emq.ExchangeTypeHeaders:
 		if message.Headers == nil || message.Headers.Fields == nil {
 			return false
 		}

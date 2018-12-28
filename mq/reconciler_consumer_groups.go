@@ -5,7 +5,7 @@ import (
 	"math"
 	"time"
 
-	"eventter.io/mq/client"
+	"eventter.io/mq/emq"
 	"github.com/gogo/protobuf/proto"
 )
 
@@ -63,7 +63,7 @@ func (r *Reconciler) reconcileConsumerGroupOffsetCommitsSegment(state *ClusterSt
 
 	_, err := r.delegate.Apply(&ClusterCommandSegmentCreate{
 		ID: r.delegate.NextSegmentID(),
-		Owner: client.NamespaceName{
+		Owner: emq.NamespaceName{
 			Namespace: namespace.Name,
 			Name:      consumerGroup.Name,
 		},

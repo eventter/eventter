@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package io.eventter.mq;
 
-import "client/client.proto";
+import "emq/emq.proto";
 import "gogoproto/gogo.proto";
 
 option go_package = "mq";

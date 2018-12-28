@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"eventter.io/mq/client"
+	"eventter.io/mq/emq"
 	"github.com/stretchr/testify/require"
 )
 
@@ -19,13 +19,13 @@ func TestServer_Subscribe(t *testing.T) {
 	defer cancel()
 
 	{
-		response, err := ts.Server.CreateTopic(ctx, &client.CreateTopicRequest{
-			Topic: client.Topic{
-				Name: client.NamespaceName{
+		response, err := ts.Server.CreateTopic(ctx, &emq.CreateTopicRequest{
+			Topic: emq.Topic{
+				Name: emq.NamespaceName{
 					Namespace: "default",
 					Name:      "test-subscribe-topic",
 				},
-				Type: client.ExchangeTypeFanout,
+				Type: emq.ExchangeTypeFanout,
 			},
 		})
 		assert.NoError(err)
@@ -34,13 +34,13 @@ func TestServer_Subscribe(t *testing.T) {
 	}
 
 	{
-		response, err := ts.Server.CreateConsumerGroup(ctx, &client.CreateConsumerGroupRequest{
-			ConsumerGroup: client.ConsumerGroup{
-				Name: client.NamespaceName{
+		response, err := ts.Server.CreateConsumerGroup(ctx, &emq.CreateConsumerGroupRequest{
+			ConsumerGroup: emq.ConsumerGroup{
+				Name: emq.NamespaceName{
 					Namespace: "default",
 					Name:      "test-subscribe-consumer-group",
 				},
-				Bindings: []*client.ConsumerGroup_Binding{
+				Bindings: []*emq.ConsumerGroup_Binding{
 					{TopicName: "test-subscribe-topic"},
 				},
 			},
@@ -53,12 +53,12 @@ func TestServer_Subscribe(t *testing.T) {
 	}
 
 	{
-		response, err := ts.Server.Publish(ctx, &client.PublishRequest{
-			Topic: client.NamespaceName{
+		response, err := ts.Server.Publish(ctx, &emq.PublishRequest{
+			Topic: emq.NamespaceName{
 				Namespace: "default",
 				Name:      "test-subscribe-topic",
 			},
-			Message: &client.Message{
+			Message: &emq.Message{
 				Data: []byte("hello, world"),
 			},
 		})
@@ -73,8 +73,8 @@ func TestServer_Subscribe(t *testing.T) {
 		go func() {
 			defer stream.Close()
 
-			err := ts.Server.Subscribe(&client.SubscribeRequest{
-				ConsumerGroup: client.NamespaceName{
+			err := ts.Server.Subscribe(&emq.SubscribeRequest{
+				ConsumerGroup: emq.NamespaceName{
 					Namespace: "default",
 					Name:      "test-subscribe-consumer-group",
 				},

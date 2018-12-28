@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"eventter.io/mq/client"
+	"eventter.io/mq/emq"
 	"github.com/stretchr/testify/require"
 )
 
@@ -19,11 +19,11 @@ func TestServer_CreateTopic(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	for _, exchangeType := range []string{client.ExchangeTypeDirect, client.ExchangeTypeFanout, client.ExchangeTypeTopic, client.ExchangeTypeHeaders} {
+	for _, exchangeType := range []string{emq.ExchangeTypeDirect, emq.ExchangeTypeFanout, emq.ExchangeTypeTopic, emq.ExchangeTypeHeaders} {
 		topicName := fmt.Sprintf("test-create-topic-%s", exchangeType)
-		response, err := ts.Server.CreateTopic(ctx, &client.CreateTopicRequest{
-			Topic: client.Topic{
-				Name: client.NamespaceName{
+		response, err := ts.Server.CreateTopic(ctx, &emq.CreateTopicRequest{
+			Topic: emq.Topic{
+				Name: emq.NamespaceName{
 					Namespace: "default",
 					Name:      topicName,
 				},

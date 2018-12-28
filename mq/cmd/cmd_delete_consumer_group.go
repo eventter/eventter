@@ -6,12 +6,12 @@ import (
 	"os"
 	"time"
 
-	"eventter.io/mq/client"
+	"eventter.io/mq/emq"
 	"github.com/spf13/cobra"
 )
 
 func deleteConsumerGroupCmd() *cobra.Command {
-	request := &client.DeleteConsumerGroupRequest{}
+	request := &emq.DeleteConsumerGroupRequest{}
 
 	cmd := &cobra.Command{
 		Use:   "delete-consumer-group <name>",

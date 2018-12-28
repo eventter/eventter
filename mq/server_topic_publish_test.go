@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"eventter.io/mq/client"
+	"eventter.io/mq/emq"
 	"github.com/stretchr/testify/require"
 )
 
@@ -19,13 +19,13 @@ func TestServer_Publish(t *testing.T) {
 	defer cancel()
 
 	{
-		response, err := ts.Server.CreateTopic(ctx, &client.CreateTopicRequest{
-			Topic: client.Topic{
-				Name: client.NamespaceName{
+		response, err := ts.Server.CreateTopic(ctx, &emq.CreateTopicRequest{
+			Topic: emq.Topic{
+				Name: emq.NamespaceName{
 					Namespace: "default",
 					Name:      "test-publish",
 				},
-				Type:              client.ExchangeTypeFanout,
+				Type:              emq.ExchangeTypeFanout,
 				Shards:            1,
 				ReplicationFactor: 1,
 				Retention:         1,
@@ -39,12 +39,12 @@ func TestServer_Publish(t *testing.T) {
 	}
 
 	{
-		response, err := ts.Server.Publish(ctx, &client.PublishRequest{
-			Topic: client.NamespaceName{
+		response, err := ts.Server.Publish(ctx, &emq.PublishRequest{
+			Topic: emq.NamespaceName{
 				Namespace: "default",
 				Name:      "test-publish",
 			},
-			Message: &client.Message{
+			Message: &emq.Message{
 				Data: []byte("hello, world"),
 			},
 		})

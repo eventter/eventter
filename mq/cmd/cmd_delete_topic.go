@@ -6,12 +6,12 @@ import (
 	"os"
 	"time"
 
-	"eventter.io/mq/client"
+	"eventter.io/mq/emq"
 	"github.com/spf13/cobra"
 )
 
 func deleteTopicCmd() *cobra.Command {
-	request := &client.DeleteTopicRequest{}
+	request := &emq.DeleteTopicRequest{}
 
 	cmd := &cobra.Command{
 		Use:   "delete-topic <name>",

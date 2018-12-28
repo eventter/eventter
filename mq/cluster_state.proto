@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package io.eventter.mq;
 
-import "client/client.proto";
+import "emq/emq.proto";
 import "gogoproto/gogo.proto";
 import "google/protobuf/duration.proto";
 import "google/protobuf/struct.proto";

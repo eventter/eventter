@@ -8,16 +8,16 @@ import (
 	"strings"
 	"time"
 
-	"eventter.io/mq/client"
+	"eventter.io/mq/emq"
 	"github.com/spf13/cobra"
 )
 
 func publishCmd() *cobra.Command {
-	request := &client.PublishRequest{
-		Message: &client.Message{},
+	request := &emq.PublishRequest{
+		Message: &emq.Message{},
 	}
 
-	properties := &client.Message_Properties{}
+	properties := &emq.Message_Properties{}
 
 	cmd := &cobra.Command{
 		Use:     "publish <topic> [message1] [message2] ... [messageN]",
@@ -39,7 +39,7 @@ func publishCmd() *cobra.Command {
 			request.Topic.Name = args[0]
 			args = args[1:]
 
-			zeroProperties := client.Message_Properties{}
+			zeroProperties := emq.Message_Properties{}
 			if *properties != zeroProperties {
 				request.Message.Properties = properties
 			}

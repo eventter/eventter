@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"eventter.io/mq/client"
+	"eventter.io/mq/emq"
 	"eventter.io/mq/segments"
 	"github.com/hashicorp/memberlist"
 	"github.com/hashicorp/raft"
@@ -127,7 +127,7 @@ func newTestServer(nodeID uint64) (ret *testServer, err error) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		_, err = ts.Server.CreateNamespace(ctx, &client.CreateNamespaceRequest{Namespace: "default"})
+		_, err = ts.Server.CreateNamespace(ctx, &emq.CreateNamespaceRequest{Namespace: "default"})
 		if err != nil {
 			return nil, errors.Wrap(err, "create default namespace failed")
 		}
@@ -151,7 +151,7 @@ func (ts *testServer) WaitForConsumerGroup(t *testing.T, ctx context.Context, na
 	defer cancel()
 
 	response, err := ts.Server.ConsumerGroupWait(ctx, &ConsumerGroupWaitRequest{
-		ConsumerGroup: client.NamespaceName{
+		ConsumerGroup: emq.NamespaceName{
 			Namespace: namespace,
 			Name:      name,
 		},

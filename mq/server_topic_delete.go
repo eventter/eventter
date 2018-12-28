@@ -3,12 +3,12 @@ package mq
 import (
 	"context"
 
-	"eventter.io/mq/client"
+	"eventter.io/mq/emq"
 	"github.com/hashicorp/raft"
 	"github.com/pkg/errors"
 )
 
-func (s *Server) DeleteTopic(ctx context.Context, request *client.DeleteTopicRequest) (*client.DeleteTopicResponse, error) {
+func (s *Server) DeleteTopic(ctx context.Context, request *emq.DeleteTopicRequest) (*emq.DeleteTopicResponse, error) {
 	if s.raftNode.State() != raft.Leader {
 		if request.LeaderOnly {
 			return nil, errNotALeader
@@ -25,7 +25,7 @@ func (s *Server) DeleteTopic(ctx context.Context, request *client.DeleteTopicReq
 		defer s.pool.Put(conn)
 
 		request.LeaderOnly = true
-		return client.NewEventterMQClient(conn).DeleteTopic(ctx, request)
+		return emq.NewEventterMQClient(conn).DeleteTopic(ctx, request)
 	}
 
 	if err := request.Validate(); err != nil {
@@ -62,7 +62,7 @@ func (s *Server) DeleteTopic(ctx context.Context, request *client.DeleteTopicReq
 		return nil, err
 	}
 
-	return &client.DeleteTopicResponse{
+	return &emq.DeleteTopicResponse{
 		OK:    true,
 		Index: index,
 	}, nil

@@ -7,12 +7,12 @@ import (
 	"strings"
 	"time"
 
-	"eventter.io/mq/client"
+	"eventter.io/mq/emq"
 	"github.com/spf13/cobra"
 )
 
 func createConsumerGroupCmd() *cobra.Command {
-	request := &client.CreateConsumerGroupRequest{}
+	request := &emq.CreateConsumerGroupRequest{}
 	var bindings []string
 
 	cmd := &cobra.Command{
@@ -35,11 +35,11 @@ func createConsumerGroupCmd() *cobra.Command {
 
 			for _, binding := range bindings {
 				parts := strings.SplitN(binding, ":", 2)
-				binding := &client.ConsumerGroup_Binding{
+				binding := &emq.ConsumerGroup_Binding{
 					TopicName: parts[0],
 				}
 				if len(parts) > 1 {
-					binding.By = &client.ConsumerGroup_Binding_RoutingKey{
+					binding.By = &emq.ConsumerGroup_Binding_RoutingKey{
 						RoutingKey: parts[1],
 					}
 				}

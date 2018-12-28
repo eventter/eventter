@@ -7,13 +7,13 @@ import (
 	"sync/atomic"
 	"time"
 
-	"eventter.io/mq/client"
+	"eventter.io/mq/emq"
 	"eventter.io/mq/segments"
 	"github.com/gogo/protobuf/proto"
 	"github.com/pkg/errors"
 )
 
-func (s *Server) Publish(ctx context.Context, request *client.PublishRequest) (*client.PublishResponse, error) {
+func (s *Server) Publish(ctx context.Context, request *emq.PublishRequest) (*emq.PublishResponse, error) {
 	if err := request.Validate(); err != nil {
 		return nil, errors.Wrap(err, "validation failed")
 	}
@@ -159,7 +159,7 @@ func (s *Server) Publish(ctx context.Context, request *client.PublishRequest) (*
 			}
 		}
 
-		return &client.PublishResponse{
+		return &emq.PublishResponse{
 			OK: true,
 		}, nil
 	}
@@ -194,6 +194,6 @@ FORWARD:
 		defer s.pool.Put(conn)
 
 		request.DoNotForward = true
-		return client.NewEventterMQClient(conn).Publish(ctx, request)
+		return emq.NewEventterMQClient(conn).Publish(ctx, request)
 	}
 }

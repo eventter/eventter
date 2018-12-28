@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"eventter.io/mq/client"
+	"eventter.io/mq/emq"
 	"github.com/stretchr/testify/require"
 )
 
@@ -22,13 +22,13 @@ func TestServer_ListTopics(t *testing.T) {
 	for i := 0; i < 5; i++ {
 		topicName := fmt.Sprintf("test-list-topic-%d", i)
 
-		response, err := ts.Server.CreateTopic(ctx, &client.CreateTopicRequest{
-			Topic: client.Topic{
-				Name: client.NamespaceName{
+		response, err := ts.Server.CreateTopic(ctx, &emq.CreateTopicRequest{
+			Topic: emq.Topic{
+				Name: emq.NamespaceName{
 					Namespace: "default",
 					Name:      topicName,
 				},
-				Type:              client.ExchangeTypeFanout,
+				Type:              emq.ExchangeTypeFanout,
 				Shards:            1,
 				ReplicationFactor: 1,
 				Retention:         1,
@@ -39,8 +39,8 @@ func TestServer_ListTopics(t *testing.T) {
 	}
 
 	{
-		response, err := ts.Server.ListTopics(ctx, &client.ListTopicsRequest{
-			Topic: client.NamespaceName{
+		response, err := ts.Server.ListTopics(ctx, &emq.ListTopicsRequest{
+			Topic: emq.NamespaceName{
 				Namespace: "default",
 			},
 		})

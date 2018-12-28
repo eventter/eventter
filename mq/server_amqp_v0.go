@@ -5,7 +5,7 @@ import (
 
 	"eventter.io/mq/amqp"
 	"eventter.io/mq/amqp/v0"
-	"eventter.io/mq/client"
+	"eventter.io/mq/emq"
 	"github.com/gogo/protobuf/types"
 	"github.com/pkg/errors"
 )
@@ -232,7 +232,7 @@ type serverAMQPv0Channel struct {
 	prefetchCount     uint32
 	publishExchange   string
 	publishRoutingKey string
-	publishProperties *client.Message_Properties
+	publishProperties *emq.Message_Properties
 	publishHeaders    *types.Struct
 	publishData       []byte
 	publishRemaining  int
@@ -319,7 +319,7 @@ func (s *Server) handleAMQPv0ChannelMethod(ctx context.Context, transport *v0.Tr
 	}
 }
 
-func (s *Server) convertAMQPv0ContentHeader(ch *serverAMQPv0Channel, response *client.SubscribeResponse) *v0.ContentHeaderFrame {
+func (s *Server) convertAMQPv0ContentHeader(ch *serverAMQPv0Channel, response *emq.SubscribeResponse) *v0.ContentHeaderFrame {
 	contentHeader := &v0.ContentHeaderFrame{
 		FrameMeta: v0.FrameMeta{Channel: ch.id},
 		ClassID:   v0.BasicClass,
