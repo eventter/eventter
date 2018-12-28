@@ -50,8 +50,12 @@ func (s *Server) CreateConsumerGroup(ctx context.Context, request *emq.CreateCon
 		ConsumerGroup: &ClusterConsumerGroup{
 			Name:  request.ConsumerGroup.Name.Name,
 			Size_: request.ConsumerGroup.Size_,
-			Since: time.Now(),
+			Since: request.ConsumerGroup.Since,
 		},
+	}
+
+	if cmd.ConsumerGroup.Since.IsZero() {
+		cmd.ConsumerGroup.Since = time.Now()
 	}
 
 	for _, clientBinding := range request.ConsumerGroup.Bindings {
@@ -64,7 +68,7 @@ func (s *Server) CreateConsumerGroup(ctx context.Context, request *emq.CreateCon
 			TopicName:    clientBinding.TopicName,
 			ExchangeType: clientBinding.ExchangeType,
 		}
-		switch topic.DefaultExchangeType {
+		switch clusterBinding.ExchangeType {
 		case emq.ExchangeTypeDirect:
 			fallthrough
 		case emq.ExchangeTypeTopic:
@@ -79,7 +83,7 @@ func (s *Server) CreateConsumerGroup(ctx context.Context, request *emq.CreateCon
 					entityTopic,
 					request.ConsumerGroup.Name.Namespace,
 					clientBinding.TopicName,
-					topic.DefaultExchangeType,
+					clusterBinding.ExchangeType,
 				)
 			}
 		case emq.ExchangeTypeHeaders:
@@ -98,13 +102,13 @@ func (s *Server) CreateConsumerGroup(ctx context.Context, request *emq.CreateCon
 					entityTopic,
 					request.ConsumerGroup.Name.Namespace,
 					clientBinding.TopicName,
-					topic.DefaultExchangeType,
+					clusterBinding.ExchangeType,
 				)
 			}
 		case emq.ExchangeTypeFanout:
 			// leave by to null
 		default:
-			return nil, errors.Errorf("unhandled topic type: %s", topic.DefaultExchangeType)
+			return nil, errors.Errorf("unhandled topic type: %s", clusterBinding.ExchangeType)
 		}
 
 		cmd.ConsumerGroup.Bindings = append(cmd.ConsumerGroup.Bindings, clusterBinding)

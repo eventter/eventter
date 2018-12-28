@@ -113,6 +113,8 @@ message ConsumerGroup {
     }
     // Max count of in-flight messages across all consumers. Not specified / zero means that the server will choose sensible defaults.
     uint32 size = 3;
+    // Time from which to consider messages eligible to be consumed by this consumer group.
+    google.protobuf.Timestamp since = 4 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
 }
 
 message ListConsumerGroupsRequest {

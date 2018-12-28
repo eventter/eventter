@@ -55,6 +55,7 @@ func (s *Server) ListConsumerGroups(ctx context.Context, request *emq.ListConsum
 			},
 			Bindings: clientBindings,
 			Size_:    cg.Size_,
+			Since:    cg.Since,
 		})
 	}
 
