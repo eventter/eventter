@@ -1,6 +1,6 @@
 # License
 
-> Apache License, Version 2.0 with Commons Claus condition
+> Apache License, Version 2.0 with Commons Clause condition
 
 ## Apache License, Version 2.0
 

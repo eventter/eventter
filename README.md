@@ -59,4 +59,4 @@ There are several Go source files that are generated from other sources. Most no
 
 ## License
 
-Apache License, Version 2.0 with Commons Claus condition, see [LICENSE file](LICENSE.md).
+Apache License, Version 2.0 with Commons Clause condition, see [LICENSE file](LICENSE.md).

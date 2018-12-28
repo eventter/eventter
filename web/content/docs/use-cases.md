@@ -4,7 +4,7 @@ description = "Overview of popular use cases"
 date = 2018-12-27T16:11:09+01:00
 weight = 20
 draft = false
-bref = "Learn what EventterMQ is good for and how to use it"
+bref = "Learn what EventterMQ features make it good for particular use cases"
 toc = true
 +++
 
