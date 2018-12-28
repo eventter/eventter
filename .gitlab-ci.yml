@@ -65,5 +65,5 @@ build_web:
   - cd public
   - git add .
   - if git diff --cached --exit-code > /dev/null; then exit 0; fi # no changes
-  - git commit -m "build eventter/eventter#$CI_COMMIT_SHA ($CI_COMMIT_TITLE)"
+  - '{ echo "$CI_COMMIT_TITLE"; echo; echo "eventter/eventter#$CI_COMMIT_SHA"; } | git commit -F -'
   - git push origin master

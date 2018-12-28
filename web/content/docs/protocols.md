@@ -62,4 +62,4 @@ Support for additional protocols is planned. At the moment planned protocols are
 
 ### What next?
 
-Learn about [use cases]({{< ref "/docs/use-cases.md" >}}) the broker is good for. Or how it achieves fault-tolerance using [clustering]({{< ref "/docs/clustering.md" >}}).
+Learn about [use cases]({{< ref "/docs/use-cases.md" >}}) of EventterMQ. Or how it achieves fault-tolerance using [clustering]({{< ref "/docs/clustering.md" >}}).
