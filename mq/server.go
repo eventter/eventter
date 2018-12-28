@@ -21,7 +21,7 @@ const (
 	applyTimeout                 = 10 * time.Second
 	barrierTimeout               = 10 * time.Second
 	defaultReplicationFactor     = 3
-	defaultConsumerGroupSize     = 1024
+	defaultConsumerGroupSize     = 131072 // i.e. ~1 MiB or memory for the group
 )
 
 var (
