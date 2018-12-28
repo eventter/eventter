@@ -3,6 +3,7 @@ package mq
 import (
 	"sync"
 	"time"
+	"unsafe"
 
 	"eventter.io/mq/consumers"
 	"eventter.io/mq/emq"
@@ -21,14 +22,14 @@ const (
 	applyTimeout                 = 10 * time.Second
 	barrierTimeout               = 10 * time.Second
 	defaultReplicationFactor     = 3
-	defaultConsumerGroupSize     = 131072 // i.e. ~1 MiB or memory for the group
 )
 
 var (
-	errNoLeaderElected = errors.New("no leader elected")
-	errNotALeader      = errors.New("request would be forwarded to leader node, however, leader_only flag was set")
-	errWontForward     = errors.New("request would be forwarded to another node, however, do_not_forward flag was set")
-	errForwardNodeDead = errors.New("forward node is dead")
+	errNoLeaderElected       = errors.New("no leader elected")
+	errNotALeader            = errors.New("request would be forwarded to leader node, however, leader_only flag was set")
+	errWontForward           = errors.New("request would be forwarded to another node, however, do_not_forward flag was set")
+	errForwardNodeDead       = errors.New("forward node is dead")
+	defaultConsumerGroupSize = 1024 * 1024 / uint32(unsafe.Sizeof(consumers.Message{})) // approx ~1 MiB of memory for the group
 )
 
 type Server struct {

@@ -177,7 +177,7 @@ Once a message is sent to the consumer, it's marked to be in processing. But it'
 - sends **acknowledgement** (_ack_) - message is free'd from consumer group buffer and marked never to be sent other consumer,
 - sends **rejection** (_nack_) - message is re-sent to other consumers.
 
-Therefore there cannot be more messages _in-flight_ than the size of the consumer group. Default consumer group size is `1024`.
+Therefore there cannot be more messages _in-flight_ than the size of the consumer group. Default consumer group size is set for consume group buffer to occupy about 1 MiB of memory (which is at the time of writing ~10 000 items).
 
 ### Receive message
 
