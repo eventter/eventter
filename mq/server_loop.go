@@ -76,6 +76,13 @@ LOOP:
 					return
 				}
 
+				s.reconciler.ReconcileNamespaces(s.clusterState.Current())
+
+				if err := s.raftNode.Barrier(barrierTimeout).Error(); err != nil {
+					log.Printf("could not add barrier: %v", err)
+					return
+				}
+
 				s.reconciler.ReconcileSegments(s.clusterState.Current())
 
 				if err := s.raftNode.Barrier(barrierTimeout).Error(); err != nil {

@@ -45,7 +45,7 @@ func listConsumerGroupsCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&request.ConsumerGroup.Namespace, "namespace", "n", defaultNamespace, "Consumer groups namespace.")
+	cmd.Flags().StringVarP(&request.ConsumerGroup.Namespace, "namespace", "n", emq.DefaultNamespace, "Consumer groups namespace.")
 
 	return cmd
 }

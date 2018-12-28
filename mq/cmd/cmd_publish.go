@@ -71,7 +71,7 @@ func publishCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&request.Topic.Namespace, "namespace", "n", defaultNamespace, "Topic namespace.")
+	cmd.Flags().StringVarP(&request.Topic.Namespace, "namespace", "n", emq.DefaultNamespace, "Topic namespace.")
 	cmd.Flags().StringVarP(&request.Message.RoutingKey, "routing-key", "k", "", "Routing key.")
 	cmd.Flags().StringVar(&properties.ContentType, "content-type", "", "Content type.")
 	cmd.Flags().StringVar(&properties.ContentEncoding, "content-encoding", "", "Content encoding.")

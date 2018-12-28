@@ -71,6 +71,8 @@ func (r *DeleteNamespaceRequest) Validate() error {
 		errs = append(errs, errors.Errorf(reservedNameErrorFormat, "namespace"))
 	} else if len(r.Namespace) > nameMaxLength {
 		errs = append(errs, errors.Errorf(stringLengthErrorFormat, "namespace", nameMaxLength))
+	} else if r.Namespace == DefaultNamespace {
+		errs = append(errs, errors.New("default namespace cannot be deleted"))
 	}
 
 	if len(errs) > 0 {

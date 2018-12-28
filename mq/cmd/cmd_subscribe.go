@@ -76,7 +76,7 @@ func subscribeCmd() *cobra.Command {
 	buf := make([]byte, 16)
 	rand.Read(buf)
 
-	cmd.Flags().StringVarP(&request.ConsumerGroup.Namespace, "namespace", "n", defaultNamespace, "Consumer group namespace.")
+	cmd.Flags().StringVarP(&request.ConsumerGroup.Namespace, "namespace", "n", emq.DefaultNamespace, "Consumer group namespace.")
 
 	return cmd
 }

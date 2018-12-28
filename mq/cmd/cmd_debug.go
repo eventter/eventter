@@ -6,14 +6,11 @@ import (
 	"time"
 
 	"eventter.io/mq"
-	"eventter.io/mq/emq"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 )
 
 func debugCmd() *cobra.Command {
-	request := &emq.ListTopicsRequest{}
-
 	cmd := &cobra.Command{
 		Use:     "debug",
 		Short:   "Dump node debug info.",
@@ -53,9 +50,6 @@ func debugCmd() *cobra.Command {
 			return nil
 		},
 	}
-
-	cmd.Flags().StringVar(&request.Topic.Namespace, "namespace", "default", "Topics namespace.")
-	cmd.Flags().StringVar(&request.Topic.Name, "name", "", "Topic name.")
 
 	return cmd
 }

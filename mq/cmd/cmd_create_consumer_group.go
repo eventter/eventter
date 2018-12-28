@@ -59,7 +59,7 @@ func createConsumerGroupCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&request.ConsumerGroup.Name.Namespace, "namespace", "n", defaultNamespace, "Consumer group namespace.")
+	cmd.Flags().StringVarP(&request.ConsumerGroup.Name.Namespace, "namespace", "n", emq.DefaultNamespace, "Consumer group namespace.")
 	cmd.Flags().StringSliceVarP(&bindings, "bind", "b", nil, "Bindings in form of <topic>:<routing key>.")
 	cmd.Flags().Uint32VarP(&request.ConsumerGroup.Size_, "size", "s", 0, "Max count of in-flight messages. Zero means that the server chooses sensible defaults.")
 

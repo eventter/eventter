@@ -6,3 +6,7 @@ const (
 	ExchangeTypeTopic   = "topic"
 	ExchangeTypeHeaders = "headers"
 )
+
+const (
+	DefaultNamespace = "default"
+)

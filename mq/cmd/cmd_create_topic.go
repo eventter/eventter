@@ -43,7 +43,7 @@ func createTopicCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&request.Topic.Name.Namespace, "namespace", "n", defaultNamespace, "Topic namespace.")
+	cmd.Flags().StringVarP(&request.Topic.Name.Namespace, "namespace", "n", emq.DefaultNamespace, "Topic namespace.")
 	cmd.Flags().StringVarP(&request.Topic.Type, "type", "t", emq.ExchangeTypeFanout, "Topic type.")
 	cmd.Flags().Uint32VarP(&request.Topic.Shards, "shards", "s", 1, "# of shards.")
 	cmd.Flags().Uint32VarP(&request.Topic.ReplicationFactor, "replication-factor", "f", 0, "Replication factor.")

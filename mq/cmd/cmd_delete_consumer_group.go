@@ -42,7 +42,7 @@ func deleteConsumerGroupCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&request.ConsumerGroup.Namespace, "namespace", "n", defaultNamespace, "Consumer group namespace.")
+	cmd.Flags().StringVarP(&request.ConsumerGroup.Namespace, "namespace", "n", emq.DefaultNamespace, "Consumer group namespace.")
 
 	return cmd
 }

@@ -27,8 +27,6 @@ import (
 	"google.golang.org/grpc"
 )
 
-const defaultNamespace = "default"
-
 var rootConfig = &mq.Config{}
 
 func newClient(ctx context.Context) (emq.Client, error) {

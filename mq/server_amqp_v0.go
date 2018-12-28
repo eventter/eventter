@@ -23,7 +23,7 @@ func (s *Server) ServeAMQPv0(ctx context.Context, transport *v0.Transport) error
 	if err != nil {
 		return errors.Wrap(err, "get virtual host from context")
 	} else if namespace == "/" {
-		namespace = "default"
+		namespace = emq.DefaultNamespace
 	}
 
 	ctx, cancel := context.WithCancel(ctx)
