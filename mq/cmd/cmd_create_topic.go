@@ -47,7 +47,7 @@ func createTopicCmd() *cobra.Command {
 	cmd.Flags().StringVarP(&request.Topic.DefaultExchangeType, "type", "t", emq.ExchangeTypeFanout, "Topic type.")
 	cmd.Flags().Uint32VarP(&request.Topic.Shards, "shards", "s", 1, "# of shards.")
 	cmd.Flags().Uint32VarP(&request.Topic.ReplicationFactor, "replication-factor", "f", 0, "Replication factor.")
-	cmd.Flags().DurationVarP(&request.Topic.Retention, "retention", "r", 0, "Topic retention.")
+	cmd.Flags().DurationVarP(&request.Topic.Retention, "retention", "r", 1, "Topic retention.")
 
 	return cmd
 }

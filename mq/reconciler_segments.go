@@ -306,22 +306,37 @@ func (r *Reconciler) reconcileClosedSegment(segment *ClusterSegment, state *Clus
 		} else if topic.Retention > 0 {
 			retainTill := time.Now().Add(-topic.Retention)
 			if segment.ClosedAt.Before(retainTill) {
-				_, err := r.delegate.Apply(&ClusterCommandSegmentDelete{
-					ID:    segment.ID,
-					Which: ClusterCommandSegmentDelete_CLOSED,
-				})
-				if err != nil {
-					log.Printf("could not delete closed segment after retention period: %v", err)
+
+				needed := false
+			NS:
+				for _, namespace := range state.Namespaces {
+					for _, cg := range namespace.ConsumerGroups {
+						for _, commit := range cg.OffsetCommits {
+							if commit.SegmentID == segment.ID && commit.Offset < segment.Size_ {
+								needed = true
+								break NS
+							}
+						}
+					}
+				}
+				if !needed {
+					_, err := r.delegate.Apply(&ClusterCommandSegmentDelete{
+						ID:    segment.ID,
+						Which: ClusterCommandSegmentDelete_CLOSED,
+					})
+					if err != nil {
+						log.Printf("could not delete closed segment after retention period: %v", err)
+						return
+					}
+					log.Printf(
+						"closed segment %d (%s %s/%s) fell off retention period and wasn't needed by any consumer group, deleted",
+						segment.ID,
+						segment.Type.String(),
+						segment.Owner.Namespace,
+						segment.Owner.Name,
+					)
 					return
 				}
-				log.Printf(
-					"closed segment %d (%s %s/%s) fell off retention period, deleted",
-					segment.ID,
-					segment.Type.String(),
-					segment.Owner.Namespace,
-					segment.Owner.Name,
-				)
-				return
 			}
 		}
 
