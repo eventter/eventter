@@ -16,13 +16,13 @@ EventterMQ doesn't have a stable version yet. You can use latest Docker image th
 
 Docker image can be [pulled from Docker Hub](https://hub.docker.com/r/eventter/mq/).
 
-```sh
+```bash
 $ docker pull eventter/mq
 ```
 
 To start the broker, run:
 
-```sh
+```bash
 $ docker run --name emq-broker -p 16000:16000 -d eventter/mq
 ```
 
@@ -35,36 +35,36 @@ You will need:
 
 First download source code from the project public repository:
 
-```sh
+```bash
 $ git clone https://github.com/eventter/eventter.git
 ```
 
 Then go to the root of the downloaded repository and build `eventtermq` binary:
 
-```sh
+```bash
 $ go build -o eventtermq ./bin/eventtermq
 ```
 
 To start the broker, run:
 
-```sh
+```bash
 $ eventermq --dir ./data
 ```
 
 ### Messaging overview
 
-The broker supports multiple protocols for sending and receiving messages, see [Protocols](/docs/protocols/) to learn about which protocols are supported. In this article we will use its native [gRPC](https://grpc.io/) API through CLI interface.
+The broker supports multiple protocols for sending and receiving messages, see [Protocols]({{< ref "/docs/protocols.md" >}}) to learn about which protocols are supported. In this article we will use its native [gRPC](https://grpc.io/) API through CLI interface.
 
 The CLI uses the same binary as the broker. If you started the broker in Docker using the command above, please add following alias to your shell:
 
-```sh
+```bash
 $ alias eventtermq="docker run --name emq-client --link emq-broker --rm eventter/mq --host emq-broker"
 ```
 
 If you used other messaging products, you might be used to different models how messages are sent:
 
 1. First, simplest, approach is that messages are sent to **queues** (linear ordered data structure, messages are **pushed to the front**) as well as received from these queues (messages are **popped from the back**, i.e. from first to last). There is 1-to-1 relationship between producers and consumers.
-2. If you want to **decouple** producers and consumers, you need to add a **level of indirection**. For example [AMQP 0.9.1](/docs/amqp-0-9-1/) (which is also supported by EventterMQ, see linked article to learn how you can communicate with the broker using AMQP) does this by adding so-called **exchanges**. Producers send messages to exchanges. Exchanges, through defined rules, route messages to zero or more queues. Each queue receives a **copy** of the messages.
+2. If you want to **decouple** producers and consumers, you need to add a **level of indirection**. For example [AMQP 0.9.1]({{< ref "/docs/amqp-0-9-1.md" >}}) (which is also supported by EventterMQ, see linked article to learn how you can communicate with the broker using AMQP) does this by adding so-called **exchanges**. Producers send messages to exchanges. Exchanges, through defined rules, route messages to zero or more queues. Each queue receives a **copy** of the messages.
 3. Or you can do it the other way around, messages are sent to **topics** (similar to queues in that they're linear ordered data structure, messages are **pushed to the front**, however, unlike queues messages can be **read from any point**, not only popped from the back). Then client(s) that want to receive messages form **consumer groups**. Each consumer group reads each message from the topic once.
 
 EventterMQ chose third approach. Its benefits are:
@@ -77,7 +77,7 @@ EventterMQ chose third approach. Its benefits are:
 
 So first you need to create a topic:
 
-```sh
+```bash
 $ eventtermq create-topic my-topic --shards 1 --replication-factor 3
 {
   "ok": true,
@@ -91,13 +91,13 @@ $ eventtermq create-topic my-topic --shards 1 --replication-factor 3
 >
 > CLI commands use this namespace by default. If you want to create different namespace, run:
 >
-> ```sh
+> ```bash
 $ eventtermq create-namespace my-namespace
 ```
 >
 > Then add option `--namespace` to CLI invocations, e.g.:
 >
-> ```sh
+> ```bash
 $ eventtermq create-topic my-topic --namespace my-namespace --shards 1 --replication-factor 3 --retention 24h
 ```
 
@@ -125,7 +125,7 @@ Open segments are never deleted, even if they exceed specified retention period.
 
 After you've created a topic, you can send messages to it (in messaging parlance, **publish** messages to it):
 
-```sh
+```bash
 $ eventtermq publish my-topic "hello, world"
 {
   "ok": true
@@ -136,7 +136,7 @@ $ eventtermq publish my-topic "hello, world"
 
 As written earlier, messages are received by **consumer groups**. To create consumer group, run:
 
-```sh
+```bash
 $ eventtermq create-consumer-group my-cg --bind my-topic --since -1h --size 1024
 {
   "ok": true,
@@ -150,7 +150,7 @@ Consumer group is a task that runs on one of the nodes in the cluster and manage
 
 Binding connects consumer group to a topic and specifies what messages read from the topic's segments will be sent to consumers. Binding contains name of the topic (topic must exist at the time the consumer group is being created), **exchange type** (and possibly for certain exchange types additional data).
 
-Exchange types are those as defined in [AMQP 0.9.1](/docs/amqp-0-9-1/):
+Exchange types are those as defined in [AMQP 0.9.1]({{< ref "/docs/amqp-0-9-1.md" >}}):
 
 - **fanout** exchange type matches all messages,
 - **direct** compares binding's **routing key** with message's routing key - if routing keys are equal, the message matches,
@@ -159,7 +159,7 @@ Exchange types are those as defined in [AMQP 0.9.1](/docs/amqp-0-9-1/):
 
 If any binding matches the message, it's sent to consumers. If multiple bindings would match, message is sent only once.
 
-When creating consumer group from CLI, `--bind` creates _fanout_ binding, `--bind-direct` _direct_ binding, and `--bind-topic` _topic_ binding. _Headers_ exchange type is not used very often, and so cannot be created from CLI. If you want to create consumer group with _headers_ exchange type, use directly one of [supported protocols](/docs/protocols/).
+When creating consumer group from CLI, `--bind` creates _fanout_ binding, `--bind-direct` _direct_ binding, and `--bind-topic` _topic_ binding. _Headers_ exchange type is not used very often, and so cannot be created from CLI. If you want to create consumer group with _headers_ exchange type, use directly one of [supported protocols]({{< ref "/docs/protocols.md" >}}).
 
 #### Since
 
@@ -177,13 +177,13 @@ Once a message is sent to the consumer, it's marked to be in processing. But it'
 - sends **acknowledgement** (_ack_) - message is free'd from consumer group buffer and marked never to be sent other consumer,
 - sends **rejection** (_nack_) - message is re-sent to other consumers.
 
-Therefore there cannot be more messages _in-flight_ than the size of the consumer group. Default consumer group size is set for consume group buffer to occupy about 1 MiB of memory (which is at the time of writing ~10 000 items).
+Therefore there cannot be more messages _in-flight_ than the size of the consumer group. Default consumer group size is set for consume group buffer to occupy about 1 MiB of memory (which is, at the time of writing, ~10 000 items).
 
 ### Receive message
 
 Finally when you want to receive messages from consumer group, you create subscription:
 
-```sh
+```bash
 $ eventtermq subscribe my-cg
 {
   "topic": {
@@ -205,6 +205,6 @@ $ eventtermq subscribe my-cg
 
 ### What next?
 
-Do you still hesitate whether EventterMQ is the right tool for the job? Read about its [use cases](/docs/use-cases/).
+Do you still hesitate whether EventterMQ is the right tool for the job? Read about its [use cases]({{< ref "/docs/use-cases.md" >}}).
 
-In your application code you probably don't want to communicate with the broker by executing CLI commands. Learn about [protocols](/docs/protocols/) the broker supports and libraries to use.
+In your application code you probably don't want to communicate with the broker by executing CLI commands. Learn about [protocols]({{< ref "/docs/protocols.md" >}}) the broker supports and libraries to use.

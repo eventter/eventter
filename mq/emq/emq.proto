@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package io.eventter;
+package io.eventter.mq;
 
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";

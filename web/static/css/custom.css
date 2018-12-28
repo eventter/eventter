@@ -9,3 +9,21 @@
 #kube-features .row:first-child {
     border-bottom: 0 none;
 }
+
+pre, .highlight, pre code {
+    background: #fbfbfb !important;
+    background-color: #fbfbfb !important;
+}
+
+.highlight {
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    margin-bottom: 1rem;
+}
+
+.highlight pre {
+    margin-bottom: 0 !important;
+}
+
+.tabs {
+    margin-bottom: 8px !important;
+}

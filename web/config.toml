@@ -2,6 +2,8 @@ baseURL = "https://eventter.io/"
 languageCode = "en-us"
 title = "EventterMQ"
 theme = "kube"
+pygmentsCodeFences = true
+pygmentsStyle = "github"
 
 [params]
 Author = "Jakub Kulhan"

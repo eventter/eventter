@@ -72,7 +72,7 @@ func TestGroup_Subscribe(t *testing.T) {
 }
 
 func BenchmarkGroup(b *testing.B) {
-	oneMBOfMemory := 1024 * 1024 / int(unsafe.Sizeof(Message{}))
+	approx1MB := 1024 * 1024 / int(unsafe.Sizeof(Message{}))
 
 	benchmarks := []struct {
 		size      int
@@ -111,22 +111,22 @@ func BenchmarkGroup(b *testing.B) {
 		{1024, 10, 2},
 		{1024, 10, 5},
 		{1024, 10, 10},
-		{oneMBOfMemory, 1, 1},
-		{oneMBOfMemory, 1, 2},
-		{oneMBOfMemory, 1, 5},
-		{oneMBOfMemory, 1, 10},
-		{oneMBOfMemory, 2, 1},
-		{oneMBOfMemory, 2, 2},
-		{oneMBOfMemory, 2, 5},
-		{oneMBOfMemory, 2, 10},
-		{oneMBOfMemory, 5, 1},
-		{oneMBOfMemory, 5, 2},
-		{oneMBOfMemory, 5, 5},
-		{oneMBOfMemory, 5, 10},
-		{oneMBOfMemory, 10, 1},
-		{oneMBOfMemory, 10, 2},
-		{oneMBOfMemory, 10, 5},
-		{oneMBOfMemory, 10, 10},
+		{approx1MB, 1, 1},
+		{approx1MB, 1, 2},
+		{approx1MB, 1, 5},
+		{approx1MB, 1, 10},
+		{approx1MB, 2, 1},
+		{approx1MB, 2, 2},
+		{approx1MB, 2, 5},
+		{approx1MB, 2, 10},
+		{approx1MB, 5, 1},
+		{approx1MB, 5, 2},
+		{approx1MB, 5, 5},
+		{approx1MB, 5, 10},
+		{approx1MB, 10, 1},
+		{approx1MB, 10, 2},
+		{approx1MB, 10, 5},
+		{approx1MB, 10, 10},
 		{65536, 1, 1},
 		{65536, 1, 2},
 		{65536, 1, 5},

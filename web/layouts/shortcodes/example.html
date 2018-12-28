@@ -1,0 +1,20 @@
+{{- $what := .Get 0 -}}
+{{- $exts := slice "Go" "PHP" -}}
+<nav class="tabs" data-component="tabs">
+    <ul>
+        {{- range $index, $ext := $exts -}}
+            {{- $file := printf "%s.%s" $what (lower $ext) -}}
+            {{- if fileExists $file -}}
+                <li{{ if eq $index 0 }} class="active"{{ end }}>
+                    <a href="#{{ $file | replaceRE "[^\\w]+" "-" }}">{{ $ext }}</a>
+                </li>
+            {{- end -}}
+        {{- end -}}
+    </ul>
+</nav>
+{{ range $index, $ext := $exts -}}
+    {{- $file := printf "%s.%s" $what (lower $ext) -}}
+    {{- if fileExists $file -}}
+        <div id="{{ $file | replaceRE "[^\\w]+" "-" }}">{{ printf "```%s\n%s\n```" (lower $ext) (trim (readFile $file) "\n\r ") | markdownify }}</div>
+    {{- end -}}
+{{- end -}}
