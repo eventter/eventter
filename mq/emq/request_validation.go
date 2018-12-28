@@ -8,9 +8,9 @@ import (
 )
 
 var (
-	nameRegex         = regexp.MustCompile("^[a-zA-Z_][0-9a-zA-Z-_]*$")
-	reservedNameRegex = regexp.MustCompile("^_")
-	validTopicTypes   = map[string]bool{
+	nameRegex          = regexp.MustCompile("^[a-zA-Z_][0-9a-zA-Z-_]*$")
+	reservedNameRegex  = regexp.MustCompile("^_")
+	validExchangeTypes = map[string]bool{
 		ExchangeTypeDirect:  true,
 		ExchangeTypeFanout:  true,
 		ExchangeTypeTopic:   true,
@@ -105,10 +105,10 @@ func (r *CreateTopicRequest) Validate() error {
 		errs = append(errs, errors.Errorf(stringLengthErrorFormat, "topic name", nameMaxLength))
 	}
 
-	if r.Topic.Type == "" {
-		errs = append(errs, errors.Errorf(blankErrorFormat, "topic type"))
-	} else if !validTopicTypes[r.Topic.Type] {
-		errs = append(errs, errors.Errorf(listErrorFormat, "topic type", r.Topic.Type))
+	if r.Topic.DefaultExchangeType == "" {
+		errs = append(errs, errors.Errorf(blankErrorFormat, "exchange type"))
+	} else if !validExchangeTypes[r.Topic.DefaultExchangeType] {
+		errs = append(errs, errors.Errorf(listErrorFormat, "exchange type", r.Topic.DefaultExchangeType))
 	}
 
 	if r.Topic.Retention < 0 {
@@ -203,6 +203,14 @@ func (r *CreateConsumerGroupRequest) Validate() error {
 		errs = append(errs, errors.Errorf(reservedNameErrorFormat, "consumer group name"))
 	} else if len(r.ConsumerGroup.Name.Name) > nameMaxLength {
 		errs = append(errs, errors.Errorf(stringLengthErrorFormat, "consumer group name", nameMaxLength))
+	}
+
+	for i, clientBinding := range r.ConsumerGroup.Bindings {
+		if clientBinding.ExchangeType == "" {
+			errs = append(errs, errors.Wrapf(errors.Errorf(blankErrorFormat, "exchange type"), "binding %d", i))
+		} else if !validExchangeTypes[clientBinding.ExchangeType] {
+			errs = append(errs, errors.Wrapf(errors.Errorf(listErrorFormat, "exchange type", clientBinding.ExchangeType), "binding %d", i))
+		}
 	}
 
 	if len(errs) > 0 {

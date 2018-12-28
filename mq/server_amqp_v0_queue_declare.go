@@ -35,10 +35,10 @@ func (s *Server) handleAMQPv0QueueDeclare(ctx context.Context, transport *v0.Tra
 					Namespace: namespaceName,
 					Name:      defaultExchangeTopicName,
 				},
-				Type:              emq.ExchangeTypeDirect,
-				Shards:            1,
-				ReplicationFactor: defaultReplicationFactor,
-				Retention:         1,
+				DefaultExchangeType: emq.ExchangeTypeDirect,
+				Shards:              1,
+				ReplicationFactor:   defaultReplicationFactor,
+				Retention:           1,
 			},
 		})
 		if err != nil {
@@ -68,8 +68,9 @@ func (s *Server) handleAMQPv0QueueDeclare(ctx context.Context, transport *v0.Tra
 			Size_: size,
 			Bindings: []*emq.ConsumerGroup_Binding{
 				{
-					TopicName: defaultExchangeTopicName,
-					By:        &emq.ConsumerGroup_Binding_RoutingKey{RoutingKey: frame.Queue},
+					TopicName:    defaultExchangeTopicName,
+					ExchangeType: emq.ExchangeTypeDirect,
+					By:           &emq.ConsumerGroup_Binding_RoutingKey{RoutingKey: frame.Queue},
 				},
 			},
 		},
@@ -78,8 +79,8 @@ func (s *Server) handleAMQPv0QueueDeclare(ctx context.Context, transport *v0.Tra
 	cg, _ := namespace.FindConsumerGroup(request.ConsumerGroup.Name.Name)
 
 	if cg != nil {
-		for _, binding := range cg.Bindings {
-			request.ConsumerGroup.Bindings = append(request.ConsumerGroup.Bindings, s.convertBinding(binding))
+		for _, clusterBinding := range cg.Bindings {
+			request.ConsumerGroup.Bindings = append(request.ConsumerGroup.Bindings, s.convertClusterBinding(clusterBinding))
 		}
 	}
 

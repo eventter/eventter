@@ -48,26 +48,27 @@ func (s *Server) CreateConsumerGroup(ctx context.Context, request *emq.CreateCon
 	cmd := &ClusterCommandConsumerGroupCreate{
 		Namespace: request.ConsumerGroup.Name.Namespace,
 		ConsumerGroup: &ClusterConsumerGroup{
-			Name:      request.ConsumerGroup.Name.Name,
-			Size_:     request.ConsumerGroup.Size_,
-			CreatedAt: time.Now(),
+			Name:  request.ConsumerGroup.Name.Name,
+			Size_: request.ConsumerGroup.Size_,
+			Since: time.Now(),
 		},
 	}
 
-	for _, binding := range request.ConsumerGroup.Bindings {
-		topic := state.GetTopic(request.ConsumerGroup.Name.Namespace, binding.TopicName)
+	for _, clientBinding := range request.ConsumerGroup.Bindings {
+		topic := state.GetTopic(request.ConsumerGroup.Name.Namespace, clientBinding.TopicName)
 		if topic == nil {
-			return nil, errors.Errorf(notFoundErrorFormat, entityTopic, request.ConsumerGroup.Name.Namespace, binding.TopicName)
+			return nil, errors.Errorf(notFoundErrorFormat, entityTopic, request.ConsumerGroup.Name.Namespace, clientBinding.TopicName)
 		}
 
 		clusterBinding := &ClusterConsumerGroup_Binding{
-			TopicName: binding.TopicName,
+			TopicName:    clientBinding.TopicName,
+			ExchangeType: clientBinding.ExchangeType,
 		}
-		switch topic.Type {
+		switch topic.DefaultExchangeType {
 		case emq.ExchangeTypeDirect:
 			fallthrough
 		case emq.ExchangeTypeTopic:
-			switch by := binding.By.(type) {
+			switch by := clientBinding.By.(type) {
 			case *emq.ConsumerGroup_Binding_RoutingKey:
 				clusterBinding.By = &ClusterConsumerGroup_Binding_RoutingKey{
 					RoutingKey: by.RoutingKey,
@@ -77,12 +78,12 @@ func (s *Server) CreateConsumerGroup(ctx context.Context, request *emq.CreateCon
 					"trying to bind to %s %s/%s of type %s, but no routing key set",
 					entityTopic,
 					request.ConsumerGroup.Name.Namespace,
-					binding.TopicName,
-					topic.Type,
+					clientBinding.TopicName,
+					topic.DefaultExchangeType,
 				)
 			}
 		case emq.ExchangeTypeHeaders:
-			switch by := binding.By.(type) {
+			switch by := clientBinding.By.(type) {
 			case *emq.ConsumerGroup_Binding_HeadersAny:
 				clusterBinding.By = &ClusterConsumerGroup_Binding_HeadersAny{
 					HeadersAny: by.HeadersAny,
@@ -96,14 +97,14 @@ func (s *Server) CreateConsumerGroup(ctx context.Context, request *emq.CreateCon
 					"trying to bind to %s %s/%s of type %s, but no headers set",
 					entityTopic,
 					request.ConsumerGroup.Name.Namespace,
-					binding.TopicName,
-					topic.Type,
+					clientBinding.TopicName,
+					topic.DefaultExchangeType,
 				)
 			}
 		case emq.ExchangeTypeFanout:
 			// leave by to null
 		default:
-			return nil, errors.Errorf("unhandled topic type: %s", topic.Type)
+			return nil, errors.Errorf("unhandled topic type: %s", topic.DefaultExchangeType)
 		}
 
 		cmd.ConsumerGroup.Bindings = append(cmd.ConsumerGroup.Bindings, clusterBinding)

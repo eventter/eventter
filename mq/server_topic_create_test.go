@@ -27,10 +27,10 @@ func TestServer_CreateTopic(t *testing.T) {
 					Namespace: "default",
 					Name:      topicName,
 				},
-				Type:              exchangeType,
-				Shards:            1,
-				ReplicationFactor: 1,
-				Retention:         1,
+				DefaultExchangeType: exchangeType,
+				Shards:              1,
+				ReplicationFactor:   1,
+				Retention:           1,
 			},
 		})
 		assert.NoError(err)

@@ -46,13 +46,13 @@ func (s *Server) CreateTopic(ctx context.Context, request *emq.CreateTopicReques
 
 	topic := state.GetTopic(request.Topic.Name.Namespace, request.Topic.Name.Name)
 	if topic != nil {
-		if request.Topic.Type != topic.Type {
+		if request.Topic.DefaultExchangeType != topic.DefaultExchangeType {
 			return nil, errors.Errorf(
 				"topic %s/%s already exists, type cannot be changed - request: %s, cluster: %s",
 				request.Topic.Name.Namespace,
 				request.Topic.Name.Name,
-				request.Topic.Type,
-				topic.Type,
+				request.Topic.DefaultExchangeType,
+				topic.DefaultExchangeType,
 			)
 		}
 	}
@@ -60,11 +60,11 @@ func (s *Server) CreateTopic(ctx context.Context, request *emq.CreateTopicReques
 	cmd := &ClusterCommandTopicCreate{
 		Namespace: request.Topic.Name.Namespace,
 		Topic: &ClusterTopic{
-			Name:              request.Topic.Name.Name,
-			Type:              request.Topic.Type,
-			Shards:            request.Topic.Shards,
-			ReplicationFactor: request.Topic.ReplicationFactor,
-			Retention:         request.Topic.Retention,
+			Name:                request.Topic.Name.Name,
+			DefaultExchangeType: request.Topic.DefaultExchangeType,
+			Shards:              request.Topic.Shards,
+			ReplicationFactor:   request.Topic.ReplicationFactor,
+			Retention:           request.Topic.Retention,
 		},
 	}
 

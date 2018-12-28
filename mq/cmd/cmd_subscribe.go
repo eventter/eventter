@@ -3,7 +3,6 @@ package cmd
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"math"
 	"math/rand"
@@ -11,12 +10,15 @@ import (
 	"time"
 
 	"eventter.io/mq/emq"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 )
 
 func subscribeCmd() *cobra.Command {
-	request := &emq.SubscribeRequest{}
+	request := &emq.SubscribeRequest{
+		AutoAck: true,
+	}
 
 	cmd := &cobra.Command{
 		Use:     "subscribe <consumer-group>",
@@ -32,14 +34,14 @@ func subscribeCmd() *cobra.Command {
 			defer cancel()
 			c, err := newClient(ctx)
 			if err != nil {
-				return err
+				return errors.Wrap(err, "dial failed")
 			}
 			defer c.Close()
 
 			request.ConsumerGroup.Name = args[0]
 			stream, err := c.Subscribe(ctx, request, grpc.MaxCallRecvMsgSize(math.MaxUint32))
 			if err != nil {
-				return err
+				return errors.Wrap(err, "subscribe failed")
 			}
 
 			encoder := json.NewEncoder(os.Stdout)
@@ -50,21 +52,11 @@ func subscribeCmd() *cobra.Command {
 				if err == io.EOF {
 					break
 				} else if err != nil {
-					return err
+					return errors.Wrap(err, "receive failed")
 				}
 
 				if err := encoder.Encode(response); err != nil {
-					return err
-				}
-				fmt.Println(string(response.Message.Data))
-
-				_, err = c.Ack(ctx, &emq.AckRequest{
-					NodeID:         response.NodeID,
-					SubscriptionID: response.SubscriptionID,
-					SeqNo:          response.SeqNo,
-				})
-				if err != nil {
-					return err
+					return errors.Wrap(err, "encode failed")
 				}
 			}
 
@@ -77,6 +69,9 @@ func subscribeCmd() *cobra.Command {
 	rand.Read(buf)
 
 	cmd.Flags().StringVarP(&request.ConsumerGroup.Namespace, "namespace", "n", emq.DefaultNamespace, "Consumer group namespace.")
+	cmd.Flags().Uint32VarP(&request.Size_, "size", "s", 0, "Max number of messages in-flight. Zero means there is no limit.")
+	cmd.Flags().BoolVar(&request.DoNotBlock, "do-not-block", false, "Do not block if there are no messages to be consumed.")
+	cmd.Flags().Uint64VarP(&request.MaxMessages, "max-messages", "m", 0, "Max number of messages to be consumed. After this number of messages was consumed (i.e. received and (n)acked), stream will be closed.")
 
 	return cmd
 }

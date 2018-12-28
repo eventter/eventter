@@ -46,10 +46,10 @@ func (s *Server) ListTopics(ctx context.Context, request *emq.ListTopicsRequest)
 				Namespace: request.Topic.Namespace,
 				Name:      t.Name,
 			},
-			Type:              t.Type,
-			Shards:            t.Shards,
-			ReplicationFactor: t.ReplicationFactor,
-			Retention:         t.Retention,
+			DefaultExchangeType: t.DefaultExchangeType,
+			Shards:              t.Shards,
+			ReplicationFactor:   t.ReplicationFactor,
+			Retention:           t.Retention,
 		})
 	}
 

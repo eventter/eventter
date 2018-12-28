@@ -50,16 +50,16 @@ message CreateTopicResponse {
 
 message Topic {
     NamespaceName name = 1 [(gogoproto.nullable) = false];
-    // AMQP exchange type.
-    string type = 2;
     // Shards limit max number of open segments at the time. Messages are ordered within the shard (segment), however,
     // ordering across shards is not guaranteed. Therefore, for strict ordering (and lower throughput) set shard to 1.
-    uint32 shards = 3;
+    uint32 shards = 2;
     // Number of copies of data throughout the cluster. Not specified / zero means that the server will choose sensible defaults.
-    uint32 replication_factor = 4;
+    uint32 replication_factor = 3;
     // If retention is specified, segments will be deleted after they fall off retention period. Zero retention means
     // that segments WON'T be automatically deleted. For segments to be deleted ASAP, use very low retention, i.e. 1 nanosecond.
-    google.protobuf.Duration retention = 5 [(gogoproto.nullable) = false, (gogoproto.stdduration) = true];
+    google.protobuf.Duration retention = 4 [(gogoproto.nullable) = false, (gogoproto.stdduration) = true];
+    // Default exchange type for AMQP bindings.
+    string default_exchange_type = 5;
 }
 
 message ListTopicsRequest {
@@ -104,10 +104,11 @@ message ConsumerGroup {
     repeated Binding bindings = 2;
     message Binding {
         string topic_name = 1;
+        string exchange_type = 2;
         oneof by {
-            string routing_key = 2;
-            google.protobuf.Struct headers_all = 3;
-            google.protobuf.Struct headers_any = 4;
+            string routing_key = 3;
+            google.protobuf.Struct headers_all = 4;
+            google.protobuf.Struct headers_any = 5;
         }
     }
     // Max count of in-flight messages across all consumers. Not specified / zero means that the server will choose sensible defaults.

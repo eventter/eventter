@@ -149,7 +149,7 @@ func (s *Server) taskConsumerGroup(ctx context.Context, namespaceName string, co
 					if offset >= segment.Size_ {
 						continue
 					}
-					if segment.ClosedAt.Before(consumerGroup.CreatedAt) {
+					if segment.ClosedAt.Before(consumerGroup.Since) {
 						ackImmediately = append(ackImmediately, consumers.Commit{
 							SegmentID:    offsetSegmentID,
 							CommitOffset: segment.Size_,
@@ -189,7 +189,7 @@ func (s *Server) taskConsumerGroup(ctx context.Context, namespaceName string, co
 						taskName,
 						(func(state *ClusterState, consumerGroup *ClusterConsumerGroup, topic *ClusterTopic, segment *ClusterSegment, offset int64) func(context.Context) error {
 							return func(ctx context.Context) error {
-								return s.taskConsumeSegmentLocal(ctx, state, namespaceName, consumerGroup, topic, segment, group, offset)
+								return s.taskConsumeSegmentLocal(ctx, state, namespaceName, consumerGroup, topic.Name, segment, group, offset)
 							}
 						})(state, consumerGroup, topic, segment, offset),
 						offsetSegmentID,
@@ -199,7 +199,7 @@ func (s *Server) taskConsumerGroup(ctx context.Context, namespaceName string, co
 						taskName,
 						(func(state *ClusterState, consumerGroup *ClusterConsumerGroup, topic *ClusterTopic, segment *ClusterSegment, nodeID uint64, offset int64) func(context.Context) error {
 							return func(ctx context.Context) error {
-								return s.taskConsumeSegmentRemote(ctx, state, namespaceName, consumerGroup, topic, segment, group, nodeID, offset)
+								return s.taskConsumeSegmentRemote(ctx, state, namespaceName, consumerGroup, topic.Name, segment, group, nodeID, offset)
 							}
 						})(state, consumerGroup, topic, segment, segment.Nodes.PrimaryNodeID, offset),
 						offsetSegmentID,
@@ -209,7 +209,7 @@ func (s *Server) taskConsumerGroup(ctx context.Context, namespaceName string, co
 						taskName,
 						(func(state *ClusterState, consumerGroup *ClusterConsumerGroup, topic *ClusterTopic, segment *ClusterSegment, nodeID uint64, offset int64) func(context.Context) error {
 							return func(ctx context.Context) error {
-								return s.taskConsumeSegmentRemote(ctx, state, namespaceName, consumerGroup, topic, segment, group, nodeID, offset)
+								return s.taskConsumeSegmentRemote(ctx, state, namespaceName, consumerGroup, topic.Name, segment, group, nodeID, offset)
 							}
 						})(state, consumerGroup, topic, segment, segment.Nodes.DoneNodeIDs[rand.Intn(len(segment.Nodes.DoneNodeIDs))], offset),
 						offsetSegmentID,

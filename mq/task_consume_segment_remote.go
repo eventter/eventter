@@ -12,7 +12,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-func (s *Server) taskConsumeSegmentRemote(ctx context.Context, state *ClusterState, namespaceName string, consumerGroup *ClusterConsumerGroup, topic *ClusterTopic, segment *ClusterSegment, group *consumers.Group, nodeID uint64, startOffset int64) error {
+func (s *Server) taskConsumeSegmentRemote(ctx context.Context, state *ClusterState, namespaceName string, consumerGroup *ClusterConsumerGroup, topicName string, segment *ClusterSegment, group *consumers.Group, nodeID uint64, startOffset int64) error {
 	node := state.GetNode(nodeID)
 	if node == nil {
 		return errors.Errorf("node %d not found", nodeID)
@@ -60,16 +60,11 @@ func (s *Server) taskConsumeSegmentRemote(ctx context.Context, state *ClusterSta
 			if consumerGroup == nil {
 				return errors.Errorf(notFoundErrorFormat, entityConsumerGroup, namespaceName, consumerGroupName)
 			}
-			topicName := topic.Name
-			topic = state.GetTopic(namespaceName, topicName)
-			if topic == nil {
-				return errors.Errorf(notFoundErrorFormat, entityTopic, namespaceName, topicName)
-			}
 		}
 
 		messageTime := segment.CreatedAt.Add(time.Duration(publishing.Delta))
 
-		if messageMatches(publishing.Message, messageTime, topic, consumerGroup) {
+		if messageMatches(publishing.Message, messageTime, topicName, consumerGroup) {
 			err = group.Offer(&consumers.Message{
 				Topic:        segment.Owner,
 				SegmentID:    segment.ID,

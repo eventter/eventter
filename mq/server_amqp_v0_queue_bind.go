@@ -32,10 +32,11 @@ func (s *Server) handleAMQPv0QueueBind(ctx context.Context, transport *v0.Transp
 	}
 
 	newBinding := &emq.ConsumerGroup_Binding{
-		TopicName: tp.Name,
+		TopicName:    tp.Name,
+		ExchangeType: tp.DefaultExchangeType,
 	}
 
-	switch tp.Type {
+	switch tp.DefaultExchangeType {
 	case emq.ExchangeTypeFanout:
 		// do nothing
 	case emq.ExchangeTypeDirect:
@@ -80,7 +81,7 @@ func (s *Server) handleAMQPv0QueueBind(ctx context.Context, transport *v0.Transp
 
 	exists := false
 	for _, binding := range cg.Bindings {
-		clientBinding := s.convertBinding(binding)
+		clientBinding := s.convertClusterBinding(binding)
 		request.ConsumerGroup.Bindings = append(request.ConsumerGroup.Bindings, clientBinding)
 		if reflect.DeepEqual(clientBinding, newBinding) {
 			exists = true

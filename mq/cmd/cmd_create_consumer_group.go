@@ -36,7 +36,8 @@ func createConsumerGroupCmd() *cobra.Command {
 			for _, binding := range bindings {
 				parts := strings.SplitN(binding, ":", 2)
 				binding := &emq.ConsumerGroup_Binding{
-					TopicName: parts[0],
+					TopicName:    parts[0],
+					ExchangeType: emq.ExchangeTypeFanout,
 				}
 				if len(parts) > 1 {
 					binding.By = &emq.ConsumerGroup_Binding_RoutingKey{

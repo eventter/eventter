@@ -38,7 +38,7 @@ func (s *ClusterState) doCreateTopic(cmd *ClusterCommandTopicCreate) *ClusterSta
 		copy(nextNamespace.Topics[topicIndex+1:], namespace.Topics[topicIndex+1:])
 	}
 
-	nextTopic.Type = cmd.Topic.Type
+	nextTopic.DefaultExchangeType = cmd.Topic.DefaultExchangeType
 	nextTopic.Shards = cmd.Topic.Shards
 	nextTopic.ReplicationFactor = cmd.Topic.ReplicationFactor
 	nextTopic.Retention = cmd.Topic.Retention

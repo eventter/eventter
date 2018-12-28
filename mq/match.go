@@ -8,79 +8,61 @@ import (
 	"eventter.io/mq/emq"
 )
 
-func messageMatches(message *emq.Message, messageTime time.Time, topic *ClusterTopic, consumerGroup *ClusterConsumerGroup) bool {
-	if messageTime.Before(consumerGroup.CreatedAt) {
+func messageMatches(message *emq.Message, messageTime time.Time, topicName string, consumerGroup *ClusterConsumerGroup) bool {
+	if messageTime.Before(consumerGroup.Since) {
 		return false
 	}
 
-	switch topic.Type {
-	case emq.ExchangeTypeDirect:
-		for _, binding := range consumerGroup.Bindings {
-			if binding.TopicName != topic.Name {
-				continue
-			}
+BINDING:
+	for _, binding := range consumerGroup.Bindings {
+		if binding.TopicName != topicName {
+			continue
+		}
 
+		switch binding.ExchangeType {
+		case emq.ExchangeTypeDirect:
 			if by, ok := binding.By.(*ClusterConsumerGroup_Binding_RoutingKey); ok && by.RoutingKey == message.RoutingKey {
 				return true
 			}
-		}
-		return false
-
-	case emq.ExchangeTypeFanout:
-		return true
-
-	case emq.ExchangeTypeTopic:
-		for _, binding := range consumerGroup.Bindings {
-			if binding.TopicName != topic.Name {
-				continue
-			}
-
+		case emq.ExchangeTypeFanout:
+			return true
+		case emq.ExchangeTypeTopic:
 			if by, ok := binding.By.(*ClusterConsumerGroup_Binding_RoutingKey); ok && routingKeyMatches(by.RoutingKey, message.RoutingKey) {
 				return true
 			}
-		}
-		return false
-
-	case emq.ExchangeTypeHeaders:
-		if message.Headers == nil || message.Headers.Fields == nil {
-			return false
-		}
-	BINDING:
-		for _, binding := range consumerGroup.Bindings {
-			if binding.TopicName != topic.Name {
-				continue
-			}
-
-			switch by := binding.By.(type) {
-			case *ClusterConsumerGroup_Binding_HeadersAll:
-				for headerName, expectedHeaderValue := range by.HeadersAll.Fields {
-					gotHeaderValue, ok := message.Headers.Fields[headerName]
-					if !ok {
-						continue BINDING
+		case emq.ExchangeTypeHeaders:
+			if message.Headers != nil && message.Headers.Fields != nil {
+				switch by := binding.By.(type) {
+				case *ClusterConsumerGroup_Binding_HeadersAll:
+					for headerName, expectedHeaderValue := range by.HeadersAll.Fields {
+						gotHeaderValue, ok := message.Headers.Fields[headerName]
+						if !ok {
+							continue BINDING
+						}
+						if !reflect.DeepEqual(expectedHeaderValue, gotHeaderValue) {
+							continue BINDING
+						}
 					}
-					if !reflect.DeepEqual(expectedHeaderValue, gotHeaderValue) {
-						continue BINDING
+					return true
+
+				case *ClusterConsumerGroup_Binding_HeadersAny:
+					for headerName, expectedHeaderValue := range by.HeadersAny.Fields {
+						gotHeaderValue, ok := message.Headers.Fields[headerName]
+						if !ok {
+							continue
+						}
+						if reflect.DeepEqual(expectedHeaderValue, gotHeaderValue) {
+							return true
+						}
 					}
 				}
-				return true
-			case *ClusterConsumerGroup_Binding_HeadersAny:
-				for headerName, expectedHeaderValue := range by.HeadersAny.Fields {
-					gotHeaderValue, ok := message.Headers.Fields[headerName]
-					if !ok {
-						continue
-					}
-					if reflect.DeepEqual(expectedHeaderValue, gotHeaderValue) {
-						return true
-					}
-				}
-				return false
 			}
+		default:
+			panic("unhandled exchange type " + binding.ExchangeType)
 		}
-		return false
-
-	default:
-		panic("unhandled topic type: " + topic.Type)
 	}
+
+	return false
 }
 
 const (

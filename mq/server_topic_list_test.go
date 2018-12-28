@@ -28,10 +28,10 @@ func TestServer_ListTopics(t *testing.T) {
 					Namespace: "default",
 					Name:      topicName,
 				},
-				Type:              emq.ExchangeTypeFanout,
-				Shards:            1,
-				ReplicationFactor: 1,
-				Retention:         1,
+				DefaultExchangeType: emq.ExchangeTypeFanout,
+				Shards:              1,
+				ReplicationFactor:   1,
+				Retention:           1,
 			},
 		})
 		assert.NoError(err)

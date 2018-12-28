@@ -11,7 +11,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (s *Server) taskConsumeSegmentLocal(ctx context.Context, state *ClusterState, namespaceName string, consumerGroup *ClusterConsumerGroup, topic *ClusterTopic, segment *ClusterSegment, group *consumers.Group, startOffset int64) error {
+func (s *Server) taskConsumeSegmentLocal(ctx context.Context, state *ClusterState, namespaceName string, consumerGroup *ClusterConsumerGroup, topicName string, segment *ClusterSegment, group *consumers.Group, startOffset int64) error {
 	segmentHandle, err := s.segmentDir.Open(segment.ID)
 	if err != nil {
 		return errors.Wrap(err, "segment open failed")
@@ -55,16 +55,11 @@ func (s *Server) taskConsumeSegmentLocal(ctx context.Context, state *ClusterStat
 			if consumerGroup == nil {
 				return errors.Errorf(notFoundErrorFormat, entityConsumerGroup, namespaceName, consumerGroupName)
 			}
-			topicName := topic.Name
-			topic = state.GetTopic(namespaceName, topicName)
-			if topic == nil {
-				return errors.Errorf(notFoundErrorFormat, entityTopic, namespaceName, topicName)
-			}
 		}
 
 		messageTime := segment.CreatedAt.Add(time.Duration(publishing.Delta))
 
-		if messageMatches(publishing.Message, messageTime, topic, consumerGroup) {
+		if messageMatches(publishing.Message, messageTime, topicName, consumerGroup) {
 			err = group.Offer(&consumers.Message{
 				Topic:        segment.Owner,
 				SegmentID:    segment.ID,

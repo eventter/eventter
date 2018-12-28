@@ -25,7 +25,7 @@ func TestServer_Subscribe(t *testing.T) {
 					Namespace: "default",
 					Name:      "test-subscribe-topic",
 				},
-				Type: emq.ExchangeTypeFanout,
+				DefaultExchangeType: emq.ExchangeTypeFanout,
 			},
 		})
 		assert.NoError(err)
@@ -41,7 +41,7 @@ func TestServer_Subscribe(t *testing.T) {
 					Name:      "test-subscribe-consumer-group",
 				},
 				Bindings: []*emq.ConsumerGroup_Binding{
-					{TopicName: "test-subscribe-topic"},
+					{TopicName: "test-subscribe-topic", ExchangeType: emq.ExchangeTypeFanout},
 				},
 			},
 		})

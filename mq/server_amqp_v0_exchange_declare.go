@@ -42,10 +42,10 @@ func (s *Server) handleAMQPv0ExchangeDeclare(ctx context.Context, transport *v0.
 				Namespace: namespaceName,
 				Name:      frame.Exchange,
 			},
-			Type:              frame.Type,
-			Shards:            shards,
-			ReplicationFactor: replicationFactor,
-			Retention:         retention,
+			DefaultExchangeType: frame.Type,
+			Shards:              shards,
+			ReplicationFactor:   replicationFactor,
+			Retention:           retention,
 		},
 	}
 

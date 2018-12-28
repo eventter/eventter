@@ -44,8 +44,8 @@ func (s *ClusterState) doCreateConsumerGroup(cmd *ClusterCommandConsumerGroupCre
 
 	nextConsumerGroup.Bindings = cmd.ConsumerGroup.Bindings
 	nextConsumerGroup.Size_ = cmd.ConsumerGroup.Size_
-	if nextConsumerGroup.CreatedAt.IsZero() {
-		nextConsumerGroup.CreatedAt = cmd.ConsumerGroup.CreatedAt
+	if nextConsumerGroup.Since.IsZero() {
+		nextConsumerGroup.Since = cmd.ConsumerGroup.Since
 	}
 
 	return next

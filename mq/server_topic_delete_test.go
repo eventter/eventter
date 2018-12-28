@@ -36,10 +36,10 @@ func TestServer_DeleteTopic(t *testing.T) {
 					Namespace: "default",
 					Name:      "test-delete-topic",
 				},
-				Type:              emq.ExchangeTypeFanout,
-				Shards:            1,
-				ReplicationFactor: 1,
-				Retention:         1,
+				DefaultExchangeType: emq.ExchangeTypeFanout,
+				Shards:              1,
+				ReplicationFactor:   1,
+				Retention:           1,
 			},
 		})
 		assert.NoError(err)

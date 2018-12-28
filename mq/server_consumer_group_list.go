@@ -45,7 +45,7 @@ func (s *Server) ListConsumerGroups(ctx context.Context, request *emq.ListConsum
 		var clientBindings []*emq.ConsumerGroup_Binding
 
 		for _, binding := range cg.Bindings {
-			clientBindings = append(clientBindings, s.convertBinding(binding))
+			clientBindings = append(clientBindings, s.convertClusterBinding(binding))
 		}
 
 		consumerGroups = append(consumerGroups, &emq.ConsumerGroup{
@@ -65,9 +65,10 @@ func (s *Server) ListConsumerGroups(ctx context.Context, request *emq.ListConsum
 	}, nil
 }
 
-func (s *Server) convertBinding(clusterBinding *ClusterConsumerGroup_Binding) *emq.ConsumerGroup_Binding {
+func (s *Server) convertClusterBinding(clusterBinding *ClusterConsumerGroup_Binding) *emq.ConsumerGroup_Binding {
 	clientBinding := &emq.ConsumerGroup_Binding{
-		TopicName: clusterBinding.TopicName,
+		TopicName:    clusterBinding.TopicName,
+		ExchangeType: clusterBinding.ExchangeType,
 	}
 	switch by := clusterBinding.By.(type) {
 	case nil:

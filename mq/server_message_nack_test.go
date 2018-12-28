@@ -25,7 +25,7 @@ func TestServer_Nack(t *testing.T) {
 					Namespace: "default",
 					Name:      "test-nack-topic",
 				},
-				Type: emq.ExchangeTypeFanout,
+				DefaultExchangeType: emq.ExchangeTypeFanout,
 			},
 		})
 		assert.NoError(err)
@@ -41,7 +41,7 @@ func TestServer_Nack(t *testing.T) {
 					Name:      "test-nack-consumer-group",
 				},
 				Bindings: []*emq.ConsumerGroup_Binding{
-					{TopicName: "test-nack-topic"},
+					{TopicName: "test-nack-topic", ExchangeType: emq.ExchangeTypeFanout},
 				},
 			},
 		})
