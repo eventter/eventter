@@ -51,7 +51,7 @@ To start the broker, run:
 $ eventermq --dir ./data
 ```
 
-### Messaging overview
+### Overview
 
 The broker supports multiple protocols for sending and receiving messages, see [Protocols]({{< ref "/docs/protocols.md" >}}) to learn about which protocols are supported. In this article we will use its native [gRPC](https://grpc.io/) API through CLI interface.
 
@@ -65,17 +65,17 @@ If you used other messaging products, you might be used to different models how 
 
 1. First, simplest, approach is that messages are sent to **queues** (linear ordered data structure, messages are **pushed to the front**) as well as received from these queues (messages are **popped from the back**, i.e. from first to last). There is 1-to-1 relationship between producers and consumers.
 2. If you want to **decouple** producers and consumers, you need to add a **level of indirection**. For example [AMQP 0.9.1]({{< ref "/docs/amqp-0-9-1.md" >}}) (which is also supported by EventterMQ, see linked article to learn how you can communicate with the broker using AMQP) does this by adding so-called **exchanges**. Producers send messages to exchanges. Exchanges, through defined rules, route messages to zero or more queues. Each queue receives a **copy** of the messages.
-3. Or you can do it the other way around, messages are sent to **topics** (similar to queues in that they're linear ordered data structure, messages are **pushed to the front**, however, unlike queues messages can be **read from any point**, not only popped from the back). Then client(s) that want to receive messages form **consumer groups**. Each consumer group reads each message from the topic once.
+3. Or you can do it the other way around, messages are sent to **topics** (similar to queues in that they're linear ordered data structure, messages are **pushed to the front**, however, unlike queues messages can be **read from any point**, not only popped from the back). Then clients that want to receive messages form **consumer groups**. Each consumer group reads each message from the topic once.
 
 EventterMQ chose third approach. Its benefits are:
 
 - each message is stored once (not copied to multiple queues),
-- topics retain messages and may be read multiple times,
+- topics retain messages and messages may be read multiple times,
 - consumer groups may start reading past messages, not only new ones.
 
 ### Create topic
 
-So first you need to create a topic:
+First you need to create a topic:
 
 ```bash
 $ eventtermq create-topic my-topic --shards 1 --replication-factor 3
@@ -87,7 +87,7 @@ $ eventtermq create-topic my-topic --shards 1 --replication-factor 3
 
 > **Note: Namespaces**
 >
-> EventterMQ is designed to be multi-tenant. Topics (and consumer groups as well) are scoped by namespaces. By default on a new cluster an empty namespace called `default` is created.
+> EventterMQ is designed to be multi-tenant. Topics (and consumer groups as well) are **scoped by namespaces**. By default on a new cluster an empty namespace called `default` is created.
 >
 > CLI commands use this namespace by default. If you want to create different namespace, run:
 >
@@ -101,11 +101,11 @@ $ eventtermq create-namespace my-namespace
 $ eventtermq create-topic my-topic --namespace my-namespace --shards 1 --replication-factor 3 --retention 24h
 ```
 
-#### Shards
+#### Topic shards
 
-Topics are comprised of segments. Segments are where messages are physically stored. Topic has zero or more segments that are open. Open segments are the ones that new messages are appended to. `--shards` option configures how many open segments topic can have. The more open segments topic has, greater the throughput of messages. However, if there are more than one open segment, ordering of the messages is not guaranteed.
+Topics are comprised of segments. Segments are where messages are physically stored. Topic has zero or more segments that are open. Open segments are the ones that new messages are appended to. `--shards` option configures how many open segments topic can have. The more open segments topic has, greater the throughput of messages. However, if there can be more than one open segment, ordering of the messages is not guaranteed.
 
-#### Replication factor
+#### Topic replication factor
 
 Segments are limited in size (64 MiB). If open segment reaches size limit, no new messages can be written to it and it gets **rotated** (i.e. it gets closed and a new segment is opened instead). Segments act as a unit of replication. `--replication-factor` specifies how many copies of data are there to be in the cluster. If you use replication factor of 1, there is only one copy of the data, so if the broker node fails, you can loose messages.
 
@@ -113,7 +113,7 @@ Replication factor 3 means that there are 3 copies. For an open segment it means
 
 When segments is closed, any node that with fully replicated data can act as primary - read requests are routed randomly to such nodes.
 
-#### Retention period
+#### Topic retention period
 
 Hard drives and SSDs are cheap. However, storage is not infinite. Therefore if topics could only grow in size by rotating segments, it would be impractical. Retention period specifies for how long closed segments will be kept around before deleting their data files. In the example above, retention period is set to 24 hours. Therefore, if segment was closed longer than 24 hours ago and no consumer group reads from it anymore (either it wasn't read by any consumer, or it was entirely consumed by all consumer groups), it will be deleted.
 
@@ -146,7 +146,7 @@ $ eventtermq create-consumer-group my-cg --bind my-topic --since -1h --size 1024
 
 Consumer group is a task that runs on one of the nodes in the cluster and manages reading messages from bound topics. Consumer group may be bound to no topic - if so, consumer won't every receive any message.
 
-#### Bindings
+#### Consumer group bindings
 
 Binding connects consumer group to a topic and specifies what messages read from the topic's segments will be sent to consumers. Binding contains name of the topic (topic must exist at the time the consumer group is being created), **exchange type** (and possibly for certain exchange types additional data).
 
@@ -161,13 +161,13 @@ If any binding matches the message, it's sent to consumers. If multiple bindings
 
 When creating consumer group from CLI, `--bind` creates _fanout_ binding, `--bind-direct` _direct_ binding, and `--bind-topic` _topic_ binding. _Headers_ exchange type is not used very often, and so cannot be created from CLI. If you want to create consumer group with _headers_ exchange type, use directly one of [supported protocols]({{< ref "/docs/protocols.md" >}}).
 
-#### Since
+#### Consumer group since
 
 Topics retain messages for the specified retention period. Consumer group, when created, may start to read messages only new messages, or start from past point in time (or event future point in time).
 
 If you set CLI option `--since -1h`, messages will be sent to consumers as long as they're newer than 1 hour ago.
 
-#### Size
+#### Consumer group size
 
 When consumer group runs, before it sends messages to consumers, it reads messages from all relevant segments into memory. `--size` specified how many messages will be kept in memory at the time.
 

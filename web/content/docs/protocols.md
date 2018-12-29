@@ -1,6 +1,6 @@
 +++
 title = "Protocols"
-description = "Overview of options how to connect to the broker"
+description = "Which protocols does EventterMQ support?"
 date = 2018-12-27T15:34:04+01:00
 weight = 30
 draft = false
@@ -25,7 +25,7 @@ AMQP 0.9.1 is a binary protocol intended for messaging. It's reasonably easy to 
 - [Lapin](https://github.com/sozu-proxy/lapin) - Rust client library,
 - [RabbitMQ C](https://github.com/alanxz/rabbitmq-c) - C client library.
 
-> **Note: Keywords**
+> **Note: Keywords to use**
 >
 > As you can see most libraries are very "rabbit-themed", therefore if you search for a library in your language, try keywords, apart from **amqp**, such as **rabbitmq**, **rabbit**, **bunny**, **lapin** etc.
 

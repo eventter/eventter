@@ -9,6 +9,13 @@ import (
 )
 
 func (s *Server) handleAMQPv0BasicPublish(ctx context.Context, transport *v0.Transport, namespaceName string, ch *serverAMQPv0Channel, frame *v0.BasicPublish) error {
+	if frame.Mandatory {
+		return s.makeConnectionClose(v0.NotImplemented, errors.New("mandatory publish not implemented"))
+	}
+	if frame.Immediate {
+		return s.makeConnectionClose(v0.NotImplemented, errors.New("immediate publish not implemented"))
+	}
+
 	state := s.clusterState.Current()
 	namespace, _ := state.FindNamespace(namespaceName)
 	if namespace == nil {

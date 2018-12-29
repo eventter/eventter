@@ -1,6 +1,6 @@
 +++
 title = "Architecture"
-description = "Design doc"
+description = "Design & requirements doc"
 date = 2018-12-28T17:46:02+01:00
 weight = 80
 draft = false

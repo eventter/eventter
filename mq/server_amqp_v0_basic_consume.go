@@ -10,6 +10,13 @@ import (
 )
 
 func (s *Server) handleAMQPv0BasicConsume(ctx context.Context, transport *v0.Transport, namespaceName string, ch *serverAMQPv0Channel, frame *v0.BasicConsume) error {
+	if frame.NoLocal {
+		return s.makeConnectionClose(v0.NotImplemented, errors.New("no-local not implemented"))
+	}
+	if frame.Exclusive {
+		return s.makeConnectionClose(v0.NotImplemented, errors.New("exclusive not implemented"))
+	}
+
 	state := s.clusterState.Current()
 	namespace, _ := state.FindNamespace(namespaceName)
 	if namespace == nil {
