@@ -179,9 +179,9 @@ func (t *Type) GoType(root *Root, path ...string) (string, error) {
 	case "binary":
 		return "[]byte", nil
 	case "string":
-		return "string", nil
+		fallthrough
 	case "symbol":
-		return "Symbol", nil
+		return "string", nil
 	case "map":
 		return "types.Struct", nil
 	case "list":
@@ -259,6 +259,13 @@ func (f *Field) goType(root *Root) (string, error) {
 			} else if typ.Class == "composite" {
 				return "*" + convert(f.Type), nil
 			} else if typ.Class == "restricted" {
+				s, err := typ.GoType(root)
+				if err != nil {
+					return "", errors.Wrapf(err, "field %s (of type %s)", f.Name, f.Parent.Name)
+				}
+				if s == "types.Struct" {
+					return "*" + convert(f.Type), nil
+				}
 				return convert(f.Type), nil
 			} else {
 				return "", errors.Errorf("field %s (of type %s): class not handled %s", f.Name, f.Parent.Name, typ.Class)
@@ -369,6 +376,7 @@ package v1
 //go:generate go run ./generator {{ .OutputFilename }} {{ range .InputFilenames }} {{ . }}{{ end }}
 
 import (
+	"encoding/hex"
 	"time"
 
 	"github.com/gogo/protobuf/types"
@@ -377,13 +385,21 @@ import (
 var _ = time.Time{}
 var _ = types.Struct{}
 
-type Encoding uint8
-type Symbol string
-type Descriptor uint64
-type Null int
 type UUID [16]byte
 
-type Value interface {}
+func (u UUID) String() string {
+	var x [36]byte
+	hex.Encode(x[:8], u[:4])
+	x[8] = '-'
+	hex.Encode(x[9:13], u[4:6])
+	x[13] = '-'
+	hex.Encode(x[14:18], u[6:8])
+	x[18] = '-'
+	hex.Encode(x[19:23], u[8:10])
+	x[23] = '-'
+	hex.Encode(x[24:], u[10:])
+	return string(x[:])
+}
 
 {{ range $name := .UnionTypeNames }}
 type {{ $name | convert }} interface {
@@ -395,7 +411,7 @@ type {{ $name | convert }} interface {
 	{{ with $section.Definitions }}
 		const (
 			{{ range $definition := $section.Definitions }}
-				{{ if ne $definition.Name "MESSAGE-FORMAT" }}
+				{{ if ne $definition.Name "MESSAGE-FORMAT" -}}
 					{{ $definition.Name | convert }} = {{ $definition.Value }}
 				{{- end }}
 			{{- end }}
@@ -403,40 +419,50 @@ type {{ $name | convert }} interface {
 	{{ end }}
 	{{ range $type := $section.Types }}
 		{{ if and (ne $type.Name "amqp-value") (ne $type.Name "amqp-sequence") }}
+			{{ $goTypeName := $type.Name | convert }}
 			{{ with $type.Descriptor }}
 				const (
-					{{ $type.Name | convert }}Name Symbol = {{ printf "%q" $type.Descriptor.Name }}
-					{{ $type.Name | convert }}Descriptor Descriptor = {{ printf "0x%016x" $type.Descriptor.Code }}
+					{{ $goTypeName }}Name = {{ printf "%q" $type.Descriptor.Name }}
+					{{ $goTypeName }}Descriptor = {{ printf "0x%016x" $type.Descriptor.Code }}
 				)
 			{{ end }}
 			{{ if eq $type.Class "composite" }}
-				type {{ $type.Name | convert }} struct {
+				type {{ $goTypeName }} struct {
 					{{ range $field := $type.Fields }}
 						{{ $field.Name | convert }} {{ $field.GoType $root }}
 					{{- end }}
 				}
 
 				{{ range $name := $type.UnionTypeNames }}
-					func (*{{ $type.Name | convert }}) is{{ $name | convert }}() {}
+					func (*{{ $goTypeName }}) is{{ $name | convert }}() {}
 				{{ end }}
+
+				func (f *{{ $goTypeName }}) Marshal() ([]byte, error) {
+					panic("implement me")
+				}
+
+				func (f *{{ $goTypeName }}) Unmarshal(data []byte) error {
+					panic("implement me")
+				}
+
 			{{ else if eq $type.Class "restricted" }}
-				type {{ $type.Name | convert }} {{ $type.GoType $root }}
+				type {{ $goTypeName }} {{ $type.GoType $root }}
 				{{ with $type.Choices }}
 					const (
 						{{ range $choice := $type.Choices }}
 							{{ $goType := $type.GoType $root -}}
-							{{ joinWith "-" $choice.Name $type.Name | convert }} {{ $type.Name | convert }} = {{ if or (eq $goType "string") (eq $goType "Symbol") }}{{ printf "%q" $choice.Value }}{{ else }}{{ $choice.Value }}{{ end }}   
+							{{ joinWith "-" $choice.Name $type.Name | convert }} {{ $goTypeName }} = {{ if or (eq $goType "string") }}{{ printf "%q" $choice.Value }}{{ else }}{{ $choice.Value }}{{ end }}
 						{{- end }}
 					)
 				{{ end }}
 
 				{{ range $name := $type.UnionTypeNames }}
-					func ({{ $type.Name | convert }}) is{{ $name | convert }}() {}
+					func ({{ $goTypeName }}) is{{ $name | convert }}() {}
 				{{ end }}
 			{{ else if eq $type.Class "primitive" }}
 				const (
 					{{- range $encoding := $type.Encodings }}
-						{{ joinWith "-" $type.Name $encoding.Name | convert }}Encoding Encoding = {{ printf "0x%02x" $encoding.Code }} 
+						{{ joinWith "-" $type.Name $encoding.Name | convert }}Encoding = {{ printf "0x%02x" $encoding.Code }}
 					{{- end }}
 				)
 			{{ end }}

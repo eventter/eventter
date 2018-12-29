@@ -4,6 +4,7 @@ package v1
 //go:generate go run ./generator ./amqp1-0-0.go  ./types.bare.xml ./transport.bare.xml ./messaging.bare.xml ./security.bare.xml
 
 import (
+	"encoding/hex"
 	"time"
 
 	"github.com/gogo/protobuf/types"
@@ -12,13 +13,21 @@ import (
 var _ = time.Time{}
 var _ = types.Struct{}
 
-type Encoding uint8
-type Symbol string
-type Descriptor uint64
-type Null int
 type UUID [16]byte
 
-type Value interface{}
+func (u UUID) String() string {
+	var x [36]byte
+	hex.Encode(x[:8], u[:4])
+	x[8] = '-'
+	hex.Encode(x[9:13], u[4:6])
+	x[13] = '-'
+	hex.Encode(x[14:18], u[6:8])
+	x[18] = '-'
+	hex.Encode(x[19:23], u[8:10])
+	x[23] = '-'
+	hex.Encode(x[24:], u[10:])
+	return string(x[:])
+}
 
 type Frame interface {
 	isFrame()
@@ -61,119 +70,119 @@ type SASLFrame interface {
 }
 
 const (
-	NullEncoding Encoding = 0x40
+	NullEncoding = 0x40
 )
 
 const (
-	BooleanEncoding      Encoding = 0x56
-	BooleanTrueEncoding  Encoding = 0x41
-	BooleanFalseEncoding Encoding = 0x42
+	BooleanEncoding      = 0x56
+	BooleanTrueEncoding  = 0x41
+	BooleanFalseEncoding = 0x42
 )
 
 const (
-	UbyteEncoding Encoding = 0x50
+	UbyteEncoding = 0x50
 )
 
 const (
-	UshortEncoding Encoding = 0x60
+	UshortEncoding = 0x60
 )
 
 const (
-	UintEncoding          Encoding = 0x70
-	UintSmalluintEncoding Encoding = 0x52
-	UintUint0Encoding     Encoding = 0x43
+	UintEncoding          = 0x70
+	UintSmalluintEncoding = 0x52
+	UintUint0Encoding     = 0x43
 )
 
 const (
-	UlongEncoding           Encoding = 0x80
-	UlongSmallulongEncoding Encoding = 0x53
-	UlongUlong0Encoding     Encoding = 0x44
+	UlongEncoding           = 0x80
+	UlongSmallulongEncoding = 0x53
+	UlongUlong0Encoding     = 0x44
 )
 
 const (
-	ByteEncoding Encoding = 0x51
+	ByteEncoding = 0x51
 )
 
 const (
-	ShortEncoding Encoding = 0x61
+	ShortEncoding = 0x61
 )
 
 const (
-	IntEncoding         Encoding = 0x71
-	IntSmallintEncoding Encoding = 0x54
+	IntEncoding         = 0x71
+	IntSmallintEncoding = 0x54
 )
 
 const (
-	LongEncoding          Encoding = 0x81
-	LongSmalllongEncoding Encoding = 0x55
+	LongEncoding          = 0x81
+	LongSmalllongEncoding = 0x55
 )
 
 const (
-	FloatIeee754Encoding Encoding = 0x72
+	FloatIeee754Encoding = 0x72
 )
 
 const (
-	DoubleIeee754Encoding Encoding = 0x82
+	DoubleIeee754Encoding = 0x82
 )
 
 const (
-	Decimal32Ieee754Encoding Encoding = 0x74
+	Decimal32Ieee754Encoding = 0x74
 )
 
 const (
-	Decimal64Ieee754Encoding Encoding = 0x84
+	Decimal64Ieee754Encoding = 0x84
 )
 
 const (
-	Decimal128Ieee754Encoding Encoding = 0x94
+	Decimal128Ieee754Encoding = 0x94
 )
 
 const (
-	CharUtf32Encoding Encoding = 0x73
+	CharUtf32Encoding = 0x73
 )
 
 const (
-	TimestampMs64Encoding Encoding = 0x83
+	TimestampMs64Encoding = 0x83
 )
 
 const (
-	UUIDEncoding Encoding = 0x98
+	UUIDEncoding = 0x98
 )
 
 const (
-	BinaryVbin8Encoding  Encoding = 0xa0
-	BinaryVbin32Encoding Encoding = 0xb0
+	BinaryVbin8Encoding  = 0xa0
+	BinaryVbin32Encoding = 0xb0
 )
 
 const (
-	StringStr8Utf8Encoding  Encoding = 0xa1
-	StringStr32Utf8Encoding Encoding = 0xb1
+	StringStr8Utf8Encoding  = 0xa1
+	StringStr32Utf8Encoding = 0xb1
 )
 
 const (
-	SymbolSym8Encoding  Encoding = 0xa3
-	SymbolSym32Encoding Encoding = 0xb3
+	SymbolSym8Encoding  = 0xa3
+	SymbolSym32Encoding = 0xb3
 )
 
 const (
-	ListList0Encoding  Encoding = 0x45
-	ListList8Encoding  Encoding = 0xc0
-	ListList32Encoding Encoding = 0xd0
+	ListList0Encoding  = 0x45
+	ListList8Encoding  = 0xc0
+	ListList32Encoding = 0xd0
 )
 
 const (
-	MapMap8Encoding  Encoding = 0xc1
-	MapMap32Encoding Encoding = 0xd1
+	MapMap8Encoding  = 0xc1
+	MapMap32Encoding = 0xd1
 )
 
 const (
-	ArrayArray8Encoding  Encoding = 0xe0
-	ArrayArray32Encoding Encoding = 0xf0
+	ArrayArray8Encoding  = 0xe0
+	ArrayArray32Encoding = 0xf0
 )
 
 const (
-	OpenName       Symbol     = "amqp:open:list"
-	OpenDescriptor Descriptor = 0x0000000000000010
+	OpenName       = "amqp:open:list"
+	OpenDescriptor = 0x0000000000000010
 )
 
 type Open struct {
@@ -184,16 +193,24 @@ type Open struct {
 	IdleTimeOut         Milliseconds
 	OutgoingLocales     []IETFLanguageTag
 	IncomingLocales     []IETFLanguageTag
-	OfferedCapabilities []Symbol
-	DesiredCapabilities []Symbol
-	Properties          Fields
+	OfferedCapabilities []string
+	DesiredCapabilities []string
+	Properties          *Fields
 }
 
 func (*Open) isFrame() {}
 
+func (f *Open) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (f *Open) Unmarshal(data []byte) error {
+	panic("implement me")
+}
+
 const (
-	BeginName       Symbol     = "amqp:begin:list"
-	BeginDescriptor Descriptor = 0x0000000000000011
+	BeginName       = "amqp:begin:list"
+	BeginDescriptor = 0x0000000000000011
 )
 
 type Begin struct {
@@ -202,16 +219,24 @@ type Begin struct {
 	IncomingWindow      uint32
 	OutgoingWindow      uint32
 	HandleMax           Handle
-	OfferedCapabilities []Symbol
-	DesiredCapabilities []Symbol
-	Properties          Fields
+	OfferedCapabilities []string
+	DesiredCapabilities []string
+	Properties          *Fields
 }
 
 func (*Begin) isFrame() {}
 
+func (f *Begin) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (f *Begin) Unmarshal(data []byte) error {
+	panic("implement me")
+}
+
 const (
-	AttachName       Symbol     = "amqp:attach:list"
-	AttachDescriptor Descriptor = 0x0000000000000012
+	AttachName       = "amqp:attach:list"
+	AttachDescriptor = 0x0000000000000012
 )
 
 type Attach struct {
@@ -226,16 +251,24 @@ type Attach struct {
 	IncompleteUnsettled  bool
 	InitialDeliveryCount SequenceNo
 	MaxMessageSize       uint64
-	OfferedCapabilities  []Symbol
-	DesiredCapabilities  []Symbol
-	Properties           Fields
+	OfferedCapabilities  []string
+	DesiredCapabilities  []string
+	Properties           *Fields
 }
 
 func (*Attach) isFrame() {}
 
+func (f *Attach) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (f *Attach) Unmarshal(data []byte) error {
+	panic("implement me")
+}
+
 const (
-	FlowName       Symbol     = "amqp:flow:list"
-	FlowDescriptor Descriptor = 0x0000000000000013
+	FlowName       = "amqp:flow:list"
+	FlowDescriptor = 0x0000000000000013
 )
 
 type Flow struct {
@@ -249,14 +282,22 @@ type Flow struct {
 	Available      uint32
 	Drain          bool
 	Echo           bool
-	Properties     Fields
+	Properties     *Fields
 }
 
 func (*Flow) isFrame() {}
 
+func (f *Flow) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (f *Flow) Unmarshal(data []byte) error {
+	panic("implement me")
+}
+
 const (
-	TransferName       Symbol     = "amqp:transfer:list"
-	TransferDescriptor Descriptor = 0x0000000000000014
+	TransferName       = "amqp:transfer:list"
+	TransferDescriptor = 0x0000000000000014
 )
 
 type Transfer struct {
@@ -275,9 +316,17 @@ type Transfer struct {
 
 func (*Transfer) isFrame() {}
 
+func (f *Transfer) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (f *Transfer) Unmarshal(data []byte) error {
+	panic("implement me")
+}
+
 const (
-	DispositionName       Symbol     = "amqp:disposition:list"
-	DispositionDescriptor Descriptor = 0x0000000000000015
+	DispositionName       = "amqp:disposition:list"
+	DispositionDescriptor = 0x0000000000000015
 )
 
 type Disposition struct {
@@ -291,9 +340,17 @@ type Disposition struct {
 
 func (*Disposition) isFrame() {}
 
+func (f *Disposition) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (f *Disposition) Unmarshal(data []byte) error {
+	panic("implement me")
+}
+
 const (
-	DetachName       Symbol     = "amqp:detach:list"
-	DetachDescriptor Descriptor = 0x0000000000000016
+	DetachName       = "amqp:detach:list"
+	DetachDescriptor = 0x0000000000000016
 )
 
 type Detach struct {
@@ -304,9 +361,17 @@ type Detach struct {
 
 func (*Detach) isFrame() {}
 
+func (f *Detach) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (f *Detach) Unmarshal(data []byte) error {
+	panic("implement me")
+}
+
 const (
-	EndName       Symbol     = "amqp:end:list"
-	EndDescriptor Descriptor = 0x0000000000000017
+	EndName       = "amqp:end:list"
+	EndDescriptor = 0x0000000000000017
 )
 
 type End struct {
@@ -315,9 +380,17 @@ type End struct {
 
 func (*End) isFrame() {}
 
+func (f *End) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (f *End) Unmarshal(data []byte) error {
+	panic("implement me")
+}
+
 const (
-	CloseName       Symbol     = "amqp:close:list"
-	CloseDescriptor Descriptor = 0x0000000000000018
+	CloseName       = "amqp:close:list"
+	CloseDescriptor = 0x0000000000000018
 )
 
 type Close struct {
@@ -326,17 +399,20 @@ type Close struct {
 
 func (*Close) isFrame() {}
 
+func (f *Close) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (f *Close) Unmarshal(data []byte) error {
+	panic("implement me")
+}
+
 const (
-	Port = 5672
-
-	SecurePort = 5671
-
-	Major = 1
-
-	Minor = 0
-
-	Revision = 0
-
+	Port            = 5672
+	SecurePort      = 5671
+	Major           = 1
+	Minor           = 0
+	Revision        = 0
 	MinMaxFrameSize = 512
 )
 
@@ -378,22 +454,30 @@ type SequenceNo uint32
 
 type MessageFormat uint32
 
-type IETFLanguageTag Symbol
+type IETFLanguageTag string
 
 type Fields types.Struct
 
 const (
-	ErrorName       Symbol     = "amqp:error:list"
-	ErrorDescriptor Descriptor = 0x000000000000001d
+	ErrorName       = "amqp:error:list"
+	ErrorDescriptor = 0x000000000000001d
 )
 
 type Error struct {
-	Condition   Symbol
+	Condition   string
 	Description string
-	Info        Fields
+	Info        *Fields
 }
 
-type AMQPError Symbol
+func (f *Error) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (f *Error) Unmarshal(data []byte) error {
+	panic("implement me")
+}
+
+type AMQPError string
 
 const (
 	InternalErrorAMQPError         AMQPError = "amqp:internal-error"
@@ -413,7 +497,7 @@ const (
 
 func (AMQPError) isErrorCondition() {}
 
-type ConnectionError Symbol
+type ConnectionError string
 
 const (
 	ConnectionForcedConnectionError ConnectionError = "amqp:connection:forced"
@@ -423,7 +507,7 @@ const (
 
 func (ConnectionError) isErrorCondition() {}
 
-type SessionError Symbol
+type SessionError string
 
 const (
 	WindowViolationSessionError  SessionError = "amqp:session:window-violation"
@@ -434,7 +518,7 @@ const (
 
 func (SessionError) isErrorCondition() {}
 
-type LinkError Symbol
+type LinkError string
 
 const (
 	DetachForcedLinkError          LinkError = "amqp:link:detach-forced"
@@ -449,8 +533,8 @@ func (LinkError) isErrorCondition() {}
 const ()
 
 const (
-	HeaderName       Symbol     = "amqp:header:list"
-	HeaderDescriptor Descriptor = 0x0000000000000070
+	HeaderName       = "amqp:header:list"
+	HeaderDescriptor = 0x0000000000000070
 )
 
 type Header struct {
@@ -463,9 +547,17 @@ type Header struct {
 
 func (*Header) isSection() {}
 
+func (f *Header) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (f *Header) Unmarshal(data []byte) error {
+	panic("implement me")
+}
+
 const (
-	DeliveryAnnotationsName       Symbol     = "amqp:delivery-annotations:map"
-	DeliveryAnnotationsDescriptor Descriptor = 0x0000000000000071
+	DeliveryAnnotationsName       = "amqp:delivery-annotations:map"
+	DeliveryAnnotationsDescriptor = 0x0000000000000071
 )
 
 type DeliveryAnnotations types.Struct
@@ -473,8 +565,8 @@ type DeliveryAnnotations types.Struct
 func (DeliveryAnnotations) isSection() {}
 
 const (
-	MessageAnnotationsName       Symbol     = "amqp:message-annotations:map"
-	MessageAnnotationsDescriptor Descriptor = 0x0000000000000072
+	MessageAnnotationsName       = "amqp:message-annotations:map"
+	MessageAnnotationsDescriptor = 0x0000000000000072
 )
 
 type MessageAnnotations types.Struct
@@ -482,8 +574,8 @@ type MessageAnnotations types.Struct
 func (MessageAnnotations) isSection() {}
 
 const (
-	PropertiesName       Symbol     = "amqp:properties:list"
-	PropertiesDescriptor Descriptor = 0x0000000000000073
+	PropertiesName       = "amqp:properties:list"
+	PropertiesDescriptor = 0x0000000000000073
 )
 
 type Properties struct {
@@ -493,8 +585,8 @@ type Properties struct {
 	Subject            string
 	ReplyTo            Address
 	CorrelationID      MessageID
-	ContentType        Symbol
-	ContentEncoding    Symbol
+	ContentType        string
+	ContentEncoding    string
 	AbsoluteExpiryTime time.Time
 	CreationTime       time.Time
 	GroupID            string
@@ -504,9 +596,17 @@ type Properties struct {
 
 func (*Properties) isSection() {}
 
+func (f *Properties) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (f *Properties) Unmarshal(data []byte) error {
+	panic("implement me")
+}
+
 const (
-	ApplicationPropertiesName       Symbol     = "amqp:application-properties:map"
-	ApplicationPropertiesDescriptor Descriptor = 0x0000000000000074
+	ApplicationPropertiesName       = "amqp:application-properties:map"
+	ApplicationPropertiesDescriptor = 0x0000000000000074
 )
 
 type ApplicationProperties types.Struct
@@ -514,8 +614,8 @@ type ApplicationProperties types.Struct
 func (ApplicationProperties) isSection() {}
 
 const (
-	DataName       Symbol     = "amqp:data:binary"
-	DataDescriptor Descriptor = 0x0000000000000075
+	DataName       = "amqp:data:binary"
+	DataDescriptor = 0x0000000000000075
 )
 
 type Data []byte
@@ -523,8 +623,8 @@ type Data []byte
 func (Data) isSection() {}
 
 const (
-	FooterName       Symbol     = "amqp:footer:map"
-	FooterDescriptor Descriptor = 0x0000000000000078
+	FooterName       = "amqp:footer:map"
+	FooterDescriptor = 0x0000000000000078
 )
 
 type Footer types.Struct
@@ -554,8 +654,8 @@ type AddressString string
 func (AddressString) isAddress() {}
 
 const (
-	ReceivedName       Symbol     = "amqp:received:list"
-	ReceivedDescriptor Descriptor = 0x0000000000000023
+	ReceivedName       = "amqp:received:list"
+	ReceivedDescriptor = 0x0000000000000023
 )
 
 type Received struct {
@@ -565,9 +665,17 @@ type Received struct {
 
 func (*Received) isDeliveryState() {}
 
+func (f *Received) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (f *Received) Unmarshal(data []byte) error {
+	panic("implement me")
+}
+
 const (
-	AcceptedName       Symbol     = "amqp:accepted:list"
-	AcceptedDescriptor Descriptor = 0x0000000000000024
+	AcceptedName       = "amqp:accepted:list"
+	AcceptedDescriptor = 0x0000000000000024
 )
 
 type Accepted struct {
@@ -577,9 +685,17 @@ func (*Accepted) isDeliveryState() {}
 
 func (*Accepted) isOutcome() {}
 
+func (f *Accepted) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (f *Accepted) Unmarshal(data []byte) error {
+	panic("implement me")
+}
+
 const (
-	RejectedName       Symbol     = "amqp:rejected:list"
-	RejectedDescriptor Descriptor = 0x0000000000000025
+	RejectedName       = "amqp:rejected:list"
+	RejectedDescriptor = 0x0000000000000025
 )
 
 type Rejected struct {
@@ -590,9 +706,17 @@ func (*Rejected) isDeliveryState() {}
 
 func (*Rejected) isOutcome() {}
 
+func (f *Rejected) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (f *Rejected) Unmarshal(data []byte) error {
+	panic("implement me")
+}
+
 const (
-	ReleasedName       Symbol     = "amqp:released:list"
-	ReleasedDescriptor Descriptor = 0x0000000000000026
+	ReleasedName       = "amqp:released:list"
+	ReleasedDescriptor = 0x0000000000000026
 )
 
 type Released struct {
@@ -602,24 +726,40 @@ func (*Released) isDeliveryState() {}
 
 func (*Released) isOutcome() {}
 
+func (f *Released) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (f *Released) Unmarshal(data []byte) error {
+	panic("implement me")
+}
+
 const (
-	ModifiedName       Symbol     = "amqp:modified:list"
-	ModifiedDescriptor Descriptor = 0x0000000000000027
+	ModifiedName       = "amqp:modified:list"
+	ModifiedDescriptor = 0x0000000000000027
 )
 
 type Modified struct {
 	DeliveryFailed     bool
 	UndeliverableHere  bool
-	MessageAnnotations Fields
+	MessageAnnotations *Fields
 }
 
 func (*Modified) isDeliveryState() {}
 
 func (*Modified) isOutcome() {}
 
+func (f *Modified) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (f *Modified) Unmarshal(data []byte) error {
+	panic("implement me")
+}
+
 const (
-	SourceName       Symbol     = "amqp:source:list"
-	SourceDescriptor Descriptor = 0x0000000000000028
+	SourceName       = "amqp:source:list"
+	SourceDescriptor = 0x0000000000000028
 )
 
 type Source struct {
@@ -628,19 +768,27 @@ type Source struct {
 	ExpiryPolicy          TerminusExpiryPolicy
 	Timeout               Seconds
 	Dynamic               bool
-	DynamicNodeProperties NodeProperties
-	DistributionMode      Symbol
-	Filter                FilterSet
+	DynamicNodeProperties *NodeProperties
+	DistributionMode      string
+	Filter                *FilterSet
 	DefaultOutcome        Outcome
-	Outcomes              []Symbol
-	Capabilities          []Symbol
+	Outcomes              []string
+	Capabilities          []string
 }
 
 func (*Source) isSource() {}
 
+func (f *Source) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (f *Source) Unmarshal(data []byte) error {
+	panic("implement me")
+}
+
 const (
-	TargetName       Symbol     = "amqp:target:list"
-	TargetDescriptor Descriptor = 0x0000000000000029
+	TargetName       = "amqp:target:list"
+	TargetDescriptor = 0x0000000000000029
 )
 
 type Target struct {
@@ -649,11 +797,19 @@ type Target struct {
 	ExpiryPolicy          TerminusExpiryPolicy
 	Timeout               Seconds
 	Dynamic               bool
-	DynamicNodeProperties NodeProperties
-	Capabilities          []Symbol
+	DynamicNodeProperties *NodeProperties
+	Capabilities          []string
 }
 
 func (*Target) isTarget() {}
+
+func (f *Target) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (f *Target) Unmarshal(data []byte) error {
+	panic("implement me")
+}
 
 type TerminusDurability uint32
 
@@ -663,7 +819,7 @@ const (
 	UnsettledStateTerminusDurability TerminusDurability = 2
 )
 
-type TerminusExpiryPolicy Symbol
+type TerminusExpiryPolicy string
 
 const (
 	LinkDetachTerminusExpiryPolicy      TerminusExpiryPolicy = "link-detach"
@@ -672,7 +828,7 @@ const (
 	NeverTerminusExpiryPolicy           TerminusExpiryPolicy = "never"
 )
 
-type StdDistMode Symbol
+type StdDistMode string
 
 const (
 	MoveStdDistMode StdDistMode = "move"
@@ -686,8 +842,8 @@ type FilterSet types.Struct
 type NodeProperties types.Struct
 
 const (
-	DeleteOnCloseName       Symbol     = "amqp:delete-on-close:list"
-	DeleteOnCloseDescriptor Descriptor = 0x000000000000002b
+	DeleteOnCloseName       = "amqp:delete-on-close:list"
+	DeleteOnCloseDescriptor = 0x000000000000002b
 )
 
 type DeleteOnClose struct {
@@ -695,9 +851,17 @@ type DeleteOnClose struct {
 
 func (*DeleteOnClose) isLifetimePolicy() {}
 
+func (f *DeleteOnClose) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (f *DeleteOnClose) Unmarshal(data []byte) error {
+	panic("implement me")
+}
+
 const (
-	DeleteOnNoLinksName       Symbol     = "amqp:delete-on-no-links:list"
-	DeleteOnNoLinksDescriptor Descriptor = 0x000000000000002c
+	DeleteOnNoLinksName       = "amqp:delete-on-no-links:list"
+	DeleteOnNoLinksDescriptor = 0x000000000000002c
 )
 
 type DeleteOnNoLinks struct {
@@ -705,9 +869,17 @@ type DeleteOnNoLinks struct {
 
 func (*DeleteOnNoLinks) isLifetimePolicy() {}
 
+func (f *DeleteOnNoLinks) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (f *DeleteOnNoLinks) Unmarshal(data []byte) error {
+	panic("implement me")
+}
+
 const (
-	DeleteOnNoMessagesName       Symbol     = "amqp:delete-on-no-messages:list"
-	DeleteOnNoMessagesDescriptor Descriptor = 0x000000000000002d
+	DeleteOnNoMessagesName       = "amqp:delete-on-no-messages:list"
+	DeleteOnNoMessagesDescriptor = 0x000000000000002d
 )
 
 type DeleteOnNoMessages struct {
@@ -715,9 +887,17 @@ type DeleteOnNoMessages struct {
 
 func (*DeleteOnNoMessages) isLifetimePolicy() {}
 
+func (f *DeleteOnNoMessages) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (f *DeleteOnNoMessages) Unmarshal(data []byte) error {
+	panic("implement me")
+}
+
 const (
-	DeleteOnNoLinksOrMessagesName       Symbol     = "amqp:delete-on-no-links-or-messages:list"
-	DeleteOnNoLinksOrMessagesDescriptor Descriptor = 0x000000000000002e
+	DeleteOnNoLinksOrMessagesName       = "amqp:delete-on-no-links-or-messages:list"
+	DeleteOnNoLinksOrMessagesDescriptor = 0x000000000000002e
 )
 
 type DeleteOnNoLinksOrMessages struct {
@@ -725,49 +905,69 @@ type DeleteOnNoLinksOrMessages struct {
 
 func (*DeleteOnNoLinksOrMessages) isLifetimePolicy() {}
 
+func (f *DeleteOnNoLinksOrMessages) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (f *DeleteOnNoLinksOrMessages) Unmarshal(data []byte) error {
+	panic("implement me")
+}
+
 const (
-	TLSMajor = 1
-
-	TLSMinor = 0
-
+	TLSMajor    = 1
+	TLSMinor    = 0
 	TLSRevision = 0
 )
 
 const (
-	SASLMajor = 1
-
-	SASLMinor = 0
-
+	SASLMajor    = 1
+	SASLMinor    = 0
 	SASLRevision = 0
 )
 
 const (
-	SASLMechanismsName       Symbol     = "amqp:sasl-mechanisms:list"
-	SASLMechanismsDescriptor Descriptor = 0x0000000000000040
+	SASLMechanismsName       = "amqp:sasl-mechanisms:list"
+	SASLMechanismsDescriptor = 0x0000000000000040
 )
 
 type SASLMechanisms struct {
-	SASLServerMechanisms []Symbol
+	SASLServerMechanisms []string
 }
 
 func (*SASLMechanisms) isSASLFrame() {}
 
+func (f *SASLMechanisms) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (f *SASLMechanisms) Unmarshal(data []byte) error {
+	panic("implement me")
+}
+
 const (
-	SASLInitName       Symbol     = "amqp:sasl-init:list"
-	SASLInitDescriptor Descriptor = 0x0000000000000041
+	SASLInitName       = "amqp:sasl-init:list"
+	SASLInitDescriptor = 0x0000000000000041
 )
 
 type SASLInit struct {
-	Mechanism       Symbol
+	Mechanism       string
 	InitialResponse []byte
 	Hostname        string
 }
 
 func (*SASLInit) isSASLFrame() {}
 
+func (f *SASLInit) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (f *SASLInit) Unmarshal(data []byte) error {
+	panic("implement me")
+}
+
 const (
-	SASLChallengeName       Symbol     = "amqp:sasl-challenge:list"
-	SASLChallengeDescriptor Descriptor = 0x0000000000000042
+	SASLChallengeName       = "amqp:sasl-challenge:list"
+	SASLChallengeDescriptor = 0x0000000000000042
 )
 
 type SASLChallenge struct {
@@ -776,9 +976,17 @@ type SASLChallenge struct {
 
 func (*SASLChallenge) isSASLFrame() {}
 
+func (f *SASLChallenge) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (f *SASLChallenge) Unmarshal(data []byte) error {
+	panic("implement me")
+}
+
 const (
-	SASLResponseName       Symbol     = "amqp:sasl-response:list"
-	SASLResponseDescriptor Descriptor = 0x0000000000000043
+	SASLResponseName       = "amqp:sasl-response:list"
+	SASLResponseDescriptor = 0x0000000000000043
 )
 
 type SASLResponse struct {
@@ -787,9 +995,17 @@ type SASLResponse struct {
 
 func (*SASLResponse) isSASLFrame() {}
 
+func (f *SASLResponse) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (f *SASLResponse) Unmarshal(data []byte) error {
+	panic("implement me")
+}
+
 const (
-	SASLOutcomeName       Symbol     = "amqp:sasl-outcome:list"
-	SASLOutcomeDescriptor Descriptor = 0x0000000000000044
+	SASLOutcomeName       = "amqp:sasl-outcome:list"
+	SASLOutcomeDescriptor = 0x0000000000000044
 )
 
 type SASLOutcome struct {
@@ -798,6 +1014,14 @@ type SASLOutcome struct {
 }
 
 func (*SASLOutcome) isSASLFrame() {}
+
+func (f *SASLOutcome) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (f *SASLOutcome) Unmarshal(data []byte) error {
+	panic("implement me")
+}
 
 type SASLCode uint8
 
