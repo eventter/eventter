@@ -16,7 +16,7 @@ import (
 	"eventter.io/mq"
 	"eventter.io/mq/about"
 	"eventter.io/mq/amqp"
-	"eventter.io/mq/amqp/authentication"
+	"eventter.io/mq/amqp/sasl"
 	"eventter.io/mq/emq"
 	"eventter.io/mq/segments"
 	"github.com/bbva/raft-badger"
@@ -200,9 +200,9 @@ func Cmd() *cobra.Command {
 				Version:        about.Version,
 				CapabilitiesV0: []string{"basic.nack"},
 				HandlerV0:      server,
-				AuthenticationProviders: []authentication.Provider{
-					authentication.NewPLAIN(allowAll),
-					authentication.NewAMQPLAIN(allowAll),
+				SASLProviders: []sasl.Provider{
+					sasl.NewPLAIN(allowAll),
+					sasl.NewAMQPLAIN(allowAll),
 				},
 			}
 			go amqpServer.Serve(amqpListener)

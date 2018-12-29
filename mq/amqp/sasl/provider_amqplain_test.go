@@ -1,4 +1,4 @@
-package authentication
+package sasl
 
 import (
 	"testing"

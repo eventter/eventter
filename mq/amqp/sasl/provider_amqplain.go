@@ -1,4 +1,4 @@
-package authentication
+package sasl
 
 import (
 	"eventter.io/mq/amqp/v0"

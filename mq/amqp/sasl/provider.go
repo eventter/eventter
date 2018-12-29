@@ -1,4 +1,4 @@
-package authentication
+package sasl
 
 type Provider interface {
 	Mechanism() string

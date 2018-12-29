@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"eventter.io/mq/amqp/authentication"
+	"eventter.io/mq/amqp/sasl"
 	"github.com/pkg/errors"
 )
 
@@ -12,7 +12,7 @@ type contextKeyType int
 
 const contextKey contextKeyType = 0
 
-func Token(ctx context.Context) (authentication.Token, error) {
+func Token(ctx context.Context) (sasl.Token, error) {
 	switch value := ctx.Value(contextKey).(type) {
 	case nil:
 		return nil, errors.New("context key not found")

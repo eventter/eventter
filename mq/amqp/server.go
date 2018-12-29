@@ -8,7 +8,7 @@ import (
 	"net"
 	"time"
 
-	"eventter.io/mq/amqp/authentication"
+	"eventter.io/mq/amqp/sasl"
 	"eventter.io/mq/amqp/v0"
 	"github.com/pkg/errors"
 )
@@ -26,7 +26,7 @@ type Server struct {
 	// Max time to establish connection.
 	ConnectTimeout time.Duration
 	// Server authentication providers.
-	AuthenticationProviders []authentication.Provider
+	SASLProviders []sasl.Provider
 	// Heartbeat the server tries to negotiate with clients.
 	Heartbeat time.Duration
 	// Will be transformed to map with strings as keys & `true` as values and sent to client as `capabilities`
@@ -40,14 +40,14 @@ func (s *Server) Serve(l net.Listener) error {
 	if s.ConnectTimeout == 0 {
 		s.ConnectTimeout = defaultConnectTimeout
 	}
-	if len(s.AuthenticationProviders) == 0 {
-		return errors.New("no authentication provider")
+	if len(s.SASLProviders) == 0 {
+		return errors.New("no sasl provider")
 	} else {
 		m := make(map[string]bool)
-		for _, provider := range s.AuthenticationProviders {
+		for _, provider := range s.SASLProviders {
 			mechanism := provider.Mechanism()
 			if m[mechanism] {
-				return errors.Errorf("duplicate authentication providers for mechanism %s", mechanism)
+				return errors.Errorf("duplicate sasl providers for mechanism %s", mechanism)
 			}
 			m[mechanism] = true
 		}

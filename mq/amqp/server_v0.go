@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"eventter.io/mq/amqp/authentication"
+	"eventter.io/mq/amqp/sasl"
 	"eventter.io/mq/amqp/v0"
 	"github.com/gogo/protobuf/types"
 	"github.com/pkg/errors"
@@ -16,7 +16,7 @@ type HandlerV0 interface {
 	ServeAMQPv0(ctx context.Context, transport *v0.Transport) error
 }
 
-func NewContextV0(parent context.Context, token authentication.Token, heartbeat time.Duration, virtualHost string) context.Context {
+func NewContextV0(parent context.Context, token sasl.Token, heartbeat time.Duration, virtualHost string) context.Context {
 	return context.WithValue(parent, contextKey, &contextValueV0{
 		token:       token,
 		heartbeat:   heartbeat,
@@ -25,14 +25,14 @@ func NewContextV0(parent context.Context, token authentication.Token, heartbeat 
 }
 
 type contextValueV0 struct {
-	token       authentication.Token
+	token       sasl.Token
 	heartbeat   time.Duration
 	virtualHost string
 }
 
 func (s *Server) initV0(transport *v0.Transport) (ctx context.Context, err error) {
 	var mechanisms []string
-	for _, provider := range s.AuthenticationProviders {
+	for _, provider := range s.SASLProviders {
 		mechanisms = append(mechanisms, provider.Mechanism())
 	}
 
@@ -74,17 +74,17 @@ func (s *Server) initV0(transport *v0.Transport) (ctx context.Context, err error
 	}
 
 	var (
-		token     authentication.Token
+		token     sasl.Token
 		challenge string
 	)
-	for _, provider := range s.AuthenticationProviders {
+	for _, provider := range s.SASLProviders {
 		if startOk.Mechanism != provider.Mechanism() {
 			continue
 		}
 
 		token, challenge, err = provider.Authenticate(challenge, startOk.Response)
 		if err != nil {
-			return nil, errors.Wrapf(err, "authentication using %s failed", startOk.Mechanism)
+			return nil, errors.Wrapf(err, "sasl using %s failed", startOk.Mechanism)
 		}
 
 		for token == nil {
@@ -103,14 +103,14 @@ func (s *Server) initV0(transport *v0.Transport) (ctx context.Context, err error
 
 			token, challenge, err = provider.Authenticate(challenge, secureOk.Response)
 			if err != nil {
-				return nil, errors.Wrapf(err, "authentication using %s failed", startOk.Mechanism)
+				return nil, errors.Wrapf(err, "sasl using %s failed", startOk.Mechanism)
 			}
 		}
 
 		break
 	}
 	if token == nil {
-		return nil, errors.Errorf("client selected unsupported authentication mechanism %s", startOk.Mechanism)
+		return nil, errors.Errorf("client selected unsupported sasl mechanism %s", startOk.Mechanism)
 	}
 
 	if !token.IsAuthenticated() {
