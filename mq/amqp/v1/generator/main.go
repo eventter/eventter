@@ -437,11 +437,11 @@ type {{ $name | convert }} interface {
 					func (*{{ $goTypeName }}) is{{ $name | convert }}() {}
 				{{ end }}
 
-				func (f *{{ $goTypeName }}) Marshal() ([]byte, error) {
+				func (t *{{ $goTypeName }}) Marshal() ([]byte, error) {
 					panic("implement me")
 				}
 
-				func (f *{{ $goTypeName }}) Unmarshal(data []byte) error {
+				func (t *{{ $goTypeName }}) Unmarshal(data []byte) error {
 					panic("implement me")
 				}
 
@@ -454,6 +454,23 @@ type {{ $name | convert }} interface {
 							{{ joinWith "-" $choice.Name $type.Name | convert }} {{ $goTypeName }} = {{ if or (eq $goType "string") }}{{ printf "%q" $choice.Value }}{{ else }}{{ $choice.Value }}{{ end }}
 						{{- end }}
 					)
+
+					{{ if eq ($type.GoType $root) "string" }}
+						func (t {{ $goTypeName }}) String() string {
+							return string(t)
+						}
+					{{ else }}
+						func (t {{ $goTypeName }}) String() string {
+							switch t {
+							{{ range $choice := $type.Choices -}}
+							case {{ joinWith "-" $choice.Name $type.Name | convert }}:
+								return {{ printf "%q" $choice.Name }}
+							{{ end -}}
+							default:
+								return "<invalid>"
+							}
+						}
+					{{ end }}
 				{{ end }}
 
 				{{ range $name := $type.UnionTypeNames }}

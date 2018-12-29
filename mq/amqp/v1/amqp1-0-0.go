@@ -200,11 +200,11 @@ type Open struct {
 
 func (*Open) isFrame() {}
 
-func (f *Open) Marshal() ([]byte, error) {
+func (t *Open) Marshal() ([]byte, error) {
 	panic("implement me")
 }
 
-func (f *Open) Unmarshal(data []byte) error {
+func (t *Open) Unmarshal(data []byte) error {
 	panic("implement me")
 }
 
@@ -226,11 +226,11 @@ type Begin struct {
 
 func (*Begin) isFrame() {}
 
-func (f *Begin) Marshal() ([]byte, error) {
+func (t *Begin) Marshal() ([]byte, error) {
 	panic("implement me")
 }
 
-func (f *Begin) Unmarshal(data []byte) error {
+func (t *Begin) Unmarshal(data []byte) error {
 	panic("implement me")
 }
 
@@ -258,11 +258,11 @@ type Attach struct {
 
 func (*Attach) isFrame() {}
 
-func (f *Attach) Marshal() ([]byte, error) {
+func (t *Attach) Marshal() ([]byte, error) {
 	panic("implement me")
 }
 
-func (f *Attach) Unmarshal(data []byte) error {
+func (t *Attach) Unmarshal(data []byte) error {
 	panic("implement me")
 }
 
@@ -287,11 +287,11 @@ type Flow struct {
 
 func (*Flow) isFrame() {}
 
-func (f *Flow) Marshal() ([]byte, error) {
+func (t *Flow) Marshal() ([]byte, error) {
 	panic("implement me")
 }
 
-func (f *Flow) Unmarshal(data []byte) error {
+func (t *Flow) Unmarshal(data []byte) error {
 	panic("implement me")
 }
 
@@ -316,11 +316,11 @@ type Transfer struct {
 
 func (*Transfer) isFrame() {}
 
-func (f *Transfer) Marshal() ([]byte, error) {
+func (t *Transfer) Marshal() ([]byte, error) {
 	panic("implement me")
 }
 
-func (f *Transfer) Unmarshal(data []byte) error {
+func (t *Transfer) Unmarshal(data []byte) error {
 	panic("implement me")
 }
 
@@ -340,11 +340,11 @@ type Disposition struct {
 
 func (*Disposition) isFrame() {}
 
-func (f *Disposition) Marshal() ([]byte, error) {
+func (t *Disposition) Marshal() ([]byte, error) {
 	panic("implement me")
 }
 
-func (f *Disposition) Unmarshal(data []byte) error {
+func (t *Disposition) Unmarshal(data []byte) error {
 	panic("implement me")
 }
 
@@ -361,11 +361,11 @@ type Detach struct {
 
 func (*Detach) isFrame() {}
 
-func (f *Detach) Marshal() ([]byte, error) {
+func (t *Detach) Marshal() ([]byte, error) {
 	panic("implement me")
 }
 
-func (f *Detach) Unmarshal(data []byte) error {
+func (t *Detach) Unmarshal(data []byte) error {
 	panic("implement me")
 }
 
@@ -380,11 +380,11 @@ type End struct {
 
 func (*End) isFrame() {}
 
-func (f *End) Marshal() ([]byte, error) {
+func (t *End) Marshal() ([]byte, error) {
 	panic("implement me")
 }
 
-func (f *End) Unmarshal(data []byte) error {
+func (t *End) Unmarshal(data []byte) error {
 	panic("implement me")
 }
 
@@ -399,11 +399,11 @@ type Close struct {
 
 func (*Close) isFrame() {}
 
-func (f *Close) Marshal() ([]byte, error) {
+func (t *Close) Marshal() ([]byte, error) {
 	panic("implement me")
 }
 
-func (f *Close) Unmarshal(data []byte) error {
+func (t *Close) Unmarshal(data []byte) error {
 	panic("implement me")
 }
 
@@ -423,6 +423,17 @@ const (
 	ReceiverRole Role = true
 )
 
+func (t Role) String() string {
+	switch t {
+	case SenderRole:
+		return "sender"
+	case ReceiverRole:
+		return "receiver"
+	default:
+		return "<invalid>"
+	}
+}
+
 type SenderSettleMode uint8
 
 const (
@@ -431,12 +442,36 @@ const (
 	MixedSenderSettleMode     SenderSettleMode = 2
 )
 
+func (t SenderSettleMode) String() string {
+	switch t {
+	case UnsettledSenderSettleMode:
+		return "unsettled"
+	case SettledSenderSettleMode:
+		return "settled"
+	case MixedSenderSettleMode:
+		return "mixed"
+	default:
+		return "<invalid>"
+	}
+}
+
 type ReceiverSettleMode uint8
 
 const (
 	FirstReceiverSettleMode  ReceiverSettleMode = 0
 	SecondReceiverSettleMode ReceiverSettleMode = 1
 )
+
+func (t ReceiverSettleMode) String() string {
+	switch t {
+	case FirstReceiverSettleMode:
+		return "first"
+	case SecondReceiverSettleMode:
+		return "second"
+	default:
+		return "<invalid>"
+	}
+}
 
 type Handle uint32
 
@@ -469,11 +504,11 @@ type Error struct {
 	Info        *Fields
 }
 
-func (f *Error) Marshal() ([]byte, error) {
+func (t *Error) Marshal() ([]byte, error) {
 	panic("implement me")
 }
 
-func (f *Error) Unmarshal(data []byte) error {
+func (t *Error) Unmarshal(data []byte) error {
 	panic("implement me")
 }
 
@@ -495,6 +530,10 @@ const (
 	FrameSizeTooSmallAMQPError     AMQPError = "amqp:frame-size-too-small"
 )
 
+func (t AMQPError) String() string {
+	return string(t)
+}
+
 func (AMQPError) isErrorCondition() {}
 
 type ConnectionError string
@@ -504,6 +543,10 @@ const (
 	FramingErrorConnectionError     ConnectionError = "amqp:connection:framing-error"
 	RedirectConnectionError         ConnectionError = "amqp:connection:redirect"
 )
+
+func (t ConnectionError) String() string {
+	return string(t)
+}
 
 func (ConnectionError) isErrorCondition() {}
 
@@ -516,6 +559,10 @@ const (
 	UnattachedHandleSessionError SessionError = "amqp:session:unattached-handle"
 )
 
+func (t SessionError) String() string {
+	return string(t)
+}
+
 func (SessionError) isErrorCondition() {}
 
 type LinkError string
@@ -527,6 +574,10 @@ const (
 	RedirectLinkError              LinkError = "amqp:link:redirect"
 	StolenLinkError                LinkError = "amqp:link:stolen"
 )
+
+func (t LinkError) String() string {
+	return string(t)
+}
 
 func (LinkError) isErrorCondition() {}
 
@@ -547,11 +598,11 @@ type Header struct {
 
 func (*Header) isSection() {}
 
-func (f *Header) Marshal() ([]byte, error) {
+func (t *Header) Marshal() ([]byte, error) {
 	panic("implement me")
 }
 
-func (f *Header) Unmarshal(data []byte) error {
+func (t *Header) Unmarshal(data []byte) error {
 	panic("implement me")
 }
 
@@ -596,11 +647,11 @@ type Properties struct {
 
 func (*Properties) isSection() {}
 
-func (f *Properties) Marshal() ([]byte, error) {
+func (t *Properties) Marshal() ([]byte, error) {
 	panic("implement me")
 }
 
-func (f *Properties) Unmarshal(data []byte) error {
+func (t *Properties) Unmarshal(data []byte) error {
 	panic("implement me")
 }
 
@@ -665,11 +716,11 @@ type Received struct {
 
 func (*Received) isDeliveryState() {}
 
-func (f *Received) Marshal() ([]byte, error) {
+func (t *Received) Marshal() ([]byte, error) {
 	panic("implement me")
 }
 
-func (f *Received) Unmarshal(data []byte) error {
+func (t *Received) Unmarshal(data []byte) error {
 	panic("implement me")
 }
 
@@ -685,11 +736,11 @@ func (*Accepted) isDeliveryState() {}
 
 func (*Accepted) isOutcome() {}
 
-func (f *Accepted) Marshal() ([]byte, error) {
+func (t *Accepted) Marshal() ([]byte, error) {
 	panic("implement me")
 }
 
-func (f *Accepted) Unmarshal(data []byte) error {
+func (t *Accepted) Unmarshal(data []byte) error {
 	panic("implement me")
 }
 
@@ -706,11 +757,11 @@ func (*Rejected) isDeliveryState() {}
 
 func (*Rejected) isOutcome() {}
 
-func (f *Rejected) Marshal() ([]byte, error) {
+func (t *Rejected) Marshal() ([]byte, error) {
 	panic("implement me")
 }
 
-func (f *Rejected) Unmarshal(data []byte) error {
+func (t *Rejected) Unmarshal(data []byte) error {
 	panic("implement me")
 }
 
@@ -726,11 +777,11 @@ func (*Released) isDeliveryState() {}
 
 func (*Released) isOutcome() {}
 
-func (f *Released) Marshal() ([]byte, error) {
+func (t *Released) Marshal() ([]byte, error) {
 	panic("implement me")
 }
 
-func (f *Released) Unmarshal(data []byte) error {
+func (t *Released) Unmarshal(data []byte) error {
 	panic("implement me")
 }
 
@@ -749,11 +800,11 @@ func (*Modified) isDeliveryState() {}
 
 func (*Modified) isOutcome() {}
 
-func (f *Modified) Marshal() ([]byte, error) {
+func (t *Modified) Marshal() ([]byte, error) {
 	panic("implement me")
 }
 
-func (f *Modified) Unmarshal(data []byte) error {
+func (t *Modified) Unmarshal(data []byte) error {
 	panic("implement me")
 }
 
@@ -778,11 +829,11 @@ type Source struct {
 
 func (*Source) isSource() {}
 
-func (f *Source) Marshal() ([]byte, error) {
+func (t *Source) Marshal() ([]byte, error) {
 	panic("implement me")
 }
 
-func (f *Source) Unmarshal(data []byte) error {
+func (t *Source) Unmarshal(data []byte) error {
 	panic("implement me")
 }
 
@@ -803,11 +854,11 @@ type Target struct {
 
 func (*Target) isTarget() {}
 
-func (f *Target) Marshal() ([]byte, error) {
+func (t *Target) Marshal() ([]byte, error) {
 	panic("implement me")
 }
 
-func (f *Target) Unmarshal(data []byte) error {
+func (t *Target) Unmarshal(data []byte) error {
 	panic("implement me")
 }
 
@@ -819,6 +870,19 @@ const (
 	UnsettledStateTerminusDurability TerminusDurability = 2
 )
 
+func (t TerminusDurability) String() string {
+	switch t {
+	case NoneTerminusDurability:
+		return "none"
+	case ConfigurationTerminusDurability:
+		return "configuration"
+	case UnsettledStateTerminusDurability:
+		return "unsettled-state"
+	default:
+		return "<invalid>"
+	}
+}
+
 type TerminusExpiryPolicy string
 
 const (
@@ -828,12 +892,20 @@ const (
 	NeverTerminusExpiryPolicy           TerminusExpiryPolicy = "never"
 )
 
+func (t TerminusExpiryPolicy) String() string {
+	return string(t)
+}
+
 type StdDistMode string
 
 const (
 	MoveStdDistMode StdDistMode = "move"
 	CopyStdDistMode StdDistMode = "copy"
 )
+
+func (t StdDistMode) String() string {
+	return string(t)
+}
 
 func (StdDistMode) isDistributionMode() {}
 
@@ -851,11 +923,11 @@ type DeleteOnClose struct {
 
 func (*DeleteOnClose) isLifetimePolicy() {}
 
-func (f *DeleteOnClose) Marshal() ([]byte, error) {
+func (t *DeleteOnClose) Marshal() ([]byte, error) {
 	panic("implement me")
 }
 
-func (f *DeleteOnClose) Unmarshal(data []byte) error {
+func (t *DeleteOnClose) Unmarshal(data []byte) error {
 	panic("implement me")
 }
 
@@ -869,11 +941,11 @@ type DeleteOnNoLinks struct {
 
 func (*DeleteOnNoLinks) isLifetimePolicy() {}
 
-func (f *DeleteOnNoLinks) Marshal() ([]byte, error) {
+func (t *DeleteOnNoLinks) Marshal() ([]byte, error) {
 	panic("implement me")
 }
 
-func (f *DeleteOnNoLinks) Unmarshal(data []byte) error {
+func (t *DeleteOnNoLinks) Unmarshal(data []byte) error {
 	panic("implement me")
 }
 
@@ -887,11 +959,11 @@ type DeleteOnNoMessages struct {
 
 func (*DeleteOnNoMessages) isLifetimePolicy() {}
 
-func (f *DeleteOnNoMessages) Marshal() ([]byte, error) {
+func (t *DeleteOnNoMessages) Marshal() ([]byte, error) {
 	panic("implement me")
 }
 
-func (f *DeleteOnNoMessages) Unmarshal(data []byte) error {
+func (t *DeleteOnNoMessages) Unmarshal(data []byte) error {
 	panic("implement me")
 }
 
@@ -905,11 +977,11 @@ type DeleteOnNoLinksOrMessages struct {
 
 func (*DeleteOnNoLinksOrMessages) isLifetimePolicy() {}
 
-func (f *DeleteOnNoLinksOrMessages) Marshal() ([]byte, error) {
+func (t *DeleteOnNoLinksOrMessages) Marshal() ([]byte, error) {
 	panic("implement me")
 }
 
-func (f *DeleteOnNoLinksOrMessages) Unmarshal(data []byte) error {
+func (t *DeleteOnNoLinksOrMessages) Unmarshal(data []byte) error {
 	panic("implement me")
 }
 
@@ -936,11 +1008,11 @@ type SASLMechanisms struct {
 
 func (*SASLMechanisms) isSASLFrame() {}
 
-func (f *SASLMechanisms) Marshal() ([]byte, error) {
+func (t *SASLMechanisms) Marshal() ([]byte, error) {
 	panic("implement me")
 }
 
-func (f *SASLMechanisms) Unmarshal(data []byte) error {
+func (t *SASLMechanisms) Unmarshal(data []byte) error {
 	panic("implement me")
 }
 
@@ -957,11 +1029,11 @@ type SASLInit struct {
 
 func (*SASLInit) isSASLFrame() {}
 
-func (f *SASLInit) Marshal() ([]byte, error) {
+func (t *SASLInit) Marshal() ([]byte, error) {
 	panic("implement me")
 }
 
-func (f *SASLInit) Unmarshal(data []byte) error {
+func (t *SASLInit) Unmarshal(data []byte) error {
 	panic("implement me")
 }
 
@@ -976,11 +1048,11 @@ type SASLChallenge struct {
 
 func (*SASLChallenge) isSASLFrame() {}
 
-func (f *SASLChallenge) Marshal() ([]byte, error) {
+func (t *SASLChallenge) Marshal() ([]byte, error) {
 	panic("implement me")
 }
 
-func (f *SASLChallenge) Unmarshal(data []byte) error {
+func (t *SASLChallenge) Unmarshal(data []byte) error {
 	panic("implement me")
 }
 
@@ -995,11 +1067,11 @@ type SASLResponse struct {
 
 func (*SASLResponse) isSASLFrame() {}
 
-func (f *SASLResponse) Marshal() ([]byte, error) {
+func (t *SASLResponse) Marshal() ([]byte, error) {
 	panic("implement me")
 }
 
-func (f *SASLResponse) Unmarshal(data []byte) error {
+func (t *SASLResponse) Unmarshal(data []byte) error {
 	panic("implement me")
 }
 
@@ -1015,11 +1087,11 @@ type SASLOutcome struct {
 
 func (*SASLOutcome) isSASLFrame() {}
 
-func (f *SASLOutcome) Marshal() ([]byte, error) {
+func (t *SASLOutcome) Marshal() ([]byte, error) {
 	panic("implement me")
 }
 
-func (f *SASLOutcome) Unmarshal(data []byte) error {
+func (t *SASLOutcome) Unmarshal(data []byte) error {
 	panic("implement me")
 }
 
@@ -1032,3 +1104,20 @@ const (
 	SysPermSASLCode SASLCode = 3
 	SysTempSASLCode SASLCode = 4
 )
+
+func (t SASLCode) String() string {
+	switch t {
+	case OkSASLCode:
+		return "ok"
+	case AuthSASLCode:
+		return "auth"
+	case SysSASLCode:
+		return "sys"
+	case SysPermSASLCode:
+		return "sys-perm"
+	case SysTempSASLCode:
+		return "sys-temp"
+	default:
+		return "<invalid>"
+	}
+}
