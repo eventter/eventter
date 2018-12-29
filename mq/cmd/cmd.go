@@ -200,12 +200,14 @@ func Cmd() *cobra.Command {
 				Version:        about.Version,
 				CapabilitiesV0: []string{"basic.nack"},
 				HandlerV0:      server,
+				HandlerV1:      server,
 				SASLProviders: []sasl.Provider{
 					sasl.NewPLAIN(allowAll),
 					sasl.NewAMQPLAIN(allowAll),
 				},
 			}
 			go amqpServer.Serve(amqpListener)
+			defer amqpServer.Close()
 			log.Println("amqp server started at", amqpListener.Addr())
 
 			interrupt := make(chan os.Signal, 1)

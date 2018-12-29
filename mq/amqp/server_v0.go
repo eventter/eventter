@@ -172,5 +172,5 @@ func (s *Server) initV0(transport *v0.Transport) (ctx context.Context, err error
 		return nil, errors.Errorf("send connection.open-ok failed")
 	}
 
-	return NewContextV0(context.Background(), token, heartbeat, open.VirtualHost), nil
+	return NewContextV0(s.ctx, token, heartbeat, open.VirtualHost), nil
 }

@@ -18,6 +18,8 @@ func Token(ctx context.Context) (sasl.Token, error) {
 		return nil, errors.New("context key not found")
 	case *contextValueV0:
 		return value.token, nil
+	case *contextValueV1:
+		return value.token, nil
 	default:
 		return nil, errors.Errorf("unhandled value type %T", value)
 	}

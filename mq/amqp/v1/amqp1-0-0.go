@@ -434,6 +434,14 @@ func (t Role) String() string {
 	}
 }
 
+func (t *Role) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (t *Role) Unmarshal(data []byte) error {
+	panic("implement me")
+}
+
 type SenderSettleMode uint8
 
 const (
@@ -455,6 +463,14 @@ func (t SenderSettleMode) String() string {
 	}
 }
 
+func (t *SenderSettleMode) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (t *SenderSettleMode) Unmarshal(data []byte) error {
+	panic("implement me")
+}
+
 type ReceiverSettleMode uint8
 
 const (
@@ -473,25 +489,113 @@ func (t ReceiverSettleMode) String() string {
 	}
 }
 
+func (t *ReceiverSettleMode) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (t *ReceiverSettleMode) Unmarshal(data []byte) error {
+	panic("implement me")
+}
+
 type Handle uint32
+
+func (t *Handle) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (t *Handle) Unmarshal(data []byte) error {
+	panic("implement me")
+}
 
 type Seconds uint32
 
+func (t *Seconds) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (t *Seconds) Unmarshal(data []byte) error {
+	panic("implement me")
+}
+
 type Milliseconds uint32
+
+func (t *Milliseconds) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (t *Milliseconds) Unmarshal(data []byte) error {
+	panic("implement me")
+}
 
 type DeliveryTag []byte
 
+func (t *DeliveryTag) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (t *DeliveryTag) Unmarshal(data []byte) error {
+	panic("implement me")
+}
+
 type DeliveryNumber uint32
+
+func (t *DeliveryNumber) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (t *DeliveryNumber) Unmarshal(data []byte) error {
+	panic("implement me")
+}
 
 type TransferNumber uint32
 
+func (t *TransferNumber) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (t *TransferNumber) Unmarshal(data []byte) error {
+	panic("implement me")
+}
+
 type SequenceNo uint32
+
+func (t *SequenceNo) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (t *SequenceNo) Unmarshal(data []byte) error {
+	panic("implement me")
+}
 
 type MessageFormat uint32
 
+func (t *MessageFormat) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (t *MessageFormat) Unmarshal(data []byte) error {
+	panic("implement me")
+}
+
 type IETFLanguageTag string
 
+func (t *IETFLanguageTag) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (t *IETFLanguageTag) Unmarshal(data []byte) error {
+	panic("implement me")
+}
+
 type Fields types.Struct
+
+func (t *Fields) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (t *Fields) Unmarshal(data []byte) error {
+	panic("implement me")
+}
 
 const (
 	ErrorName       = "amqp:error:list"
@@ -536,6 +640,14 @@ func (t AMQPError) String() string {
 
 func (AMQPError) isErrorCondition() {}
 
+func (t *AMQPError) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (t *AMQPError) Unmarshal(data []byte) error {
+	panic("implement me")
+}
+
 type ConnectionError string
 
 const (
@@ -549,6 +661,14 @@ func (t ConnectionError) String() string {
 }
 
 func (ConnectionError) isErrorCondition() {}
+
+func (t *ConnectionError) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (t *ConnectionError) Unmarshal(data []byte) error {
+	panic("implement me")
+}
 
 type SessionError string
 
@@ -565,6 +685,14 @@ func (t SessionError) String() string {
 
 func (SessionError) isErrorCondition() {}
 
+func (t *SessionError) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (t *SessionError) Unmarshal(data []byte) error {
+	panic("implement me")
+}
+
 type LinkError string
 
 const (
@@ -580,6 +708,14 @@ func (t LinkError) String() string {
 }
 
 func (LinkError) isErrorCondition() {}
+
+func (t *LinkError) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (t *LinkError) Unmarshal(data []byte) error {
+	panic("implement me")
+}
 
 const ()
 
@@ -615,6 +751,14 @@ type DeliveryAnnotations types.Struct
 
 func (DeliveryAnnotations) isSection() {}
 
+func (t *DeliveryAnnotations) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (t *DeliveryAnnotations) Unmarshal(data []byte) error {
+	panic("implement me")
+}
+
 const (
 	MessageAnnotationsName       = "amqp:message-annotations:map"
 	MessageAnnotationsDescriptor = 0x0000000000000072
@@ -623,6 +767,14 @@ const (
 type MessageAnnotations types.Struct
 
 func (MessageAnnotations) isSection() {}
+
+func (t *MessageAnnotations) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (t *MessageAnnotations) Unmarshal(data []byte) error {
+	panic("implement me")
+}
 
 const (
 	PropertiesName       = "amqp:properties:list"
@@ -664,6 +816,14 @@ type ApplicationProperties types.Struct
 
 func (ApplicationProperties) isSection() {}
 
+func (t *ApplicationProperties) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (t *ApplicationProperties) Unmarshal(data []byte) error {
+	panic("implement me")
+}
+
 const (
 	DataName       = "amqp:data:binary"
 	DataDescriptor = 0x0000000000000075
@@ -672,6 +832,14 @@ const (
 type Data []byte
 
 func (Data) isSection() {}
+
+func (t *Data) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (t *Data) Unmarshal(data []byte) error {
+	panic("implement me")
+}
 
 const (
 	FooterName       = "amqp:footer:map"
@@ -682,27 +850,83 @@ type Footer types.Struct
 
 func (Footer) isSection() {}
 
+func (t *Footer) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (t *Footer) Unmarshal(data []byte) error {
+	panic("implement me")
+}
+
 type Annotations types.Struct
+
+func (t *Annotations) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (t *Annotations) Unmarshal(data []byte) error {
+	panic("implement me")
+}
 
 type MessageIDUlong uint64
 
 func (MessageIDUlong) isMessageID() {}
 
+func (t *MessageIDUlong) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (t *MessageIDUlong) Unmarshal(data []byte) error {
+	panic("implement me")
+}
+
 type MessageIDUUID UUID
 
 func (MessageIDUUID) isMessageID() {}
+
+func (t *MessageIDUUID) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (t *MessageIDUUID) Unmarshal(data []byte) error {
+	panic("implement me")
+}
 
 type MessageIDBinary []byte
 
 func (MessageIDBinary) isMessageID() {}
 
+func (t *MessageIDBinary) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (t *MessageIDBinary) Unmarshal(data []byte) error {
+	panic("implement me")
+}
+
 type MessageIDString string
 
 func (MessageIDString) isMessageID() {}
 
+func (t *MessageIDString) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (t *MessageIDString) Unmarshal(data []byte) error {
+	panic("implement me")
+}
+
 type AddressString string
 
 func (AddressString) isAddress() {}
+
+func (t *AddressString) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (t *AddressString) Unmarshal(data []byte) error {
+	panic("implement me")
+}
 
 const (
 	ReceivedName       = "amqp:received:list"
@@ -883,6 +1107,14 @@ func (t TerminusDurability) String() string {
 	}
 }
 
+func (t *TerminusDurability) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (t *TerminusDurability) Unmarshal(data []byte) error {
+	panic("implement me")
+}
+
 type TerminusExpiryPolicy string
 
 const (
@@ -894,6 +1126,14 @@ const (
 
 func (t TerminusExpiryPolicy) String() string {
 	return string(t)
+}
+
+func (t *TerminusExpiryPolicy) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (t *TerminusExpiryPolicy) Unmarshal(data []byte) error {
+	panic("implement me")
 }
 
 type StdDistMode string
@@ -909,9 +1149,33 @@ func (t StdDistMode) String() string {
 
 func (StdDistMode) isDistributionMode() {}
 
+func (t *StdDistMode) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (t *StdDistMode) Unmarshal(data []byte) error {
+	panic("implement me")
+}
+
 type FilterSet types.Struct
 
+func (t *FilterSet) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (t *FilterSet) Unmarshal(data []byte) error {
+	panic("implement me")
+}
+
 type NodeProperties types.Struct
+
+func (t *NodeProperties) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (t *NodeProperties) Unmarshal(data []byte) error {
+	panic("implement me")
+}
 
 const (
 	DeleteOnCloseName       = "amqp:delete-on-close:list"
@@ -1120,4 +1384,12 @@ func (t SASLCode) String() string {
 	default:
 		return "<invalid>"
 	}
+}
+
+func (t *SASLCode) Marshal() ([]byte, error) {
+	panic("implement me")
+}
+
+func (t *SASLCode) Unmarshal(data []byte) error {
+	panic("implement me")
 }

@@ -35,35 +35,53 @@ func (r *Root) Section(name string) *Section {
 }
 
 func (r *Root) Init() error {
-	for _, section := range r.Sections {
-		for _, typ := range section.Types {
-			for _, encoding := range typ.Encodings {
+	for _, s := range r.Sections {
+		s.Parent = r
+
+		for _, t := range s.Types {
+			t.Parent = s
+
+			for _, encoding := range t.Encodings {
+				encoding.Parent = t
+
 				code, err := strconv.ParseInt(encoding.CodeHex[2:], 16, 32)
 				if err != nil {
-					return errors.Wrapf(err, "parse encoding code failed %s->%s->%s", section.Name, typ.Name, encoding.CodeHex)
+					return errors.Wrapf(err, "parse encoding code failed %s->%s->%s", s.Name, t.Name, encoding.CodeHex)
 				}
 				encoding.Code = int(code)
 				encoding.CodeHex = ""
 			}
-			if typ.Descriptor != nil {
-				parts := strings.Split(typ.Descriptor.CodeHex, ":")
+
+			if t.Descriptor != nil {
+				t.Descriptor.Parent = t
+
+				parts := strings.Split(t.Descriptor.CodeHex, ":")
 				if len(parts) != 2 {
-					return errors.Errorf("bad descriptor code %s->%s", section.Name, typ.Name)
+					return errors.Errorf("bad descriptor code %s->%s", s.Name, t.Name)
 				}
 				high, err := strconv.ParseUint(parts[0][2:], 16, 32)
 				if err != nil {
-					return errors.Wrapf(err, "parse high descriptor code failed %s->%s", section.Name, typ.Name)
+					return errors.Wrapf(err, "parse high descriptor code failed %s->%s", s.Name, t.Name)
 				}
 				low, err := strconv.ParseUint(parts[1][2:], 16, 32)
 				if err != nil {
-					return errors.Wrapf(err, "parse low descriptor code failed %s->%s", section.Name, typ.Name)
+					return errors.Wrapf(err, "parse low descriptor code failed %s->%s", s.Name, t.Name)
 				}
-				typ.Descriptor.Code = high<<32 | low
-				typ.Descriptor.CodeHex = ""
+				t.Descriptor.Code = high<<32 | low
+				t.Descriptor.CodeHex = ""
 			}
-			for _, field := range typ.Fields {
-				field.Parent = typ
+
+			for _, field := range t.Fields {
+				field.Parent = t
 			}
+
+			for _, choice := range t.Choices {
+				choice.Parent = t
+			}
+		}
+
+		for _, d := range s.Definitions {
+			d.Parent = s
 		}
 	}
 
@@ -74,13 +92,13 @@ func (r *Root) UnionTypeNames() []string {
 	var names []string
 	known := make(map[string]bool)
 
-	for _, section := range r.Sections {
-		for _, typ := range section.Types {
-			if typ.Provides == "" {
+	for _, s := range r.Sections {
+		for _, t := range s.Types {
+			if t.Provides == "" {
 				continue
 			}
 
-			for _, provides := range regexp.MustCompile(`,\s+`).Split(typ.Provides, -1) {
+			for _, provides := range regexp.MustCompile(`,\s+`).Split(t.Provides, -1) {
 				if provides == "source" || provides == "target" {
 					continue
 				}
@@ -100,6 +118,7 @@ type Section struct {
 	Name        string        `xml:"name,attr"`
 	Types       []*Type       `xml:"type"`
 	Definitions []*Definition `xml:"definition"`
+	Parent      *Root         `xml:"-"`
 }
 
 type Type struct {
@@ -111,6 +130,7 @@ type Type struct {
 	Descriptor *Descriptor `xml:"descriptor"`
 	Fields     []*Field    `xml:"field"`
 	Choices    []*Choice   `xml:"choice"`
+	Parent     *Section    `xml:"-"`
 }
 
 func (t *Type) UnionTypeNames() []string {
@@ -121,8 +141,8 @@ func (t *Type) UnionTypeNames() []string {
 	return regexp.MustCompile(`,\s+`).Split(t.Provides, -1)
 }
 
-func (t *Type) GoType(root *Root, path ...string) (string, error) {
-	path = append(path, t.Name)
+func (t *Type) GoType() (string, error) {
+	root := t.Parent.Parent
 
 	if t.Class == "composite" {
 		return "*" + convert(t.Name), nil
@@ -130,7 +150,7 @@ func (t *Type) GoType(root *Root, path ...string) (string, error) {
 		for _, section := range root.Sections {
 			for _, typ := range section.Types {
 				if typ.Name == t.Source {
-					return typ.GoType(root, path...)
+					return typ.GoType()
 				}
 			}
 		}
@@ -197,12 +217,14 @@ type Encoding struct {
 	CodeHex  string `xml:"code,attr" json:"-"`
 	Category string `xml:"category,attr"`
 	Width    int    `xml:"width,attr"`
+	Parent   *Type  `xml:"-"`
 }
 
 type Descriptor struct {
 	Name    string `xml:"name,attr"`
 	Code    uint64 `xml:"-"`
 	CodeHex string `xml:"code,attr"`
+	Parent  *Type  `xml:"-"`
 }
 
 type Field struct {
@@ -215,8 +237,8 @@ type Field struct {
 	Parent    *Type  `xml:"-"`
 }
 
-func (f *Field) GoType(root *Root) (string, error) {
-	t, err := f.goType(root)
+func (f *Field) GoType() (string, error) {
+	t, err := f.goType()
 	if err != nil {
 		return "", nil
 	}
@@ -226,7 +248,9 @@ func (f *Field) GoType(root *Root) (string, error) {
 	return t, nil
 }
 
-func (f *Field) goType(root *Root) (string, error) {
+func (f *Field) goType() (string, error) {
+	root := f.Parent.Parent.Parent
+
 	if f.Type == "*" {
 		if f.Requires == "" {
 			return "", errors.Errorf("field %s (of type %s): empty requires", f.Name, f.Parent.Name)
@@ -248,7 +272,7 @@ func (f *Field) goType(root *Root) (string, error) {
 			}
 
 			if typ.Class == "primitive" {
-				s, err := typ.GoType(root)
+				s, err := typ.GoType()
 				if err != nil {
 					return "", errors.Wrapf(err, "field %s (of type %s)", f.Name, f.Parent.Name)
 				}
@@ -259,7 +283,7 @@ func (f *Field) goType(root *Root) (string, error) {
 			} else if typ.Class == "composite" {
 				return "*" + convert(f.Type), nil
 			} else if typ.Class == "restricted" {
-				s, err := typ.GoType(root)
+				s, err := typ.GoType()
 				if err != nil {
 					return "", errors.Wrapf(err, "field %s (of type %s)", f.Name, f.Parent.Name)
 				}
@@ -277,13 +301,15 @@ func (f *Field) goType(root *Root) (string, error) {
 }
 
 type Choice struct {
-	Name  string `xml:"name,attr"`
-	Value string `xml:"value,attr"`
+	Name   string `xml:"name,attr"`
+	Value  string `xml:"value,attr"`
+	Parent *Type  `xml:"-"`
 }
 
 type Definition struct {
-	Name  string `xml:"name,attr"`
-	Value string `xml:"value,attr"`
+	Name   string   `xml:"name,attr"`
+	Value  string   `xml:"value,attr"`
+	Parent *Section `xml:"-"`
 }
 
 func main() {
@@ -429,7 +455,7 @@ type {{ $name | convert }} interface {
 			{{ if eq $type.Class "composite" }}
 				type {{ $goTypeName }} struct {
 					{{ range $field := $type.Fields }}
-						{{ $field.Name | convert }} {{ $field.GoType $root }}
+						{{ $field.Name | convert }} {{ $field.GoType }}
 					{{- end }}
 				}
 
@@ -446,16 +472,16 @@ type {{ $name | convert }} interface {
 				}
 
 			{{ else if eq $type.Class "restricted" }}
-				type {{ $goTypeName }} {{ $type.GoType $root }}
+				type {{ $goTypeName }} {{ $type.GoType }}
 				{{ with $type.Choices }}
 					const (
 						{{ range $choice := $type.Choices }}
-							{{ $goType := $type.GoType $root -}}
+							{{ $goType := $type.GoType -}}
 							{{ joinWith "-" $choice.Name $type.Name | convert }} {{ $goTypeName }} = {{ if or (eq $goType "string") }}{{ printf "%q" $choice.Value }}{{ else }}{{ $choice.Value }}{{ end }}
 						{{- end }}
 					)
 
-					{{ if eq ($type.GoType $root) "string" }}
+					{{ if eq $type.GoType "string" }}
 						func (t {{ $goTypeName }}) String() string {
 							return string(t)
 						}
@@ -476,6 +502,14 @@ type {{ $name | convert }} interface {
 				{{ range $name := $type.UnionTypeNames }}
 					func ({{ $goTypeName }}) is{{ $name | convert }}() {}
 				{{ end }}
+
+				func (t *{{ $goTypeName }}) Marshal() ([]byte, error) {
+					panic("implement me")
+				}
+
+				func (t *{{ $goTypeName }}) Unmarshal(data []byte) error {
+					panic("implement me")
+				}
 			{{ else if eq $type.Class "primitive" }}
 				const (
 					{{- range $encoding := $type.Encodings }}

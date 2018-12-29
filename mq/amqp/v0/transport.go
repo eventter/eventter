@@ -22,13 +22,9 @@ type Transport struct {
 }
 
 func NewTransport(conn net.Conn) *Transport {
-	return NewTransportWithReader(conn, bufio.NewReader(conn))
-}
-
-func NewTransportWithReader(conn net.Conn, r *bufio.Reader) *Transport {
 	return &Transport{
 		conn:     conn,
-		rw:       bufio.NewReadWriter(r, bufio.NewWriter(conn)),
+		rw:       bufio.NewReadWriter(bufio.NewReader(conn), bufio.NewWriter(conn)),
 		buf:      make([]byte, FrameMinSize),
 		frameMax: FrameMinSize,
 	}
