@@ -13,6 +13,7 @@ proto:
 
 amqp:
 	go generate ./mq/amqp/v0
+	go generate ./mq/amqp/v1
 
 fmt:
 	go fmt $$(go list ./... | grep -v vendor)
