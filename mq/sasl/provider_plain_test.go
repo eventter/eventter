@@ -10,9 +10,7 @@ import (
 func TestPlainProvider_Authenticate_Success(t *testing.T) {
 	assert := require.New(t)
 
-	provider := NewPLAIN(func(ctx context.Context, username, password string) (ok bool, err error) {
-		return true, nil
-	})
+	provider := NewPLAIN(&allowAllDirectory{})
 
 	token, challenge, err := provider.Authenticate(context.Background(), "", "\000user\000pass")
 	assert.NoError(err)
@@ -28,9 +26,7 @@ func TestPlainProvider_Authenticate_Success(t *testing.T) {
 func TestPlainProvider_Authenticate_BadResponse(t *testing.T) {
 	assert := require.New(t)
 
-	provider := NewPLAIN(func(ctx context.Context, username, password string) (ok bool, err error) {
-		return true, nil
-	})
+	provider := NewPLAIN(&allowAllDirectory{})
 
 	token, challenge, err := provider.Authenticate(context.Background(), "", "")
 	assert.Error(err)
@@ -41,9 +37,7 @@ func TestPlainProvider_Authenticate_BadResponse(t *testing.T) {
 func TestPlainProvider_Authenticate_NotVerified(t *testing.T) {
 	assert := require.New(t)
 
-	provider := NewPLAIN(func(ctx context.Context, username, password string) (ok bool, err error) {
-		return false, nil
-	})
+	provider := NewPLAIN(&denyAllDirectory{})
 
 	token, challenge, err := provider.Authenticate(context.Background(), "", "\000user\000pass")
 	assert.NoError(err)

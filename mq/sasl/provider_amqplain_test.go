@@ -12,9 +12,7 @@ import (
 func TestAmqplainProvider_Authenticate_Success(t *testing.T) {
 	assert := require.New(t)
 
-	provider := NewAMQPLAIN(func(ctx context.Context, username, password string) (ok bool, err error) {
-		return true, nil
-	})
+	provider := NewAMQPLAIN(&allowAllDirectory{})
 
 	buf, err := v0.MarshalTable(&types.Struct{
 		Fields: map[string]*types.Value{
@@ -38,9 +36,7 @@ func TestAmqplainProvider_Authenticate_Success(t *testing.T) {
 func TestAmqplainProvider_Authenticate_BadResponse(t *testing.T) {
 	assert := require.New(t)
 
-	provider := NewAMQPLAIN(func(ctx context.Context, username, password string) (ok bool, err error) {
-		return true, nil
-	})
+	provider := NewAMQPLAIN(&allowAllDirectory{})
 
 	token, challenge, err := provider.Authenticate(context.Background(), "", "")
 	assert.Error(err)
@@ -51,9 +47,7 @@ func TestAmqplainProvider_Authenticate_BadResponse(t *testing.T) {
 func TestAmqplainProvider_Authenticate_NotVerified(t *testing.T) {
 	assert := require.New(t)
 
-	provider := NewAMQPLAIN(func(ctx context.Context, username, password string) (ok bool, err error) {
-		return false, nil
-	})
+	provider := NewAMQPLAIN(&denyAllDirectory{})
 
 	buf, err := v0.MarshalTable(&types.Struct{
 		Fields: map[string]*types.Value{

@@ -33,6 +33,12 @@ func newClient(ctx context.Context) (emq.Client, error) {
 	return emq.DialContext(ctx, fmt.Sprintf("%s:%d", rootConfig.BindHost, rootConfig.Port), grpc.WithInsecure())
 }
 
+type allowAllDirectory struct{}
+
+func (*allowAllDirectory) Verify(ctx context.Context, username, password string) (bool, error) {
+	return true, nil
+}
+
 func Cmd() *cobra.Command {
 	var join []string
 
@@ -192,9 +198,7 @@ func Cmd() *cobra.Command {
 				return errors.Wrap(err, "amqp listen failed")
 			}
 			defer amqpListener.Close()
-			allowAll := func(ctx context.Context, username, password string) (bool, error) {
-				return true, nil
-			}
+			allowAll := &allowAllDirectory{}
 			amqpServer := &amqp.Server{
 				Name:           about.Name,
 				Version:        about.Version,

@@ -37,3 +37,7 @@ func (t *UsernamePasswordToken) IsAuthenticated() bool {
 }
 
 type UsernamePasswordVerifier func(ctx context.Context, username, password string) (bool, error)
+
+type UserDirectory interface {
+	Verify(ctx context.Context, username, password string) (bool, error)
+}

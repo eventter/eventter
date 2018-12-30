@@ -8,11 +8,11 @@ import (
 )
 
 type plainProvider struct {
-	verify UsernamePasswordVerifier
+	directory UserDirectory
 }
 
-func NewPLAIN(verify UsernamePasswordVerifier) Provider {
-	return &plainProvider{verify: verify}
+func NewPLAIN(directory UserDirectory) Provider {
+	return &plainProvider{directory: directory}
 }
 
 func (p *plainProvider) Mechanism() string {
@@ -25,7 +25,7 @@ func (p *plainProvider) Authenticate(ctx context.Context, challenge string, resp
 		return nil, "", errors.Errorf("expected %d parts, got %d parts", 3, len(parts))
 	}
 
-	ok, err := p.verify(ctx, parts[1], parts[2])
+	ok, err := p.directory.Verify(ctx, parts[1], parts[2])
 	if err != nil {
 		return nil, "", errors.Wrap(err, "authentication failed")
 	}

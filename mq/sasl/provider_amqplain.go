@@ -9,11 +9,11 @@ import (
 )
 
 type amqplainProvider struct {
-	verify UsernamePasswordVerifier
+	directory UserDirectory
 }
 
-func NewAMQPLAIN(verify UsernamePasswordVerifier) Provider {
-	return &amqplainProvider{verify: verify}
+func NewAMQPLAIN(directory UserDirectory) Provider {
+	return &amqplainProvider{directory: directory}
 }
 
 func (p *amqplainProvider) Mechanism() string {
@@ -40,7 +40,7 @@ func (p *amqplainProvider) Authenticate(ctx context.Context, challenge string, r
 		return nil, "", errors.New("PASSWORD not found / empty")
 	}
 
-	ok, err := p.verify(ctx, username, password)
+	ok, err := p.directory.Verify(ctx, username, password)
 	if err != nil {
 		return nil, "", errors.Wrap(err, "authentication failed")
 	}
