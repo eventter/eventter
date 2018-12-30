@@ -6,6 +6,7 @@ package v1
 import (
 	"bytes"
 	"encoding/hex"
+	"math"
 	"time"
 
 	"github.com/gogo/protobuf/types"
@@ -45,42 +46,62 @@ type FrameMeta struct {
 
 type AMQPFrame interface {
 	isAMQPFrame()
+	MarshalBuffer(buf *bytes.Buffer) error
+	Descriptor() uint64
 }
 
 type ErrorCondition interface {
 	isErrorCondition()
+	MarshalBuffer(buf *bytes.Buffer) error
+	Descriptor() uint64
 }
 
 type Section interface {
 	isSection()
+	MarshalBuffer(buf *bytes.Buffer) error
+	Descriptor() uint64
 }
 
 type MessageID interface {
 	isMessageID()
+	MarshalBuffer(buf *bytes.Buffer) error
+	Descriptor() uint64
 }
 
 type Address interface {
 	isAddress()
+	MarshalBuffer(buf *bytes.Buffer) error
+	Descriptor() uint64
 }
 
 type DeliveryState interface {
 	isDeliveryState()
+	MarshalBuffer(buf *bytes.Buffer) error
+	Descriptor() uint64
 }
 
 type Outcome interface {
 	isOutcome()
+	MarshalBuffer(buf *bytes.Buffer) error
+	Descriptor() uint64
 }
 
 type DistributionMode interface {
 	isDistributionMode()
+	MarshalBuffer(buf *bytes.Buffer) error
+	Descriptor() uint64
 }
 
 type LifetimePolicy interface {
 	isLifetimePolicy()
+	MarshalBuffer(buf *bytes.Buffer) error
+	Descriptor() uint64
 }
 
 type SASLFrame interface {
 	isSASLFrame()
+	MarshalBuffer(buf *bytes.Buffer) error
+	Descriptor() uint64
 }
 
 const (
@@ -225,11 +246,123 @@ func (t *Open) Descriptor() uint64 {
 
 func (t *Open) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
-func (t *Open) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+func (t *Open) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	var count uint32 = 0
+	count = 1 // container-id is mandatory
+	if t.Hostname != "" {
+		count = 2
+	}
+	if t.MaxFrameSize != 0 {
+		count = 3
+	}
+	if t.ChannelMax != 0 {
+		count = 4
+	}
+	if t.IdleTimeOut != 0 {
+		count = 5
+	}
+	if t.OutgoingLocales != nil {
+		count = 6
+	}
+	if t.IncomingLocales != nil {
+		count = 7
+	}
+	if t.OfferedCapabilities != nil {
+		count = 8
+	}
+	if t.DesiredCapabilities != nil {
+		count = 9
+	}
+	if t.Properties != nil {
+		count = 10
+	}
+
+	if count == 0 {
+		buf.WriteByte(List0Encoding)
+		return nil
+	} else if count <= math.MaxUint8 {
+		buf.WriteByte(List8Encoding)
+		buf.WriteByte(byte(count))
+	} else {
+		var x [4]byte
+		buf.WriteByte(List32Encoding)
+		endian.PutUint32(x[:], count)
+		buf.Write(x[:])
+	}
+
+	if count > 0 {
+		err = marshalString(t.ContainerID, buf)
+		if err != nil {
+			return errors.Wrap(err, "marshal field container-id failed")
+		}
+		if count > 1 {
+			err = marshalString(t.Hostname, buf)
+			if err != nil {
+				return errors.Wrap(err, "marshal field hostname failed")
+			}
+			if count > 2 {
+				err = marshalUint(t.MaxFrameSize, buf)
+				if err != nil {
+					return errors.Wrap(err, "marshal field max-frame-size failed")
+				}
+				if count > 3 {
+					err = marshalUshort(t.ChannelMax, buf)
+					if err != nil {
+						return errors.Wrap(err, "marshal field channel-max failed")
+					}
+					if count > 4 {
+						err = t.IdleTimeOut.MarshalBuffer(buf)
+						if err != nil {
+							return errors.Wrap(err, "marshal field idle-time-out failed")
+						}
+						if count > 5 {
+							err = marshalIETFLanguageTagArray(t.OutgoingLocales, buf)
+							if err != nil {
+								return errors.Wrap(err, "marshal filed outgoing-locales failed")
+							}
+
+							if count > 6 {
+								err = marshalIETFLanguageTagArray(t.IncomingLocales, buf)
+								if err != nil {
+									return errors.Wrap(err, "marshal filed incoming-locales failed")
+								}
+
+								if count > 7 {
+									err = marshalSymbolArray(t.OfferedCapabilities, buf)
+									if err != nil {
+										return errors.Wrap(err, "marshal filed offered-capabilities failed")
+									}
+
+									if count > 8 {
+										err = marshalSymbolArray(t.DesiredCapabilities, buf)
+										if err != nil {
+											return errors.Wrap(err, "marshal filed desired-capabilities failed")
+										}
+
+										if count > 9 {
+											err = t.Properties.MarshalBuffer(buf)
+											if err != nil {
+												return errors.Wrap(err, "marshal field properties failed")
+											}
+
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	return nil
 }
 
 func (t *Open) Unmarshal(data []byte) error {
@@ -269,11 +402,97 @@ func (t *Begin) Descriptor() uint64 {
 
 func (t *Begin) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
-func (t *Begin) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+func (t *Begin) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	var count uint32 = 0
+	count = 1 // remote-channel precedes mandatory field(s), must be always present
+	count = 2 // next-outgoing-id is mandatory
+	count = 3 // incoming-window is mandatory
+	count = 4 // outgoing-window is mandatory
+	if t.HandleMax != 0 {
+		count = 5
+	}
+	if t.OfferedCapabilities != nil {
+		count = 6
+	}
+	if t.DesiredCapabilities != nil {
+		count = 7
+	}
+	if t.Properties != nil {
+		count = 8
+	}
+
+	if count == 0 {
+		buf.WriteByte(List0Encoding)
+		return nil
+	} else if count <= math.MaxUint8 {
+		buf.WriteByte(List8Encoding)
+		buf.WriteByte(byte(count))
+	} else {
+		var x [4]byte
+		buf.WriteByte(List32Encoding)
+		endian.PutUint32(x[:], count)
+		buf.Write(x[:])
+	}
+
+	if count > 0 {
+		err = marshalUshort(t.RemoteChannel, buf)
+		if err != nil {
+			return errors.Wrap(err, "marshal field remote-channel failed")
+		}
+		if count > 1 {
+			err = t.NextOutgoingID.MarshalBuffer(buf)
+			if err != nil {
+				return errors.Wrap(err, "marshal field next-outgoing-id failed")
+			}
+			if count > 2 {
+				err = marshalUint(t.IncomingWindow, buf)
+				if err != nil {
+					return errors.Wrap(err, "marshal field incoming-window failed")
+				}
+				if count > 3 {
+					err = marshalUint(t.OutgoingWindow, buf)
+					if err != nil {
+						return errors.Wrap(err, "marshal field outgoing-window failed")
+					}
+					if count > 4 {
+						err = t.HandleMax.MarshalBuffer(buf)
+						if err != nil {
+							return errors.Wrap(err, "marshal field handle-max failed")
+						}
+						if count > 5 {
+							err = marshalSymbolArray(t.OfferedCapabilities, buf)
+							if err != nil {
+								return errors.Wrap(err, "marshal filed offered-capabilities failed")
+							}
+
+							if count > 6 {
+								err = marshalSymbolArray(t.DesiredCapabilities, buf)
+								if err != nil {
+									return errors.Wrap(err, "marshal filed desired-capabilities failed")
+								}
+
+								if count > 7 {
+									err = t.Properties.MarshalBuffer(buf)
+									if err != nil {
+										return errors.Wrap(err, "marshal field properties failed")
+									}
+
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	return nil
 }
 
 func (t *Begin) Unmarshal(data []byte) error {
@@ -319,11 +538,153 @@ func (t *Attach) Descriptor() uint64 {
 
 func (t *Attach) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
-func (t *Attach) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+func (t *Attach) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	var count uint32 = 0
+	count = 1 // name is mandatory
+	count = 2 // handle is mandatory
+	count = 3 // role is mandatory
+	if t.SndSettleMode != 0 {
+		count = 4
+	}
+	if t.RcvSettleMode != 0 {
+		count = 5
+	}
+	if t.Source != nil {
+		count = 6
+	}
+	if t.Target != nil {
+		count = 7
+	}
+	if t.Unsettled != nil {
+		count = 8
+	}
+	if t.IncompleteUnsettled != false {
+		count = 9
+	}
+	if t.InitialDeliveryCount != 0 {
+		count = 10
+	}
+	if t.MaxMessageSize != 0 {
+		count = 11
+	}
+	if t.OfferedCapabilities != nil {
+		count = 12
+	}
+	if t.DesiredCapabilities != nil {
+		count = 13
+	}
+	if t.Properties != nil {
+		count = 14
+	}
+
+	if count == 0 {
+		buf.WriteByte(List0Encoding)
+		return nil
+	} else if count <= math.MaxUint8 {
+		buf.WriteByte(List8Encoding)
+		buf.WriteByte(byte(count))
+	} else {
+		var x [4]byte
+		buf.WriteByte(List32Encoding)
+		endian.PutUint32(x[:], count)
+		buf.Write(x[:])
+	}
+
+	if count > 0 {
+		err = marshalString(t.Name, buf)
+		if err != nil {
+			return errors.Wrap(err, "marshal field name failed")
+		}
+		if count > 1 {
+			err = t.Handle.MarshalBuffer(buf)
+			if err != nil {
+				return errors.Wrap(err, "marshal field handle failed")
+			}
+			if count > 2 {
+				err = t.Role.MarshalBuffer(buf)
+				if err != nil {
+					return errors.Wrap(err, "marshal field role failed")
+				}
+				if count > 3 {
+					err = t.SndSettleMode.MarshalBuffer(buf)
+					if err != nil {
+						return errors.Wrap(err, "marshal field snd-settle-mode failed")
+					}
+					if count > 4 {
+						err = t.RcvSettleMode.MarshalBuffer(buf)
+						if err != nil {
+							return errors.Wrap(err, "marshal field rcv-settle-mode failed")
+						}
+						if count > 5 {
+							err = t.Source.MarshalBuffer(buf)
+							if err != nil {
+								return errors.Wrap(err, "marshal field source failed")
+							}
+							if count > 6 {
+								err = t.Target.MarshalBuffer(buf)
+								if err != nil {
+									return errors.Wrap(err, "marshal field target failed")
+								}
+								if count > 7 {
+									err = marshalMap(t.Unsettled, buf)
+									if err != nil {
+										return errors.Wrap(err, "marshal field unsettled failed")
+									}
+									if count > 8 {
+										err = marshalBoolean(t.IncompleteUnsettled, buf)
+										if err != nil {
+											return errors.Wrap(err, "marshal field incomplete-unsettled failed")
+										}
+										if count > 9 {
+											err = t.InitialDeliveryCount.MarshalBuffer(buf)
+											if err != nil {
+												return errors.Wrap(err, "marshal field initial-delivery-count failed")
+											}
+											if count > 10 {
+												err = marshalUlong(t.MaxMessageSize, buf)
+												if err != nil {
+													return errors.Wrap(err, "marshal field max-message-size failed")
+												}
+												if count > 11 {
+													err = marshalSymbolArray(t.OfferedCapabilities, buf)
+													if err != nil {
+														return errors.Wrap(err, "marshal filed offered-capabilities failed")
+													}
+
+													if count > 12 {
+														err = marshalSymbolArray(t.DesiredCapabilities, buf)
+														if err != nil {
+															return errors.Wrap(err, "marshal filed desired-capabilities failed")
+														}
+
+														if count > 13 {
+															err = t.Properties.MarshalBuffer(buf)
+															if err != nil {
+																return errors.Wrap(err, "marshal field properties failed")
+															}
+
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	return nil
 }
 
 func (t *Attach) Unmarshal(data []byte) error {
@@ -366,11 +727,122 @@ func (t *Flow) Descriptor() uint64 {
 
 func (t *Flow) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
-func (t *Flow) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+func (t *Flow) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	var count uint32 = 0
+	count = 1 // next-incoming-id precedes mandatory field(s), must be always present
+	count = 2 // incoming-window is mandatory
+	count = 3 // next-outgoing-id is mandatory
+	count = 4 // outgoing-window is mandatory
+	if t.Handle != 0 {
+		count = 5
+	}
+	if t.DeliveryCount != 0 {
+		count = 6
+	}
+	if t.LinkCredit != 0 {
+		count = 7
+	}
+	if t.Available != 0 {
+		count = 8
+	}
+	if t.Drain != false {
+		count = 9
+	}
+	if t.Echo != false {
+		count = 10
+	}
+	if t.Properties != nil {
+		count = 11
+	}
+
+	if count == 0 {
+		buf.WriteByte(List0Encoding)
+		return nil
+	} else if count <= math.MaxUint8 {
+		buf.WriteByte(List8Encoding)
+		buf.WriteByte(byte(count))
+	} else {
+		var x [4]byte
+		buf.WriteByte(List32Encoding)
+		endian.PutUint32(x[:], count)
+		buf.Write(x[:])
+	}
+
+	if count > 0 {
+		err = t.NextIncomingID.MarshalBuffer(buf)
+		if err != nil {
+			return errors.Wrap(err, "marshal field next-incoming-id failed")
+		}
+		if count > 1 {
+			err = marshalUint(t.IncomingWindow, buf)
+			if err != nil {
+				return errors.Wrap(err, "marshal field incoming-window failed")
+			}
+			if count > 2 {
+				err = t.NextOutgoingID.MarshalBuffer(buf)
+				if err != nil {
+					return errors.Wrap(err, "marshal field next-outgoing-id failed")
+				}
+				if count > 3 {
+					err = marshalUint(t.OutgoingWindow, buf)
+					if err != nil {
+						return errors.Wrap(err, "marshal field outgoing-window failed")
+					}
+					if count > 4 {
+						err = t.Handle.MarshalBuffer(buf)
+						if err != nil {
+							return errors.Wrap(err, "marshal field handle failed")
+						}
+						if count > 5 {
+							err = t.DeliveryCount.MarshalBuffer(buf)
+							if err != nil {
+								return errors.Wrap(err, "marshal field delivery-count failed")
+							}
+							if count > 6 {
+								err = marshalUint(t.LinkCredit, buf)
+								if err != nil {
+									return errors.Wrap(err, "marshal field link-credit failed")
+								}
+								if count > 7 {
+									err = marshalUint(t.Available, buf)
+									if err != nil {
+										return errors.Wrap(err, "marshal field available failed")
+									}
+									if count > 8 {
+										err = marshalBoolean(t.Drain, buf)
+										if err != nil {
+											return errors.Wrap(err, "marshal field drain failed")
+										}
+										if count > 9 {
+											err = marshalBoolean(t.Echo, buf)
+											if err != nil {
+												return errors.Wrap(err, "marshal field echo failed")
+											}
+											if count > 10 {
+												err = t.Properties.MarshalBuffer(buf)
+												if err != nil {
+													return errors.Wrap(err, "marshal field properties failed")
+												}
+
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	return nil
 }
 
 func (t *Flow) Unmarshal(data []byte) error {
@@ -413,11 +885,133 @@ func (t *Transfer) Descriptor() uint64 {
 
 func (t *Transfer) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
-func (t *Transfer) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+func (t *Transfer) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	var count uint32 = 0
+	count = 1 // handle is mandatory
+	if t.DeliveryID != 0 {
+		count = 2
+	}
+	if t.DeliveryTag != nil {
+		count = 3
+	}
+	if t.MessageFormat != 0 {
+		count = 4
+	}
+	if t.Settled != false {
+		count = 5
+	}
+	if t.More != false {
+		count = 6
+	}
+	if t.RcvSettleMode != 0 {
+		count = 7
+	}
+	if t.State != nil {
+		count = 8
+	}
+	if t.Resume != false {
+		count = 9
+	}
+	if t.Aborted != false {
+		count = 10
+	}
+	if t.Batchable != false {
+		count = 11
+	}
+
+	if count == 0 {
+		buf.WriteByte(List0Encoding)
+		return nil
+	} else if count <= math.MaxUint8 {
+		buf.WriteByte(List8Encoding)
+		buf.WriteByte(byte(count))
+	} else {
+		var x [4]byte
+		buf.WriteByte(List32Encoding)
+		endian.PutUint32(x[:], count)
+		buf.Write(x[:])
+	}
+
+	if count > 0 {
+		err = t.Handle.MarshalBuffer(buf)
+		if err != nil {
+			return errors.Wrap(err, "marshal field handle failed")
+		}
+		if count > 1 {
+			err = t.DeliveryID.MarshalBuffer(buf)
+			if err != nil {
+				return errors.Wrap(err, "marshal field delivery-id failed")
+			}
+			if count > 2 {
+				err = t.DeliveryTag.MarshalBuffer(buf)
+				if err != nil {
+					return errors.Wrap(err, "marshal field delivery-tag failed")
+				}
+				if count > 3 {
+					err = t.MessageFormat.MarshalBuffer(buf)
+					if err != nil {
+						return errors.Wrap(err, "marshal field message-format failed")
+					}
+					if count > 4 {
+						err = marshalBoolean(t.Settled, buf)
+						if err != nil {
+							return errors.Wrap(err, "marshal field settled failed")
+						}
+						if count > 5 {
+							err = marshalBoolean(t.More, buf)
+							if err != nil {
+								return errors.Wrap(err, "marshal field more failed")
+							}
+							if count > 6 {
+								err = t.RcvSettleMode.MarshalBuffer(buf)
+								if err != nil {
+									return errors.Wrap(err, "marshal field rcv-settle-mode failed")
+								}
+								if count > 7 {
+									buf.WriteByte(0x00)
+									err = marshalUlong(t.State.Descriptor(), buf)
+									if err != nil {
+										return errors.Wrap(err, "marshal field state descriptor failed")
+									}
+									err = t.State.MarshalBuffer(buf)
+									if err != nil {
+										return errors.Wrap(err, "marshal field state failed")
+									}
+									if count > 8 {
+										err = marshalBoolean(t.Resume, buf)
+										if err != nil {
+											return errors.Wrap(err, "marshal field resume failed")
+										}
+										if count > 9 {
+											err = marshalBoolean(t.Aborted, buf)
+											if err != nil {
+												return errors.Wrap(err, "marshal field aborted failed")
+											}
+											if count > 10 {
+												err = marshalBoolean(t.Batchable, buf)
+												if err != nil {
+													return errors.Wrap(err, "marshal field batchable failed")
+												}
+
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	return nil
 }
 
 func (t *Transfer) Unmarshal(data []byte) error {
@@ -455,11 +1049,86 @@ func (t *Disposition) Descriptor() uint64 {
 
 func (t *Disposition) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
-func (t *Disposition) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+func (t *Disposition) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	var count uint32 = 0
+	count = 1 // role is mandatory
+	count = 2 // first is mandatory
+	if t.Last != 0 {
+		count = 3
+	}
+	if t.Settled != false {
+		count = 4
+	}
+	if t.State != nil {
+		count = 5
+	}
+	if t.Batchable != false {
+		count = 6
+	}
+
+	if count == 0 {
+		buf.WriteByte(List0Encoding)
+		return nil
+	} else if count <= math.MaxUint8 {
+		buf.WriteByte(List8Encoding)
+		buf.WriteByte(byte(count))
+	} else {
+		var x [4]byte
+		buf.WriteByte(List32Encoding)
+		endian.PutUint32(x[:], count)
+		buf.Write(x[:])
+	}
+
+	if count > 0 {
+		err = t.Role.MarshalBuffer(buf)
+		if err != nil {
+			return errors.Wrap(err, "marshal field role failed")
+		}
+		if count > 1 {
+			err = t.First.MarshalBuffer(buf)
+			if err != nil {
+				return errors.Wrap(err, "marshal field first failed")
+			}
+			if count > 2 {
+				err = t.Last.MarshalBuffer(buf)
+				if err != nil {
+					return errors.Wrap(err, "marshal field last failed")
+				}
+				if count > 3 {
+					err = marshalBoolean(t.Settled, buf)
+					if err != nil {
+						return errors.Wrap(err, "marshal field settled failed")
+					}
+					if count > 4 {
+						buf.WriteByte(0x00)
+						err = marshalUlong(t.State.Descriptor(), buf)
+						if err != nil {
+							return errors.Wrap(err, "marshal field state descriptor failed")
+						}
+						err = t.State.MarshalBuffer(buf)
+						if err != nil {
+							return errors.Wrap(err, "marshal field state failed")
+						}
+						if count > 5 {
+							err = marshalBoolean(t.Batchable, buf)
+							if err != nil {
+								return errors.Wrap(err, "marshal field batchable failed")
+							}
+
+						}
+					}
+				}
+			}
+		}
+	}
+	return nil
 }
 
 func (t *Disposition) Unmarshal(data []byte) error {
@@ -494,11 +1163,56 @@ func (t *Detach) Descriptor() uint64 {
 
 func (t *Detach) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
-func (t *Detach) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+func (t *Detach) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	var count uint32 = 0
+	count = 1 // handle is mandatory
+	if t.Closed != false {
+		count = 2
+	}
+	if t.Error != nil {
+		count = 3
+	}
+
+	if count == 0 {
+		buf.WriteByte(List0Encoding)
+		return nil
+	} else if count <= math.MaxUint8 {
+		buf.WriteByte(List8Encoding)
+		buf.WriteByte(byte(count))
+	} else {
+		var x [4]byte
+		buf.WriteByte(List32Encoding)
+		endian.PutUint32(x[:], count)
+		buf.Write(x[:])
+	}
+
+	if count > 0 {
+		err = t.Handle.MarshalBuffer(buf)
+		if err != nil {
+			return errors.Wrap(err, "marshal field handle failed")
+		}
+		if count > 1 {
+			err = marshalBoolean(t.Closed, buf)
+			if err != nil {
+				return errors.Wrap(err, "marshal field closed failed")
+			}
+			if count > 2 {
+				err = t.Error.MarshalBuffer(buf)
+				if err != nil {
+					return errors.Wrap(err, "marshal field error failed")
+				}
+
+			}
+		}
+	}
+	return nil
 }
 
 func (t *Detach) Unmarshal(data []byte) error {
@@ -531,11 +1245,40 @@ func (t *End) Descriptor() uint64 {
 
 func (t *End) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
-func (t *End) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+func (t *End) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	var count uint32 = 0
+	if t.Error != nil {
+		count = 1
+	}
+
+	if count == 0 {
+		buf.WriteByte(List0Encoding)
+		return nil
+	} else if count <= math.MaxUint8 {
+		buf.WriteByte(List8Encoding)
+		buf.WriteByte(byte(count))
+	} else {
+		var x [4]byte
+		buf.WriteByte(List32Encoding)
+		endian.PutUint32(x[:], count)
+		buf.Write(x[:])
+	}
+
+	if count > 0 {
+		err = t.Error.MarshalBuffer(buf)
+		if err != nil {
+			return errors.Wrap(err, "marshal field error failed")
+		}
+
+	}
+	return nil
 }
 
 func (t *End) Unmarshal(data []byte) error {
@@ -568,11 +1311,40 @@ func (t *Close) Descriptor() uint64 {
 
 func (t *Close) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
-func (t *Close) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+func (t *Close) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	var count uint32 = 0
+	if t.Error != nil {
+		count = 1
+	}
+
+	if count == 0 {
+		buf.WriteByte(List0Encoding)
+		return nil
+	} else if count <= math.MaxUint8 {
+		buf.WriteByte(List8Encoding)
+		buf.WriteByte(byte(count))
+	} else {
+		var x [4]byte
+		buf.WriteByte(List32Encoding)
+		endian.PutUint32(x[:], count)
+		buf.Write(x[:])
+	}
+
+	if count > 0 {
+		err = t.Error.MarshalBuffer(buf)
+		if err != nil {
+			return errors.Wrap(err, "marshal field error failed")
+		}
+
+	}
+	return nil
 }
 
 func (t *Close) Unmarshal(data []byte) error {
@@ -610,13 +1382,17 @@ func (t Role) String() string {
 	}
 }
 
-func (t *Role) Marshal() ([]byte, error) {
+func (t Role) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
-func (t *Role) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+func (t Role) MarshalBuffer(buf *bytes.Buffer) error {
+	return marshalBoolean(bool(t), buf)
 }
 
 func (t *Role) Unmarshal(data []byte) error {
@@ -652,13 +1428,17 @@ func (t SenderSettleMode) String() string {
 	}
 }
 
-func (t *SenderSettleMode) Marshal() ([]byte, error) {
+func (t SenderSettleMode) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
-func (t *SenderSettleMode) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+func (t SenderSettleMode) MarshalBuffer(buf *bytes.Buffer) error {
+	return marshalUbyte(uint8(t), buf)
 }
 
 func (t *SenderSettleMode) Unmarshal(data []byte) error {
@@ -691,13 +1471,17 @@ func (t ReceiverSettleMode) String() string {
 	}
 }
 
-func (t *ReceiverSettleMode) Marshal() ([]byte, error) {
+func (t ReceiverSettleMode) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
-func (t *ReceiverSettleMode) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+func (t ReceiverSettleMode) MarshalBuffer(buf *bytes.Buffer) error {
+	return marshalUbyte(uint8(t), buf)
 }
 
 func (t *ReceiverSettleMode) Unmarshal(data []byte) error {
@@ -714,13 +1498,17 @@ func (t *ReceiverSettleMode) UnmarshalBuffer(buf *bytes.Buffer) error {
 
 type Handle uint32
 
-func (t *Handle) Marshal() ([]byte, error) {
+func (t Handle) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
-func (t *Handle) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+func (t Handle) MarshalBuffer(buf *bytes.Buffer) error {
+	return marshalUint(uint32(t), buf)
 }
 
 func (t *Handle) Unmarshal(data []byte) error {
@@ -737,13 +1525,17 @@ func (t *Handle) UnmarshalBuffer(buf *bytes.Buffer) error {
 
 type Seconds uint32
 
-func (t *Seconds) Marshal() ([]byte, error) {
+func (t Seconds) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
-func (t *Seconds) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+func (t Seconds) MarshalBuffer(buf *bytes.Buffer) error {
+	return marshalUint(uint32(t), buf)
 }
 
 func (t *Seconds) Unmarshal(data []byte) error {
@@ -760,13 +1552,17 @@ func (t *Seconds) UnmarshalBuffer(buf *bytes.Buffer) error {
 
 type Milliseconds uint32
 
-func (t *Milliseconds) Marshal() ([]byte, error) {
+func (t Milliseconds) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
-func (t *Milliseconds) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+func (t Milliseconds) MarshalBuffer(buf *bytes.Buffer) error {
+	return marshalUint(uint32(t), buf)
 }
 
 func (t *Milliseconds) Unmarshal(data []byte) error {
@@ -783,13 +1579,17 @@ func (t *Milliseconds) UnmarshalBuffer(buf *bytes.Buffer) error {
 
 type DeliveryTag []byte
 
-func (t *DeliveryTag) Marshal() ([]byte, error) {
+func (t DeliveryTag) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
-func (t *DeliveryTag) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+func (t DeliveryTag) MarshalBuffer(buf *bytes.Buffer) error {
+	return marshalBinary([]byte(t), buf)
 }
 
 func (t *DeliveryTag) Unmarshal(data []byte) error {
@@ -806,13 +1606,17 @@ func (t *DeliveryTag) UnmarshalBuffer(buf *bytes.Buffer) error {
 
 type DeliveryNumber uint32
 
-func (t *DeliveryNumber) Marshal() ([]byte, error) {
+func (t DeliveryNumber) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
-func (t *DeliveryNumber) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+func (t DeliveryNumber) MarshalBuffer(buf *bytes.Buffer) error {
+	return marshalUint(uint32(t), buf)
 }
 
 func (t *DeliveryNumber) Unmarshal(data []byte) error {
@@ -829,13 +1633,17 @@ func (t *DeliveryNumber) UnmarshalBuffer(buf *bytes.Buffer) error {
 
 type TransferNumber uint32
 
-func (t *TransferNumber) Marshal() ([]byte, error) {
+func (t TransferNumber) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
-func (t *TransferNumber) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+func (t TransferNumber) MarshalBuffer(buf *bytes.Buffer) error {
+	return marshalUint(uint32(t), buf)
 }
 
 func (t *TransferNumber) Unmarshal(data []byte) error {
@@ -852,13 +1660,17 @@ func (t *TransferNumber) UnmarshalBuffer(buf *bytes.Buffer) error {
 
 type SequenceNo uint32
 
-func (t *SequenceNo) Marshal() ([]byte, error) {
+func (t SequenceNo) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
-func (t *SequenceNo) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+func (t SequenceNo) MarshalBuffer(buf *bytes.Buffer) error {
+	return marshalUint(uint32(t), buf)
 }
 
 func (t *SequenceNo) Unmarshal(data []byte) error {
@@ -875,13 +1687,17 @@ func (t *SequenceNo) UnmarshalBuffer(buf *bytes.Buffer) error {
 
 type MessageFormat uint32
 
-func (t *MessageFormat) Marshal() ([]byte, error) {
+func (t MessageFormat) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
-func (t *MessageFormat) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+func (t MessageFormat) MarshalBuffer(buf *bytes.Buffer) error {
+	return marshalUint(uint32(t), buf)
 }
 
 func (t *MessageFormat) Unmarshal(data []byte) error {
@@ -898,13 +1714,17 @@ func (t *MessageFormat) UnmarshalBuffer(buf *bytes.Buffer) error {
 
 type IETFLanguageTag string
 
-func (t *IETFLanguageTag) Marshal() ([]byte, error) {
+func (t IETFLanguageTag) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
-func (t *IETFLanguageTag) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+func (t IETFLanguageTag) MarshalBuffer(buf *bytes.Buffer) error {
+	return marshalSymbol(string(t), buf)
 }
 
 func (t *IETFLanguageTag) Unmarshal(data []byte) error {
@@ -921,13 +1741,17 @@ func (t *IETFLanguageTag) UnmarshalBuffer(buf *bytes.Buffer) error {
 
 type Fields types.Struct
 
-func (t *Fields) Marshal() ([]byte, error) {
+func (t Fields) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
 func (t *Fields) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+	return marshalMap((*types.Struct)(t), buf)
 }
 
 func (t *Fields) Unmarshal(data []byte) error {
@@ -953,13 +1777,62 @@ type Error struct {
 	Info        *Fields
 }
 
-func (t *Error) Marshal() ([]byte, error) {
-	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+func (t *Error) Descriptor() uint64 {
+	return ErrorDescriptor
 }
 
-func (t *Error) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+func (t *Error) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (t *Error) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	var count uint32 = 0
+	count = 1 // condition is mandatory
+	if t.Description != "" {
+		count = 2
+	}
+	if t.Info != nil {
+		count = 3
+	}
+
+	if count == 0 {
+		buf.WriteByte(List0Encoding)
+		return nil
+	} else if count <= math.MaxUint8 {
+		buf.WriteByte(List8Encoding)
+		buf.WriteByte(byte(count))
+	} else {
+		var x [4]byte
+		buf.WriteByte(List32Encoding)
+		endian.PutUint32(x[:], count)
+		buf.Write(x[:])
+	}
+
+	if count > 0 {
+		err = marshalSymbol(t.Condition, buf)
+		if err != nil {
+			return errors.Wrap(err, "marshal field condition failed")
+		}
+		if count > 1 {
+			err = marshalString(t.Description, buf)
+			if err != nil {
+				return errors.Wrap(err, "marshal field description failed")
+			}
+			if count > 2 {
+				err = t.Info.MarshalBuffer(buf)
+				if err != nil {
+					return errors.Wrap(err, "marshal field info failed")
+				}
+
+			}
+		}
+	}
+	return nil
 }
 
 func (t *Error) Unmarshal(data []byte) error {
@@ -994,13 +1867,17 @@ func (t AMQPError) String() string {
 
 func (AMQPError) isErrorCondition() {}
 
-func (t *AMQPError) Marshal() ([]byte, error) {
+func (t AMQPError) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
-func (t *AMQPError) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+func (t AMQPError) MarshalBuffer(buf *bytes.Buffer) error {
+	return marshalSymbol(string(t), buf)
 }
 
 func (t *AMQPError) Unmarshal(data []byte) error {
@@ -1029,13 +1906,17 @@ func (t ConnectionError) String() string {
 
 func (ConnectionError) isErrorCondition() {}
 
-func (t *ConnectionError) Marshal() ([]byte, error) {
+func (t ConnectionError) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
-func (t *ConnectionError) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+func (t ConnectionError) MarshalBuffer(buf *bytes.Buffer) error {
+	return marshalSymbol(string(t), buf)
 }
 
 func (t *ConnectionError) Unmarshal(data []byte) error {
@@ -1065,13 +1946,17 @@ func (t SessionError) String() string {
 
 func (SessionError) isErrorCondition() {}
 
-func (t *SessionError) Marshal() ([]byte, error) {
+func (t SessionError) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
-func (t *SessionError) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+func (t SessionError) MarshalBuffer(buf *bytes.Buffer) error {
+	return marshalSymbol(string(t), buf)
 }
 
 func (t *SessionError) Unmarshal(data []byte) error {
@@ -1102,13 +1987,17 @@ func (t LinkError) String() string {
 
 func (LinkError) isErrorCondition() {}
 
-func (t *LinkError) Marshal() ([]byte, error) {
+func (t LinkError) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
-func (t *LinkError) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+func (t LinkError) MarshalBuffer(buf *bytes.Buffer) error {
+	return marshalSymbol(string(t), buf)
 }
 
 func (t *LinkError) Unmarshal(data []byte) error {
@@ -1140,13 +2029,82 @@ type Header struct {
 
 func (*Header) isSection() {}
 
-func (t *Header) Marshal() ([]byte, error) {
-	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+func (t *Header) Descriptor() uint64 {
+	return HeaderDescriptor
 }
 
-func (t *Header) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+func (t *Header) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (t *Header) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	var count uint32 = 0
+	if t.Durable != false {
+		count = 1
+	}
+	if t.Priority != 0 {
+		count = 2
+	}
+	if t.Ttl != 0 {
+		count = 3
+	}
+	if t.FirstAcquirer != false {
+		count = 4
+	}
+	if t.DeliveryCount != 0 {
+		count = 5
+	}
+
+	if count == 0 {
+		buf.WriteByte(List0Encoding)
+		return nil
+	} else if count <= math.MaxUint8 {
+		buf.WriteByte(List8Encoding)
+		buf.WriteByte(byte(count))
+	} else {
+		var x [4]byte
+		buf.WriteByte(List32Encoding)
+		endian.PutUint32(x[:], count)
+		buf.Write(x[:])
+	}
+
+	if count > 0 {
+		err = marshalBoolean(t.Durable, buf)
+		if err != nil {
+			return errors.Wrap(err, "marshal field durable failed")
+		}
+		if count > 1 {
+			err = marshalUbyte(t.Priority, buf)
+			if err != nil {
+				return errors.Wrap(err, "marshal field priority failed")
+			}
+			if count > 2 {
+				err = t.Ttl.MarshalBuffer(buf)
+				if err != nil {
+					return errors.Wrap(err, "marshal field ttl failed")
+				}
+				if count > 3 {
+					err = marshalBoolean(t.FirstAcquirer, buf)
+					if err != nil {
+						return errors.Wrap(err, "marshal field first-acquirer failed")
+					}
+					if count > 4 {
+						err = marshalUint(t.DeliveryCount, buf)
+						if err != nil {
+							return errors.Wrap(err, "marshal field delivery-count failed")
+						}
+
+					}
+				}
+			}
+		}
+	}
+	return nil
 }
 
 func (t *Header) Unmarshal(data []byte) error {
@@ -1166,13 +2124,17 @@ type DeliveryAnnotations types.Struct
 
 func (DeliveryAnnotations) isSection() {}
 
-func (t *DeliveryAnnotations) Marshal() ([]byte, error) {
+func (t DeliveryAnnotations) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
 func (t *DeliveryAnnotations) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+	return marshalMap((*types.Struct)(t), buf)
 }
 
 func (t *DeliveryAnnotations) Unmarshal(data []byte) error {
@@ -1196,13 +2158,17 @@ type MessageAnnotations types.Struct
 
 func (MessageAnnotations) isSection() {}
 
-func (t *MessageAnnotations) Marshal() ([]byte, error) {
+func (t MessageAnnotations) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
 func (t *MessageAnnotations) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+	return marshalMap((*types.Struct)(t), buf)
 }
 
 func (t *MessageAnnotations) Unmarshal(data []byte) error {
@@ -1240,13 +2206,174 @@ type Properties struct {
 
 func (*Properties) isSection() {}
 
-func (t *Properties) Marshal() ([]byte, error) {
-	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+func (t *Properties) Descriptor() uint64 {
+	return PropertiesDescriptor
 }
 
-func (t *Properties) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+func (t *Properties) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (t *Properties) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	var count uint32 = 0
+	if t.MessageID != nil {
+		count = 1
+	}
+	if t.UserID != nil {
+		count = 2
+	}
+	if t.To != nil {
+		count = 3
+	}
+	if t.Subject != "" {
+		count = 4
+	}
+	if t.ReplyTo != nil {
+		count = 5
+	}
+	if t.CorrelationID != nil {
+		count = 6
+	}
+	if t.ContentType != "" {
+		count = 7
+	}
+	if t.ContentEncoding != "" {
+		count = 8
+	}
+	if !t.AbsoluteExpiryTime.IsZero() {
+		count = 9
+	}
+	if !t.CreationTime.IsZero() {
+		count = 10
+	}
+	if t.GroupID != "" {
+		count = 11
+	}
+	if t.GroupSequence != 0 {
+		count = 12
+	}
+	if t.ReplyToGroupID != "" {
+		count = 13
+	}
+
+	if count == 0 {
+		buf.WriteByte(List0Encoding)
+		return nil
+	} else if count <= math.MaxUint8 {
+		buf.WriteByte(List8Encoding)
+		buf.WriteByte(byte(count))
+	} else {
+		var x [4]byte
+		buf.WriteByte(List32Encoding)
+		endian.PutUint32(x[:], count)
+		buf.Write(x[:])
+	}
+
+	if count > 0 {
+		buf.WriteByte(0x00)
+		err = marshalUlong(t.MessageID.Descriptor(), buf)
+		if err != nil {
+			return errors.Wrap(err, "marshal field message-id descriptor failed")
+		}
+		err = t.MessageID.MarshalBuffer(buf)
+		if err != nil {
+			return errors.Wrap(err, "marshal field message-id failed")
+		}
+		if count > 1 {
+			err = marshalBinary(t.UserID, buf)
+			if err != nil {
+				return errors.Wrap(err, "marshal field user-id failed")
+			}
+			if count > 2 {
+				buf.WriteByte(0x00)
+				err = marshalUlong(t.To.Descriptor(), buf)
+				if err != nil {
+					return errors.Wrap(err, "marshal field to descriptor failed")
+				}
+				err = t.To.MarshalBuffer(buf)
+				if err != nil {
+					return errors.Wrap(err, "marshal field to failed")
+				}
+				if count > 3 {
+					err = marshalString(t.Subject, buf)
+					if err != nil {
+						return errors.Wrap(err, "marshal field subject failed")
+					}
+					if count > 4 {
+						buf.WriteByte(0x00)
+						err = marshalUlong(t.ReplyTo.Descriptor(), buf)
+						if err != nil {
+							return errors.Wrap(err, "marshal field reply-to descriptor failed")
+						}
+						err = t.ReplyTo.MarshalBuffer(buf)
+						if err != nil {
+							return errors.Wrap(err, "marshal field reply-to failed")
+						}
+						if count > 5 {
+							buf.WriteByte(0x00)
+							err = marshalUlong(t.CorrelationID.Descriptor(), buf)
+							if err != nil {
+								return errors.Wrap(err, "marshal field correlation-id descriptor failed")
+							}
+							err = t.CorrelationID.MarshalBuffer(buf)
+							if err != nil {
+								return errors.Wrap(err, "marshal field correlation-id failed")
+							}
+							if count > 6 {
+								err = marshalSymbol(t.ContentType, buf)
+								if err != nil {
+									return errors.Wrap(err, "marshal field content-type failed")
+								}
+								if count > 7 {
+									err = marshalSymbol(t.ContentEncoding, buf)
+									if err != nil {
+										return errors.Wrap(err, "marshal field content-encoding failed")
+									}
+									if count > 8 {
+										err = marshalTimestamp(t.AbsoluteExpiryTime, buf)
+										if err != nil {
+											return errors.Wrap(err, "marshal field absolute-expiry-time failed")
+										}
+										if count > 9 {
+											err = marshalTimestamp(t.CreationTime, buf)
+											if err != nil {
+												return errors.Wrap(err, "marshal field creation-time failed")
+											}
+											if count > 10 {
+												err = marshalString(t.GroupID, buf)
+												if err != nil {
+													return errors.Wrap(err, "marshal field group-id failed")
+												}
+												if count > 11 {
+													err = t.GroupSequence.MarshalBuffer(buf)
+													if err != nil {
+														return errors.Wrap(err, "marshal field group-sequence failed")
+													}
+													if count > 12 {
+														err = marshalString(t.ReplyToGroupID, buf)
+														if err != nil {
+															return errors.Wrap(err, "marshal field reply-to-group-id failed")
+														}
+
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	return nil
 }
 
 func (t *Properties) Unmarshal(data []byte) error {
@@ -1266,13 +2393,17 @@ type ApplicationProperties types.Struct
 
 func (ApplicationProperties) isSection() {}
 
-func (t *ApplicationProperties) Marshal() ([]byte, error) {
+func (t ApplicationProperties) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
 func (t *ApplicationProperties) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+	return marshalMap((*types.Struct)(t), buf)
 }
 
 func (t *ApplicationProperties) Unmarshal(data []byte) error {
@@ -1296,13 +2427,17 @@ type Data []byte
 
 func (Data) isSection() {}
 
-func (t *Data) Marshal() ([]byte, error) {
+func (t Data) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
-func (t *Data) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+func (t Data) MarshalBuffer(buf *bytes.Buffer) error {
+	return marshalBinary([]byte(t), buf)
 }
 
 func (t *Data) Unmarshal(data []byte) error {
@@ -1326,13 +2461,17 @@ type Footer types.Struct
 
 func (Footer) isSection() {}
 
-func (t *Footer) Marshal() ([]byte, error) {
+func (t Footer) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
 func (t *Footer) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+	return marshalMap((*types.Struct)(t), buf)
 }
 
 func (t *Footer) Unmarshal(data []byte) error {
@@ -1349,13 +2488,17 @@ func (t *Footer) UnmarshalBuffer(buf *bytes.Buffer) error {
 
 type Annotations types.Struct
 
-func (t *Annotations) Marshal() ([]byte, error) {
+func (t Annotations) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
 func (t *Annotations) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+	return marshalMap((*types.Struct)(t), buf)
 }
 
 func (t *Annotations) Unmarshal(data []byte) error {
@@ -1374,13 +2517,17 @@ type MessageIDUlong uint64
 
 func (MessageIDUlong) isMessageID() {}
 
-func (t *MessageIDUlong) Marshal() ([]byte, error) {
+func (t MessageIDUlong) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
-func (t *MessageIDUlong) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+func (t MessageIDUlong) MarshalBuffer(buf *bytes.Buffer) error {
+	return marshalUlong(uint64(t), buf)
 }
 
 func (t *MessageIDUlong) Unmarshal(data []byte) error {
@@ -1399,13 +2546,17 @@ type MessageIDUUID UUID
 
 func (MessageIDUUID) isMessageID() {}
 
-func (t *MessageIDUUID) Marshal() ([]byte, error) {
+func (t MessageIDUUID) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
-func (t *MessageIDUUID) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+func (t MessageIDUUID) MarshalBuffer(buf *bytes.Buffer) error {
+	return marshalUUID(UUID(t), buf)
 }
 
 func (t *MessageIDUUID) Unmarshal(data []byte) error {
@@ -1424,13 +2575,17 @@ type MessageIDBinary []byte
 
 func (MessageIDBinary) isMessageID() {}
 
-func (t *MessageIDBinary) Marshal() ([]byte, error) {
+func (t MessageIDBinary) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
-func (t *MessageIDBinary) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+func (t MessageIDBinary) MarshalBuffer(buf *bytes.Buffer) error {
+	return marshalBinary([]byte(t), buf)
 }
 
 func (t *MessageIDBinary) Unmarshal(data []byte) error {
@@ -1449,13 +2604,17 @@ type MessageIDString string
 
 func (MessageIDString) isMessageID() {}
 
-func (t *MessageIDString) Marshal() ([]byte, error) {
+func (t MessageIDString) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
-func (t *MessageIDString) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+func (t MessageIDString) MarshalBuffer(buf *bytes.Buffer) error {
+	return marshalString(string(t), buf)
 }
 
 func (t *MessageIDString) Unmarshal(data []byte) error {
@@ -1474,13 +2633,17 @@ type AddressString string
 
 func (AddressString) isAddress() {}
 
-func (t *AddressString) Marshal() ([]byte, error) {
+func (t AddressString) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
-func (t *AddressString) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+func (t AddressString) MarshalBuffer(buf *bytes.Buffer) error {
+	return marshalString(string(t), buf)
 }
 
 func (t *AddressString) Unmarshal(data []byte) error {
@@ -1507,13 +2670,51 @@ type Received struct {
 
 func (*Received) isDeliveryState() {}
 
-func (t *Received) Marshal() ([]byte, error) {
-	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+func (t *Received) Descriptor() uint64 {
+	return ReceivedDescriptor
 }
 
-func (t *Received) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+func (t *Received) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (t *Received) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	var count uint32 = 0
+	count = 1 // section-number is mandatory
+	count = 2 // section-offset is mandatory
+
+	if count == 0 {
+		buf.WriteByte(List0Encoding)
+		return nil
+	} else if count <= math.MaxUint8 {
+		buf.WriteByte(List8Encoding)
+		buf.WriteByte(byte(count))
+	} else {
+		var x [4]byte
+		buf.WriteByte(List32Encoding)
+		endian.PutUint32(x[:], count)
+		buf.Write(x[:])
+	}
+
+	if count > 0 {
+		err = marshalUint(t.SectionNumber, buf)
+		if err != nil {
+			return errors.Wrap(err, "marshal field section-number failed")
+		}
+		if count > 1 {
+			err = marshalUlong(t.SectionOffset, buf)
+			if err != nil {
+				return errors.Wrap(err, "marshal field section-offset failed")
+			}
+
+		}
+	}
+	return nil
 }
 
 func (t *Received) Unmarshal(data []byte) error {
@@ -1536,13 +2737,36 @@ func (*Accepted) isDeliveryState() {}
 
 func (*Accepted) isOutcome() {}
 
-func (t *Accepted) Marshal() ([]byte, error) {
-	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+func (t *Accepted) Descriptor() uint64 {
+	return AcceptedDescriptor
 }
 
-func (t *Accepted) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+func (t *Accepted) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (t *Accepted) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	var count uint32 = 0
+
+	if count == 0 {
+		buf.WriteByte(List0Encoding)
+		return nil
+	} else if count <= math.MaxUint8 {
+		buf.WriteByte(List8Encoding)
+		buf.WriteByte(byte(count))
+	} else {
+		var x [4]byte
+		buf.WriteByte(List32Encoding)
+		endian.PutUint32(x[:], count)
+		buf.Write(x[:])
+	}
+
+	return nil
 }
 
 func (t *Accepted) Unmarshal(data []byte) error {
@@ -1566,13 +2790,46 @@ func (*Rejected) isDeliveryState() {}
 
 func (*Rejected) isOutcome() {}
 
-func (t *Rejected) Marshal() ([]byte, error) {
-	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+func (t *Rejected) Descriptor() uint64 {
+	return RejectedDescriptor
 }
 
-func (t *Rejected) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+func (t *Rejected) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (t *Rejected) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	var count uint32 = 0
+	if t.Error != nil {
+		count = 1
+	}
+
+	if count == 0 {
+		buf.WriteByte(List0Encoding)
+		return nil
+	} else if count <= math.MaxUint8 {
+		buf.WriteByte(List8Encoding)
+		buf.WriteByte(byte(count))
+	} else {
+		var x [4]byte
+		buf.WriteByte(List32Encoding)
+		endian.PutUint32(x[:], count)
+		buf.Write(x[:])
+	}
+
+	if count > 0 {
+		err = t.Error.MarshalBuffer(buf)
+		if err != nil {
+			return errors.Wrap(err, "marshal field error failed")
+		}
+
+	}
+	return nil
 }
 
 func (t *Rejected) Unmarshal(data []byte) error {
@@ -1595,13 +2852,36 @@ func (*Released) isDeliveryState() {}
 
 func (*Released) isOutcome() {}
 
-func (t *Released) Marshal() ([]byte, error) {
-	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+func (t *Released) Descriptor() uint64 {
+	return ReleasedDescriptor
 }
 
-func (t *Released) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+func (t *Released) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (t *Released) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	var count uint32 = 0
+
+	if count == 0 {
+		buf.WriteByte(List0Encoding)
+		return nil
+	} else if count <= math.MaxUint8 {
+		buf.WriteByte(List8Encoding)
+		buf.WriteByte(byte(count))
+	} else {
+		var x [4]byte
+		buf.WriteByte(List32Encoding)
+		endian.PutUint32(x[:], count)
+		buf.Write(x[:])
+	}
+
+	return nil
 }
 
 func (t *Released) Unmarshal(data []byte) error {
@@ -1627,13 +2907,64 @@ func (*Modified) isDeliveryState() {}
 
 func (*Modified) isOutcome() {}
 
-func (t *Modified) Marshal() ([]byte, error) {
-	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+func (t *Modified) Descriptor() uint64 {
+	return ModifiedDescriptor
 }
 
-func (t *Modified) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+func (t *Modified) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (t *Modified) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	var count uint32 = 0
+	if t.DeliveryFailed != false {
+		count = 1
+	}
+	if t.UndeliverableHere != false {
+		count = 2
+	}
+	if t.MessageAnnotations != nil {
+		count = 3
+	}
+
+	if count == 0 {
+		buf.WriteByte(List0Encoding)
+		return nil
+	} else if count <= math.MaxUint8 {
+		buf.WriteByte(List8Encoding)
+		buf.WriteByte(byte(count))
+	} else {
+		var x [4]byte
+		buf.WriteByte(List32Encoding)
+		endian.PutUint32(x[:], count)
+		buf.Write(x[:])
+	}
+
+	if count > 0 {
+		err = marshalBoolean(t.DeliveryFailed, buf)
+		if err != nil {
+			return errors.Wrap(err, "marshal field delivery-failed failed")
+		}
+		if count > 1 {
+			err = marshalBoolean(t.UndeliverableHere, buf)
+			if err != nil {
+				return errors.Wrap(err, "marshal field undeliverable-here failed")
+			}
+			if count > 2 {
+				err = t.MessageAnnotations.MarshalBuffer(buf)
+				if err != nil {
+					return errors.Wrap(err, "marshal field message-annotations failed")
+				}
+
+			}
+		}
+	}
+	return nil
 }
 
 func (t *Modified) Unmarshal(data []byte) error {
@@ -1665,13 +2996,147 @@ type Source struct {
 
 func (*Source) isSource() {}
 
-func (t *Source) Marshal() ([]byte, error) {
-	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+func (t *Source) Descriptor() uint64 {
+	return SourceDescriptor
 }
 
-func (t *Source) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+func (t *Source) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (t *Source) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	var count uint32 = 0
+	if t.Address != nil {
+		count = 1
+	}
+	if t.Durable != 0 {
+		count = 2
+	}
+	if t.ExpiryPolicy != "" {
+		count = 3
+	}
+	if t.Timeout != 0 {
+		count = 4
+	}
+	if t.Dynamic != false {
+		count = 5
+	}
+	if t.DynamicNodeProperties != nil {
+		count = 6
+	}
+	if t.DistributionMode != "" {
+		count = 7
+	}
+	if t.Filter != nil {
+		count = 8
+	}
+	if t.DefaultOutcome != nil {
+		count = 9
+	}
+	if t.Outcomes != nil {
+		count = 10
+	}
+	if t.Capabilities != nil {
+		count = 11
+	}
+
+	if count == 0 {
+		buf.WriteByte(List0Encoding)
+		return nil
+	} else if count <= math.MaxUint8 {
+		buf.WriteByte(List8Encoding)
+		buf.WriteByte(byte(count))
+	} else {
+		var x [4]byte
+		buf.WriteByte(List32Encoding)
+		endian.PutUint32(x[:], count)
+		buf.Write(x[:])
+	}
+
+	if count > 0 {
+		buf.WriteByte(0x00)
+		err = marshalUlong(t.Address.Descriptor(), buf)
+		if err != nil {
+			return errors.Wrap(err, "marshal field address descriptor failed")
+		}
+		err = t.Address.MarshalBuffer(buf)
+		if err != nil {
+			return errors.Wrap(err, "marshal field address failed")
+		}
+		if count > 1 {
+			err = t.Durable.MarshalBuffer(buf)
+			if err != nil {
+				return errors.Wrap(err, "marshal field durable failed")
+			}
+			if count > 2 {
+				err = t.ExpiryPolicy.MarshalBuffer(buf)
+				if err != nil {
+					return errors.Wrap(err, "marshal field expiry-policy failed")
+				}
+				if count > 3 {
+					err = t.Timeout.MarshalBuffer(buf)
+					if err != nil {
+						return errors.Wrap(err, "marshal field timeout failed")
+					}
+					if count > 4 {
+						err = marshalBoolean(t.Dynamic, buf)
+						if err != nil {
+							return errors.Wrap(err, "marshal field dynamic failed")
+						}
+						if count > 5 {
+							err = t.DynamicNodeProperties.MarshalBuffer(buf)
+							if err != nil {
+								return errors.Wrap(err, "marshal field dynamic-node-properties failed")
+							}
+							if count > 6 {
+								err = marshalSymbol(t.DistributionMode, buf)
+								if err != nil {
+									return errors.Wrap(err, "marshal field distribution-mode failed")
+								}
+								if count > 7 {
+									err = t.Filter.MarshalBuffer(buf)
+									if err != nil {
+										return errors.Wrap(err, "marshal field filter failed")
+									}
+									if count > 8 {
+										buf.WriteByte(0x00)
+										err = marshalUlong(t.DefaultOutcome.Descriptor(), buf)
+										if err != nil {
+											return errors.Wrap(err, "marshal field default-outcome descriptor failed")
+										}
+										err = t.DefaultOutcome.MarshalBuffer(buf)
+										if err != nil {
+											return errors.Wrap(err, "marshal field default-outcome failed")
+										}
+										if count > 9 {
+											err = marshalSymbolArray(t.Outcomes, buf)
+											if err != nil {
+												return errors.Wrap(err, "marshal filed outcomes failed")
+											}
+
+											if count > 10 {
+												err = marshalSymbolArray(t.Capabilities, buf)
+												if err != nil {
+													return errors.Wrap(err, "marshal filed capabilities failed")
+												}
+
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	return nil
 }
 
 func (t *Source) Unmarshal(data []byte) error {
@@ -1699,13 +3164,105 @@ type Target struct {
 
 func (*Target) isTarget() {}
 
-func (t *Target) Marshal() ([]byte, error) {
-	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+func (t *Target) Descriptor() uint64 {
+	return TargetDescriptor
 }
 
-func (t *Target) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+func (t *Target) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (t *Target) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	var count uint32 = 0
+	if t.Address != nil {
+		count = 1
+	}
+	if t.Durable != 0 {
+		count = 2
+	}
+	if t.ExpiryPolicy != "" {
+		count = 3
+	}
+	if t.Timeout != 0 {
+		count = 4
+	}
+	if t.Dynamic != false {
+		count = 5
+	}
+	if t.DynamicNodeProperties != nil {
+		count = 6
+	}
+	if t.Capabilities != nil {
+		count = 7
+	}
+
+	if count == 0 {
+		buf.WriteByte(List0Encoding)
+		return nil
+	} else if count <= math.MaxUint8 {
+		buf.WriteByte(List8Encoding)
+		buf.WriteByte(byte(count))
+	} else {
+		var x [4]byte
+		buf.WriteByte(List32Encoding)
+		endian.PutUint32(x[:], count)
+		buf.Write(x[:])
+	}
+
+	if count > 0 {
+		buf.WriteByte(0x00)
+		err = marshalUlong(t.Address.Descriptor(), buf)
+		if err != nil {
+			return errors.Wrap(err, "marshal field address descriptor failed")
+		}
+		err = t.Address.MarshalBuffer(buf)
+		if err != nil {
+			return errors.Wrap(err, "marshal field address failed")
+		}
+		if count > 1 {
+			err = t.Durable.MarshalBuffer(buf)
+			if err != nil {
+				return errors.Wrap(err, "marshal field durable failed")
+			}
+			if count > 2 {
+				err = t.ExpiryPolicy.MarshalBuffer(buf)
+				if err != nil {
+					return errors.Wrap(err, "marshal field expiry-policy failed")
+				}
+				if count > 3 {
+					err = t.Timeout.MarshalBuffer(buf)
+					if err != nil {
+						return errors.Wrap(err, "marshal field timeout failed")
+					}
+					if count > 4 {
+						err = marshalBoolean(t.Dynamic, buf)
+						if err != nil {
+							return errors.Wrap(err, "marshal field dynamic failed")
+						}
+						if count > 5 {
+							err = t.DynamicNodeProperties.MarshalBuffer(buf)
+							if err != nil {
+								return errors.Wrap(err, "marshal field dynamic-node-properties failed")
+							}
+							if count > 6 {
+								err = marshalSymbolArray(t.Capabilities, buf)
+								if err != nil {
+									return errors.Wrap(err, "marshal filed capabilities failed")
+								}
+
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	return nil
 }
 
 func (t *Target) Unmarshal(data []byte) error {
@@ -1737,13 +3294,17 @@ func (t TerminusDurability) String() string {
 	}
 }
 
-func (t *TerminusDurability) Marshal() ([]byte, error) {
+func (t TerminusDurability) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
-func (t *TerminusDurability) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+func (t TerminusDurability) MarshalBuffer(buf *bytes.Buffer) error {
+	return marshalUint(uint32(t), buf)
 }
 
 func (t *TerminusDurability) Unmarshal(data []byte) error {
@@ -1771,13 +3332,17 @@ func (t TerminusExpiryPolicy) String() string {
 	return string(t)
 }
 
-func (t *TerminusExpiryPolicy) Marshal() ([]byte, error) {
+func (t TerminusExpiryPolicy) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
-func (t *TerminusExpiryPolicy) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+func (t TerminusExpiryPolicy) MarshalBuffer(buf *bytes.Buffer) error {
+	return marshalSymbol(string(t), buf)
 }
 
 func (t *TerminusExpiryPolicy) Unmarshal(data []byte) error {
@@ -1805,13 +3370,17 @@ func (t StdDistMode) String() string {
 
 func (StdDistMode) isDistributionMode() {}
 
-func (t *StdDistMode) Marshal() ([]byte, error) {
+func (t StdDistMode) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
-func (t *StdDistMode) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+func (t StdDistMode) MarshalBuffer(buf *bytes.Buffer) error {
+	return marshalSymbol(string(t), buf)
 }
 
 func (t *StdDistMode) Unmarshal(data []byte) error {
@@ -1828,13 +3397,17 @@ func (t *StdDistMode) UnmarshalBuffer(buf *bytes.Buffer) error {
 
 type FilterSet types.Struct
 
-func (t *FilterSet) Marshal() ([]byte, error) {
+func (t FilterSet) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
 func (t *FilterSet) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+	return marshalMap((*types.Struct)(t), buf)
 }
 
 func (t *FilterSet) Unmarshal(data []byte) error {
@@ -1851,13 +3424,17 @@ func (t *FilterSet) UnmarshalBuffer(buf *bytes.Buffer) error {
 
 type NodeProperties types.Struct
 
-func (t *NodeProperties) Marshal() ([]byte, error) {
+func (t NodeProperties) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
 func (t *NodeProperties) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+	return marshalMap((*types.Struct)(t), buf)
 }
 
 func (t *NodeProperties) Unmarshal(data []byte) error {
@@ -1882,13 +3459,36 @@ type DeleteOnClose struct {
 
 func (*DeleteOnClose) isLifetimePolicy() {}
 
-func (t *DeleteOnClose) Marshal() ([]byte, error) {
-	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+func (t *DeleteOnClose) Descriptor() uint64 {
+	return DeleteOnCloseDescriptor
 }
 
-func (t *DeleteOnClose) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+func (t *DeleteOnClose) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (t *DeleteOnClose) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	var count uint32 = 0
+
+	if count == 0 {
+		buf.WriteByte(List0Encoding)
+		return nil
+	} else if count <= math.MaxUint8 {
+		buf.WriteByte(List8Encoding)
+		buf.WriteByte(byte(count))
+	} else {
+		var x [4]byte
+		buf.WriteByte(List32Encoding)
+		endian.PutUint32(x[:], count)
+		buf.Write(x[:])
+	}
+
+	return nil
 }
 
 func (t *DeleteOnClose) Unmarshal(data []byte) error {
@@ -1909,13 +3509,36 @@ type DeleteOnNoLinks struct {
 
 func (*DeleteOnNoLinks) isLifetimePolicy() {}
 
-func (t *DeleteOnNoLinks) Marshal() ([]byte, error) {
-	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+func (t *DeleteOnNoLinks) Descriptor() uint64 {
+	return DeleteOnNoLinksDescriptor
 }
 
-func (t *DeleteOnNoLinks) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+func (t *DeleteOnNoLinks) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (t *DeleteOnNoLinks) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	var count uint32 = 0
+
+	if count == 0 {
+		buf.WriteByte(List0Encoding)
+		return nil
+	} else if count <= math.MaxUint8 {
+		buf.WriteByte(List8Encoding)
+		buf.WriteByte(byte(count))
+	} else {
+		var x [4]byte
+		buf.WriteByte(List32Encoding)
+		endian.PutUint32(x[:], count)
+		buf.Write(x[:])
+	}
+
+	return nil
 }
 
 func (t *DeleteOnNoLinks) Unmarshal(data []byte) error {
@@ -1936,13 +3559,36 @@ type DeleteOnNoMessages struct {
 
 func (*DeleteOnNoMessages) isLifetimePolicy() {}
 
-func (t *DeleteOnNoMessages) Marshal() ([]byte, error) {
-	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+func (t *DeleteOnNoMessages) Descriptor() uint64 {
+	return DeleteOnNoMessagesDescriptor
 }
 
-func (t *DeleteOnNoMessages) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+func (t *DeleteOnNoMessages) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (t *DeleteOnNoMessages) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	var count uint32 = 0
+
+	if count == 0 {
+		buf.WriteByte(List0Encoding)
+		return nil
+	} else if count <= math.MaxUint8 {
+		buf.WriteByte(List8Encoding)
+		buf.WriteByte(byte(count))
+	} else {
+		var x [4]byte
+		buf.WriteByte(List32Encoding)
+		endian.PutUint32(x[:], count)
+		buf.Write(x[:])
+	}
+
+	return nil
 }
 
 func (t *DeleteOnNoMessages) Unmarshal(data []byte) error {
@@ -1963,13 +3609,36 @@ type DeleteOnNoLinksOrMessages struct {
 
 func (*DeleteOnNoLinksOrMessages) isLifetimePolicy() {}
 
-func (t *DeleteOnNoLinksOrMessages) Marshal() ([]byte, error) {
-	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+func (t *DeleteOnNoLinksOrMessages) Descriptor() uint64 {
+	return DeleteOnNoLinksOrMessagesDescriptor
 }
 
-func (t *DeleteOnNoLinksOrMessages) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+func (t *DeleteOnNoLinksOrMessages) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (t *DeleteOnNoLinksOrMessages) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	var count uint32 = 0
+
+	if count == 0 {
+		buf.WriteByte(List0Encoding)
+		return nil
+	} else if count <= math.MaxUint8 {
+		buf.WriteByte(List8Encoding)
+		buf.WriteByte(byte(count))
+	} else {
+		var x [4]byte
+		buf.WriteByte(List32Encoding)
+		endian.PutUint32(x[:], count)
+		buf.Write(x[:])
+	}
+
+	return nil
 }
 
 func (t *DeleteOnNoLinksOrMessages) Unmarshal(data []byte) error {
@@ -2014,11 +3683,38 @@ func (t *SASLMechanisms) Descriptor() uint64 {
 
 func (t *SASLMechanisms) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
-func (t *SASLMechanisms) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+func (t *SASLMechanisms) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	var count uint32 = 0
+	count = 1 // sasl-server-mechanisms is mandatory
+
+	if count == 0 {
+		buf.WriteByte(List0Encoding)
+		return nil
+	} else if count <= math.MaxUint8 {
+		buf.WriteByte(List8Encoding)
+		buf.WriteByte(byte(count))
+	} else {
+		var x [4]byte
+		buf.WriteByte(List32Encoding)
+		endian.PutUint32(x[:], count)
+		buf.Write(x[:])
+	}
+
+	if count > 0 {
+		err = marshalSymbolArray(t.SASLServerMechanisms, buf)
+		if err != nil {
+			return errors.Wrap(err, "marshal filed sasl-server-mechanisms failed")
+		}
+
+	}
+	return nil
 }
 
 func (t *SASLMechanisms) Unmarshal(data []byte) error {
@@ -2053,11 +3749,56 @@ func (t *SASLInit) Descriptor() uint64 {
 
 func (t *SASLInit) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
-func (t *SASLInit) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+func (t *SASLInit) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	var count uint32 = 0
+	count = 1 // mechanism is mandatory
+	if t.InitialResponse != nil {
+		count = 2
+	}
+	if t.Hostname != "" {
+		count = 3
+	}
+
+	if count == 0 {
+		buf.WriteByte(List0Encoding)
+		return nil
+	} else if count <= math.MaxUint8 {
+		buf.WriteByte(List8Encoding)
+		buf.WriteByte(byte(count))
+	} else {
+		var x [4]byte
+		buf.WriteByte(List32Encoding)
+		endian.PutUint32(x[:], count)
+		buf.Write(x[:])
+	}
+
+	if count > 0 {
+		err = marshalSymbol(t.Mechanism, buf)
+		if err != nil {
+			return errors.Wrap(err, "marshal field mechanism failed")
+		}
+		if count > 1 {
+			err = marshalBinary(t.InitialResponse, buf)
+			if err != nil {
+				return errors.Wrap(err, "marshal field initial-response failed")
+			}
+			if count > 2 {
+				err = marshalString(t.Hostname, buf)
+				if err != nil {
+					return errors.Wrap(err, "marshal field hostname failed")
+				}
+
+			}
+		}
+	}
+	return nil
 }
 
 func (t *SASLInit) Unmarshal(data []byte) error {
@@ -2090,11 +3831,38 @@ func (t *SASLChallenge) Descriptor() uint64 {
 
 func (t *SASLChallenge) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
-func (t *SASLChallenge) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+func (t *SASLChallenge) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	var count uint32 = 0
+	count = 1 // challenge is mandatory
+
+	if count == 0 {
+		buf.WriteByte(List0Encoding)
+		return nil
+	} else if count <= math.MaxUint8 {
+		buf.WriteByte(List8Encoding)
+		buf.WriteByte(byte(count))
+	} else {
+		var x [4]byte
+		buf.WriteByte(List32Encoding)
+		endian.PutUint32(x[:], count)
+		buf.Write(x[:])
+	}
+
+	if count > 0 {
+		err = marshalBinary(t.Challenge, buf)
+		if err != nil {
+			return errors.Wrap(err, "marshal field challenge failed")
+		}
+
+	}
+	return nil
 }
 
 func (t *SASLChallenge) Unmarshal(data []byte) error {
@@ -2127,11 +3895,38 @@ func (t *SASLResponse) Descriptor() uint64 {
 
 func (t *SASLResponse) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
-func (t *SASLResponse) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+func (t *SASLResponse) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	var count uint32 = 0
+	count = 1 // response is mandatory
+
+	if count == 0 {
+		buf.WriteByte(List0Encoding)
+		return nil
+	} else if count <= math.MaxUint8 {
+		buf.WriteByte(List8Encoding)
+		buf.WriteByte(byte(count))
+	} else {
+		var x [4]byte
+		buf.WriteByte(List32Encoding)
+		endian.PutUint32(x[:], count)
+		buf.Write(x[:])
+	}
+
+	if count > 0 {
+		err = marshalBinary(t.Response, buf)
+		if err != nil {
+			return errors.Wrap(err, "marshal field response failed")
+		}
+
+	}
+	return nil
 }
 
 func (t *SASLResponse) Unmarshal(data []byte) error {
@@ -2165,11 +3960,47 @@ func (t *SASLOutcome) Descriptor() uint64 {
 
 func (t *SASLOutcome) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
-func (t *SASLOutcome) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+func (t *SASLOutcome) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	var count uint32 = 0
+	count = 1 // code is mandatory
+	if t.AdditionalData != nil {
+		count = 2
+	}
+
+	if count == 0 {
+		buf.WriteByte(List0Encoding)
+		return nil
+	} else if count <= math.MaxUint8 {
+		buf.WriteByte(List8Encoding)
+		buf.WriteByte(byte(count))
+	} else {
+		var x [4]byte
+		buf.WriteByte(List32Encoding)
+		endian.PutUint32(x[:], count)
+		buf.Write(x[:])
+	}
+
+	if count > 0 {
+		err = t.Code.MarshalBuffer(buf)
+		if err != nil {
+			return errors.Wrap(err, "marshal field code failed")
+		}
+		if count > 1 {
+			err = marshalBinary(t.AdditionalData, buf)
+			if err != nil {
+				return errors.Wrap(err, "marshal field additional-data failed")
+			}
+
+		}
+	}
+	return nil
 }
 
 func (t *SASLOutcome) Unmarshal(data []byte) error {
@@ -2207,13 +4038,17 @@ func (t SASLCode) String() string {
 	}
 }
 
-func (t *SASLCode) Marshal() ([]byte, error) {
+func (t SASLCode) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
-	return buf.Bytes(), t.MarshalBuffer(&buf)
+	err := t.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
-func (t *SASLCode) MarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+func (t SASLCode) MarshalBuffer(buf *bytes.Buffer) error {
+	return marshalUbyte(uint8(t), buf)
 }
 
 func (t *SASLCode) Unmarshal(data []byte) error {

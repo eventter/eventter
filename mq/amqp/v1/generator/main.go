@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/xml"
+	"fmt"
 	"go/format"
 	"io/ioutil"
 	"log"
@@ -268,7 +269,7 @@ type Descriptor struct {
 
 type Field struct {
 	Name      string `xml:"name,attr"`
-	Type      string `xml:"type,attr"`
+	TypeName  string `xml:"type,attr"`
 	Requires  string `xml:"requires,attr"`
 	Default   string `xml:"default"`
 	Multiple  bool   `xml:"multiple,attr"`
@@ -287,10 +288,40 @@ func (f *Field) GoType() (string, error) {
 	return t, nil
 }
 
-func (f *Field) goType() (string, error) {
-	root := f.Parent.Parent.Parent
+func (f *Field) Type() *Type {
+	typeName := f.TypeName
+	if typeName == "*" {
+		if f.Requires == "source" || f.Requires == "target" {
+			typeName = f.Requires
+		} else {
+			return &Type{
+				Name:  f.Requires,
+				Class: "union",
+			}
+		}
+	}
 
-	if f.Type == "*" {
+	for _, s := range f.Parent.Parent.Parent.Sections {
+		for _, t := range s.Types {
+			if t.Name == typeName {
+				return t
+			}
+		}
+	}
+
+	return nil
+}
+
+func (f *Field) TypeClass() string {
+	t := f.Type()
+	if t != nil {
+		return t.Class
+	}
+	return ""
+}
+
+func (f *Field) goType() (string, error) {
+	if f.TypeName == "*" {
 		if f.Requires == "" {
 			return "", errors.Errorf("field %s (of type %s): empty requires", f.Name, f.Parent.Name)
 		}
@@ -304,39 +335,93 @@ func (f *Field) goType() (string, error) {
 		}
 	}
 
-	for _, section := range root.Sections {
-		for _, typ := range section.Types {
-			if typ.Name != f.Type {
-				continue
-			}
+	t := f.Type()
+	if t == nil {
+		return "", errors.Errorf("field %s (of type %s): did not find type %s", f.Name, f.Parent.Name, f.TypeName)
+	}
 
-			if typ.Class == "primitive" {
-				s, err := typ.GoType()
-				if err != nil {
-					return "", errors.Wrapf(err, "field %s (of type %s)", f.Name, f.Parent.Name)
-				}
-				if s == "types.Struct" {
-					return "*" + s, nil
-				}
-				return s, nil
-			} else if typ.Class == "composite" {
-				return "*" + convert(f.Type), nil
-			} else if typ.Class == "restricted" {
-				s, err := typ.GoType()
-				if err != nil {
-					return "", errors.Wrapf(err, "field %s (of type %s)", f.Name, f.Parent.Name)
-				}
-				if s == "types.Struct" {
-					return "*" + convert(f.Type), nil
-				}
-				return convert(f.Type), nil
-			} else {
-				return "", errors.Errorf("field %s (of type %s): class not handled %s", f.Name, f.Parent.Name, typ.Class)
-			}
+	if t.Class == "primitive" {
+		s, err := t.GoType()
+		if err != nil {
+			return "", errors.Wrapf(err, "field %s (of type %s)", f.Name, f.Parent.Name)
+		}
+		if s == "types.Struct" {
+			return "*" + s, nil
+		}
+		return s, nil
+	} else if t.Class == "composite" {
+		return "*" + convert(f.TypeName), nil
+	} else if t.Class == "restricted" {
+		s, err := t.GoType()
+		if err != nil {
+			return "", errors.Wrapf(err, "field %s (of type %s)", f.Name, f.Parent.Name)
+		}
+		if s == "types.Struct" {
+			return "*" + convert(f.TypeName), nil
+		}
+		return convert(f.TypeName), nil
+	} else {
+		return "", errors.Errorf("field %s (of type %s): class not handled %s", f.Name, f.Parent.Name, t.Class)
+	}
+}
+
+func (f *Field) GoNonZeroCheck(expr string) (string, error) {
+	if f.Multiple || f.TypeName == "*" {
+		return expr + " != nil", nil
+	}
+
+	t := f.Type()
+	if t == nil {
+		return "", errors.Errorf("field %s (of type %s): did not find type %s", f.Name, f.Parent.Name, f.TypeName)
+	}
+
+	var err error
+	if t.Class == "restricted" {
+		t, err = t.PrimitiveType()
+		if err != nil {
+			return "", errors.Wrapf(err, "field %s (of type %s): did not its primitive type %s", f.Name, f.Parent.Name, f.TypeName)
 		}
 	}
 
-	return "", errors.Errorf("field %s (of type %s): did not find type %s", f.Name, f.Parent.Name, f.Type)
+	if t.Class == "composite" {
+		return expr + " != nil", nil
+	} else if t.Class == "primitive" {
+		switch t.Name {
+		case "boolean":
+			return expr + " != false", nil
+		case "symbol":
+			fallthrough
+		case "string":
+			return fmt.Sprintf("%s != %q", expr, ""), nil
+		case "map":
+			return expr + " != nil", nil
+		case "binary":
+			return expr + " != nil", nil
+		case "timestamp":
+			return fmt.Sprintf("!%s.IsZero()", expr), nil
+		default:
+			return expr + " != 0", nil
+		}
+	} else {
+		return "", errors.Errorf("field %s (of type %s): unhandled class %s", f.Name, f.Parent.Name, t.Class)
+	}
+}
+
+func (f *Field) AlwaysPresent() bool {
+	if f.Mandatory {
+		return true
+	}
+
+	found := false
+	for _, sibling := range f.Parent.Fields {
+		if sibling == f {
+			found = true
+		} else if found && sibling.Mandatory {
+			return true
+		}
+	}
+
+	return false
 }
 
 type Choice struct {
@@ -412,6 +497,9 @@ func run() error {
 		"hasPrefix": func(s, prefix string) bool {
 			return strings.HasPrefix(s, prefix)
 		},
+		"inc": func(n int) int {
+			return n + 1
+		},
 	})
 	tpl, err = tpl.Parse(templateText)
 	if err != nil {
@@ -446,6 +534,7 @@ package v1
 import (
 	"bytes"
 	"encoding/hex"
+	"math"
 	"time"
 
 	"github.com/gogo/protobuf/types"
@@ -486,6 +575,8 @@ type FrameMeta struct {
 {{ range $name := .UnionTypeNames }}
 type {{ $name | convert }} interface {
 	is{{ $name | convert }}()
+	MarshalBuffer(buf *bytes.Buffer) error
+	Descriptor() uint64
 }
 {{ end }}
 
@@ -526,19 +617,88 @@ type {{ $name | convert }} interface {
 					func (t *{{ $goTypeName}}) GetFrameMeta() *FrameMeta {
 						return &t.FrameMeta
 					}
+				{{ end }}
 
+				{{ with $type.Descriptor }}
 					func (t *{{ $goTypeName}}) Descriptor() uint64 {
-						return {{ $goTypeName}}Descriptor
+						return {{ $goTypeName }}Descriptor
 					}
 				{{ end }}
 
 				func (t *{{ $goTypeName }}) Marshal() ([]byte, error) {
 					buf := bytes.Buffer{}
-					return buf.Bytes(), t.MarshalBuffer(&buf)
+					err := t.MarshalBuffer(&buf)
+					if err != nil {
+						return nil, err
+					}
+					return buf.Bytes(), nil
 				}
 
-				func (t *{{ $goTypeName }}) MarshalBuffer(buf *bytes.Buffer) error {
-					panic("implement me")
+				func (t *{{ $goTypeName }}) MarshalBuffer(buf *bytes.Buffer) (err error) {
+					var count uint32 = 0
+					{{ range $index, $field := $type.Fields -}}
+						{{- if $field.Mandatory -}}
+							count = {{ inc $index }} // {{ $field.Name }} is mandatory
+						{{- else if $field.AlwaysPresent -}}
+							count = {{ inc $index }} // {{ $field.Name }} precedes mandatory field(s), must be always present
+						{{- else -}}
+							if {{ $field.GoNonZeroCheck (join "t." (convert $field.Name)) }} { count = {{ inc $index }} }
+						{{- end }}
+					{{ end }}
+
+					if count == 0 {
+						buf.WriteByte(List0Encoding)
+						return nil
+					} else if count <= math.MaxUint8 {
+						buf.WriteByte(List8Encoding)
+						buf.WriteByte(byte(count))
+					} else {
+						var x [4] byte
+						buf.WriteByte(List32Encoding)
+						endian.PutUint32(x[:], count)
+						buf.Write(x[:])
+					}
+
+					{{ range $index, $field := $type.Fields -}}
+						if count > {{ $index }} {
+						{{- $fieldClass := $field.TypeClass -}}
+						{{ if $field.Multiple -}}
+							{{ if or (eq $fieldClass "primitive") (eq $fieldClass "restricted") -}}
+								err = marshal{{ $field.TypeName | convert }}Array(t.{{ $field.Name | convert }}, buf)
+								if err != nil {
+									return errors.Wrap(err, "marshal filed {{ $field.Name }} failed")
+								}
+							{{ else }}
+								panic("implement me: marshal multiple {{ $fieldClass }}")
+							{{- end }}
+						{{- else if eq $fieldClass "primitive" -}}
+							err = marshal{{ $field.TypeName | convert }}(t.{{ $field.Name | convert }}, buf)
+							if err != nil {
+								return errors.Wrap(err, "marshal field {{ $field.Name }} failed")
+							}
+						{{- else if or (eq $fieldClass "restricted") (eq $fieldClass "composite") -}}
+							err = t.{{ $field.Name | convert }}.MarshalBuffer(buf)
+							if err != nil {
+								return errors.Wrap(err, "marshal field {{ $field.Name }} failed")
+							}
+						{{- else if eq $fieldClass "union" -}}
+							buf.WriteByte(0x00)
+							err = marshalUlong(t.{{ $field.Name | convert }}.Descriptor(), buf)
+							if err != nil {
+								return errors.Wrap(err, "marshal field {{ $field.Name }} descriptor failed")
+							}
+							err = t.{{ $field.Name | convert }}.MarshalBuffer(buf)
+							if err != nil {
+								return errors.Wrap(err, "marshal field {{ $field.Name }} failed")
+							}
+						{{- else -}}
+							panic("implement me: marshal {{ $fieldClass }} field")
+						{{- end }}
+					{{ end }}
+					{{- range $type.Fields }}
+						}
+					{{- end }}
+					return nil
 				}
 
 				func (t *{{ $goTypeName }}) Unmarshal(data []byte) error {
@@ -581,14 +741,26 @@ type {{ $name | convert }} interface {
 					func ({{ $goTypeName }}) is{{ $name | convert }}() {}
 				{{ end }}
 
-				func (t *{{ $goTypeName }}) Marshal() ([]byte, error) {
+				func (t {{ $goTypeName }}) Marshal() ([]byte, error) {
 					buf := bytes.Buffer{}
-					return buf.Bytes(), t.MarshalBuffer(&buf)
+					err := t.MarshalBuffer(&buf)
+					if err != nil {
+						return nil, err
+					}
+					return buf.Bytes(), nil
 				}
 
-				func (t *{{ $goTypeName }}) MarshalBuffer(buf *bytes.Buffer) error {
-					panic("implement me")
-				}
+				{{ $primitiveType := $type.PrimitiveType -}}
+
+				{{ if eq $primitiveType.Name "map" }}
+					func (t *{{ $goTypeName }}) MarshalBuffer(buf *bytes.Buffer) error {
+						return marshalMap((*types.Struct)(t), buf)
+					}
+				{{ else }}
+					func (t {{ $goTypeName }}) MarshalBuffer(buf *bytes.Buffer) error {
+						return marshal{{ $primitiveType.Name | convert }}({{ $type.GoType }}(t), buf)
+					}
+				{{ end }}
 
 				func (t *{{ $goTypeName }}) Unmarshal(data []byte) error {
 					return t.UnmarshalBuffer(bytes.NewBuffer(data))
