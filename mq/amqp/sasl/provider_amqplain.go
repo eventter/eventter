@@ -43,7 +43,7 @@ func (p *amqplainProvider) Authenticate(challenge string, response string) (toke
 		return nil, "", errors.Wrap(err, "authentication failed")
 	}
 	if !ok {
-		return &NotAuthenticatedToken{Username: username}, "", nil
+		return nil, "", nil
 	}
 	return &UsernamePasswordToken{
 		Username: username,

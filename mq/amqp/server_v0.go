@@ -113,10 +113,6 @@ func (s *Server) initV0(transport *v0.Transport) (ctx context.Context, err error
 		return nil, errors.Errorf("client selected unsupported sasl mechanism %s", startOk.Mechanism)
 	}
 
-	if !token.IsAuthenticated() {
-		return nil, errors.Errorf("user %q not authenticated", token.Subject())
-	}
-
 	tune := &v0.ConnectionTune{
 		ChannelMax: 2047, // see https://github.com/rabbitmq/rabbitmq-server/issues/1593
 		FrameMax:   math.MaxUint32,

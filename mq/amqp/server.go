@@ -46,9 +46,14 @@ type Server struct {
 }
 
 func (s *Server) init() error {
+	if s.HandlerV0 == nil && s.HandlerV1 == nil {
+		return errors.New("no handler")
+	}
+
 	if s.ConnectTimeout == 0 {
 		s.ConnectTimeout = defaultConnectTimeout
 	}
+
 	if len(s.SASLProviders) == 0 && (s.SASLRequired || s.HandlerV0 != nil) {
 		// AMQP 0.9.1 requires authentication
 		return errors.New("no SASL provider")
@@ -58,7 +63,7 @@ func (s *Server) init() error {
 	for _, provider := range s.SASLProviders {
 		mechanism := provider.Mechanism()
 		if m[mechanism] {
-			return errors.Errorf("duplicate SASL providers for mechanism %s", mechanism)
+			return errors.Errorf("multiple SASL providers for mechanism %s", mechanism)
 		}
 		m[mechanism] = true
 	}
@@ -69,9 +74,7 @@ func (s *Server) init() error {
 		return errors.Errorf("heartbeat %d out of bounds (%d)", seconds, math.MaxUint16)
 	}
 
-	if s.HandlerV0 == nil && s.HandlerV1 == nil {
-		return errors.New("no handler")
-	}
+	s.ctx, s.cancel = context.WithCancel(context.Background())
 
 	return nil
 }
@@ -86,7 +89,6 @@ func (s *Server) Serve(l net.Listener) error {
 		return errors.Wrap(err, "init failed")
 	}
 
-	s.ctx, s.cancel = context.WithCancel(context.Background())
 	s.listener = l
 
 	for {

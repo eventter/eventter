@@ -29,7 +29,7 @@ func (p *plainProvider) Authenticate(challenge string, response string) (tok Tok
 		return nil, "", errors.Wrap(err, "authentication failed")
 	}
 	if !ok {
-		return &NotAuthenticatedToken{Username: parts[1]}, "", nil
+		return nil, "", nil
 	}
 	return &UsernamePasswordToken{
 		Username: parts[1],

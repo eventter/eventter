@@ -7,7 +7,16 @@ type Provider interface {
 
 type Token interface {
 	Subject() string
-	IsAuthenticated() bool
+}
+
+type AnonymousToken struct{}
+
+func (*AnonymousToken) Subject() string {
+	return "<anonymous>"
+}
+
+func (*AnonymousToken) IsAuthenticated() bool {
+	return true
 }
 
 type UsernamePasswordToken struct {
@@ -24,15 +33,3 @@ func (t *UsernamePasswordToken) IsAuthenticated() bool {
 }
 
 type UsernamePasswordVerifier func(username, password string) (bool, error)
-
-type NotAuthenticatedToken struct {
-	Username string
-}
-
-func (t *NotAuthenticatedToken) Subject() string {
-	return t.Username
-}
-
-func (t *NotAuthenticatedToken) IsAuthenticated() bool {
-	return false
-}

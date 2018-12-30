@@ -86,7 +86,7 @@ func main() {
 }
 
 var tpl = template.Must(template.New("tpl").Funcs(map[string]interface{}{
-	"convertCase": func(s string) string {
+	"convert": func(s string) string {
 		parts := strings.Split(s, "-")
 		for i, part := range parts {
 			if part == "id" {
@@ -153,7 +153,7 @@ var tpl = template.Must(template.New("tpl").Funcs(map[string]interface{}{
 	},
 }).Parse(`
 {{- define "marshalField" -}}
-{{- $goFieldName := .Name|convertCase -}}
+{{- $goFieldName := .Name|convert -}}
 {{- if eq .Type "octet" }}
 	buf.WriteByte(f.{{ $goFieldName }})
 {{- else if eq .Type "short" }}
@@ -197,7 +197,7 @@ var tpl = template.Must(template.New("tpl").Funcs(map[string]interface{}{
 {{- end -}}
 
 {{- define "unmarshalField" -}}
-{{- $goFieldName := .Name|convertCase -}}
+{{- $goFieldName := .Name|convert -}}
 {{- if eq .Type "octet" }}
 	if b, err := buf.ReadByte(); err != nil {
 		return errors.Wrap(err, "field {{ .Name }}: read octet failed")
@@ -304,13 +304,13 @@ const (
 	Revision = {{ .Revision }}
 	Port = {{ .Port }}
 {{- range .Constants }}
-	{{ .Name|convertCase }}{{ if in .Name "frame-method" "frame-header" "frame-body" "frame-heartbeat" }} FrameType{{ end }} = {{ .Value }}{{ if in .Class "soft-error" "hard-error" }} // {{ .Class }}{{ end }}
+	{{ .Name|convert }}{{ if in .Name "frame-method" "frame-header" "frame-body" "frame-heartbeat" }} FrameType{{ end }} = {{ .Value }}{{ if in .Class "soft-error" "hard-error" }} // {{ .Class }}{{ end }}
 {{- end }}
 {{- range $class := .Classes }}
 
-	{{ $class.Name|convertCase }}Class ClassID = {{ $class.Index }}
+	{{ $class.Name|convert }}Class ClassID = {{ $class.Index }}
 	{{- range $method := .Methods }}
-		{{ $class.Name|convertCase }}{{ $method.Name|convertCase }}Method MethodID = {{ $method.Index }}
+		{{ $class.Name|convert }}{{ $method.Name|convert }}Method MethodID = {{ $method.Index }}
 	{{- end }}
 {{- end }}
 )
@@ -362,7 +362,7 @@ type ContentHeaderFrame struct {
 	Weight uint16
 	BodySize uint64
 	{{- range $field := $class.Fields }}
-	{{ $field.Name|convertCase }} {{ $field.Type|goType }}
+	{{ $field.Name|convert }} {{ $field.Type|goType }}
 	{{- end }}
 }
 
@@ -380,8 +380,8 @@ func (f *ContentHeaderFrame) Unmarshal(data []byte) error {
 	} else if n < 2 {
 		return errors.New("read class ID failed")
 	}
-	if id := ClassID(endian.Uint16(x[:2])); id != {{ $class.Name|convertCase }}Class {
-		return errors.Errorf("expected class ID %d, got %d", {{ $class.Name|convertCase }}Class, id)
+	if id := ClassID(endian.Uint16(x[:2])); id != {{ $class.Name|convert }}Class {
+		return errors.Errorf("expected class ID %d, got %d", {{ $class.Name|convert }}Class, id)
 	} else {
 		f.ClassID = id
 	}
@@ -408,7 +408,7 @@ func (f *ContentHeaderFrame) Unmarshal(data []byte) error {
 	flags := endian.Uint16(x[:2])
 
 	{{- range $index, $field := $class.Fields }}
-		{{ $goFieldName := $field.Name|convertCase }}
+		{{ $goFieldName := $field.Name|convert }}
 		if flags & {{ bit $index }} == {{ bit $index }} {
 			{{- template "unmarshalField" $field }}
 		}
@@ -427,7 +427,7 @@ func (f *ContentHeaderFrame) Marshal() ([]byte, error) {
 	var flags uint16
 	buf := bytes.Buffer{}
 	{{- range $index, $field := $class.Fields }}
-		{{ $goFieldName := $field.Name|convertCase }}
+		{{ $goFieldName := $field.Name|convert }}
 		{{- if in $field.Type "octet" "short" "long" "longlong" }}
 			if f.{{ $goFieldName }} > 0 {
 		{{- else if in $field.Type "shortstr" "longstr" }}
@@ -460,12 +460,12 @@ func (f *ContentHeaderFrame) Marshal() ([]byte, error) {
 
 {{ end }}
 {{ range $method := .Methods }}
-{{ $frame := join ($class.Name|convertCase) ($method.Name|convertCase) }}
+{{ $frame := join ($class.Name|convert) ($method.Name|convert) }}
 type {{ $frame }} struct {
 	FrameMeta
 	MethodMeta
 	{{- range $field := $method.Fields }}
-	{{ $field.Name|convertCase }} {{ $field.Type|goType }}
+	{{ $field.Name|convert }} {{ $field.Type|goType }}
 	{{- end }}
 }
 
@@ -480,8 +480,8 @@ func (f *{{ $frame }}) GetFrameMeta() *FrameMeta {
 }
 
 func (f *{{ $frame }}) FixMethodMeta() {
-	f.MethodMeta.ClassID = {{ $class.Name|convertCase }}Class
-	f.MethodMeta.MethodID = {{ $class.Name|convertCase }}{{ $method.Name|convertCase }}Method
+	f.MethodMeta.ClassID = {{ $class.Name|convert }}Class
+	f.MethodMeta.MethodID = {{ $class.Name|convert }}{{ $method.Name|convert }}Method
 }
 
 func (f *{{ $frame }}) GetMethodMeta() *MethodMeta {
@@ -500,7 +500,7 @@ func (f *{{ $frame }}) Unmarshal(data []byte) error {
 
 	{{- $bitFieldNames := emptyStringSlice }}
 	{{- range $field := $method.Fields }}
-		{{- $goFieldName := $field.Name|convertCase -}}
+		{{- $goFieldName := $field.Name|convert -}}
 		{{- if eq $field.Type "bit" }}
 			{{ $bitFieldNames = append $bitFieldNames $goFieldName }}
 		{{- else -}}
@@ -545,7 +545,7 @@ func (f *{{ $frame }}) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
 	{{- $bitFields := 0 }}
 	{{- range $field := $method.Fields }}
-		{{- $goFieldName := $field.Name|convertCase -}}
+		{{- $goFieldName := $field.Name|convert -}}
 		{{- if eq $field.Type "bit" }}
 			if f.{{ $goFieldName }} {
 				bits |= {{ bit $bitFields }}
@@ -581,11 +581,11 @@ func decodeMethodFrame(frameMeta FrameMeta, data []byte) (MethodFrame, error) {
 
 	switch classID {
 	{{- range $class := .Classes }}
-	case {{ $class.Name|convertCase }}Class:
+	case {{ $class.Name|convert }}Class:
 		switch methodID {
 		{{- range $method := $class.Methods }}
-		{{- $frame := join ($class.Name|convertCase) ($method.Name|convertCase) }}
-		case {{ $class.Name|convertCase }}{{ $method.Name|convertCase }}Method:
+		{{- $frame := join ($class.Name|convert) ($method.Name|convert) }}
+		case {{ $class.Name|convert }}{{ $method.Name|convert }}Method:
 			frame := &{{ $frame }}{
 				FrameMeta: frameMeta,
 				MethodMeta: MethodMeta{

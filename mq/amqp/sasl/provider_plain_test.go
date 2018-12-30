@@ -47,9 +47,5 @@ func TestPlainProvider_Authenticate_NotVerified(t *testing.T) {
 	token, challenge, err := provider.Authenticate("", "\000user\000pass")
 	assert.NoError(err)
 	assert.Empty(challenge)
-	assert.NotNil(token)
-
-	assert.Equal(&NotAuthenticatedToken{
-		Username: "user",
-	}, token)
+	assert.Nil(token)
 }

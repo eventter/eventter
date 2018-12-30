@@ -1,4 +1,4 @@
-package main
+package example
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-func main() {
+func client() {
 	// at the moment the broker doesn't support TLS-encrypted connections,
 	// always use grpc.WithInsecure() option
 

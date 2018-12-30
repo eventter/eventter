@@ -202,6 +202,7 @@ func Cmd() *cobra.Command {
 				HandlerV0:      server,
 				HandlerV1:      server,
 				SASLProviders: []sasl.Provider{
+					sasl.NewANONYMOUS(),
 					sasl.NewPLAIN(allowAll),
 					sasl.NewAMQPLAIN(allowAll),
 				},
