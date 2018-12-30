@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"eventter.io/mq/amqp/sasl"
 	"eventter.io/mq/amqp/v0"
+	"eventter.io/mq/sasl"
 	"github.com/gogo/protobuf/types"
 	"github.com/pkg/errors"
 )

@@ -6,9 +6,9 @@ import (
 	"sync"
 	"testing"
 
-	"eventter.io/mq/amqp/sasl"
 	"eventter.io/mq/amqp/v0"
 	"eventter.io/mq/amqp/v1"
+	"eventter.io/mq/sasl"
 	"github.com/stretchr/testify/require"
 )
 

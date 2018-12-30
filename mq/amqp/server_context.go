@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"eventter.io/mq/amqp/sasl"
+	"eventter.io/mq/sasl"
 	"github.com/pkg/errors"
 )
 

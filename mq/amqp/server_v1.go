@@ -3,8 +3,8 @@ package amqp
 import (
 	"context"
 
-	"eventter.io/mq/amqp/sasl"
 	"eventter.io/mq/amqp/v1"
+	"eventter.io/mq/sasl"
 )
 
 type HandlerV1 interface {
