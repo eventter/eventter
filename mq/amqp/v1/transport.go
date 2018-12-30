@@ -20,7 +20,8 @@ var (
 
 type Transport struct {
 	conn           net.Conn
-	rw             io.ReadWriter
+	r              io.Reader
+	w              *bufio.Writer
 	data           []byte
 	buf            bytes.Buffer
 	scratch        [18]byte // 8 bytes frame header + 1 byte descriptor constructor + (at most) 9 bytes ulong
@@ -32,7 +33,8 @@ type Transport struct {
 func NewTransport(conn net.Conn) *Transport {
 	return &Transport{
 		conn:     conn,
-		rw:       conn,
+		r:        conn,
+		w:        bufio.NewWriter(conn),
 		data:     make([]byte, util.NextPowerOfTwo32(MinMaxFrameSize)),
 		frameMax: MinMaxFrameSize,
 	}
@@ -44,23 +46,17 @@ func (t *Transport) SetFrameMax(frameMax uint32) {
 
 func (t *Transport) SetBuffered(buffered bool) error {
 	if buffered {
-		if _, ok := t.rw.(*bufio.ReadWriter); !ok {
-			t.rw = bufio.NewReadWriter(bufio.NewReader(t.conn), bufio.NewWriter(t.conn))
+		if _, ok := t.r.(*bufio.Reader); !ok {
+			t.r = bufio.NewReader(t.conn)
 		}
 		return nil
 
 	} else {
-		if bufrw, ok := t.rw.(*bufio.ReadWriter); ok {
-			if bufrw.Reader.Buffered() > 0 {
+		if bufr, ok := t.r.(*bufio.Reader); ok {
+			if bufr.Buffered() > 0 {
 				return errors.New("read buffer not empty")
 			}
-			if bufrw.Writer.Buffered() > 0 {
-				err := bufrw.Flush()
-				if err != nil {
-					return errors.Wrap(err, "flush write buffer failed")
-				}
-			}
-			t.rw = t.conn
+			t.r = t.conn
 		}
 		return nil
 	}
@@ -143,28 +139,25 @@ func (t *Transport) Send(frame Frame) (err error) {
 	endian.PutUint32(t.scratch[:4], size)
 	t.scratch[4] = 8 / 4 // data offset
 
-	_, err = t.rw.Write(t.scratch[:8+descriptorLength])
+	_, err = t.w.Write(t.scratch[:8+descriptorLength])
 	if err != nil {
 		return errors.Wrap(err, "write frame header failed")
 	}
 	if len(data) > 0 {
-		_, err = t.rw.Write(data)
+		_, err = t.w.Write(data)
 		if err != nil {
 			return errors.Wrap(err, "write frame data failed")
 		}
 	}
 	if meta != nil && len(meta.Payload) > 0 {
-		_, err = t.rw.Write(meta.Payload)
+		_, err = t.w.Write(meta.Payload)
 		if err != nil {
 			return errors.Wrap(err, "write frame payload failed")
 		}
 	}
-
-	if bufrw, ok := t.rw.(*bufio.ReadWriter); ok {
-		err = bufrw.Flush()
-		if err != nil {
-			return errors.Wrap(err, "flush failed")
-		}
+	err = t.w.Flush()
+	if err != nil {
+		return errors.Wrap(err, "flush failed")
 	}
 
 	return nil
@@ -178,7 +171,7 @@ func (t *Transport) Receive() (Frame, error) {
 		}
 	}
 
-	_, err := io.ReadFull(t.rw, t.data[:8])
+	_, err := io.ReadFull(t.r, t.data[:8])
 	if err != nil {
 		return nil, errors.Wrap(err, "read frame header failed")
 	}
@@ -208,7 +201,7 @@ func (t *Transport) Receive() (Frame, error) {
 		}
 	}
 
-	_, err = io.ReadFull(t.rw, t.data[:dataSize])
+	_, err = io.ReadFull(t.r, t.data[:dataSize])
 	if err != nil {
 		return nil, errors.Wrap(err, "read frame content failed")
 	}

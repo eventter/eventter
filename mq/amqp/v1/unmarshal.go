@@ -349,21 +349,49 @@ func unmarshalSymbol(dst *string, constructor byte, buf *bytes.Buffer) error {
 }
 
 func unmarshalMap(dst **types.Struct, constructor byte, buf *bytes.Buffer) error {
-	var count int
+	var size int
 	switch constructor {
 	case NullEncoding:
-		count = 0
+		size = 0
 	case Map8Encoding:
 		v, err := buf.ReadByte()
 		if err != nil {
 			return errors.Wrap(err, "unmarshal map failed")
 		}
-		count = int(v)
+		size = int(v)
 	case Map32Encoding:
 		if buf.Len() < 4 {
 			return errors.New("unmarshal map failed: buffer underflow")
 		}
-		count = int(endian.Uint32(buf.Next(4)))
+		size = int(endian.Uint32(buf.Next(4)))
+	default:
+		return errors.Errorf("unmarshal map failed: unexpected constructor 0x%02x", constructor)
+	}
+
+	if size == 0 {
+		*dst = &types.Struct{Fields: make(map[string]*types.Value)}
+		return nil
+	}
+
+	if buf.Len() < size {
+		return errors.New("unmarshal map failed: buffer underflow")
+	}
+
+	itemBuf := bytes.NewBuffer(buf.Next(size))
+
+	var count int
+	switch constructor {
+	case Map8Encoding:
+		v, err := itemBuf.ReadByte()
+		if err != nil {
+			return errors.Wrap(err, "unmarshal map failed")
+		}
+		count = int(v)
+	case Map32Encoding:
+		if itemBuf.Len() < 4 {
+			return errors.New("unmarshal map failed: buffer underflow")
+		}
+		count = int(endian.Uint32(itemBuf.Next(4)))
 	default:
 		return errors.Errorf("unmarshal map failed: unexpected constructor 0x%02x", constructor)
 	}
@@ -372,12 +400,10 @@ func unmarshalMap(dst **types.Struct, constructor byte, buf *bytes.Buffer) error
 		return errors.Errorf("unmarshal map failed: must have even number of elements, got %d", count)
 	}
 
-	*dst = &types.Struct{
-		Fields: make(map[string]*types.Value),
-	}
+	*dst = &types.Struct{Fields: make(map[string]*types.Value)}
 	for i := 0; i < count/2; i++ {
 		var key types.Value
-		err := unmarshalValue(&key, buf)
+		err := unmarshalValue(&key, itemBuf)
 		if err != nil {
 			return errors.Wrapf(err, "unmarshal map item %d failed", i)
 		}
@@ -388,7 +414,7 @@ func unmarshalMap(dst **types.Struct, constructor byte, buf *bytes.Buffer) error
 		}
 
 		var value types.Value
-		err = unmarshalValue(&value, buf)
+		err = unmarshalValue(&value, itemBuf)
 		if err != nil {
 			return errors.Wrapf(err, "unmarshal map item %d (key %s) failed", i, keyString.StringValue)
 		}
@@ -400,6 +426,34 @@ func unmarshalMap(dst **types.Struct, constructor byte, buf *bytes.Buffer) error
 }
 
 func unmarshalList(dst **types.ListValue, constructor byte, buf *bytes.Buffer) error {
+	var size int
+	switch constructor {
+	case NullEncoding:
+		size = 0
+	case List0Encoding:
+		size = 0
+	case List8Encoding:
+		v, err := buf.ReadByte()
+		if err != nil {
+			return errors.Wrap(err, "unmarshal list failed")
+		}
+		size = int(v)
+	case List32Encoding:
+		if buf.Len() < 4 {
+			return errors.New("unmarshal list failed: buffer underflow")
+		}
+		size = int(endian.Uint32(buf.Next(4)))
+	default:
+		return errors.Errorf("unmarshal list failed: unexpected constructor 0x%02x", constructor)
+	}
+
+	if size == 0 {
+		*dst = &types.ListValue{Values: make([]*types.Value, 0)}
+		return nil
+	}
+
+	itemBuf := bytes.NewBuffer(buf.Next(size))
+
 	var count int
 	switch constructor {
 	case NullEncoding:
@@ -407,16 +461,16 @@ func unmarshalList(dst **types.ListValue, constructor byte, buf *bytes.Buffer) e
 	case List0Encoding:
 		count = 0
 	case List8Encoding:
-		v, err := buf.ReadByte()
+		v, err := itemBuf.ReadByte()
 		if err != nil {
 			return errors.Wrap(err, "unmarshal list failed")
 		}
 		count = int(v)
 	case List32Encoding:
-		if buf.Len() < 4 {
+		if itemBuf.Len() < 4 {
 			return errors.New("unmarshal list failed: buffer underflow")
 		}
-		count = int(endian.Uint32(buf.Next(4)))
+		count = int(endian.Uint32(itemBuf.Next(4)))
 	default:
 		return errors.Errorf("unmarshal list failed: unexpected constructor 0x%02x", constructor)
 	}
@@ -424,7 +478,7 @@ func unmarshalList(dst **types.ListValue, constructor byte, buf *bytes.Buffer) e
 	*dst = &types.ListValue{}
 	for i := 0; i < count; i++ {
 		var value types.Value
-		err := unmarshalValue(&value, buf)
+		err := unmarshalValue(&value, itemBuf)
 		if err != nil {
 			return errors.Wrapf(err, "unmarshal list item %d failed", i)
 		}
@@ -435,26 +489,50 @@ func unmarshalList(dst **types.ListValue, constructor byte, buf *bytes.Buffer) e
 }
 
 func unmarshalArray(dst **types.ListValue, constructor byte, buf *bytes.Buffer) error {
-	var count int
+	var size int
 	switch constructor {
 	case NullEncoding:
-		count = 0
+		size = 0
 	case Array8Encoding:
 		v, err := buf.ReadByte()
 		if err != nil {
 			return errors.Wrap(err, "unmarshal array failed")
 		}
-		count = int(v)
+		size = int(v)
 	case Array32Encoding:
 		if buf.Len() < 4 {
 			return errors.New("unmarshal array failed: buffer underflow")
 		}
-		count = int(endian.Uint32(buf.Next(4)))
+		size = int(endian.Uint32(buf.Next(4)))
 	default:
 		return errors.Errorf("unmarshal array failed: unexpected constructor 0x%02x", constructor)
 	}
 
-	valueConstructor, err := buf.ReadByte()
+	if size == 0 {
+		*dst = &types.ListValue{Values: make([]*types.Value, 0)}
+		return nil
+	}
+
+	itemBuf := bytes.NewBuffer(buf.Next(size))
+
+	var count int
+	switch constructor {
+	case Array8Encoding:
+		v, err := itemBuf.ReadByte()
+		if err != nil {
+			return errors.Wrap(err, "unmarshal array failed")
+		}
+		count = int(v)
+	case Array32Encoding:
+		if itemBuf.Len() < 4 {
+			return errors.New("unmarshal array failed: buffer underflow")
+		}
+		count = int(endian.Uint32(itemBuf.Next(4)))
+	default:
+		return errors.Errorf("unmarshal array failed: unexpected constructor 0x%02x", constructor)
+	}
+
+	valueConstructor, err := itemBuf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "unmarshal array failed")
 	}
@@ -462,7 +540,7 @@ func unmarshalArray(dst **types.ListValue, constructor byte, buf *bytes.Buffer) 
 	*dst = &types.ListValue{}
 	for i := 0; i < count; i++ {
 		var value types.Value
-		err := unmarshalValueWithConstructor(&value, valueConstructor, buf)
+		err := unmarshalValueWithConstructor(&value, valueConstructor, itemBuf)
 		if err != nil {
 			return errors.Wrapf(err, "unmarshal array item %d failed", i)
 		}
@@ -670,26 +748,51 @@ func unmarshalValueWithConstructor(dst *types.Value, constructor byte, buf *byte
 }
 
 func unmarshalSymbolArray(dst *[]string, constructor byte, buf *bytes.Buffer) error {
-	var count int
+	var size int
 	switch constructor {
 	case NullEncoding:
-		count = 0
+		size = 0
 	case Array8Encoding:
 		v, err := buf.ReadByte()
 		if err != nil {
 			return errors.Wrap(err, "unmarshal symbol array failed")
 		}
-		count = int(v)
+		size = int(v)
 	case Array32Encoding:
 		if buf.Len() < 4 {
 			return errors.New("unmarshal symbol array failed: buffer underflow")
 		}
-		count = int(endian.Uint32(buf.Next(4)))
+		size = int(endian.Uint32(buf.Next(4)))
 	default:
 		return errors.Errorf("unmarshal symbol array failed: unexpected constructor 0x%02x", constructor)
 	}
 
-	valueConstructor, err := buf.ReadByte()
+	if size == 0 {
+		*dst = make([]string, 0)
+		return nil
+	}
+
+	itemBuf := bytes.NewBuffer(buf.Next(size))
+
+	var count int
+	switch constructor {
+	case NullEncoding:
+		count = 0
+	case Array8Encoding:
+		v, err := itemBuf.ReadByte()
+		if err != nil {
+			return errors.Wrap(err, "unmarshal symbol array failed")
+		}
+		count = int(v)
+	case Array32Encoding:
+		if itemBuf.Len() < 4 {
+			return errors.New("unmarshal symbol array failed: buffer underflow")
+		}
+		count = int(endian.Uint32(itemBuf.Next(4)))
+	default:
+		return errors.Errorf("unmarshal symbol array failed: unexpected constructor 0x%02x", constructor)
+	}
+	valueConstructor, err := itemBuf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "unmarshal symbol array failed")
 	}
@@ -697,7 +800,7 @@ func unmarshalSymbolArray(dst *[]string, constructor byte, buf *bytes.Buffer) er
 	*dst = make([]string, 0, count)
 	for i := 0; i < count; i++ {
 		var s string
-		err := unmarshalSymbol(&s, valueConstructor, buf)
+		err := unmarshalSymbol(&s, valueConstructor, itemBuf)
 		if err != nil {
 			return errors.Wrapf(err, "unmarshal symbol array item %d failed", i)
 		}
@@ -708,36 +811,61 @@ func unmarshalSymbolArray(dst *[]string, constructor byte, buf *bytes.Buffer) er
 }
 
 func unmarshalIETFLanguageTagArray(dst *[]IETFLanguageTag, constructor byte, buf *bytes.Buffer) error {
+	var size int
+	switch constructor {
+	case NullEncoding:
+		size = 0
+	case Array8Encoding:
+		v, err := buf.ReadByte()
+		if err != nil {
+			return errors.Wrap(err, "unmarshal symbol array failed")
+		}
+		size = int(v)
+	case Array32Encoding:
+		if buf.Len() < 4 {
+			return errors.New("unmarshal symbol array failed: buffer underflow")
+		}
+		size = int(endian.Uint32(buf.Next(4)))
+	default:
+		return errors.Errorf("unmarshal symbol array failed: unexpected constructor 0x%02x", constructor)
+	}
+
+	if size == 0 {
+		*dst = make([]IETFLanguageTag, 0)
+		return nil
+	}
+
+	itemBuf := bytes.NewBuffer(buf.Next(size))
+
 	var count int
 	switch constructor {
 	case NullEncoding:
 		count = 0
 	case Array8Encoding:
-		v, err := buf.ReadByte()
+		v, err := itemBuf.ReadByte()
 		if err != nil {
-			return errors.Wrap(err, "unmarshal ietf-language-tag failed")
+			return errors.Wrap(err, "unmarshal symbol array failed")
 		}
 		count = int(v)
 	case Array32Encoding:
-		if buf.Len() < 4 {
-			return errors.New("unmarshal ietf-language-tag failed: buffer underflow")
+		if itemBuf.Len() < 4 {
+			return errors.New("unmarshal symbol array failed: buffer underflow")
 		}
-		count = int(endian.Uint32(buf.Next(4)))
+		count = int(endian.Uint32(itemBuf.Next(4)))
 	default:
-		return errors.Errorf("unmarshal ietf-language-tag failed: unexpected constructor 0x%02x", constructor)
+		return errors.Errorf("unmarshal symbol array failed: unexpected constructor 0x%02x", constructor)
 	}
-
-	valueConstructor, err := buf.ReadByte()
+	valueConstructor, err := itemBuf.ReadByte()
 	if err != nil {
-		return errors.Wrap(err, "unmarshal ietf-language-tag failed")
+		return errors.Wrap(err, "unmarshal symbol array failed")
 	}
 
 	*dst = make([]IETFLanguageTag, 0, count)
 	for i := 0; i < count; i++ {
 		var s string
-		err := unmarshalSymbol(&s, valueConstructor, buf)
+		err := unmarshalSymbol(&s, valueConstructor, itemBuf)
 		if err != nil {
-			return errors.Wrapf(err, "unmarshal ietf-language-tag item %d failed", i)
+			return errors.Wrapf(err, "unmarshal symbol array item %d failed", i)
 		}
 		(*dst) = append((*dst), IETFLanguageTag(s))
 	}

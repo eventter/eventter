@@ -136,7 +136,7 @@ func (s *Server) handle(conn net.Conn) error {
 		return s.HandlerV0.ServeAMQPv0(ctx, transport)
 
 	} else if x[0] == 'A' && x[1] == 'M' && x[2] == 'Q' && x[3] == 'P' &&
-		x[5] == v1.Major && x[6] == v1.Major && x[7] == v1.Major && s.HandlerV1 != nil {
+		x[5] == v1.Major && x[6] == v1.Minor && x[7] == v1.Revision && s.HandlerV1 != nil {
 
 		// AMQP 1.0
 
@@ -175,6 +175,18 @@ func (s *Server) handle(conn net.Conn) error {
 			_, err = conn.Write(x[:])
 			if err != nil {
 				return errors.Wrap(err, "echo protocol header failed")
+			}
+
+			mechanisms := make([]string, 0, len(s.SASLProviders))
+			for _, provider := range s.SASLProviders {
+				mechanisms = append(mechanisms, provider.Mechanism())
+			}
+
+			err = transport.Send(&v1.SASLMechanisms{
+				SASLServerMechanisms: mechanisms,
+			})
+			if err != nil {
+				return errors.Wrap(err, "send sasl-mechanisms failed")
 			}
 
 			panic("implement me")

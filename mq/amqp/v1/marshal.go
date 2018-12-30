@@ -185,52 +185,63 @@ func marshalMap(src *types.Struct, buf *bytes.Buffer) error {
 		return nil
 	}
 
-	if len(src.Fields)*2 <= math.MaxUint8 {
-		buf.WriteByte(Map8Encoding)
-		buf.WriteByte(uint8(len(src.Fields) * 2))
-	} else {
-		buf.WriteByte(Map32Encoding)
-		endian.PutUint32(x[:], uint32(len(src.Fields)*2))
-		buf.Write(x[:])
-	}
-
+	itemBuf := bytes.Buffer{}
 	for key, value := range src.Fields {
-		err := marshalString(key, buf)
+		err := marshalString(key, &itemBuf)
 		if err != nil {
 			return errors.Wrapf(err, "marshal map item %s failed", key)
 		}
-
-		err = marshalValue(value, buf)
+		err = marshalValue(value, &itemBuf)
 		if err != nil {
 			return errors.Wrapf(err, "marshal map item %s value failed", key)
 		}
 	}
 
+	if itemBuf.Len()+1 <= math.MaxUint8 && len(src.Fields)*2 <= math.MaxUint8 {
+		buf.WriteByte(Map8Encoding)
+		buf.WriteByte(uint8(itemBuf.Len() + 1))
+		buf.WriteByte(uint8(len(src.Fields) * 2))
+	} else {
+		buf.WriteByte(Map32Encoding)
+		endian.PutUint32(x[:], uint32(itemBuf.Len()+4))
+		buf.Write(x[:])
+		endian.PutUint32(x[:], uint32(len(src.Fields)*2))
+		buf.Write(x[:])
+	}
+
+	buf.Write(itemBuf.Bytes())
+
 	return nil
 }
 
 func marshalList(src *types.ListValue, buf *bytes.Buffer) error {
-	var x [4]byte
 	if src == nil || len(src.Values) == 0 {
 		buf.WriteByte(List0Encoding)
 		return nil
 	}
 
-	if len(src.Values) <= math.MaxUint8 {
-		buf.WriteByte(List8Encoding)
-		buf.WriteByte(uint8(len(src.Values)))
-	} else {
-		buf.WriteByte(List32Encoding)
-		endian.PutUint32(x[:], uint32(len(src.Values)))
-		buf.Write(x[:])
-	}
-
+	itemBuf := bytes.Buffer{}
 	for index, value := range src.Values {
-		err := marshalValue(value, buf)
+		err := marshalValue(value, &itemBuf)
 		if err != nil {
 			return errors.Wrapf(err, "marshal list item at index %d failed", index)
 		}
 	}
+
+	if itemBuf.Len()+1 <= math.MaxUint8 && len(src.Values) <= math.MaxUint8 {
+		buf.WriteByte(List8Encoding)
+		buf.WriteByte(uint8(itemBuf.Len() + 1))
+		buf.WriteByte(uint8(len(src.Values)))
+	} else {
+		var x [4]byte
+		buf.WriteByte(List32Encoding)
+		endian.PutUint32(x[:], uint32(itemBuf.Len()+4))
+		buf.Write(x[:])
+		endian.PutUint32(x[:], uint32(len(src.Values)))
+		buf.Write(x[:])
+	}
+
+	buf.Write(itemBuf.Bytes())
 
 	return nil
 }
@@ -274,7 +285,6 @@ func marshalSymbolArray(src []string, buf *bytes.Buffer) error {
 	if len(src) == 0 {
 		buf.WriteByte(Array8Encoding)
 		buf.WriteByte(0)
-		buf.WriteByte(SymbolSym8Encoding)
 		return nil
 	}
 
@@ -285,30 +295,40 @@ func marshalSymbolArray(src []string, buf *bytes.Buffer) error {
 		}
 	}
 
-	if len(src) <= math.MaxUint8 {
-		buf.WriteByte(Array8Encoding)
-		buf.WriteByte(uint8(len(src)))
-	} else {
-		buf.WriteByte(Array32Encoding)
-		endian.PutUint32(x[:], uint32(len(src)))
-		buf.Write(x[:])
-	}
-
-	if max <= math.MaxUint8 {
-		buf.WriteByte(SymbolSym8Encoding)
-	} else {
-		buf.WriteByte(SymbolSym32Encoding)
-	}
-
+	itemBuf := bytes.Buffer{}
 	for _, s := range src {
 		if max <= math.MaxUint8 {
-			buf.WriteByte(uint8(len(s)))
+			itemBuf.WriteByte(uint8(len(s)))
 		} else {
 			endian.PutUint32(x[:], uint32(len(s)))
-			buf.Write(x[:])
+			itemBuf.Write(x[:])
 		}
-		buf.WriteString(s)
+		itemBuf.WriteString(s)
 	}
+
+	if itemBuf.Len()+2 <= math.MaxUint8 && len(src) <= math.MaxUint8 {
+		buf.WriteByte(Array8Encoding)
+		buf.WriteByte(uint8(itemBuf.Len() + 2))
+		buf.WriteByte(uint8(len(src)))
+		if max <= math.MaxUint8 {
+			buf.WriteByte(SymbolSym8Encoding)
+		} else {
+			buf.WriteByte(SymbolSym32Encoding)
+		}
+	} else {
+		buf.WriteByte(Array32Encoding)
+		endian.PutUint32(x[:], uint32(itemBuf.Len()+5))
+		buf.Write(x[:])
+		endian.PutUint32(x[:], uint32(len(src)))
+		buf.Write(x[:])
+		if max <= math.MaxUint8 {
+			buf.WriteByte(SymbolSym8Encoding)
+		} else {
+			buf.WriteByte(SymbolSym32Encoding)
+		}
+	}
+
+	buf.Write(itemBuf.Bytes())
 
 	return nil
 }
@@ -319,7 +339,6 @@ func marshalIETFLanguageTagArray(src []IETFLanguageTag, buf *bytes.Buffer) error
 	if len(src) == 0 {
 		buf.WriteByte(Array8Encoding)
 		buf.WriteByte(0)
-		buf.WriteByte(SymbolSym8Encoding)
 		return nil
 	}
 
@@ -330,30 +349,40 @@ func marshalIETFLanguageTagArray(src []IETFLanguageTag, buf *bytes.Buffer) error
 		}
 	}
 
-	if len(src) <= math.MaxUint8 {
-		buf.WriteByte(Array8Encoding)
-		buf.WriteByte(uint8(len(src)))
-	} else {
-		buf.WriteByte(Array32Encoding)
-		endian.PutUint32(x[:], uint32(len(src)))
-		buf.Write(x[:])
-	}
-
-	if max <= math.MaxUint8 {
-		buf.WriteByte(SymbolSym8Encoding)
-	} else {
-		buf.WriteByte(SymbolSym32Encoding)
-	}
-
+	itemBuf := bytes.Buffer{}
 	for _, s := range src {
 		if max <= math.MaxUint8 {
-			buf.WriteByte(uint8(len(s)))
+			itemBuf.WriteByte(uint8(len(s)))
 		} else {
 			endian.PutUint32(x[:], uint32(len(s)))
-			buf.Write(x[:])
+			itemBuf.Write(x[:])
 		}
-		buf.WriteString(string(s))
+		itemBuf.WriteString(string(s))
 	}
+
+	if itemBuf.Len()+2 <= math.MaxUint8 && len(src) <= math.MaxUint8 {
+		buf.WriteByte(Array8Encoding)
+		buf.WriteByte(uint8(itemBuf.Len() + 2))
+		buf.WriteByte(uint8(len(src)))
+		if max <= math.MaxUint8 {
+			buf.WriteByte(SymbolSym8Encoding)
+		} else {
+			buf.WriteByte(SymbolSym32Encoding)
+		}
+	} else {
+		buf.WriteByte(Array32Encoding)
+		endian.PutUint32(x[:], uint32(itemBuf.Len()+5))
+		buf.Write(x[:])
+		endian.PutUint32(x[:], uint32(len(src)))
+		buf.Write(x[:])
+		if max <= math.MaxUint8 {
+			buf.WriteByte(SymbolSym8Encoding)
+		} else {
+			buf.WriteByte(SymbolSym32Encoding)
+		}
+	}
+
+	buf.Write(itemBuf.Bytes())
 
 	return nil
 }

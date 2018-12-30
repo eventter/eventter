@@ -283,67 +283,59 @@ func (t *Open) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	if count == 0 {
 		buf.WriteByte(List0Encoding)
 	} else {
-		if count <= math.MaxUint8 {
-			buf.WriteByte(List8Encoding)
-			buf.WriteByte(byte(count))
-		} else {
-			var x [4]byte
-			buf.WriteByte(List32Encoding)
-			endian.PutUint32(x[:], count)
-			buf.Write(x[:])
-		}
+		itemBuf := bytes.Buffer{}
 
 		if count > 0 {
-			err = marshalString(t.ContainerID, buf)
+			err = marshalString(t.ContainerID, &itemBuf)
 			if err != nil {
 				return errors.Wrap(err, "marshal field container-id failed")
 			}
 			if count > 1 {
-				err = marshalString(t.Hostname, buf)
+				err = marshalString(t.Hostname, &itemBuf)
 				if err != nil {
 					return errors.Wrap(err, "marshal field hostname failed")
 				}
 				if count > 2 {
-					err = marshalUint(t.MaxFrameSize, buf)
+					err = marshalUint(t.MaxFrameSize, &itemBuf)
 					if err != nil {
 						return errors.Wrap(err, "marshal field max-frame-size failed")
 					}
 					if count > 3 {
-						err = marshalUshort(t.ChannelMax, buf)
+						err = marshalUshort(t.ChannelMax, &itemBuf)
 						if err != nil {
 							return errors.Wrap(err, "marshal field channel-max failed")
 						}
 						if count > 4 {
-							err = t.IdleTimeOut.MarshalBuffer(buf)
+							err = t.IdleTimeOut.MarshalBuffer(&itemBuf)
 							if err != nil {
 								return errors.Wrap(err, "marshal field idle-time-out failed")
 							}
 							if count > 5 {
-								err = marshalIETFLanguageTagArray(t.OutgoingLocales, buf)
+								err = marshalIETFLanguageTagArray(t.OutgoingLocales, &itemBuf)
 								if err != nil {
 									return errors.Wrap(err, "marshal field outgoing-locales failed")
 								}
 
 								if count > 6 {
-									err = marshalIETFLanguageTagArray(t.IncomingLocales, buf)
+									err = marshalIETFLanguageTagArray(t.IncomingLocales, &itemBuf)
 									if err != nil {
 										return errors.Wrap(err, "marshal field incoming-locales failed")
 									}
 
 									if count > 7 {
-										err = marshalSymbolArray(t.OfferedCapabilities, buf)
+										err = marshalSymbolArray(t.OfferedCapabilities, &itemBuf)
 										if err != nil {
 											return errors.Wrap(err, "marshal field offered-capabilities failed")
 										}
 
 										if count > 8 {
-											err = marshalSymbolArray(t.DesiredCapabilities, buf)
+											err = marshalSymbolArray(t.DesiredCapabilities, &itemBuf)
 											if err != nil {
 												return errors.Wrap(err, "marshal field desired-capabilities failed")
 											}
 
 											if count > 9 {
-												err = t.Properties.MarshalBuffer(buf)
+												err = t.Properties.MarshalBuffer(&itemBuf)
 												if err != nil {
 													return errors.Wrap(err, "marshal field properties failed")
 												}
@@ -358,6 +350,21 @@ func (t *Open) MarshalBuffer(buf *bytes.Buffer) (err error) {
 				}
 			}
 		}
+
+		if itemBuf.Len()+1 <= math.MaxUint8 && count <= math.MaxUint8 {
+			buf.WriteByte(List8Encoding)
+			buf.WriteByte(uint8(itemBuf.Len() + 1))
+			buf.WriteByte(uint8(count))
+		} else {
+			var x [4]byte
+			buf.WriteByte(List32Encoding)
+			endian.PutUint32(x[:], uint32(itemBuf.Len()+4))
+			buf.Write(x[:])
+			endian.PutUint32(x[:], count)
+			buf.Write(x[:])
+		}
+
+		buf.Write(itemBuf.Bytes())
 	}
 	return nil
 }
@@ -371,10 +378,7 @@ func (t *Open) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
-	var (
-		count uint32
-		done  uint32
-	)
+	var size int
 	switch constructor {
 	case NullEncoding:
 		fallthrough
@@ -385,111 +389,132 @@ func (t *Open) UnmarshalBuffer(buf *bytes.Buffer) error {
 		if err != nil {
 			return errors.Wrap(err, "read length failed")
 		}
-		count = uint32(v)
+		size = int(v)
 	case List32Encoding:
 		if buf.Len() < 4 {
 			return errors.New("read length failed: buffer underflow")
 		}
-		count = endian.Uint32(buf.Next(4))
+		size = int(endian.Uint32(buf.Next(4)))
 	}
 
+	if buf.Len() < size {
+		return errors.New("buffer underflow")
+	}
+	itemBuf := bytes.NewBuffer(buf.Next(size))
+
+	var count int
+	switch constructor {
+	case List8Encoding:
+		v, err := itemBuf.ReadByte()
+		if err != nil {
+			return errors.Wrap(err, "read length failed")
+		}
+		count = int(v)
+	case List32Encoding:
+		if itemBuf.Len() < 4 {
+			return errors.New("read length failed: buffer underflow")
+		}
+		count = int(endian.Uint32(itemBuf.Next(4)))
+	}
+
+	var done int = 0
 	if count > 0 {
-		constructor, err = buf.ReadByte()
+		constructor, err = itemBuf.ReadByte()
 		if err != nil {
 			return errors.Wrap(err, "unmarshal field container-id failed")
 		}
-		err = unmarshalString(&t.ContainerID, constructor, buf)
+		err = unmarshalString(&t.ContainerID, constructor, itemBuf)
 		if err != nil {
 			return errors.Wrap(err, "unmarshal field container-id failed")
 		}
 		done = 1
 		if count > 1 {
-			constructor, err = buf.ReadByte()
+			constructor, err = itemBuf.ReadByte()
 			if err != nil {
 				return errors.Wrap(err, "unmarshal field hostname failed")
 			}
-			err = unmarshalString(&t.Hostname, constructor, buf)
+			err = unmarshalString(&t.Hostname, constructor, itemBuf)
 			if err != nil {
 				return errors.Wrap(err, "unmarshal field hostname failed")
 			}
 			done = 2
 			if count > 2 {
-				constructor, err = buf.ReadByte()
+				constructor, err = itemBuf.ReadByte()
 				if err != nil {
 					return errors.Wrap(err, "unmarshal field max-frame-size failed")
 				}
-				err = unmarshalUint(&t.MaxFrameSize, constructor, buf)
+				err = unmarshalUint(&t.MaxFrameSize, constructor, itemBuf)
 				if err != nil {
 					return errors.Wrap(err, "unmarshal field max-frame-size failed")
 				}
 				done = 3
 				if count > 3 {
-					constructor, err = buf.ReadByte()
+					constructor, err = itemBuf.ReadByte()
 					if err != nil {
 						return errors.Wrap(err, "unmarshal field channel-max failed")
 					}
-					err = unmarshalUshort(&t.ChannelMax, constructor, buf)
+					err = unmarshalUshort(&t.ChannelMax, constructor, itemBuf)
 					if err != nil {
 						return errors.Wrap(err, "unmarshal field channel-max failed")
 					}
 					done = 4
 					if count > 4 {
-						err = t.IdleTimeOut.UnmarshalBuffer(buf)
+						err = t.IdleTimeOut.UnmarshalBuffer(itemBuf)
 						if err != nil {
 							return errors.Wrap(err, "unmarshal field idle-time-out failed")
 						}
 						done = 5
 						if count > 5 {
-							constructor, err = buf.ReadByte()
+							constructor, err = itemBuf.ReadByte()
 							if err != nil {
 								return errors.Wrap(err, "unmarshal field outgoing-locales failed")
 							}
-							err = unmarshalIETFLanguageTagArray(&t.OutgoingLocales, constructor, buf)
+							err = unmarshalIETFLanguageTagArray(&t.OutgoingLocales, constructor, itemBuf)
 							if err != nil {
 								return errors.Wrap(err, "unmarshal field outgoing-locales failed")
 							}
 
 							done = 6
 							if count > 6 {
-								constructor, err = buf.ReadByte()
+								constructor, err = itemBuf.ReadByte()
 								if err != nil {
 									return errors.Wrap(err, "unmarshal field incoming-locales failed")
 								}
-								err = unmarshalIETFLanguageTagArray(&t.IncomingLocales, constructor, buf)
+								err = unmarshalIETFLanguageTagArray(&t.IncomingLocales, constructor, itemBuf)
 								if err != nil {
 									return errors.Wrap(err, "unmarshal field incoming-locales failed")
 								}
 
 								done = 7
 								if count > 7 {
-									constructor, err = buf.ReadByte()
+									constructor, err = itemBuf.ReadByte()
 									if err != nil {
 										return errors.Wrap(err, "unmarshal field offered-capabilities failed")
 									}
-									err = unmarshalSymbolArray(&t.OfferedCapabilities, constructor, buf)
+									err = unmarshalSymbolArray(&t.OfferedCapabilities, constructor, itemBuf)
 									if err != nil {
 										return errors.Wrap(err, "unmarshal field offered-capabilities failed")
 									}
 
 									done = 8
 									if count > 8 {
-										constructor, err = buf.ReadByte()
+										constructor, err = itemBuf.ReadByte()
 										if err != nil {
 											return errors.Wrap(err, "unmarshal field desired-capabilities failed")
 										}
-										err = unmarshalSymbolArray(&t.DesiredCapabilities, constructor, buf)
+										err = unmarshalSymbolArray(&t.DesiredCapabilities, constructor, itemBuf)
 										if err != nil {
 											return errors.Wrap(err, "unmarshal field desired-capabilities failed")
 										}
 
 										done = 9
 										if count > 9 {
-											constructor, err = buf.ReadByte()
+											constructor, err = itemBuf.ReadByte()
 											if err != nil {
 												return errors.Wrap(err, "unmarshal field properties failed")
 											}
 											var map9 *types.Struct
-											err = unmarshalMap(&map9, constructor, buf)
+											err = unmarshalMap(&map9, constructor, itemBuf)
 											if err != nil {
 												return errors.Wrap(err, "unmarshal field properties failed")
 											}
@@ -572,55 +597,47 @@ func (t *Begin) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	if count == 0 {
 		buf.WriteByte(List0Encoding)
 	} else {
-		if count <= math.MaxUint8 {
-			buf.WriteByte(List8Encoding)
-			buf.WriteByte(byte(count))
-		} else {
-			var x [4]byte
-			buf.WriteByte(List32Encoding)
-			endian.PutUint32(x[:], count)
-			buf.Write(x[:])
-		}
+		itemBuf := bytes.Buffer{}
 
 		if count > 0 {
-			err = marshalUshort(t.RemoteChannel, buf)
+			err = marshalUshort(t.RemoteChannel, &itemBuf)
 			if err != nil {
 				return errors.Wrap(err, "marshal field remote-channel failed")
 			}
 			if count > 1 {
-				err = t.NextOutgoingID.MarshalBuffer(buf)
+				err = t.NextOutgoingID.MarshalBuffer(&itemBuf)
 				if err != nil {
 					return errors.Wrap(err, "marshal field next-outgoing-id failed")
 				}
 				if count > 2 {
-					err = marshalUint(t.IncomingWindow, buf)
+					err = marshalUint(t.IncomingWindow, &itemBuf)
 					if err != nil {
 						return errors.Wrap(err, "marshal field incoming-window failed")
 					}
 					if count > 3 {
-						err = marshalUint(t.OutgoingWindow, buf)
+						err = marshalUint(t.OutgoingWindow, &itemBuf)
 						if err != nil {
 							return errors.Wrap(err, "marshal field outgoing-window failed")
 						}
 						if count > 4 {
-							err = t.HandleMax.MarshalBuffer(buf)
+							err = t.HandleMax.MarshalBuffer(&itemBuf)
 							if err != nil {
 								return errors.Wrap(err, "marshal field handle-max failed")
 							}
 							if count > 5 {
-								err = marshalSymbolArray(t.OfferedCapabilities, buf)
+								err = marshalSymbolArray(t.OfferedCapabilities, &itemBuf)
 								if err != nil {
 									return errors.Wrap(err, "marshal field offered-capabilities failed")
 								}
 
 								if count > 6 {
-									err = marshalSymbolArray(t.DesiredCapabilities, buf)
+									err = marshalSymbolArray(t.DesiredCapabilities, &itemBuf)
 									if err != nil {
 										return errors.Wrap(err, "marshal field desired-capabilities failed")
 									}
 
 									if count > 7 {
-										err = t.Properties.MarshalBuffer(buf)
+										err = t.Properties.MarshalBuffer(&itemBuf)
 										if err != nil {
 											return errors.Wrap(err, "marshal field properties failed")
 										}
@@ -633,6 +650,21 @@ func (t *Begin) MarshalBuffer(buf *bytes.Buffer) (err error) {
 				}
 			}
 		}
+
+		if itemBuf.Len()+1 <= math.MaxUint8 && count <= math.MaxUint8 {
+			buf.WriteByte(List8Encoding)
+			buf.WriteByte(uint8(itemBuf.Len() + 1))
+			buf.WriteByte(uint8(count))
+		} else {
+			var x [4]byte
+			buf.WriteByte(List32Encoding)
+			endian.PutUint32(x[:], uint32(itemBuf.Len()+4))
+			buf.Write(x[:])
+			endian.PutUint32(x[:], count)
+			buf.Write(x[:])
+		}
+
+		buf.Write(itemBuf.Bytes())
 	}
 	return nil
 }
@@ -646,10 +678,7 @@ func (t *Begin) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
-	var (
-		count uint32
-		done  uint32
-	)
+	var size int
 	switch constructor {
 	case NullEncoding:
 		fallthrough
@@ -660,85 +689,106 @@ func (t *Begin) UnmarshalBuffer(buf *bytes.Buffer) error {
 		if err != nil {
 			return errors.Wrap(err, "read length failed")
 		}
-		count = uint32(v)
+		size = int(v)
 	case List32Encoding:
 		if buf.Len() < 4 {
 			return errors.New("read length failed: buffer underflow")
 		}
-		count = endian.Uint32(buf.Next(4))
+		size = int(endian.Uint32(buf.Next(4)))
 	}
 
+	if buf.Len() < size {
+		return errors.New("buffer underflow")
+	}
+	itemBuf := bytes.NewBuffer(buf.Next(size))
+
+	var count int
+	switch constructor {
+	case List8Encoding:
+		v, err := itemBuf.ReadByte()
+		if err != nil {
+			return errors.Wrap(err, "read length failed")
+		}
+		count = int(v)
+	case List32Encoding:
+		if itemBuf.Len() < 4 {
+			return errors.New("read length failed: buffer underflow")
+		}
+		count = int(endian.Uint32(itemBuf.Next(4)))
+	}
+
+	var done int = 0
 	if count > 0 {
-		constructor, err = buf.ReadByte()
+		constructor, err = itemBuf.ReadByte()
 		if err != nil {
 			return errors.Wrap(err, "unmarshal field remote-channel failed")
 		}
-		err = unmarshalUshort(&t.RemoteChannel, constructor, buf)
+		err = unmarshalUshort(&t.RemoteChannel, constructor, itemBuf)
 		if err != nil {
 			return errors.Wrap(err, "unmarshal field remote-channel failed")
 		}
 		done = 1
 		if count > 1 {
-			err = t.NextOutgoingID.UnmarshalBuffer(buf)
+			err = t.NextOutgoingID.UnmarshalBuffer(itemBuf)
 			if err != nil {
 				return errors.Wrap(err, "unmarshal field next-outgoing-id failed")
 			}
 			done = 2
 			if count > 2 {
-				constructor, err = buf.ReadByte()
+				constructor, err = itemBuf.ReadByte()
 				if err != nil {
 					return errors.Wrap(err, "unmarshal field incoming-window failed")
 				}
-				err = unmarshalUint(&t.IncomingWindow, constructor, buf)
+				err = unmarshalUint(&t.IncomingWindow, constructor, itemBuf)
 				if err != nil {
 					return errors.Wrap(err, "unmarshal field incoming-window failed")
 				}
 				done = 3
 				if count > 3 {
-					constructor, err = buf.ReadByte()
+					constructor, err = itemBuf.ReadByte()
 					if err != nil {
 						return errors.Wrap(err, "unmarshal field outgoing-window failed")
 					}
-					err = unmarshalUint(&t.OutgoingWindow, constructor, buf)
+					err = unmarshalUint(&t.OutgoingWindow, constructor, itemBuf)
 					if err != nil {
 						return errors.Wrap(err, "unmarshal field outgoing-window failed")
 					}
 					done = 4
 					if count > 4 {
-						err = t.HandleMax.UnmarshalBuffer(buf)
+						err = t.HandleMax.UnmarshalBuffer(itemBuf)
 						if err != nil {
 							return errors.Wrap(err, "unmarshal field handle-max failed")
 						}
 						done = 5
 						if count > 5 {
-							constructor, err = buf.ReadByte()
+							constructor, err = itemBuf.ReadByte()
 							if err != nil {
 								return errors.Wrap(err, "unmarshal field offered-capabilities failed")
 							}
-							err = unmarshalSymbolArray(&t.OfferedCapabilities, constructor, buf)
+							err = unmarshalSymbolArray(&t.OfferedCapabilities, constructor, itemBuf)
 							if err != nil {
 								return errors.Wrap(err, "unmarshal field offered-capabilities failed")
 							}
 
 							done = 6
 							if count > 6 {
-								constructor, err = buf.ReadByte()
+								constructor, err = itemBuf.ReadByte()
 								if err != nil {
 									return errors.Wrap(err, "unmarshal field desired-capabilities failed")
 								}
-								err = unmarshalSymbolArray(&t.DesiredCapabilities, constructor, buf)
+								err = unmarshalSymbolArray(&t.DesiredCapabilities, constructor, itemBuf)
 								if err != nil {
 									return errors.Wrap(err, "unmarshal field desired-capabilities failed")
 								}
 
 								done = 7
 								if count > 7 {
-									constructor, err = buf.ReadByte()
+									constructor, err = itemBuf.ReadByte()
 									if err != nil {
 										return errors.Wrap(err, "unmarshal field properties failed")
 									}
 									var map7 *types.Struct
-									err = unmarshalMap(&map7, constructor, buf)
+									err = unmarshalMap(&map7, constructor, itemBuf)
 									if err != nil {
 										return errors.Wrap(err, "unmarshal field properties failed")
 									}
@@ -845,85 +895,77 @@ func (t *Attach) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	if count == 0 {
 		buf.WriteByte(List0Encoding)
 	} else {
-		if count <= math.MaxUint8 {
-			buf.WriteByte(List8Encoding)
-			buf.WriteByte(byte(count))
-		} else {
-			var x [4]byte
-			buf.WriteByte(List32Encoding)
-			endian.PutUint32(x[:], count)
-			buf.Write(x[:])
-		}
+		itemBuf := bytes.Buffer{}
 
 		if count > 0 {
-			err = marshalString(t.Name, buf)
+			err = marshalString(t.Name, &itemBuf)
 			if err != nil {
 				return errors.Wrap(err, "marshal field name failed")
 			}
 			if count > 1 {
-				err = t.Handle.MarshalBuffer(buf)
+				err = t.Handle.MarshalBuffer(&itemBuf)
 				if err != nil {
 					return errors.Wrap(err, "marshal field handle failed")
 				}
 				if count > 2 {
-					err = t.Role.MarshalBuffer(buf)
+					err = t.Role.MarshalBuffer(&itemBuf)
 					if err != nil {
 						return errors.Wrap(err, "marshal field role failed")
 					}
 					if count > 3 {
-						err = t.SndSettleMode.MarshalBuffer(buf)
+						err = t.SndSettleMode.MarshalBuffer(&itemBuf)
 						if err != nil {
 							return errors.Wrap(err, "marshal field snd-settle-mode failed")
 						}
 						if count > 4 {
-							err = t.RcvSettleMode.MarshalBuffer(buf)
+							err = t.RcvSettleMode.MarshalBuffer(&itemBuf)
 							if err != nil {
 								return errors.Wrap(err, "marshal field rcv-settle-mode failed")
 							}
 							if count > 5 {
-								err = t.Source.MarshalBuffer(buf)
+								err = t.Source.MarshalBuffer(&itemBuf)
 								if err != nil {
 									return errors.Wrap(err, "marshal field source failed")
 								}
 								if count > 6 {
-									err = t.Target.MarshalBuffer(buf)
+									err = t.Target.MarshalBuffer(&itemBuf)
 									if err != nil {
 										return errors.Wrap(err, "marshal field target failed")
 									}
 									if count > 7 {
-										err = marshalMap(t.Unsettled, buf)
+										err = marshalMap(t.Unsettled, &itemBuf)
 										if err != nil {
 											return errors.Wrap(err, "marshal field unsettled failed")
 										}
 										if count > 8 {
-											err = marshalBoolean(t.IncompleteUnsettled, buf)
+											err = marshalBoolean(t.IncompleteUnsettled, &itemBuf)
 											if err != nil {
 												return errors.Wrap(err, "marshal field incomplete-unsettled failed")
 											}
 											if count > 9 {
-												err = t.InitialDeliveryCount.MarshalBuffer(buf)
+												err = t.InitialDeliveryCount.MarshalBuffer(&itemBuf)
 												if err != nil {
 													return errors.Wrap(err, "marshal field initial-delivery-count failed")
 												}
 												if count > 10 {
-													err = marshalUlong(t.MaxMessageSize, buf)
+													err = marshalUlong(t.MaxMessageSize, &itemBuf)
 													if err != nil {
 														return errors.Wrap(err, "marshal field max-message-size failed")
 													}
 													if count > 11 {
-														err = marshalSymbolArray(t.OfferedCapabilities, buf)
+														err = marshalSymbolArray(t.OfferedCapabilities, &itemBuf)
 														if err != nil {
 															return errors.Wrap(err, "marshal field offered-capabilities failed")
 														}
 
 														if count > 12 {
-															err = marshalSymbolArray(t.DesiredCapabilities, buf)
+															err = marshalSymbolArray(t.DesiredCapabilities, &itemBuf)
 															if err != nil {
 																return errors.Wrap(err, "marshal field desired-capabilities failed")
 															}
 
 															if count > 13 {
-																err = t.Properties.MarshalBuffer(buf)
+																err = t.Properties.MarshalBuffer(&itemBuf)
 																if err != nil {
 																	return errors.Wrap(err, "marshal field properties failed")
 																}
@@ -942,6 +984,21 @@ func (t *Attach) MarshalBuffer(buf *bytes.Buffer) (err error) {
 				}
 			}
 		}
+
+		if itemBuf.Len()+1 <= math.MaxUint8 && count <= math.MaxUint8 {
+			buf.WriteByte(List8Encoding)
+			buf.WriteByte(uint8(itemBuf.Len() + 1))
+			buf.WriteByte(uint8(count))
+		} else {
+			var x [4]byte
+			buf.WriteByte(List32Encoding)
+			endian.PutUint32(x[:], uint32(itemBuf.Len()+4))
+			buf.Write(x[:])
+			endian.PutUint32(x[:], count)
+			buf.Write(x[:])
+		}
+
+		buf.Write(itemBuf.Bytes())
 	}
 	return nil
 }
@@ -955,10 +1012,7 @@ func (t *Attach) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
-	var (
-		count uint32
-		done  uint32
-	)
+	var size int
 	switch constructor {
 	case NullEncoding:
 		fallthrough
@@ -969,135 +1023,156 @@ func (t *Attach) UnmarshalBuffer(buf *bytes.Buffer) error {
 		if err != nil {
 			return errors.Wrap(err, "read length failed")
 		}
-		count = uint32(v)
+		size = int(v)
 	case List32Encoding:
 		if buf.Len() < 4 {
 			return errors.New("read length failed: buffer underflow")
 		}
-		count = endian.Uint32(buf.Next(4))
+		size = int(endian.Uint32(buf.Next(4)))
 	}
 
+	if buf.Len() < size {
+		return errors.New("buffer underflow")
+	}
+	itemBuf := bytes.NewBuffer(buf.Next(size))
+
+	var count int
+	switch constructor {
+	case List8Encoding:
+		v, err := itemBuf.ReadByte()
+		if err != nil {
+			return errors.Wrap(err, "read length failed")
+		}
+		count = int(v)
+	case List32Encoding:
+		if itemBuf.Len() < 4 {
+			return errors.New("read length failed: buffer underflow")
+		}
+		count = int(endian.Uint32(itemBuf.Next(4)))
+	}
+
+	var done int = 0
 	if count > 0 {
-		constructor, err = buf.ReadByte()
+		constructor, err = itemBuf.ReadByte()
 		if err != nil {
 			return errors.Wrap(err, "unmarshal field name failed")
 		}
-		err = unmarshalString(&t.Name, constructor, buf)
+		err = unmarshalString(&t.Name, constructor, itemBuf)
 		if err != nil {
 			return errors.Wrap(err, "unmarshal field name failed")
 		}
 		done = 1
 		if count > 1 {
-			err = t.Handle.UnmarshalBuffer(buf)
+			err = t.Handle.UnmarshalBuffer(itemBuf)
 			if err != nil {
 				return errors.Wrap(err, "unmarshal field handle failed")
 			}
 			done = 2
 			if count > 2 {
-				err = t.Role.UnmarshalBuffer(buf)
+				err = t.Role.UnmarshalBuffer(itemBuf)
 				if err != nil {
 					return errors.Wrap(err, "unmarshal field role failed")
 				}
 				done = 3
 				if count > 3 {
-					err = t.SndSettleMode.UnmarshalBuffer(buf)
+					err = t.SndSettleMode.UnmarshalBuffer(itemBuf)
 					if err != nil {
 						return errors.Wrap(err, "unmarshal field snd-settle-mode failed")
 					}
 					done = 4
 					if count > 4 {
-						err = t.RcvSettleMode.UnmarshalBuffer(buf)
+						err = t.RcvSettleMode.UnmarshalBuffer(itemBuf)
 						if err != nil {
 							return errors.Wrap(err, "unmarshal field rcv-settle-mode failed")
 						}
 						done = 5
 						if count > 5 {
-							constructor, err = buf.ReadByte()
+							constructor, err = itemBuf.ReadByte()
 							if err != nil {
 								return errors.Wrap(err, "unmarshal field source failed")
 							}
-							err = t.Source.UnmarshalBuffer(buf)
+							err = t.Source.UnmarshalBuffer(itemBuf)
 							if err != nil {
 								return errors.Wrap(err, "unmarshal field source failed")
 							}
 							done = 6
 							if count > 6 {
-								constructor, err = buf.ReadByte()
+								constructor, err = itemBuf.ReadByte()
 								if err != nil {
 									return errors.Wrap(err, "unmarshal field target failed")
 								}
-								err = t.Target.UnmarshalBuffer(buf)
+								err = t.Target.UnmarshalBuffer(itemBuf)
 								if err != nil {
 									return errors.Wrap(err, "unmarshal field target failed")
 								}
 								done = 7
 								if count > 7 {
-									constructor, err = buf.ReadByte()
+									constructor, err = itemBuf.ReadByte()
 									if err != nil {
 										return errors.Wrap(err, "unmarshal field unsettled failed")
 									}
 									var map7 *types.Struct
-									err = unmarshalMap(&map7, constructor, buf)
+									err = unmarshalMap(&map7, constructor, itemBuf)
 									if err != nil {
 										return errors.Wrap(err, "unmarshal field unsettled failed")
 									}
 									t.Unsettled = (*types.Struct)(map7)
 									done = 8
 									if count > 8 {
-										constructor, err = buf.ReadByte()
+										constructor, err = itemBuf.ReadByte()
 										if err != nil {
 											return errors.Wrap(err, "unmarshal field incomplete-unsettled failed")
 										}
-										err = unmarshalBoolean(&t.IncompleteUnsettled, constructor, buf)
+										err = unmarshalBoolean(&t.IncompleteUnsettled, constructor, itemBuf)
 										if err != nil {
 											return errors.Wrap(err, "unmarshal field incomplete-unsettled failed")
 										}
 										done = 9
 										if count > 9 {
-											err = t.InitialDeliveryCount.UnmarshalBuffer(buf)
+											err = t.InitialDeliveryCount.UnmarshalBuffer(itemBuf)
 											if err != nil {
 												return errors.Wrap(err, "unmarshal field initial-delivery-count failed")
 											}
 											done = 10
 											if count > 10 {
-												constructor, err = buf.ReadByte()
+												constructor, err = itemBuf.ReadByte()
 												if err != nil {
 													return errors.Wrap(err, "unmarshal field max-message-size failed")
 												}
-												err = unmarshalUlong(&t.MaxMessageSize, constructor, buf)
+												err = unmarshalUlong(&t.MaxMessageSize, constructor, itemBuf)
 												if err != nil {
 													return errors.Wrap(err, "unmarshal field max-message-size failed")
 												}
 												done = 11
 												if count > 11 {
-													constructor, err = buf.ReadByte()
+													constructor, err = itemBuf.ReadByte()
 													if err != nil {
 														return errors.Wrap(err, "unmarshal field offered-capabilities failed")
 													}
-													err = unmarshalSymbolArray(&t.OfferedCapabilities, constructor, buf)
+													err = unmarshalSymbolArray(&t.OfferedCapabilities, constructor, itemBuf)
 													if err != nil {
 														return errors.Wrap(err, "unmarshal field offered-capabilities failed")
 													}
 
 													done = 12
 													if count > 12 {
-														constructor, err = buf.ReadByte()
+														constructor, err = itemBuf.ReadByte()
 														if err != nil {
 															return errors.Wrap(err, "unmarshal field desired-capabilities failed")
 														}
-														err = unmarshalSymbolArray(&t.DesiredCapabilities, constructor, buf)
+														err = unmarshalSymbolArray(&t.DesiredCapabilities, constructor, itemBuf)
 														if err != nil {
 															return errors.Wrap(err, "unmarshal field desired-capabilities failed")
 														}
 
 														done = 13
 														if count > 13 {
-															constructor, err = buf.ReadByte()
+															constructor, err = itemBuf.ReadByte()
 															if err != nil {
 																return errors.Wrap(err, "unmarshal field properties failed")
 															}
 															var map13 *types.Struct
-															err = unmarshalMap(&map13, constructor, buf)
+															err = unmarshalMap(&map13, constructor, itemBuf)
 															if err != nil {
 																return errors.Wrap(err, "unmarshal field properties failed")
 															}
@@ -1196,68 +1271,60 @@ func (t *Flow) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	if count == 0 {
 		buf.WriteByte(List0Encoding)
 	} else {
-		if count <= math.MaxUint8 {
-			buf.WriteByte(List8Encoding)
-			buf.WriteByte(byte(count))
-		} else {
-			var x [4]byte
-			buf.WriteByte(List32Encoding)
-			endian.PutUint32(x[:], count)
-			buf.Write(x[:])
-		}
+		itemBuf := bytes.Buffer{}
 
 		if count > 0 {
-			err = t.NextIncomingID.MarshalBuffer(buf)
+			err = t.NextIncomingID.MarshalBuffer(&itemBuf)
 			if err != nil {
 				return errors.Wrap(err, "marshal field next-incoming-id failed")
 			}
 			if count > 1 {
-				err = marshalUint(t.IncomingWindow, buf)
+				err = marshalUint(t.IncomingWindow, &itemBuf)
 				if err != nil {
 					return errors.Wrap(err, "marshal field incoming-window failed")
 				}
 				if count > 2 {
-					err = t.NextOutgoingID.MarshalBuffer(buf)
+					err = t.NextOutgoingID.MarshalBuffer(&itemBuf)
 					if err != nil {
 						return errors.Wrap(err, "marshal field next-outgoing-id failed")
 					}
 					if count > 3 {
-						err = marshalUint(t.OutgoingWindow, buf)
+						err = marshalUint(t.OutgoingWindow, &itemBuf)
 						if err != nil {
 							return errors.Wrap(err, "marshal field outgoing-window failed")
 						}
 						if count > 4 {
-							err = t.Handle.MarshalBuffer(buf)
+							err = t.Handle.MarshalBuffer(&itemBuf)
 							if err != nil {
 								return errors.Wrap(err, "marshal field handle failed")
 							}
 							if count > 5 {
-								err = t.DeliveryCount.MarshalBuffer(buf)
+								err = t.DeliveryCount.MarshalBuffer(&itemBuf)
 								if err != nil {
 									return errors.Wrap(err, "marshal field delivery-count failed")
 								}
 								if count > 6 {
-									err = marshalUint(t.LinkCredit, buf)
+									err = marshalUint(t.LinkCredit, &itemBuf)
 									if err != nil {
 										return errors.Wrap(err, "marshal field link-credit failed")
 									}
 									if count > 7 {
-										err = marshalUint(t.Available, buf)
+										err = marshalUint(t.Available, &itemBuf)
 										if err != nil {
 											return errors.Wrap(err, "marshal field available failed")
 										}
 										if count > 8 {
-											err = marshalBoolean(t.Drain, buf)
+											err = marshalBoolean(t.Drain, &itemBuf)
 											if err != nil {
 												return errors.Wrap(err, "marshal field drain failed")
 											}
 											if count > 9 {
-												err = marshalBoolean(t.Echo, buf)
+												err = marshalBoolean(t.Echo, &itemBuf)
 												if err != nil {
 													return errors.Wrap(err, "marshal field echo failed")
 												}
 												if count > 10 {
-													err = t.Properties.MarshalBuffer(buf)
+													err = t.Properties.MarshalBuffer(&itemBuf)
 													if err != nil {
 														return errors.Wrap(err, "marshal field properties failed")
 													}
@@ -1273,6 +1340,21 @@ func (t *Flow) MarshalBuffer(buf *bytes.Buffer) (err error) {
 				}
 			}
 		}
+
+		if itemBuf.Len()+1 <= math.MaxUint8 && count <= math.MaxUint8 {
+			buf.WriteByte(List8Encoding)
+			buf.WriteByte(uint8(itemBuf.Len() + 1))
+			buf.WriteByte(uint8(count))
+		} else {
+			var x [4]byte
+			buf.WriteByte(List32Encoding)
+			endian.PutUint32(x[:], uint32(itemBuf.Len()+4))
+			buf.Write(x[:])
+			endian.PutUint32(x[:], count)
+			buf.Write(x[:])
+		}
+
+		buf.Write(itemBuf.Bytes())
 	}
 	return nil
 }
@@ -1286,10 +1368,7 @@ func (t *Flow) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
-	var (
-		count uint32
-		done  uint32
-	)
+	var size int
 	switch constructor {
 	case NullEncoding:
 		fallthrough
@@ -1300,105 +1379,126 @@ func (t *Flow) UnmarshalBuffer(buf *bytes.Buffer) error {
 		if err != nil {
 			return errors.Wrap(err, "read length failed")
 		}
-		count = uint32(v)
+		size = int(v)
 	case List32Encoding:
 		if buf.Len() < 4 {
 			return errors.New("read length failed: buffer underflow")
 		}
-		count = endian.Uint32(buf.Next(4))
+		size = int(endian.Uint32(buf.Next(4)))
 	}
 
+	if buf.Len() < size {
+		return errors.New("buffer underflow")
+	}
+	itemBuf := bytes.NewBuffer(buf.Next(size))
+
+	var count int
+	switch constructor {
+	case List8Encoding:
+		v, err := itemBuf.ReadByte()
+		if err != nil {
+			return errors.Wrap(err, "read length failed")
+		}
+		count = int(v)
+	case List32Encoding:
+		if itemBuf.Len() < 4 {
+			return errors.New("read length failed: buffer underflow")
+		}
+		count = int(endian.Uint32(itemBuf.Next(4)))
+	}
+
+	var done int = 0
 	if count > 0 {
-		err = t.NextIncomingID.UnmarshalBuffer(buf)
+		err = t.NextIncomingID.UnmarshalBuffer(itemBuf)
 		if err != nil {
 			return errors.Wrap(err, "unmarshal field next-incoming-id failed")
 		}
 		done = 1
 		if count > 1 {
-			constructor, err = buf.ReadByte()
+			constructor, err = itemBuf.ReadByte()
 			if err != nil {
 				return errors.Wrap(err, "unmarshal field incoming-window failed")
 			}
-			err = unmarshalUint(&t.IncomingWindow, constructor, buf)
+			err = unmarshalUint(&t.IncomingWindow, constructor, itemBuf)
 			if err != nil {
 				return errors.Wrap(err, "unmarshal field incoming-window failed")
 			}
 			done = 2
 			if count > 2 {
-				err = t.NextOutgoingID.UnmarshalBuffer(buf)
+				err = t.NextOutgoingID.UnmarshalBuffer(itemBuf)
 				if err != nil {
 					return errors.Wrap(err, "unmarshal field next-outgoing-id failed")
 				}
 				done = 3
 				if count > 3 {
-					constructor, err = buf.ReadByte()
+					constructor, err = itemBuf.ReadByte()
 					if err != nil {
 						return errors.Wrap(err, "unmarshal field outgoing-window failed")
 					}
-					err = unmarshalUint(&t.OutgoingWindow, constructor, buf)
+					err = unmarshalUint(&t.OutgoingWindow, constructor, itemBuf)
 					if err != nil {
 						return errors.Wrap(err, "unmarshal field outgoing-window failed")
 					}
 					done = 4
 					if count > 4 {
-						err = t.Handle.UnmarshalBuffer(buf)
+						err = t.Handle.UnmarshalBuffer(itemBuf)
 						if err != nil {
 							return errors.Wrap(err, "unmarshal field handle failed")
 						}
 						done = 5
 						if count > 5 {
-							err = t.DeliveryCount.UnmarshalBuffer(buf)
+							err = t.DeliveryCount.UnmarshalBuffer(itemBuf)
 							if err != nil {
 								return errors.Wrap(err, "unmarshal field delivery-count failed")
 							}
 							done = 6
 							if count > 6 {
-								constructor, err = buf.ReadByte()
+								constructor, err = itemBuf.ReadByte()
 								if err != nil {
 									return errors.Wrap(err, "unmarshal field link-credit failed")
 								}
-								err = unmarshalUint(&t.LinkCredit, constructor, buf)
+								err = unmarshalUint(&t.LinkCredit, constructor, itemBuf)
 								if err != nil {
 									return errors.Wrap(err, "unmarshal field link-credit failed")
 								}
 								done = 7
 								if count > 7 {
-									constructor, err = buf.ReadByte()
+									constructor, err = itemBuf.ReadByte()
 									if err != nil {
 										return errors.Wrap(err, "unmarshal field available failed")
 									}
-									err = unmarshalUint(&t.Available, constructor, buf)
+									err = unmarshalUint(&t.Available, constructor, itemBuf)
 									if err != nil {
 										return errors.Wrap(err, "unmarshal field available failed")
 									}
 									done = 8
 									if count > 8 {
-										constructor, err = buf.ReadByte()
+										constructor, err = itemBuf.ReadByte()
 										if err != nil {
 											return errors.Wrap(err, "unmarshal field drain failed")
 										}
-										err = unmarshalBoolean(&t.Drain, constructor, buf)
+										err = unmarshalBoolean(&t.Drain, constructor, itemBuf)
 										if err != nil {
 											return errors.Wrap(err, "unmarshal field drain failed")
 										}
 										done = 9
 										if count > 9 {
-											constructor, err = buf.ReadByte()
+											constructor, err = itemBuf.ReadByte()
 											if err != nil {
 												return errors.Wrap(err, "unmarshal field echo failed")
 											}
-											err = unmarshalBoolean(&t.Echo, constructor, buf)
+											err = unmarshalBoolean(&t.Echo, constructor, itemBuf)
 											if err != nil {
 												return errors.Wrap(err, "unmarshal field echo failed")
 											}
 											done = 10
 											if count > 10 {
-												constructor, err = buf.ReadByte()
+												constructor, err = itemBuf.ReadByte()
 												if err != nil {
 													return errors.Wrap(err, "unmarshal field properties failed")
 												}
 												var map10 *types.Struct
-												err = unmarshalMap(&map10, constructor, buf)
+												err = unmarshalMap(&map10, constructor, itemBuf)
 												if err != nil {
 													return errors.Wrap(err, "unmarshal field properties failed")
 												}
@@ -1500,68 +1600,60 @@ func (t *Transfer) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	if count == 0 {
 		buf.WriteByte(List0Encoding)
 	} else {
-		if count <= math.MaxUint8 {
-			buf.WriteByte(List8Encoding)
-			buf.WriteByte(byte(count))
-		} else {
-			var x [4]byte
-			buf.WriteByte(List32Encoding)
-			endian.PutUint32(x[:], count)
-			buf.Write(x[:])
-		}
+		itemBuf := bytes.Buffer{}
 
 		if count > 0 {
-			err = t.Handle.MarshalBuffer(buf)
+			err = t.Handle.MarshalBuffer(&itemBuf)
 			if err != nil {
 				return errors.Wrap(err, "marshal field handle failed")
 			}
 			if count > 1 {
-				err = t.DeliveryID.MarshalBuffer(buf)
+				err = t.DeliveryID.MarshalBuffer(&itemBuf)
 				if err != nil {
 					return errors.Wrap(err, "marshal field delivery-id failed")
 				}
 				if count > 2 {
-					err = t.DeliveryTag.MarshalBuffer(buf)
+					err = t.DeliveryTag.MarshalBuffer(&itemBuf)
 					if err != nil {
 						return errors.Wrap(err, "marshal field delivery-tag failed")
 					}
 					if count > 3 {
-						err = t.MessageFormat.MarshalBuffer(buf)
+						err = t.MessageFormat.MarshalBuffer(&itemBuf)
 						if err != nil {
 							return errors.Wrap(err, "marshal field message-format failed")
 						}
 						if count > 4 {
-							err = marshalBoolean(t.Settled, buf)
+							err = marshalBoolean(t.Settled, &itemBuf)
 							if err != nil {
 								return errors.Wrap(err, "marshal field settled failed")
 							}
 							if count > 5 {
-								err = marshalBoolean(t.More, buf)
+								err = marshalBoolean(t.More, &itemBuf)
 								if err != nil {
 									return errors.Wrap(err, "marshal field more failed")
 								}
 								if count > 6 {
-									err = t.RcvSettleMode.MarshalBuffer(buf)
+									err = t.RcvSettleMode.MarshalBuffer(&itemBuf)
 									if err != nil {
 										return errors.Wrap(err, "marshal field rcv-settle-mode failed")
 									}
 									if count > 7 {
-										err = marshalDeliveryStateUnion(t.State, buf)
+										err = marshalDeliveryStateUnion(t.State, &itemBuf)
 										if err != nil {
 											return errors.Wrap(err, "marshal field state failed")
 										}
 										if count > 8 {
-											err = marshalBoolean(t.Resume, buf)
+											err = marshalBoolean(t.Resume, &itemBuf)
 											if err != nil {
 												return errors.Wrap(err, "marshal field resume failed")
 											}
 											if count > 9 {
-												err = marshalBoolean(t.Aborted, buf)
+												err = marshalBoolean(t.Aborted, &itemBuf)
 												if err != nil {
 													return errors.Wrap(err, "marshal field aborted failed")
 												}
 												if count > 10 {
-													err = marshalBoolean(t.Batchable, buf)
+													err = marshalBoolean(t.Batchable, &itemBuf)
 													if err != nil {
 														return errors.Wrap(err, "marshal field batchable failed")
 													}
@@ -1577,6 +1669,21 @@ func (t *Transfer) MarshalBuffer(buf *bytes.Buffer) (err error) {
 				}
 			}
 		}
+
+		if itemBuf.Len()+1 <= math.MaxUint8 && count <= math.MaxUint8 {
+			buf.WriteByte(List8Encoding)
+			buf.WriteByte(uint8(itemBuf.Len() + 1))
+			buf.WriteByte(uint8(count))
+		} else {
+			var x [4]byte
+			buf.WriteByte(List32Encoding)
+			endian.PutUint32(x[:], uint32(itemBuf.Len()+4))
+			buf.Write(x[:])
+			endian.PutUint32(x[:], count)
+			buf.Write(x[:])
+		}
+
+		buf.Write(itemBuf.Bytes())
 	}
 	return nil
 }
@@ -1590,10 +1697,7 @@ func (t *Transfer) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
-	var (
-		count uint32
-		done  uint32
-	)
+	var size int
 	switch constructor {
 	case NullEncoding:
 		fallthrough
@@ -1604,100 +1708,121 @@ func (t *Transfer) UnmarshalBuffer(buf *bytes.Buffer) error {
 		if err != nil {
 			return errors.Wrap(err, "read length failed")
 		}
-		count = uint32(v)
+		size = int(v)
 	case List32Encoding:
 		if buf.Len() < 4 {
 			return errors.New("read length failed: buffer underflow")
 		}
-		count = endian.Uint32(buf.Next(4))
+		size = int(endian.Uint32(buf.Next(4)))
 	}
 
+	if buf.Len() < size {
+		return errors.New("buffer underflow")
+	}
+	itemBuf := bytes.NewBuffer(buf.Next(size))
+
+	var count int
+	switch constructor {
+	case List8Encoding:
+		v, err := itemBuf.ReadByte()
+		if err != nil {
+			return errors.Wrap(err, "read length failed")
+		}
+		count = int(v)
+	case List32Encoding:
+		if itemBuf.Len() < 4 {
+			return errors.New("read length failed: buffer underflow")
+		}
+		count = int(endian.Uint32(itemBuf.Next(4)))
+	}
+
+	var done int = 0
 	if count > 0 {
-		err = t.Handle.UnmarshalBuffer(buf)
+		err = t.Handle.UnmarshalBuffer(itemBuf)
 		if err != nil {
 			return errors.Wrap(err, "unmarshal field handle failed")
 		}
 		done = 1
 		if count > 1 {
-			err = t.DeliveryID.UnmarshalBuffer(buf)
+			err = t.DeliveryID.UnmarshalBuffer(itemBuf)
 			if err != nil {
 				return errors.Wrap(err, "unmarshal field delivery-id failed")
 			}
 			done = 2
 			if count > 2 {
-				err = t.DeliveryTag.UnmarshalBuffer(buf)
+				err = t.DeliveryTag.UnmarshalBuffer(itemBuf)
 				if err != nil {
 					return errors.Wrap(err, "unmarshal field delivery-tag failed")
 				}
 				done = 3
 				if count > 3 {
-					err = t.MessageFormat.UnmarshalBuffer(buf)
+					err = t.MessageFormat.UnmarshalBuffer(itemBuf)
 					if err != nil {
 						return errors.Wrap(err, "unmarshal field message-format failed")
 					}
 					done = 4
 					if count > 4 {
-						constructor, err = buf.ReadByte()
+						constructor, err = itemBuf.ReadByte()
 						if err != nil {
 							return errors.Wrap(err, "unmarshal field settled failed")
 						}
-						err = unmarshalBoolean(&t.Settled, constructor, buf)
+						err = unmarshalBoolean(&t.Settled, constructor, itemBuf)
 						if err != nil {
 							return errors.Wrap(err, "unmarshal field settled failed")
 						}
 						done = 5
 						if count > 5 {
-							constructor, err = buf.ReadByte()
+							constructor, err = itemBuf.ReadByte()
 							if err != nil {
 								return errors.Wrap(err, "unmarshal field more failed")
 							}
-							err = unmarshalBoolean(&t.More, constructor, buf)
+							err = unmarshalBoolean(&t.More, constructor, itemBuf)
 							if err != nil {
 								return errors.Wrap(err, "unmarshal field more failed")
 							}
 							done = 6
 							if count > 6 {
-								err = t.RcvSettleMode.UnmarshalBuffer(buf)
+								err = t.RcvSettleMode.UnmarshalBuffer(itemBuf)
 								if err != nil {
 									return errors.Wrap(err, "unmarshal field rcv-settle-mode failed")
 								}
 								done = 7
 								if count > 7 {
-									constructor, err = buf.ReadByte()
+									constructor, err = itemBuf.ReadByte()
 									if err != nil {
 										return errors.Wrap(err, "unmarshal field state failed")
 									}
-									err = unmarshalDeliveryStateUnion(&t.State, constructor, buf)
+									err = unmarshalDeliveryStateUnion(&t.State, constructor, itemBuf)
 									if err != nil {
 										return errors.Wrap(err, "unmarshal field state failed")
 									}
 									done = 8
 									if count > 8 {
-										constructor, err = buf.ReadByte()
+										constructor, err = itemBuf.ReadByte()
 										if err != nil {
 											return errors.Wrap(err, "unmarshal field resume failed")
 										}
-										err = unmarshalBoolean(&t.Resume, constructor, buf)
+										err = unmarshalBoolean(&t.Resume, constructor, itemBuf)
 										if err != nil {
 											return errors.Wrap(err, "unmarshal field resume failed")
 										}
 										done = 9
 										if count > 9 {
-											constructor, err = buf.ReadByte()
+											constructor, err = itemBuf.ReadByte()
 											if err != nil {
 												return errors.Wrap(err, "unmarshal field aborted failed")
 											}
-											err = unmarshalBoolean(&t.Aborted, constructor, buf)
+											err = unmarshalBoolean(&t.Aborted, constructor, itemBuf)
 											if err != nil {
 												return errors.Wrap(err, "unmarshal field aborted failed")
 											}
 											done = 10
 											if count > 10 {
-												constructor, err = buf.ReadByte()
+												constructor, err = itemBuf.ReadByte()
 												if err != nil {
 													return errors.Wrap(err, "unmarshal field batchable failed")
 												}
-												err = unmarshalBoolean(&t.Batchable, constructor, buf)
+												err = unmarshalBoolean(&t.Batchable, constructor, itemBuf)
 												if err != nil {
 													return errors.Wrap(err, "unmarshal field batchable failed")
 												}
@@ -1776,43 +1901,35 @@ func (t *Disposition) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	if count == 0 {
 		buf.WriteByte(List0Encoding)
 	} else {
-		if count <= math.MaxUint8 {
-			buf.WriteByte(List8Encoding)
-			buf.WriteByte(byte(count))
-		} else {
-			var x [4]byte
-			buf.WriteByte(List32Encoding)
-			endian.PutUint32(x[:], count)
-			buf.Write(x[:])
-		}
+		itemBuf := bytes.Buffer{}
 
 		if count > 0 {
-			err = t.Role.MarshalBuffer(buf)
+			err = t.Role.MarshalBuffer(&itemBuf)
 			if err != nil {
 				return errors.Wrap(err, "marshal field role failed")
 			}
 			if count > 1 {
-				err = t.First.MarshalBuffer(buf)
+				err = t.First.MarshalBuffer(&itemBuf)
 				if err != nil {
 					return errors.Wrap(err, "marshal field first failed")
 				}
 				if count > 2 {
-					err = t.Last.MarshalBuffer(buf)
+					err = t.Last.MarshalBuffer(&itemBuf)
 					if err != nil {
 						return errors.Wrap(err, "marshal field last failed")
 					}
 					if count > 3 {
-						err = marshalBoolean(t.Settled, buf)
+						err = marshalBoolean(t.Settled, &itemBuf)
 						if err != nil {
 							return errors.Wrap(err, "marshal field settled failed")
 						}
 						if count > 4 {
-							err = marshalDeliveryStateUnion(t.State, buf)
+							err = marshalDeliveryStateUnion(t.State, &itemBuf)
 							if err != nil {
 								return errors.Wrap(err, "marshal field state failed")
 							}
 							if count > 5 {
-								err = marshalBoolean(t.Batchable, buf)
+								err = marshalBoolean(t.Batchable, &itemBuf)
 								if err != nil {
 									return errors.Wrap(err, "marshal field batchable failed")
 								}
@@ -1823,6 +1940,21 @@ func (t *Disposition) MarshalBuffer(buf *bytes.Buffer) (err error) {
 				}
 			}
 		}
+
+		if itemBuf.Len()+1 <= math.MaxUint8 && count <= math.MaxUint8 {
+			buf.WriteByte(List8Encoding)
+			buf.WriteByte(uint8(itemBuf.Len() + 1))
+			buf.WriteByte(uint8(count))
+		} else {
+			var x [4]byte
+			buf.WriteByte(List32Encoding)
+			endian.PutUint32(x[:], uint32(itemBuf.Len()+4))
+			buf.Write(x[:])
+			endian.PutUint32(x[:], count)
+			buf.Write(x[:])
+		}
+
+		buf.Write(itemBuf.Bytes())
 	}
 	return nil
 }
@@ -1836,10 +1968,7 @@ func (t *Disposition) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
-	var (
-		count uint32
-		done  uint32
-	)
+	var size int
 	switch constructor {
 	case NullEncoding:
 		fallthrough
@@ -1850,58 +1979,79 @@ func (t *Disposition) UnmarshalBuffer(buf *bytes.Buffer) error {
 		if err != nil {
 			return errors.Wrap(err, "read length failed")
 		}
-		count = uint32(v)
+		size = int(v)
 	case List32Encoding:
 		if buf.Len() < 4 {
 			return errors.New("read length failed: buffer underflow")
 		}
-		count = endian.Uint32(buf.Next(4))
+		size = int(endian.Uint32(buf.Next(4)))
 	}
 
+	if buf.Len() < size {
+		return errors.New("buffer underflow")
+	}
+	itemBuf := bytes.NewBuffer(buf.Next(size))
+
+	var count int
+	switch constructor {
+	case List8Encoding:
+		v, err := itemBuf.ReadByte()
+		if err != nil {
+			return errors.Wrap(err, "read length failed")
+		}
+		count = int(v)
+	case List32Encoding:
+		if itemBuf.Len() < 4 {
+			return errors.New("read length failed: buffer underflow")
+		}
+		count = int(endian.Uint32(itemBuf.Next(4)))
+	}
+
+	var done int = 0
 	if count > 0 {
-		err = t.Role.UnmarshalBuffer(buf)
+		err = t.Role.UnmarshalBuffer(itemBuf)
 		if err != nil {
 			return errors.Wrap(err, "unmarshal field role failed")
 		}
 		done = 1
 		if count > 1 {
-			err = t.First.UnmarshalBuffer(buf)
+			err = t.First.UnmarshalBuffer(itemBuf)
 			if err != nil {
 				return errors.Wrap(err, "unmarshal field first failed")
 			}
 			done = 2
 			if count > 2 {
-				err = t.Last.UnmarshalBuffer(buf)
+				err = t.Last.UnmarshalBuffer(itemBuf)
 				if err != nil {
 					return errors.Wrap(err, "unmarshal field last failed")
 				}
 				done = 3
 				if count > 3 {
-					constructor, err = buf.ReadByte()
+					constructor, err = itemBuf.ReadByte()
 					if err != nil {
 						return errors.Wrap(err, "unmarshal field settled failed")
 					}
-					err = unmarshalBoolean(&t.Settled, constructor, buf)
+					err = unmarshalBoolean(&t.Settled, constructor, itemBuf)
 					if err != nil {
 						return errors.Wrap(err, "unmarshal field settled failed")
 					}
 					done = 4
 					if count > 4 {
-						constructor, err = buf.ReadByte()
+						constructor, err = itemBuf.ReadByte()
 						if err != nil {
 							return errors.Wrap(err, "unmarshal field state failed")
 						}
-						err = unmarshalDeliveryStateUnion(&t.State, constructor, buf)
+						err = unmarshalDeliveryStateUnion(&t.State, constructor, itemBuf)
 						if err != nil {
 							return errors.Wrap(err, "unmarshal field state failed")
 						}
 						done = 5
 						if count > 5 {
-							constructor, err = buf.ReadByte()
+							constructor, err = itemBuf.ReadByte()
 							if err != nil {
 								return errors.Wrap(err, "unmarshal field batchable failed")
 							}
-							err = unmarshalBoolean(&t.Batchable, constructor, buf)
+							err = unmarshalBoolean(&t.Batchable, constructor, itemBuf)
 							if err != nil {
 								return errors.Wrap(err, "unmarshal field batchable failed")
 							}
@@ -1965,28 +2115,20 @@ func (t *Detach) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	if count == 0 {
 		buf.WriteByte(List0Encoding)
 	} else {
-		if count <= math.MaxUint8 {
-			buf.WriteByte(List8Encoding)
-			buf.WriteByte(byte(count))
-		} else {
-			var x [4]byte
-			buf.WriteByte(List32Encoding)
-			endian.PutUint32(x[:], count)
-			buf.Write(x[:])
-		}
+		itemBuf := bytes.Buffer{}
 
 		if count > 0 {
-			err = t.Handle.MarshalBuffer(buf)
+			err = t.Handle.MarshalBuffer(&itemBuf)
 			if err != nil {
 				return errors.Wrap(err, "marshal field handle failed")
 			}
 			if count > 1 {
-				err = marshalBoolean(t.Closed, buf)
+				err = marshalBoolean(t.Closed, &itemBuf)
 				if err != nil {
 					return errors.Wrap(err, "marshal field closed failed")
 				}
 				if count > 2 {
-					err = t.Error.MarshalBuffer(buf)
+					err = t.Error.MarshalBuffer(&itemBuf)
 					if err != nil {
 						return errors.Wrap(err, "marshal field error failed")
 					}
@@ -1994,6 +2136,21 @@ func (t *Detach) MarshalBuffer(buf *bytes.Buffer) (err error) {
 				}
 			}
 		}
+
+		if itemBuf.Len()+1 <= math.MaxUint8 && count <= math.MaxUint8 {
+			buf.WriteByte(List8Encoding)
+			buf.WriteByte(uint8(itemBuf.Len() + 1))
+			buf.WriteByte(uint8(count))
+		} else {
+			var x [4]byte
+			buf.WriteByte(List32Encoding)
+			endian.PutUint32(x[:], uint32(itemBuf.Len()+4))
+			buf.Write(x[:])
+			endian.PutUint32(x[:], count)
+			buf.Write(x[:])
+		}
+
+		buf.Write(itemBuf.Bytes())
 	}
 	return nil
 }
@@ -2007,10 +2164,7 @@ func (t *Detach) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
-	var (
-		count uint32
-		done  uint32
-	)
+	var size int
 	switch constructor {
 	case NullEncoding:
 		fallthrough
@@ -2021,36 +2175,57 @@ func (t *Detach) UnmarshalBuffer(buf *bytes.Buffer) error {
 		if err != nil {
 			return errors.Wrap(err, "read length failed")
 		}
-		count = uint32(v)
+		size = int(v)
 	case List32Encoding:
 		if buf.Len() < 4 {
 			return errors.New("read length failed: buffer underflow")
 		}
-		count = endian.Uint32(buf.Next(4))
+		size = int(endian.Uint32(buf.Next(4)))
 	}
 
+	if buf.Len() < size {
+		return errors.New("buffer underflow")
+	}
+	itemBuf := bytes.NewBuffer(buf.Next(size))
+
+	var count int
+	switch constructor {
+	case List8Encoding:
+		v, err := itemBuf.ReadByte()
+		if err != nil {
+			return errors.Wrap(err, "read length failed")
+		}
+		count = int(v)
+	case List32Encoding:
+		if itemBuf.Len() < 4 {
+			return errors.New("read length failed: buffer underflow")
+		}
+		count = int(endian.Uint32(itemBuf.Next(4)))
+	}
+
+	var done int = 0
 	if count > 0 {
-		err = t.Handle.UnmarshalBuffer(buf)
+		err = t.Handle.UnmarshalBuffer(itemBuf)
 		if err != nil {
 			return errors.Wrap(err, "unmarshal field handle failed")
 		}
 		done = 1
 		if count > 1 {
-			constructor, err = buf.ReadByte()
+			constructor, err = itemBuf.ReadByte()
 			if err != nil {
 				return errors.Wrap(err, "unmarshal field closed failed")
 			}
-			err = unmarshalBoolean(&t.Closed, constructor, buf)
+			err = unmarshalBoolean(&t.Closed, constructor, itemBuf)
 			if err != nil {
 				return errors.Wrap(err, "unmarshal field closed failed")
 			}
 			done = 2
 			if count > 2 {
-				constructor, err = buf.ReadByte()
+				constructor, err = itemBuf.ReadByte()
 				if err != nil {
 					return errors.Wrap(err, "unmarshal field error failed")
 				}
-				err = t.Error.UnmarshalBuffer(buf)
+				err = t.Error.UnmarshalBuffer(itemBuf)
 				if err != nil {
 					return errors.Wrap(err, "unmarshal field error failed")
 				}
@@ -2105,23 +2280,30 @@ func (t *End) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	if count == 0 {
 		buf.WriteByte(List0Encoding)
 	} else {
-		if count <= math.MaxUint8 {
-			buf.WriteByte(List8Encoding)
-			buf.WriteByte(byte(count))
-		} else {
-			var x [4]byte
-			buf.WriteByte(List32Encoding)
-			endian.PutUint32(x[:], count)
-			buf.Write(x[:])
-		}
+		itemBuf := bytes.Buffer{}
 
 		if count > 0 {
-			err = t.Error.MarshalBuffer(buf)
+			err = t.Error.MarshalBuffer(&itemBuf)
 			if err != nil {
 				return errors.Wrap(err, "marshal field error failed")
 			}
 
 		}
+
+		if itemBuf.Len()+1 <= math.MaxUint8 && count <= math.MaxUint8 {
+			buf.WriteByte(List8Encoding)
+			buf.WriteByte(uint8(itemBuf.Len() + 1))
+			buf.WriteByte(uint8(count))
+		} else {
+			var x [4]byte
+			buf.WriteByte(List32Encoding)
+			endian.PutUint32(x[:], uint32(itemBuf.Len()+4))
+			buf.Write(x[:])
+			endian.PutUint32(x[:], count)
+			buf.Write(x[:])
+		}
+
+		buf.Write(itemBuf.Bytes())
 	}
 	return nil
 }
@@ -2135,10 +2317,7 @@ func (t *End) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
-	var (
-		count uint32
-		done  uint32
-	)
+	var size int
 	switch constructor {
 	case NullEncoding:
 		fallthrough
@@ -2149,20 +2328,41 @@ func (t *End) UnmarshalBuffer(buf *bytes.Buffer) error {
 		if err != nil {
 			return errors.Wrap(err, "read length failed")
 		}
-		count = uint32(v)
+		size = int(v)
 	case List32Encoding:
 		if buf.Len() < 4 {
 			return errors.New("read length failed: buffer underflow")
 		}
-		count = endian.Uint32(buf.Next(4))
+		size = int(endian.Uint32(buf.Next(4)))
 	}
 
+	if buf.Len() < size {
+		return errors.New("buffer underflow")
+	}
+	itemBuf := bytes.NewBuffer(buf.Next(size))
+
+	var count int
+	switch constructor {
+	case List8Encoding:
+		v, err := itemBuf.ReadByte()
+		if err != nil {
+			return errors.Wrap(err, "read length failed")
+		}
+		count = int(v)
+	case List32Encoding:
+		if itemBuf.Len() < 4 {
+			return errors.New("read length failed: buffer underflow")
+		}
+		count = int(endian.Uint32(itemBuf.Next(4)))
+	}
+
+	var done int = 0
 	if count > 0 {
-		constructor, err = buf.ReadByte()
+		constructor, err = itemBuf.ReadByte()
 		if err != nil {
 			return errors.Wrap(err, "unmarshal field error failed")
 		}
-		err = t.Error.UnmarshalBuffer(buf)
+		err = t.Error.UnmarshalBuffer(itemBuf)
 		if err != nil {
 			return errors.Wrap(err, "unmarshal field error failed")
 		}
@@ -2215,23 +2415,30 @@ func (t *Close) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	if count == 0 {
 		buf.WriteByte(List0Encoding)
 	} else {
-		if count <= math.MaxUint8 {
-			buf.WriteByte(List8Encoding)
-			buf.WriteByte(byte(count))
-		} else {
-			var x [4]byte
-			buf.WriteByte(List32Encoding)
-			endian.PutUint32(x[:], count)
-			buf.Write(x[:])
-		}
+		itemBuf := bytes.Buffer{}
 
 		if count > 0 {
-			err = t.Error.MarshalBuffer(buf)
+			err = t.Error.MarshalBuffer(&itemBuf)
 			if err != nil {
 				return errors.Wrap(err, "marshal field error failed")
 			}
 
 		}
+
+		if itemBuf.Len()+1 <= math.MaxUint8 && count <= math.MaxUint8 {
+			buf.WriteByte(List8Encoding)
+			buf.WriteByte(uint8(itemBuf.Len() + 1))
+			buf.WriteByte(uint8(count))
+		} else {
+			var x [4]byte
+			buf.WriteByte(List32Encoding)
+			endian.PutUint32(x[:], uint32(itemBuf.Len()+4))
+			buf.Write(x[:])
+			endian.PutUint32(x[:], count)
+			buf.Write(x[:])
+		}
+
+		buf.Write(itemBuf.Bytes())
 	}
 	return nil
 }
@@ -2245,10 +2452,7 @@ func (t *Close) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
-	var (
-		count uint32
-		done  uint32
-	)
+	var size int
 	switch constructor {
 	case NullEncoding:
 		fallthrough
@@ -2259,20 +2463,41 @@ func (t *Close) UnmarshalBuffer(buf *bytes.Buffer) error {
 		if err != nil {
 			return errors.Wrap(err, "read length failed")
 		}
-		count = uint32(v)
+		size = int(v)
 	case List32Encoding:
 		if buf.Len() < 4 {
 			return errors.New("read length failed: buffer underflow")
 		}
-		count = endian.Uint32(buf.Next(4))
+		size = int(endian.Uint32(buf.Next(4)))
 	}
 
+	if buf.Len() < size {
+		return errors.New("buffer underflow")
+	}
+	itemBuf := bytes.NewBuffer(buf.Next(size))
+
+	var count int
+	switch constructor {
+	case List8Encoding:
+		v, err := itemBuf.ReadByte()
+		if err != nil {
+			return errors.Wrap(err, "read length failed")
+		}
+		count = int(v)
+	case List32Encoding:
+		if itemBuf.Len() < 4 {
+			return errors.New("read length failed: buffer underflow")
+		}
+		count = int(endian.Uint32(itemBuf.Next(4)))
+	}
+
+	var done int = 0
 	if count > 0 {
-		constructor, err = buf.ReadByte()
+		constructor, err = itemBuf.ReadByte()
 		if err != nil {
 			return errors.Wrap(err, "unmarshal field error failed")
 		}
-		err = t.Error.UnmarshalBuffer(buf)
+		err = t.Error.UnmarshalBuffer(itemBuf)
 		if err != nil {
 			return errors.Wrap(err, "unmarshal field error failed")
 		}
@@ -2743,28 +2968,20 @@ func (t *Error) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	if count == 0 {
 		buf.WriteByte(List0Encoding)
 	} else {
-		if count <= math.MaxUint8 {
-			buf.WriteByte(List8Encoding)
-			buf.WriteByte(byte(count))
-		} else {
-			var x [4]byte
-			buf.WriteByte(List32Encoding)
-			endian.PutUint32(x[:], count)
-			buf.Write(x[:])
-		}
+		itemBuf := bytes.Buffer{}
 
 		if count > 0 {
-			err = marshalSymbol(t.Condition, buf)
+			err = marshalSymbol(t.Condition, &itemBuf)
 			if err != nil {
 				return errors.Wrap(err, "marshal field condition failed")
 			}
 			if count > 1 {
-				err = marshalString(t.Description, buf)
+				err = marshalString(t.Description, &itemBuf)
 				if err != nil {
 					return errors.Wrap(err, "marshal field description failed")
 				}
 				if count > 2 {
-					err = t.Info.MarshalBuffer(buf)
+					err = t.Info.MarshalBuffer(&itemBuf)
 					if err != nil {
 						return errors.Wrap(err, "marshal field info failed")
 					}
@@ -2772,6 +2989,21 @@ func (t *Error) MarshalBuffer(buf *bytes.Buffer) (err error) {
 				}
 			}
 		}
+
+		if itemBuf.Len()+1 <= math.MaxUint8 && count <= math.MaxUint8 {
+			buf.WriteByte(List8Encoding)
+			buf.WriteByte(uint8(itemBuf.Len() + 1))
+			buf.WriteByte(uint8(count))
+		} else {
+			var x [4]byte
+			buf.WriteByte(List32Encoding)
+			endian.PutUint32(x[:], uint32(itemBuf.Len()+4))
+			buf.Write(x[:])
+			endian.PutUint32(x[:], count)
+			buf.Write(x[:])
+		}
+
+		buf.Write(itemBuf.Bytes())
 	}
 	return nil
 }
@@ -2785,10 +3017,7 @@ func (t *Error) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
-	var (
-		count uint32
-		done  uint32
-	)
+	var size int
 	switch constructor {
 	case NullEncoding:
 		fallthrough
@@ -2799,41 +3028,62 @@ func (t *Error) UnmarshalBuffer(buf *bytes.Buffer) error {
 		if err != nil {
 			return errors.Wrap(err, "read length failed")
 		}
-		count = uint32(v)
+		size = int(v)
 	case List32Encoding:
 		if buf.Len() < 4 {
 			return errors.New("read length failed: buffer underflow")
 		}
-		count = endian.Uint32(buf.Next(4))
+		size = int(endian.Uint32(buf.Next(4)))
 	}
 
+	if buf.Len() < size {
+		return errors.New("buffer underflow")
+	}
+	itemBuf := bytes.NewBuffer(buf.Next(size))
+
+	var count int
+	switch constructor {
+	case List8Encoding:
+		v, err := itemBuf.ReadByte()
+		if err != nil {
+			return errors.Wrap(err, "read length failed")
+		}
+		count = int(v)
+	case List32Encoding:
+		if itemBuf.Len() < 4 {
+			return errors.New("read length failed: buffer underflow")
+		}
+		count = int(endian.Uint32(itemBuf.Next(4)))
+	}
+
+	var done int = 0
 	if count > 0 {
-		constructor, err = buf.ReadByte()
+		constructor, err = itemBuf.ReadByte()
 		if err != nil {
 			return errors.Wrap(err, "unmarshal field condition failed")
 		}
-		err = unmarshalSymbol(&t.Condition, constructor, buf)
+		err = unmarshalSymbol(&t.Condition, constructor, itemBuf)
 		if err != nil {
 			return errors.Wrap(err, "unmarshal field condition failed")
 		}
 		done = 1
 		if count > 1 {
-			constructor, err = buf.ReadByte()
+			constructor, err = itemBuf.ReadByte()
 			if err != nil {
 				return errors.Wrap(err, "unmarshal field description failed")
 			}
-			err = unmarshalString(&t.Description, constructor, buf)
+			err = unmarshalString(&t.Description, constructor, itemBuf)
 			if err != nil {
 				return errors.Wrap(err, "unmarshal field description failed")
 			}
 			done = 2
 			if count > 2 {
-				constructor, err = buf.ReadByte()
+				constructor, err = itemBuf.ReadByte()
 				if err != nil {
 					return errors.Wrap(err, "unmarshal field info failed")
 				}
 				var map2 *types.Struct
-				err = unmarshalMap(&map2, constructor, buf)
+				err = unmarshalMap(&map2, constructor, itemBuf)
 				if err != nil {
 					return errors.Wrap(err, "unmarshal field info failed")
 				}
@@ -3071,38 +3321,30 @@ func (t *Header) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	if count == 0 {
 		buf.WriteByte(List0Encoding)
 	} else {
-		if count <= math.MaxUint8 {
-			buf.WriteByte(List8Encoding)
-			buf.WriteByte(byte(count))
-		} else {
-			var x [4]byte
-			buf.WriteByte(List32Encoding)
-			endian.PutUint32(x[:], count)
-			buf.Write(x[:])
-		}
+		itemBuf := bytes.Buffer{}
 
 		if count > 0 {
-			err = marshalBoolean(t.Durable, buf)
+			err = marshalBoolean(t.Durable, &itemBuf)
 			if err != nil {
 				return errors.Wrap(err, "marshal field durable failed")
 			}
 			if count > 1 {
-				err = marshalUbyte(t.Priority, buf)
+				err = marshalUbyte(t.Priority, &itemBuf)
 				if err != nil {
 					return errors.Wrap(err, "marshal field priority failed")
 				}
 				if count > 2 {
-					err = t.Ttl.MarshalBuffer(buf)
+					err = t.Ttl.MarshalBuffer(&itemBuf)
 					if err != nil {
 						return errors.Wrap(err, "marshal field ttl failed")
 					}
 					if count > 3 {
-						err = marshalBoolean(t.FirstAcquirer, buf)
+						err = marshalBoolean(t.FirstAcquirer, &itemBuf)
 						if err != nil {
 							return errors.Wrap(err, "marshal field first-acquirer failed")
 						}
 						if count > 4 {
-							err = marshalUint(t.DeliveryCount, buf)
+							err = marshalUint(t.DeliveryCount, &itemBuf)
 							if err != nil {
 								return errors.Wrap(err, "marshal field delivery-count failed")
 							}
@@ -3112,6 +3354,21 @@ func (t *Header) MarshalBuffer(buf *bytes.Buffer) (err error) {
 				}
 			}
 		}
+
+		if itemBuf.Len()+1 <= math.MaxUint8 && count <= math.MaxUint8 {
+			buf.WriteByte(List8Encoding)
+			buf.WriteByte(uint8(itemBuf.Len() + 1))
+			buf.WriteByte(uint8(count))
+		} else {
+			var x [4]byte
+			buf.WriteByte(List32Encoding)
+			endian.PutUint32(x[:], uint32(itemBuf.Len()+4))
+			buf.Write(x[:])
+			endian.PutUint32(x[:], count)
+			buf.Write(x[:])
+		}
+
+		buf.Write(itemBuf.Bytes())
 	}
 	return nil
 }
@@ -3125,10 +3382,7 @@ func (t *Header) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
-	var (
-		count uint32
-		done  uint32
-	)
+	var size int
 	switch constructor {
 	case NullEncoding:
 		fallthrough
@@ -3139,56 +3393,77 @@ func (t *Header) UnmarshalBuffer(buf *bytes.Buffer) error {
 		if err != nil {
 			return errors.Wrap(err, "read length failed")
 		}
-		count = uint32(v)
+		size = int(v)
 	case List32Encoding:
 		if buf.Len() < 4 {
 			return errors.New("read length failed: buffer underflow")
 		}
-		count = endian.Uint32(buf.Next(4))
+		size = int(endian.Uint32(buf.Next(4)))
 	}
 
+	if buf.Len() < size {
+		return errors.New("buffer underflow")
+	}
+	itemBuf := bytes.NewBuffer(buf.Next(size))
+
+	var count int
+	switch constructor {
+	case List8Encoding:
+		v, err := itemBuf.ReadByte()
+		if err != nil {
+			return errors.Wrap(err, "read length failed")
+		}
+		count = int(v)
+	case List32Encoding:
+		if itemBuf.Len() < 4 {
+			return errors.New("read length failed: buffer underflow")
+		}
+		count = int(endian.Uint32(itemBuf.Next(4)))
+	}
+
+	var done int = 0
 	if count > 0 {
-		constructor, err = buf.ReadByte()
+		constructor, err = itemBuf.ReadByte()
 		if err != nil {
 			return errors.Wrap(err, "unmarshal field durable failed")
 		}
-		err = unmarshalBoolean(&t.Durable, constructor, buf)
+		err = unmarshalBoolean(&t.Durable, constructor, itemBuf)
 		if err != nil {
 			return errors.Wrap(err, "unmarshal field durable failed")
 		}
 		done = 1
 		if count > 1 {
-			constructor, err = buf.ReadByte()
+			constructor, err = itemBuf.ReadByte()
 			if err != nil {
 				return errors.Wrap(err, "unmarshal field priority failed")
 			}
-			err = unmarshalUbyte(&t.Priority, constructor, buf)
+			err = unmarshalUbyte(&t.Priority, constructor, itemBuf)
 			if err != nil {
 				return errors.Wrap(err, "unmarshal field priority failed")
 			}
 			done = 2
 			if count > 2 {
-				err = t.Ttl.UnmarshalBuffer(buf)
+				err = t.Ttl.UnmarshalBuffer(itemBuf)
 				if err != nil {
 					return errors.Wrap(err, "unmarshal field ttl failed")
 				}
 				done = 3
 				if count > 3 {
-					constructor, err = buf.ReadByte()
+					constructor, err = itemBuf.ReadByte()
 					if err != nil {
 						return errors.Wrap(err, "unmarshal field first-acquirer failed")
 					}
-					err = unmarshalBoolean(&t.FirstAcquirer, constructor, buf)
+					err = unmarshalBoolean(&t.FirstAcquirer, constructor, itemBuf)
 					if err != nil {
 						return errors.Wrap(err, "unmarshal field first-acquirer failed")
 					}
 					done = 4
 					if count > 4 {
-						constructor, err = buf.ReadByte()
+						constructor, err = itemBuf.ReadByte()
 						if err != nil {
 							return errors.Wrap(err, "unmarshal field delivery-count failed")
 						}
-						err = unmarshalUint(&t.DeliveryCount, constructor, buf)
+						err = unmarshalUint(&t.DeliveryCount, constructor, itemBuf)
 						if err != nil {
 							return errors.Wrap(err, "unmarshal field delivery-count failed")
 						}
@@ -3372,78 +3647,70 @@ func (t *Properties) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	if count == 0 {
 		buf.WriteByte(List0Encoding)
 	} else {
-		if count <= math.MaxUint8 {
-			buf.WriteByte(List8Encoding)
-			buf.WriteByte(byte(count))
-		} else {
-			var x [4]byte
-			buf.WriteByte(List32Encoding)
-			endian.PutUint32(x[:], count)
-			buf.Write(x[:])
-		}
+		itemBuf := bytes.Buffer{}
 
 		if count > 0 {
-			err = marshalMessageIDUnion(t.MessageID, buf)
+			err = marshalMessageIDUnion(t.MessageID, &itemBuf)
 			if err != nil {
 				return errors.Wrap(err, "marshal field message-id failed")
 			}
 			if count > 1 {
-				err = marshalBinary(t.UserID, buf)
+				err = marshalBinary(t.UserID, &itemBuf)
 				if err != nil {
 					return errors.Wrap(err, "marshal field user-id failed")
 				}
 				if count > 2 {
-					err = marshalAddressUnion(t.To, buf)
+					err = marshalAddressUnion(t.To, &itemBuf)
 					if err != nil {
 						return errors.Wrap(err, "marshal field to failed")
 					}
 					if count > 3 {
-						err = marshalString(t.Subject, buf)
+						err = marshalString(t.Subject, &itemBuf)
 						if err != nil {
 							return errors.Wrap(err, "marshal field subject failed")
 						}
 						if count > 4 {
-							err = marshalAddressUnion(t.ReplyTo, buf)
+							err = marshalAddressUnion(t.ReplyTo, &itemBuf)
 							if err != nil {
 								return errors.Wrap(err, "marshal field reply-to failed")
 							}
 							if count > 5 {
-								err = marshalMessageIDUnion(t.CorrelationID, buf)
+								err = marshalMessageIDUnion(t.CorrelationID, &itemBuf)
 								if err != nil {
 									return errors.Wrap(err, "marshal field correlation-id failed")
 								}
 								if count > 6 {
-									err = marshalSymbol(t.ContentType, buf)
+									err = marshalSymbol(t.ContentType, &itemBuf)
 									if err != nil {
 										return errors.Wrap(err, "marshal field content-type failed")
 									}
 									if count > 7 {
-										err = marshalSymbol(t.ContentEncoding, buf)
+										err = marshalSymbol(t.ContentEncoding, &itemBuf)
 										if err != nil {
 											return errors.Wrap(err, "marshal field content-encoding failed")
 										}
 										if count > 8 {
-											err = marshalTimestamp(t.AbsoluteExpiryTime, buf)
+											err = marshalTimestamp(t.AbsoluteExpiryTime, &itemBuf)
 											if err != nil {
 												return errors.Wrap(err, "marshal field absolute-expiry-time failed")
 											}
 											if count > 9 {
-												err = marshalTimestamp(t.CreationTime, buf)
+												err = marshalTimestamp(t.CreationTime, &itemBuf)
 												if err != nil {
 													return errors.Wrap(err, "marshal field creation-time failed")
 												}
 												if count > 10 {
-													err = marshalString(t.GroupID, buf)
+													err = marshalString(t.GroupID, &itemBuf)
 													if err != nil {
 														return errors.Wrap(err, "marshal field group-id failed")
 													}
 													if count > 11 {
-														err = t.GroupSequence.MarshalBuffer(buf)
+														err = t.GroupSequence.MarshalBuffer(&itemBuf)
 														if err != nil {
 															return errors.Wrap(err, "marshal field group-sequence failed")
 														}
 														if count > 12 {
-															err = marshalString(t.ReplyToGroupID, buf)
+															err = marshalString(t.ReplyToGroupID, &itemBuf)
 															if err != nil {
 																return errors.Wrap(err, "marshal field reply-to-group-id failed")
 															}
@@ -3461,6 +3728,21 @@ func (t *Properties) MarshalBuffer(buf *bytes.Buffer) (err error) {
 				}
 			}
 		}
+
+		if itemBuf.Len()+1 <= math.MaxUint8 && count <= math.MaxUint8 {
+			buf.WriteByte(List8Encoding)
+			buf.WriteByte(uint8(itemBuf.Len() + 1))
+			buf.WriteByte(uint8(count))
+		} else {
+			var x [4]byte
+			buf.WriteByte(List32Encoding)
+			endian.PutUint32(x[:], uint32(itemBuf.Len()+4))
+			buf.Write(x[:])
+			endian.PutUint32(x[:], count)
+			buf.Write(x[:])
+		}
+
+		buf.Write(itemBuf.Bytes())
 	}
 	return nil
 }
@@ -3474,10 +3756,7 @@ func (t *Properties) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
-	var (
-		count uint32
-		done  uint32
-	)
+	var size int
 	switch constructor {
 	case NullEncoding:
 		fallthrough
@@ -3488,136 +3767,157 @@ func (t *Properties) UnmarshalBuffer(buf *bytes.Buffer) error {
 		if err != nil {
 			return errors.Wrap(err, "read length failed")
 		}
-		count = uint32(v)
+		size = int(v)
 	case List32Encoding:
 		if buf.Len() < 4 {
 			return errors.New("read length failed: buffer underflow")
 		}
-		count = endian.Uint32(buf.Next(4))
+		size = int(endian.Uint32(buf.Next(4)))
 	}
 
+	if buf.Len() < size {
+		return errors.New("buffer underflow")
+	}
+	itemBuf := bytes.NewBuffer(buf.Next(size))
+
+	var count int
+	switch constructor {
+	case List8Encoding:
+		v, err := itemBuf.ReadByte()
+		if err != nil {
+			return errors.Wrap(err, "read length failed")
+		}
+		count = int(v)
+	case List32Encoding:
+		if itemBuf.Len() < 4 {
+			return errors.New("read length failed: buffer underflow")
+		}
+		count = int(endian.Uint32(itemBuf.Next(4)))
+	}
+
+	var done int = 0
 	if count > 0 {
-		constructor, err = buf.ReadByte()
+		constructor, err = itemBuf.ReadByte()
 		if err != nil {
 			return errors.Wrap(err, "unmarshal field message-id failed")
 		}
-		err = unmarshalMessageIDUnion(&t.MessageID, constructor, buf)
+		err = unmarshalMessageIDUnion(&t.MessageID, constructor, itemBuf)
 		if err != nil {
 			return errors.Wrap(err, "unmarshal field message-id failed")
 		}
 		done = 1
 		if count > 1 {
-			constructor, err = buf.ReadByte()
+			constructor, err = itemBuf.ReadByte()
 			if err != nil {
 				return errors.Wrap(err, "unmarshal field user-id failed")
 			}
-			err = unmarshalBinary(&t.UserID, constructor, buf)
+			err = unmarshalBinary(&t.UserID, constructor, itemBuf)
 			if err != nil {
 				return errors.Wrap(err, "unmarshal field user-id failed")
 			}
 			done = 2
 			if count > 2 {
-				constructor, err = buf.ReadByte()
+				constructor, err = itemBuf.ReadByte()
 				if err != nil {
 					return errors.Wrap(err, "unmarshal field to failed")
 				}
-				err = unmarshalAddressUnion(&t.To, constructor, buf)
+				err = unmarshalAddressUnion(&t.To, constructor, itemBuf)
 				if err != nil {
 					return errors.Wrap(err, "unmarshal field to failed")
 				}
 				done = 3
 				if count > 3 {
-					constructor, err = buf.ReadByte()
+					constructor, err = itemBuf.ReadByte()
 					if err != nil {
 						return errors.Wrap(err, "unmarshal field subject failed")
 					}
-					err = unmarshalString(&t.Subject, constructor, buf)
+					err = unmarshalString(&t.Subject, constructor, itemBuf)
 					if err != nil {
 						return errors.Wrap(err, "unmarshal field subject failed")
 					}
 					done = 4
 					if count > 4 {
-						constructor, err = buf.ReadByte()
+						constructor, err = itemBuf.ReadByte()
 						if err != nil {
 							return errors.Wrap(err, "unmarshal field reply-to failed")
 						}
-						err = unmarshalAddressUnion(&t.ReplyTo, constructor, buf)
+						err = unmarshalAddressUnion(&t.ReplyTo, constructor, itemBuf)
 						if err != nil {
 							return errors.Wrap(err, "unmarshal field reply-to failed")
 						}
 						done = 5
 						if count > 5 {
-							constructor, err = buf.ReadByte()
+							constructor, err = itemBuf.ReadByte()
 							if err != nil {
 								return errors.Wrap(err, "unmarshal field correlation-id failed")
 							}
-							err = unmarshalMessageIDUnion(&t.CorrelationID, constructor, buf)
+							err = unmarshalMessageIDUnion(&t.CorrelationID, constructor, itemBuf)
 							if err != nil {
 								return errors.Wrap(err, "unmarshal field correlation-id failed")
 							}
 							done = 6
 							if count > 6 {
-								constructor, err = buf.ReadByte()
+								constructor, err = itemBuf.ReadByte()
 								if err != nil {
 									return errors.Wrap(err, "unmarshal field content-type failed")
 								}
-								err = unmarshalSymbol(&t.ContentType, constructor, buf)
+								err = unmarshalSymbol(&t.ContentType, constructor, itemBuf)
 								if err != nil {
 									return errors.Wrap(err, "unmarshal field content-type failed")
 								}
 								done = 7
 								if count > 7 {
-									constructor, err = buf.ReadByte()
+									constructor, err = itemBuf.ReadByte()
 									if err != nil {
 										return errors.Wrap(err, "unmarshal field content-encoding failed")
 									}
-									err = unmarshalSymbol(&t.ContentEncoding, constructor, buf)
+									err = unmarshalSymbol(&t.ContentEncoding, constructor, itemBuf)
 									if err != nil {
 										return errors.Wrap(err, "unmarshal field content-encoding failed")
 									}
 									done = 8
 									if count > 8 {
-										constructor, err = buf.ReadByte()
+										constructor, err = itemBuf.ReadByte()
 										if err != nil {
 											return errors.Wrap(err, "unmarshal field absolute-expiry-time failed")
 										}
-										err = unmarshalTimestamp(&t.AbsoluteExpiryTime, constructor, buf)
+										err = unmarshalTimestamp(&t.AbsoluteExpiryTime, constructor, itemBuf)
 										if err != nil {
 											return errors.Wrap(err, "unmarshal field absolute-expiry-time failed")
 										}
 										done = 9
 										if count > 9 {
-											constructor, err = buf.ReadByte()
+											constructor, err = itemBuf.ReadByte()
 											if err != nil {
 												return errors.Wrap(err, "unmarshal field creation-time failed")
 											}
-											err = unmarshalTimestamp(&t.CreationTime, constructor, buf)
+											err = unmarshalTimestamp(&t.CreationTime, constructor, itemBuf)
 											if err != nil {
 												return errors.Wrap(err, "unmarshal field creation-time failed")
 											}
 											done = 10
 											if count > 10 {
-												constructor, err = buf.ReadByte()
+												constructor, err = itemBuf.ReadByte()
 												if err != nil {
 													return errors.Wrap(err, "unmarshal field group-id failed")
 												}
-												err = unmarshalString(&t.GroupID, constructor, buf)
+												err = unmarshalString(&t.GroupID, constructor, itemBuf)
 												if err != nil {
 													return errors.Wrap(err, "unmarshal field group-id failed")
 												}
 												done = 11
 												if count > 11 {
-													err = t.GroupSequence.UnmarshalBuffer(buf)
+													err = t.GroupSequence.UnmarshalBuffer(itemBuf)
 													if err != nil {
 														return errors.Wrap(err, "unmarshal field group-sequence failed")
 													}
 													done = 12
 													if count > 12 {
-														constructor, err = buf.ReadByte()
+														constructor, err = itemBuf.ReadByte()
 														if err != nil {
 															return errors.Wrap(err, "unmarshal field reply-to-group-id failed")
 														}
-														err = unmarshalString(&t.ReplyToGroupID, constructor, buf)
+														err = unmarshalString(&t.ReplyToGroupID, constructor, itemBuf)
 														if err != nil {
 															return errors.Wrap(err, "unmarshal field reply-to-group-id failed")
 														}
@@ -3975,29 +4275,36 @@ func (t *Received) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	if count == 0 {
 		buf.WriteByte(List0Encoding)
 	} else {
-		if count <= math.MaxUint8 {
-			buf.WriteByte(List8Encoding)
-			buf.WriteByte(byte(count))
-		} else {
-			var x [4]byte
-			buf.WriteByte(List32Encoding)
-			endian.PutUint32(x[:], count)
-			buf.Write(x[:])
-		}
+		itemBuf := bytes.Buffer{}
 
 		if count > 0 {
-			err = marshalUint(t.SectionNumber, buf)
+			err = marshalUint(t.SectionNumber, &itemBuf)
 			if err != nil {
 				return errors.Wrap(err, "marshal field section-number failed")
 			}
 			if count > 1 {
-				err = marshalUlong(t.SectionOffset, buf)
+				err = marshalUlong(t.SectionOffset, &itemBuf)
 				if err != nil {
 					return errors.Wrap(err, "marshal field section-offset failed")
 				}
 
 			}
 		}
+
+		if itemBuf.Len()+1 <= math.MaxUint8 && count <= math.MaxUint8 {
+			buf.WriteByte(List8Encoding)
+			buf.WriteByte(uint8(itemBuf.Len() + 1))
+			buf.WriteByte(uint8(count))
+		} else {
+			var x [4]byte
+			buf.WriteByte(List32Encoding)
+			endian.PutUint32(x[:], uint32(itemBuf.Len()+4))
+			buf.Write(x[:])
+			endian.PutUint32(x[:], count)
+			buf.Write(x[:])
+		}
+
+		buf.Write(itemBuf.Bytes())
 	}
 	return nil
 }
@@ -4011,10 +4318,7 @@ func (t *Received) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
-	var (
-		count uint32
-		done  uint32
-	)
+	var size int
 	switch constructor {
 	case NullEncoding:
 		fallthrough
@@ -4025,30 +4329,51 @@ func (t *Received) UnmarshalBuffer(buf *bytes.Buffer) error {
 		if err != nil {
 			return errors.Wrap(err, "read length failed")
 		}
-		count = uint32(v)
+		size = int(v)
 	case List32Encoding:
 		if buf.Len() < 4 {
 			return errors.New("read length failed: buffer underflow")
 		}
-		count = endian.Uint32(buf.Next(4))
+		size = int(endian.Uint32(buf.Next(4)))
 	}
 
+	if buf.Len() < size {
+		return errors.New("buffer underflow")
+	}
+	itemBuf := bytes.NewBuffer(buf.Next(size))
+
+	var count int
+	switch constructor {
+	case List8Encoding:
+		v, err := itemBuf.ReadByte()
+		if err != nil {
+			return errors.Wrap(err, "read length failed")
+		}
+		count = int(v)
+	case List32Encoding:
+		if itemBuf.Len() < 4 {
+			return errors.New("read length failed: buffer underflow")
+		}
+		count = int(endian.Uint32(itemBuf.Next(4)))
+	}
+
+	var done int = 0
 	if count > 0 {
-		constructor, err = buf.ReadByte()
+		constructor, err = itemBuf.ReadByte()
 		if err != nil {
 			return errors.Wrap(err, "unmarshal field section-number failed")
 		}
-		err = unmarshalUint(&t.SectionNumber, constructor, buf)
+		err = unmarshalUint(&t.SectionNumber, constructor, itemBuf)
 		if err != nil {
 			return errors.Wrap(err, "unmarshal field section-number failed")
 		}
 		done = 1
 		if count > 1 {
-			constructor, err = buf.ReadByte()
+			constructor, err = itemBuf.ReadByte()
 			if err != nil {
 				return errors.Wrap(err, "unmarshal field section-offset failed")
 			}
-			err = unmarshalUlong(&t.SectionOffset, constructor, buf)
+			err = unmarshalUlong(&t.SectionOffset, constructor, itemBuf)
 			if err != nil {
 				return errors.Wrap(err, "unmarshal field section-offset failed")
 			}
@@ -4095,16 +4420,22 @@ func (t *Accepted) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	if count == 0 {
 		buf.WriteByte(List0Encoding)
 	} else {
-		if count <= math.MaxUint8 {
+		itemBuf := bytes.Buffer{}
+
+		if itemBuf.Len()+1 <= math.MaxUint8 && count <= math.MaxUint8 {
 			buf.WriteByte(List8Encoding)
-			buf.WriteByte(byte(count))
+			buf.WriteByte(uint8(itemBuf.Len() + 1))
+			buf.WriteByte(uint8(count))
 		} else {
 			var x [4]byte
 			buf.WriteByte(List32Encoding)
+			endian.PutUint32(x[:], uint32(itemBuf.Len()+4))
+			buf.Write(x[:])
 			endian.PutUint32(x[:], count)
 			buf.Write(x[:])
 		}
 
+		buf.Write(itemBuf.Bytes())
 	}
 	return nil
 }
@@ -4118,10 +4449,7 @@ func (t *Accepted) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
-	var (
-		count uint32
-		done  uint32
-	)
+	var size int
 	switch constructor {
 	case NullEncoding:
 		fallthrough
@@ -4132,13 +4460,35 @@ func (t *Accepted) UnmarshalBuffer(buf *bytes.Buffer) error {
 		if err != nil {
 			return errors.Wrap(err, "read length failed")
 		}
-		count = uint32(v)
+		size = int(v)
 	case List32Encoding:
 		if buf.Len() < 4 {
 			return errors.New("read length failed: buffer underflow")
 		}
-		count = endian.Uint32(buf.Next(4))
+		size = int(endian.Uint32(buf.Next(4)))
 	}
+
+	if buf.Len() < size {
+		return errors.New("buffer underflow")
+	}
+	itemBuf := bytes.NewBuffer(buf.Next(size))
+
+	var count int
+	switch constructor {
+	case List8Encoding:
+		v, err := itemBuf.ReadByte()
+		if err != nil {
+			return errors.Wrap(err, "read length failed")
+		}
+		count = int(v)
+	case List32Encoding:
+		if itemBuf.Len() < 4 {
+			return errors.New("read length failed: buffer underflow")
+		}
+		count = int(endian.Uint32(itemBuf.Next(4)))
+	}
+
+	var done int = 0
 
 	if count > done {
 		return errors.New("unmarshal failed: some fields were not read")
@@ -4182,23 +4532,30 @@ func (t *Rejected) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	if count == 0 {
 		buf.WriteByte(List0Encoding)
 	} else {
-		if count <= math.MaxUint8 {
-			buf.WriteByte(List8Encoding)
-			buf.WriteByte(byte(count))
-		} else {
-			var x [4]byte
-			buf.WriteByte(List32Encoding)
-			endian.PutUint32(x[:], count)
-			buf.Write(x[:])
-		}
+		itemBuf := bytes.Buffer{}
 
 		if count > 0 {
-			err = t.Error.MarshalBuffer(buf)
+			err = t.Error.MarshalBuffer(&itemBuf)
 			if err != nil {
 				return errors.Wrap(err, "marshal field error failed")
 			}
 
 		}
+
+		if itemBuf.Len()+1 <= math.MaxUint8 && count <= math.MaxUint8 {
+			buf.WriteByte(List8Encoding)
+			buf.WriteByte(uint8(itemBuf.Len() + 1))
+			buf.WriteByte(uint8(count))
+		} else {
+			var x [4]byte
+			buf.WriteByte(List32Encoding)
+			endian.PutUint32(x[:], uint32(itemBuf.Len()+4))
+			buf.Write(x[:])
+			endian.PutUint32(x[:], count)
+			buf.Write(x[:])
+		}
+
+		buf.Write(itemBuf.Bytes())
 	}
 	return nil
 }
@@ -4212,10 +4569,7 @@ func (t *Rejected) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
-	var (
-		count uint32
-		done  uint32
-	)
+	var size int
 	switch constructor {
 	case NullEncoding:
 		fallthrough
@@ -4226,20 +4580,41 @@ func (t *Rejected) UnmarshalBuffer(buf *bytes.Buffer) error {
 		if err != nil {
 			return errors.Wrap(err, "read length failed")
 		}
-		count = uint32(v)
+		size = int(v)
 	case List32Encoding:
 		if buf.Len() < 4 {
 			return errors.New("read length failed: buffer underflow")
 		}
-		count = endian.Uint32(buf.Next(4))
+		size = int(endian.Uint32(buf.Next(4)))
 	}
 
+	if buf.Len() < size {
+		return errors.New("buffer underflow")
+	}
+	itemBuf := bytes.NewBuffer(buf.Next(size))
+
+	var count int
+	switch constructor {
+	case List8Encoding:
+		v, err := itemBuf.ReadByte()
+		if err != nil {
+			return errors.Wrap(err, "read length failed")
+		}
+		count = int(v)
+	case List32Encoding:
+		if itemBuf.Len() < 4 {
+			return errors.New("read length failed: buffer underflow")
+		}
+		count = int(endian.Uint32(itemBuf.Next(4)))
+	}
+
+	var done int = 0
 	if count > 0 {
-		constructor, err = buf.ReadByte()
+		constructor, err = itemBuf.ReadByte()
 		if err != nil {
 			return errors.Wrap(err, "unmarshal field error failed")
 		}
-		err = t.Error.UnmarshalBuffer(buf)
+		err = t.Error.UnmarshalBuffer(itemBuf)
 		if err != nil {
 			return errors.Wrap(err, "unmarshal field error failed")
 		}
@@ -4285,16 +4660,22 @@ func (t *Released) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	if count == 0 {
 		buf.WriteByte(List0Encoding)
 	} else {
-		if count <= math.MaxUint8 {
+		itemBuf := bytes.Buffer{}
+
+		if itemBuf.Len()+1 <= math.MaxUint8 && count <= math.MaxUint8 {
 			buf.WriteByte(List8Encoding)
-			buf.WriteByte(byte(count))
+			buf.WriteByte(uint8(itemBuf.Len() + 1))
+			buf.WriteByte(uint8(count))
 		} else {
 			var x [4]byte
 			buf.WriteByte(List32Encoding)
+			endian.PutUint32(x[:], uint32(itemBuf.Len()+4))
+			buf.Write(x[:])
 			endian.PutUint32(x[:], count)
 			buf.Write(x[:])
 		}
 
+		buf.Write(itemBuf.Bytes())
 	}
 	return nil
 }
@@ -4308,10 +4689,7 @@ func (t *Released) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
-	var (
-		count uint32
-		done  uint32
-	)
+	var size int
 	switch constructor {
 	case NullEncoding:
 		fallthrough
@@ -4322,13 +4700,35 @@ func (t *Released) UnmarshalBuffer(buf *bytes.Buffer) error {
 		if err != nil {
 			return errors.Wrap(err, "read length failed")
 		}
-		count = uint32(v)
+		size = int(v)
 	case List32Encoding:
 		if buf.Len() < 4 {
 			return errors.New("read length failed: buffer underflow")
 		}
-		count = endian.Uint32(buf.Next(4))
+		size = int(endian.Uint32(buf.Next(4)))
 	}
+
+	if buf.Len() < size {
+		return errors.New("buffer underflow")
+	}
+	itemBuf := bytes.NewBuffer(buf.Next(size))
+
+	var count int
+	switch constructor {
+	case List8Encoding:
+		v, err := itemBuf.ReadByte()
+		if err != nil {
+			return errors.Wrap(err, "read length failed")
+		}
+		count = int(v)
+	case List32Encoding:
+		if itemBuf.Len() < 4 {
+			return errors.New("read length failed: buffer underflow")
+		}
+		count = int(endian.Uint32(itemBuf.Next(4)))
+	}
+
+	var done int = 0
 
 	if count > done {
 		return errors.New("unmarshal failed: some fields were not read")
@@ -4380,28 +4780,20 @@ func (t *Modified) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	if count == 0 {
 		buf.WriteByte(List0Encoding)
 	} else {
-		if count <= math.MaxUint8 {
-			buf.WriteByte(List8Encoding)
-			buf.WriteByte(byte(count))
-		} else {
-			var x [4]byte
-			buf.WriteByte(List32Encoding)
-			endian.PutUint32(x[:], count)
-			buf.Write(x[:])
-		}
+		itemBuf := bytes.Buffer{}
 
 		if count > 0 {
-			err = marshalBoolean(t.DeliveryFailed, buf)
+			err = marshalBoolean(t.DeliveryFailed, &itemBuf)
 			if err != nil {
 				return errors.Wrap(err, "marshal field delivery-failed failed")
 			}
 			if count > 1 {
-				err = marshalBoolean(t.UndeliverableHere, buf)
+				err = marshalBoolean(t.UndeliverableHere, &itemBuf)
 				if err != nil {
 					return errors.Wrap(err, "marshal field undeliverable-here failed")
 				}
 				if count > 2 {
-					err = t.MessageAnnotations.MarshalBuffer(buf)
+					err = t.MessageAnnotations.MarshalBuffer(&itemBuf)
 					if err != nil {
 						return errors.Wrap(err, "marshal field message-annotations failed")
 					}
@@ -4409,6 +4801,21 @@ func (t *Modified) MarshalBuffer(buf *bytes.Buffer) (err error) {
 				}
 			}
 		}
+
+		if itemBuf.Len()+1 <= math.MaxUint8 && count <= math.MaxUint8 {
+			buf.WriteByte(List8Encoding)
+			buf.WriteByte(uint8(itemBuf.Len() + 1))
+			buf.WriteByte(uint8(count))
+		} else {
+			var x [4]byte
+			buf.WriteByte(List32Encoding)
+			endian.PutUint32(x[:], uint32(itemBuf.Len()+4))
+			buf.Write(x[:])
+			endian.PutUint32(x[:], count)
+			buf.Write(x[:])
+		}
+
+		buf.Write(itemBuf.Bytes())
 	}
 	return nil
 }
@@ -4422,10 +4829,7 @@ func (t *Modified) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
-	var (
-		count uint32
-		done  uint32
-	)
+	var size int
 	switch constructor {
 	case NullEncoding:
 		fallthrough
@@ -4436,41 +4840,62 @@ func (t *Modified) UnmarshalBuffer(buf *bytes.Buffer) error {
 		if err != nil {
 			return errors.Wrap(err, "read length failed")
 		}
-		count = uint32(v)
+		size = int(v)
 	case List32Encoding:
 		if buf.Len() < 4 {
 			return errors.New("read length failed: buffer underflow")
 		}
-		count = endian.Uint32(buf.Next(4))
+		size = int(endian.Uint32(buf.Next(4)))
 	}
 
+	if buf.Len() < size {
+		return errors.New("buffer underflow")
+	}
+	itemBuf := bytes.NewBuffer(buf.Next(size))
+
+	var count int
+	switch constructor {
+	case List8Encoding:
+		v, err := itemBuf.ReadByte()
+		if err != nil {
+			return errors.Wrap(err, "read length failed")
+		}
+		count = int(v)
+	case List32Encoding:
+		if itemBuf.Len() < 4 {
+			return errors.New("read length failed: buffer underflow")
+		}
+		count = int(endian.Uint32(itemBuf.Next(4)))
+	}
+
+	var done int = 0
 	if count > 0 {
-		constructor, err = buf.ReadByte()
+		constructor, err = itemBuf.ReadByte()
 		if err != nil {
 			return errors.Wrap(err, "unmarshal field delivery-failed failed")
 		}
-		err = unmarshalBoolean(&t.DeliveryFailed, constructor, buf)
+		err = unmarshalBoolean(&t.DeliveryFailed, constructor, itemBuf)
 		if err != nil {
 			return errors.Wrap(err, "unmarshal field delivery-failed failed")
 		}
 		done = 1
 		if count > 1 {
-			constructor, err = buf.ReadByte()
+			constructor, err = itemBuf.ReadByte()
 			if err != nil {
 				return errors.Wrap(err, "unmarshal field undeliverable-here failed")
 			}
-			err = unmarshalBoolean(&t.UndeliverableHere, constructor, buf)
+			err = unmarshalBoolean(&t.UndeliverableHere, constructor, itemBuf)
 			if err != nil {
 				return errors.Wrap(err, "unmarshal field undeliverable-here failed")
 			}
 			done = 2
 			if count > 2 {
-				constructor, err = buf.ReadByte()
+				constructor, err = itemBuf.ReadByte()
 				if err != nil {
 					return errors.Wrap(err, "unmarshal field message-annotations failed")
 				}
 				var map2 *types.Struct
-				err = unmarshalMap(&map2, constructor, buf)
+				err = unmarshalMap(&map2, constructor, itemBuf)
 				if err != nil {
 					return errors.Wrap(err, "unmarshal field message-annotations failed")
 				}
@@ -4561,69 +4986,61 @@ func (t *Source) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	if count == 0 {
 		buf.WriteByte(List0Encoding)
 	} else {
-		if count <= math.MaxUint8 {
-			buf.WriteByte(List8Encoding)
-			buf.WriteByte(byte(count))
-		} else {
-			var x [4]byte
-			buf.WriteByte(List32Encoding)
-			endian.PutUint32(x[:], count)
-			buf.Write(x[:])
-		}
+		itemBuf := bytes.Buffer{}
 
 		if count > 0 {
-			err = marshalAddressUnion(t.Address, buf)
+			err = marshalAddressUnion(t.Address, &itemBuf)
 			if err != nil {
 				return errors.Wrap(err, "marshal field address failed")
 			}
 			if count > 1 {
-				err = t.Durable.MarshalBuffer(buf)
+				err = t.Durable.MarshalBuffer(&itemBuf)
 				if err != nil {
 					return errors.Wrap(err, "marshal field durable failed")
 				}
 				if count > 2 {
-					err = t.ExpiryPolicy.MarshalBuffer(buf)
+					err = t.ExpiryPolicy.MarshalBuffer(&itemBuf)
 					if err != nil {
 						return errors.Wrap(err, "marshal field expiry-policy failed")
 					}
 					if count > 3 {
-						err = t.Timeout.MarshalBuffer(buf)
+						err = t.Timeout.MarshalBuffer(&itemBuf)
 						if err != nil {
 							return errors.Wrap(err, "marshal field timeout failed")
 						}
 						if count > 4 {
-							err = marshalBoolean(t.Dynamic, buf)
+							err = marshalBoolean(t.Dynamic, &itemBuf)
 							if err != nil {
 								return errors.Wrap(err, "marshal field dynamic failed")
 							}
 							if count > 5 {
-								err = t.DynamicNodeProperties.MarshalBuffer(buf)
+								err = t.DynamicNodeProperties.MarshalBuffer(&itemBuf)
 								if err != nil {
 									return errors.Wrap(err, "marshal field dynamic-node-properties failed")
 								}
 								if count > 6 {
-									err = marshalSymbol(t.DistributionMode, buf)
+									err = marshalSymbol(t.DistributionMode, &itemBuf)
 									if err != nil {
 										return errors.Wrap(err, "marshal field distribution-mode failed")
 									}
 									if count > 7 {
-										err = t.Filter.MarshalBuffer(buf)
+										err = t.Filter.MarshalBuffer(&itemBuf)
 										if err != nil {
 											return errors.Wrap(err, "marshal field filter failed")
 										}
 										if count > 8 {
-											err = marshalOutcomeUnion(t.DefaultOutcome, buf)
+											err = marshalOutcomeUnion(t.DefaultOutcome, &itemBuf)
 											if err != nil {
 												return errors.Wrap(err, "marshal field default-outcome failed")
 											}
 											if count > 9 {
-												err = marshalSymbolArray(t.Outcomes, buf)
+												err = marshalSymbolArray(t.Outcomes, &itemBuf)
 												if err != nil {
 													return errors.Wrap(err, "marshal field outcomes failed")
 												}
 
 												if count > 10 {
-													err = marshalSymbolArray(t.Capabilities, buf)
+													err = marshalSymbolArray(t.Capabilities, &itemBuf)
 													if err != nil {
 														return errors.Wrap(err, "marshal field capabilities failed")
 													}
@@ -4639,6 +5056,21 @@ func (t *Source) MarshalBuffer(buf *bytes.Buffer) (err error) {
 				}
 			}
 		}
+
+		if itemBuf.Len()+1 <= math.MaxUint8 && count <= math.MaxUint8 {
+			buf.WriteByte(List8Encoding)
+			buf.WriteByte(uint8(itemBuf.Len() + 1))
+			buf.WriteByte(uint8(count))
+		} else {
+			var x [4]byte
+			buf.WriteByte(List32Encoding)
+			endian.PutUint32(x[:], uint32(itemBuf.Len()+4))
+			buf.Write(x[:])
+			endian.PutUint32(x[:], count)
+			buf.Write(x[:])
+		}
+
+		buf.Write(itemBuf.Bytes())
 	}
 	return nil
 }
@@ -4652,10 +5084,7 @@ func (t *Source) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
-	var (
-		count uint32
-		done  uint32
-	)
+	var size int
 	switch constructor {
 	case NullEncoding:
 		fallthrough
@@ -4666,113 +5095,134 @@ func (t *Source) UnmarshalBuffer(buf *bytes.Buffer) error {
 		if err != nil {
 			return errors.Wrap(err, "read length failed")
 		}
-		count = uint32(v)
+		size = int(v)
 	case List32Encoding:
 		if buf.Len() < 4 {
 			return errors.New("read length failed: buffer underflow")
 		}
-		count = endian.Uint32(buf.Next(4))
+		size = int(endian.Uint32(buf.Next(4)))
 	}
 
+	if buf.Len() < size {
+		return errors.New("buffer underflow")
+	}
+	itemBuf := bytes.NewBuffer(buf.Next(size))
+
+	var count int
+	switch constructor {
+	case List8Encoding:
+		v, err := itemBuf.ReadByte()
+		if err != nil {
+			return errors.Wrap(err, "read length failed")
+		}
+		count = int(v)
+	case List32Encoding:
+		if itemBuf.Len() < 4 {
+			return errors.New("read length failed: buffer underflow")
+		}
+		count = int(endian.Uint32(itemBuf.Next(4)))
+	}
+
+	var done int = 0
 	if count > 0 {
-		constructor, err = buf.ReadByte()
+		constructor, err = itemBuf.ReadByte()
 		if err != nil {
 			return errors.Wrap(err, "unmarshal field address failed")
 		}
-		err = unmarshalAddressUnion(&t.Address, constructor, buf)
+		err = unmarshalAddressUnion(&t.Address, constructor, itemBuf)
 		if err != nil {
 			return errors.Wrap(err, "unmarshal field address failed")
 		}
 		done = 1
 		if count > 1 {
-			err = t.Durable.UnmarshalBuffer(buf)
+			err = t.Durable.UnmarshalBuffer(itemBuf)
 			if err != nil {
 				return errors.Wrap(err, "unmarshal field durable failed")
 			}
 			done = 2
 			if count > 2 {
-				err = t.ExpiryPolicy.UnmarshalBuffer(buf)
+				err = t.ExpiryPolicy.UnmarshalBuffer(itemBuf)
 				if err != nil {
 					return errors.Wrap(err, "unmarshal field expiry-policy failed")
 				}
 				done = 3
 				if count > 3 {
-					err = t.Timeout.UnmarshalBuffer(buf)
+					err = t.Timeout.UnmarshalBuffer(itemBuf)
 					if err != nil {
 						return errors.Wrap(err, "unmarshal field timeout failed")
 					}
 					done = 4
 					if count > 4 {
-						constructor, err = buf.ReadByte()
+						constructor, err = itemBuf.ReadByte()
 						if err != nil {
 							return errors.Wrap(err, "unmarshal field dynamic failed")
 						}
-						err = unmarshalBoolean(&t.Dynamic, constructor, buf)
+						err = unmarshalBoolean(&t.Dynamic, constructor, itemBuf)
 						if err != nil {
 							return errors.Wrap(err, "unmarshal field dynamic failed")
 						}
 						done = 5
 						if count > 5 {
-							constructor, err = buf.ReadByte()
+							constructor, err = itemBuf.ReadByte()
 							if err != nil {
 								return errors.Wrap(err, "unmarshal field dynamic-node-properties failed")
 							}
 							var map5 *types.Struct
-							err = unmarshalMap(&map5, constructor, buf)
+							err = unmarshalMap(&map5, constructor, itemBuf)
 							if err != nil {
 								return errors.Wrap(err, "unmarshal field dynamic-node-properties failed")
 							}
 							t.DynamicNodeProperties = (*NodeProperties)(map5)
 							done = 6
 							if count > 6 {
-								constructor, err = buf.ReadByte()
+								constructor, err = itemBuf.ReadByte()
 								if err != nil {
 									return errors.Wrap(err, "unmarshal field distribution-mode failed")
 								}
-								err = unmarshalSymbol(&t.DistributionMode, constructor, buf)
+								err = unmarshalSymbol(&t.DistributionMode, constructor, itemBuf)
 								if err != nil {
 									return errors.Wrap(err, "unmarshal field distribution-mode failed")
 								}
 								done = 7
 								if count > 7 {
-									constructor, err = buf.ReadByte()
+									constructor, err = itemBuf.ReadByte()
 									if err != nil {
 										return errors.Wrap(err, "unmarshal field filter failed")
 									}
 									var map7 *types.Struct
-									err = unmarshalMap(&map7, constructor, buf)
+									err = unmarshalMap(&map7, constructor, itemBuf)
 									if err != nil {
 										return errors.Wrap(err, "unmarshal field filter failed")
 									}
 									t.Filter = (*FilterSet)(map7)
 									done = 8
 									if count > 8 {
-										constructor, err = buf.ReadByte()
+										constructor, err = itemBuf.ReadByte()
 										if err != nil {
 											return errors.Wrap(err, "unmarshal field default-outcome failed")
 										}
-										err = unmarshalOutcomeUnion(&t.DefaultOutcome, constructor, buf)
+										err = unmarshalOutcomeUnion(&t.DefaultOutcome, constructor, itemBuf)
 										if err != nil {
 											return errors.Wrap(err, "unmarshal field default-outcome failed")
 										}
 										done = 9
 										if count > 9 {
-											constructor, err = buf.ReadByte()
+											constructor, err = itemBuf.ReadByte()
 											if err != nil {
 												return errors.Wrap(err, "unmarshal field outcomes failed")
 											}
-											err = unmarshalSymbolArray(&t.Outcomes, constructor, buf)
+											err = unmarshalSymbolArray(&t.Outcomes, constructor, itemBuf)
 											if err != nil {
 												return errors.Wrap(err, "unmarshal field outcomes failed")
 											}
 
 											done = 10
 											if count > 10 {
-												constructor, err = buf.ReadByte()
+												constructor, err = itemBuf.ReadByte()
 												if err != nil {
 													return errors.Wrap(err, "unmarshal field capabilities failed")
 												}
-												err = unmarshalSymbolArray(&t.Capabilities, constructor, buf)
+												err = unmarshalSymbolArray(&t.Capabilities, constructor, itemBuf)
 												if err != nil {
 													return errors.Wrap(err, "unmarshal field capabilities failed")
 												}
@@ -4855,48 +5305,40 @@ func (t *Target) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	if count == 0 {
 		buf.WriteByte(List0Encoding)
 	} else {
-		if count <= math.MaxUint8 {
-			buf.WriteByte(List8Encoding)
-			buf.WriteByte(byte(count))
-		} else {
-			var x [4]byte
-			buf.WriteByte(List32Encoding)
-			endian.PutUint32(x[:], count)
-			buf.Write(x[:])
-		}
+		itemBuf := bytes.Buffer{}
 
 		if count > 0 {
-			err = marshalAddressUnion(t.Address, buf)
+			err = marshalAddressUnion(t.Address, &itemBuf)
 			if err != nil {
 				return errors.Wrap(err, "marshal field address failed")
 			}
 			if count > 1 {
-				err = t.Durable.MarshalBuffer(buf)
+				err = t.Durable.MarshalBuffer(&itemBuf)
 				if err != nil {
 					return errors.Wrap(err, "marshal field durable failed")
 				}
 				if count > 2 {
-					err = t.ExpiryPolicy.MarshalBuffer(buf)
+					err = t.ExpiryPolicy.MarshalBuffer(&itemBuf)
 					if err != nil {
 						return errors.Wrap(err, "marshal field expiry-policy failed")
 					}
 					if count > 3 {
-						err = t.Timeout.MarshalBuffer(buf)
+						err = t.Timeout.MarshalBuffer(&itemBuf)
 						if err != nil {
 							return errors.Wrap(err, "marshal field timeout failed")
 						}
 						if count > 4 {
-							err = marshalBoolean(t.Dynamic, buf)
+							err = marshalBoolean(t.Dynamic, &itemBuf)
 							if err != nil {
 								return errors.Wrap(err, "marshal field dynamic failed")
 							}
 							if count > 5 {
-								err = t.DynamicNodeProperties.MarshalBuffer(buf)
+								err = t.DynamicNodeProperties.MarshalBuffer(&itemBuf)
 								if err != nil {
 									return errors.Wrap(err, "marshal field dynamic-node-properties failed")
 								}
 								if count > 6 {
-									err = marshalSymbolArray(t.Capabilities, buf)
+									err = marshalSymbolArray(t.Capabilities, &itemBuf)
 									if err != nil {
 										return errors.Wrap(err, "marshal field capabilities failed")
 									}
@@ -4908,6 +5350,21 @@ func (t *Target) MarshalBuffer(buf *bytes.Buffer) (err error) {
 				}
 			}
 		}
+
+		if itemBuf.Len()+1 <= math.MaxUint8 && count <= math.MaxUint8 {
+			buf.WriteByte(List8Encoding)
+			buf.WriteByte(uint8(itemBuf.Len() + 1))
+			buf.WriteByte(uint8(count))
+		} else {
+			var x [4]byte
+			buf.WriteByte(List32Encoding)
+			endian.PutUint32(x[:], uint32(itemBuf.Len()+4))
+			buf.Write(x[:])
+			endian.PutUint32(x[:], count)
+			buf.Write(x[:])
+		}
+
+		buf.Write(itemBuf.Bytes())
 	}
 	return nil
 }
@@ -4921,10 +5378,7 @@ func (t *Target) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
-	var (
-		count uint32
-		done  uint32
-	)
+	var size int
 	switch constructor {
 	case NullEncoding:
 		fallthrough
@@ -4935,70 +5389,91 @@ func (t *Target) UnmarshalBuffer(buf *bytes.Buffer) error {
 		if err != nil {
 			return errors.Wrap(err, "read length failed")
 		}
-		count = uint32(v)
+		size = int(v)
 	case List32Encoding:
 		if buf.Len() < 4 {
 			return errors.New("read length failed: buffer underflow")
 		}
-		count = endian.Uint32(buf.Next(4))
+		size = int(endian.Uint32(buf.Next(4)))
 	}
 
+	if buf.Len() < size {
+		return errors.New("buffer underflow")
+	}
+	itemBuf := bytes.NewBuffer(buf.Next(size))
+
+	var count int
+	switch constructor {
+	case List8Encoding:
+		v, err := itemBuf.ReadByte()
+		if err != nil {
+			return errors.Wrap(err, "read length failed")
+		}
+		count = int(v)
+	case List32Encoding:
+		if itemBuf.Len() < 4 {
+			return errors.New("read length failed: buffer underflow")
+		}
+		count = int(endian.Uint32(itemBuf.Next(4)))
+	}
+
+	var done int = 0
 	if count > 0 {
-		constructor, err = buf.ReadByte()
+		constructor, err = itemBuf.ReadByte()
 		if err != nil {
 			return errors.Wrap(err, "unmarshal field address failed")
 		}
-		err = unmarshalAddressUnion(&t.Address, constructor, buf)
+		err = unmarshalAddressUnion(&t.Address, constructor, itemBuf)
 		if err != nil {
 			return errors.Wrap(err, "unmarshal field address failed")
 		}
 		done = 1
 		if count > 1 {
-			err = t.Durable.UnmarshalBuffer(buf)
+			err = t.Durable.UnmarshalBuffer(itemBuf)
 			if err != nil {
 				return errors.Wrap(err, "unmarshal field durable failed")
 			}
 			done = 2
 			if count > 2 {
-				err = t.ExpiryPolicy.UnmarshalBuffer(buf)
+				err = t.ExpiryPolicy.UnmarshalBuffer(itemBuf)
 				if err != nil {
 					return errors.Wrap(err, "unmarshal field expiry-policy failed")
 				}
 				done = 3
 				if count > 3 {
-					err = t.Timeout.UnmarshalBuffer(buf)
+					err = t.Timeout.UnmarshalBuffer(itemBuf)
 					if err != nil {
 						return errors.Wrap(err, "unmarshal field timeout failed")
 					}
 					done = 4
 					if count > 4 {
-						constructor, err = buf.ReadByte()
+						constructor, err = itemBuf.ReadByte()
 						if err != nil {
 							return errors.Wrap(err, "unmarshal field dynamic failed")
 						}
-						err = unmarshalBoolean(&t.Dynamic, constructor, buf)
+						err = unmarshalBoolean(&t.Dynamic, constructor, itemBuf)
 						if err != nil {
 							return errors.Wrap(err, "unmarshal field dynamic failed")
 						}
 						done = 5
 						if count > 5 {
-							constructor, err = buf.ReadByte()
+							constructor, err = itemBuf.ReadByte()
 							if err != nil {
 								return errors.Wrap(err, "unmarshal field dynamic-node-properties failed")
 							}
 							var map5 *types.Struct
-							err = unmarshalMap(&map5, constructor, buf)
+							err = unmarshalMap(&map5, constructor, itemBuf)
 							if err != nil {
 								return errors.Wrap(err, "unmarshal field dynamic-node-properties failed")
 							}
 							t.DynamicNodeProperties = (*NodeProperties)(map5)
 							done = 6
 							if count > 6 {
-								constructor, err = buf.ReadByte()
+								constructor, err = itemBuf.ReadByte()
 								if err != nil {
 									return errors.Wrap(err, "unmarshal field capabilities failed")
 								}
-								err = unmarshalSymbolArray(&t.Capabilities, constructor, buf)
+								err = unmarshalSymbolArray(&t.Capabilities, constructor, itemBuf)
 								if err != nil {
 									return errors.Wrap(err, "unmarshal field capabilities failed")
 								}
@@ -5241,16 +5716,22 @@ func (t *DeleteOnClose) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	if count == 0 {
 		buf.WriteByte(List0Encoding)
 	} else {
-		if count <= math.MaxUint8 {
+		itemBuf := bytes.Buffer{}
+
+		if itemBuf.Len()+1 <= math.MaxUint8 && count <= math.MaxUint8 {
 			buf.WriteByte(List8Encoding)
-			buf.WriteByte(byte(count))
+			buf.WriteByte(uint8(itemBuf.Len() + 1))
+			buf.WriteByte(uint8(count))
 		} else {
 			var x [4]byte
 			buf.WriteByte(List32Encoding)
+			endian.PutUint32(x[:], uint32(itemBuf.Len()+4))
+			buf.Write(x[:])
 			endian.PutUint32(x[:], count)
 			buf.Write(x[:])
 		}
 
+		buf.Write(itemBuf.Bytes())
 	}
 	return nil
 }
@@ -5264,10 +5745,7 @@ func (t *DeleteOnClose) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
-	var (
-		count uint32
-		done  uint32
-	)
+	var size int
 	switch constructor {
 	case NullEncoding:
 		fallthrough
@@ -5278,13 +5756,35 @@ func (t *DeleteOnClose) UnmarshalBuffer(buf *bytes.Buffer) error {
 		if err != nil {
 			return errors.Wrap(err, "read length failed")
 		}
-		count = uint32(v)
+		size = int(v)
 	case List32Encoding:
 		if buf.Len() < 4 {
 			return errors.New("read length failed: buffer underflow")
 		}
-		count = endian.Uint32(buf.Next(4))
+		size = int(endian.Uint32(buf.Next(4)))
 	}
+
+	if buf.Len() < size {
+		return errors.New("buffer underflow")
+	}
+	itemBuf := bytes.NewBuffer(buf.Next(size))
+
+	var count int
+	switch constructor {
+	case List8Encoding:
+		v, err := itemBuf.ReadByte()
+		if err != nil {
+			return errors.Wrap(err, "read length failed")
+		}
+		count = int(v)
+	case List32Encoding:
+		if itemBuf.Len() < 4 {
+			return errors.New("read length failed: buffer underflow")
+		}
+		count = int(endian.Uint32(itemBuf.Next(4)))
+	}
+
+	var done int = 0
 
 	if count > done {
 		return errors.New("unmarshal failed: some fields were not read")
@@ -5322,16 +5822,22 @@ func (t *DeleteOnNoLinks) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	if count == 0 {
 		buf.WriteByte(List0Encoding)
 	} else {
-		if count <= math.MaxUint8 {
+		itemBuf := bytes.Buffer{}
+
+		if itemBuf.Len()+1 <= math.MaxUint8 && count <= math.MaxUint8 {
 			buf.WriteByte(List8Encoding)
-			buf.WriteByte(byte(count))
+			buf.WriteByte(uint8(itemBuf.Len() + 1))
+			buf.WriteByte(uint8(count))
 		} else {
 			var x [4]byte
 			buf.WriteByte(List32Encoding)
+			endian.PutUint32(x[:], uint32(itemBuf.Len()+4))
+			buf.Write(x[:])
 			endian.PutUint32(x[:], count)
 			buf.Write(x[:])
 		}
 
+		buf.Write(itemBuf.Bytes())
 	}
 	return nil
 }
@@ -5345,10 +5851,7 @@ func (t *DeleteOnNoLinks) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
-	var (
-		count uint32
-		done  uint32
-	)
+	var size int
 	switch constructor {
 	case NullEncoding:
 		fallthrough
@@ -5359,13 +5862,35 @@ func (t *DeleteOnNoLinks) UnmarshalBuffer(buf *bytes.Buffer) error {
 		if err != nil {
 			return errors.Wrap(err, "read length failed")
 		}
-		count = uint32(v)
+		size = int(v)
 	case List32Encoding:
 		if buf.Len() < 4 {
 			return errors.New("read length failed: buffer underflow")
 		}
-		count = endian.Uint32(buf.Next(4))
+		size = int(endian.Uint32(buf.Next(4)))
 	}
+
+	if buf.Len() < size {
+		return errors.New("buffer underflow")
+	}
+	itemBuf := bytes.NewBuffer(buf.Next(size))
+
+	var count int
+	switch constructor {
+	case List8Encoding:
+		v, err := itemBuf.ReadByte()
+		if err != nil {
+			return errors.Wrap(err, "read length failed")
+		}
+		count = int(v)
+	case List32Encoding:
+		if itemBuf.Len() < 4 {
+			return errors.New("read length failed: buffer underflow")
+		}
+		count = int(endian.Uint32(itemBuf.Next(4)))
+	}
+
+	var done int = 0
 
 	if count > done {
 		return errors.New("unmarshal failed: some fields were not read")
@@ -5403,16 +5928,22 @@ func (t *DeleteOnNoMessages) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	if count == 0 {
 		buf.WriteByte(List0Encoding)
 	} else {
-		if count <= math.MaxUint8 {
+		itemBuf := bytes.Buffer{}
+
+		if itemBuf.Len()+1 <= math.MaxUint8 && count <= math.MaxUint8 {
 			buf.WriteByte(List8Encoding)
-			buf.WriteByte(byte(count))
+			buf.WriteByte(uint8(itemBuf.Len() + 1))
+			buf.WriteByte(uint8(count))
 		} else {
 			var x [4]byte
 			buf.WriteByte(List32Encoding)
+			endian.PutUint32(x[:], uint32(itemBuf.Len()+4))
+			buf.Write(x[:])
 			endian.PutUint32(x[:], count)
 			buf.Write(x[:])
 		}
 
+		buf.Write(itemBuf.Bytes())
 	}
 	return nil
 }
@@ -5426,10 +5957,7 @@ func (t *DeleteOnNoMessages) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
-	var (
-		count uint32
-		done  uint32
-	)
+	var size int
 	switch constructor {
 	case NullEncoding:
 		fallthrough
@@ -5440,13 +5968,35 @@ func (t *DeleteOnNoMessages) UnmarshalBuffer(buf *bytes.Buffer) error {
 		if err != nil {
 			return errors.Wrap(err, "read length failed")
 		}
-		count = uint32(v)
+		size = int(v)
 	case List32Encoding:
 		if buf.Len() < 4 {
 			return errors.New("read length failed: buffer underflow")
 		}
-		count = endian.Uint32(buf.Next(4))
+		size = int(endian.Uint32(buf.Next(4)))
 	}
+
+	if buf.Len() < size {
+		return errors.New("buffer underflow")
+	}
+	itemBuf := bytes.NewBuffer(buf.Next(size))
+
+	var count int
+	switch constructor {
+	case List8Encoding:
+		v, err := itemBuf.ReadByte()
+		if err != nil {
+			return errors.Wrap(err, "read length failed")
+		}
+		count = int(v)
+	case List32Encoding:
+		if itemBuf.Len() < 4 {
+			return errors.New("read length failed: buffer underflow")
+		}
+		count = int(endian.Uint32(itemBuf.Next(4)))
+	}
+
+	var done int = 0
 
 	if count > done {
 		return errors.New("unmarshal failed: some fields were not read")
@@ -5484,16 +6034,22 @@ func (t *DeleteOnNoLinksOrMessages) MarshalBuffer(buf *bytes.Buffer) (err error)
 	if count == 0 {
 		buf.WriteByte(List0Encoding)
 	} else {
-		if count <= math.MaxUint8 {
+		itemBuf := bytes.Buffer{}
+
+		if itemBuf.Len()+1 <= math.MaxUint8 && count <= math.MaxUint8 {
 			buf.WriteByte(List8Encoding)
-			buf.WriteByte(byte(count))
+			buf.WriteByte(uint8(itemBuf.Len() + 1))
+			buf.WriteByte(uint8(count))
 		} else {
 			var x [4]byte
 			buf.WriteByte(List32Encoding)
+			endian.PutUint32(x[:], uint32(itemBuf.Len()+4))
+			buf.Write(x[:])
 			endian.PutUint32(x[:], count)
 			buf.Write(x[:])
 		}
 
+		buf.Write(itemBuf.Bytes())
 	}
 	return nil
 }
@@ -5507,10 +6063,7 @@ func (t *DeleteOnNoLinksOrMessages) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
-	var (
-		count uint32
-		done  uint32
-	)
+	var size int
 	switch constructor {
 	case NullEncoding:
 		fallthrough
@@ -5521,13 +6074,35 @@ func (t *DeleteOnNoLinksOrMessages) UnmarshalBuffer(buf *bytes.Buffer) error {
 		if err != nil {
 			return errors.Wrap(err, "read length failed")
 		}
-		count = uint32(v)
+		size = int(v)
 	case List32Encoding:
 		if buf.Len() < 4 {
 			return errors.New("read length failed: buffer underflow")
 		}
-		count = endian.Uint32(buf.Next(4))
+		size = int(endian.Uint32(buf.Next(4)))
 	}
+
+	if buf.Len() < size {
+		return errors.New("buffer underflow")
+	}
+	itemBuf := bytes.NewBuffer(buf.Next(size))
+
+	var count int
+	switch constructor {
+	case List8Encoding:
+		v, err := itemBuf.ReadByte()
+		if err != nil {
+			return errors.Wrap(err, "read length failed")
+		}
+		count = int(v)
+	case List32Encoding:
+		if itemBuf.Len() < 4 {
+			return errors.New("read length failed: buffer underflow")
+		}
+		count = int(endian.Uint32(itemBuf.Next(4)))
+	}
+
+	var done int = 0
 
 	if count > done {
 		return errors.New("unmarshal failed: some fields were not read")
@@ -5584,23 +6159,30 @@ func (t *SASLMechanisms) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	if count == 0 {
 		buf.WriteByte(List0Encoding)
 	} else {
-		if count <= math.MaxUint8 {
-			buf.WriteByte(List8Encoding)
-			buf.WriteByte(byte(count))
-		} else {
-			var x [4]byte
-			buf.WriteByte(List32Encoding)
-			endian.PutUint32(x[:], count)
-			buf.Write(x[:])
-		}
+		itemBuf := bytes.Buffer{}
 
 		if count > 0 {
-			err = marshalSymbolArray(t.SASLServerMechanisms, buf)
+			err = marshalSymbolArray(t.SASLServerMechanisms, &itemBuf)
 			if err != nil {
 				return errors.Wrap(err, "marshal field sasl-server-mechanisms failed")
 			}
 
 		}
+
+		if itemBuf.Len()+1 <= math.MaxUint8 && count <= math.MaxUint8 {
+			buf.WriteByte(List8Encoding)
+			buf.WriteByte(uint8(itemBuf.Len() + 1))
+			buf.WriteByte(uint8(count))
+		} else {
+			var x [4]byte
+			buf.WriteByte(List32Encoding)
+			endian.PutUint32(x[:], uint32(itemBuf.Len()+4))
+			buf.Write(x[:])
+			endian.PutUint32(x[:], count)
+			buf.Write(x[:])
+		}
+
+		buf.Write(itemBuf.Bytes())
 	}
 	return nil
 }
@@ -5614,10 +6196,7 @@ func (t *SASLMechanisms) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
-	var (
-		count uint32
-		done  uint32
-	)
+	var size int
 	switch constructor {
 	case NullEncoding:
 		fallthrough
@@ -5628,20 +6207,41 @@ func (t *SASLMechanisms) UnmarshalBuffer(buf *bytes.Buffer) error {
 		if err != nil {
 			return errors.Wrap(err, "read length failed")
 		}
-		count = uint32(v)
+		size = int(v)
 	case List32Encoding:
 		if buf.Len() < 4 {
 			return errors.New("read length failed: buffer underflow")
 		}
-		count = endian.Uint32(buf.Next(4))
+		size = int(endian.Uint32(buf.Next(4)))
 	}
 
+	if buf.Len() < size {
+		return errors.New("buffer underflow")
+	}
+	itemBuf := bytes.NewBuffer(buf.Next(size))
+
+	var count int
+	switch constructor {
+	case List8Encoding:
+		v, err := itemBuf.ReadByte()
+		if err != nil {
+			return errors.Wrap(err, "read length failed")
+		}
+		count = int(v)
+	case List32Encoding:
+		if itemBuf.Len() < 4 {
+			return errors.New("read length failed: buffer underflow")
+		}
+		count = int(endian.Uint32(itemBuf.Next(4)))
+	}
+
+	var done int = 0
 	if count > 0 {
-		constructor, err = buf.ReadByte()
+		constructor, err = itemBuf.ReadByte()
 		if err != nil {
 			return errors.Wrap(err, "unmarshal field sasl-server-mechanisms failed")
 		}
-		err = unmarshalSymbolArray(&t.SASLServerMechanisms, constructor, buf)
+		err = unmarshalSymbolArray(&t.SASLServerMechanisms, constructor, itemBuf)
 		if err != nil {
 			return errors.Wrap(err, "unmarshal field sasl-server-mechanisms failed")
 		}
@@ -5701,28 +6301,20 @@ func (t *SASLInit) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	if count == 0 {
 		buf.WriteByte(List0Encoding)
 	} else {
-		if count <= math.MaxUint8 {
-			buf.WriteByte(List8Encoding)
-			buf.WriteByte(byte(count))
-		} else {
-			var x [4]byte
-			buf.WriteByte(List32Encoding)
-			endian.PutUint32(x[:], count)
-			buf.Write(x[:])
-		}
+		itemBuf := bytes.Buffer{}
 
 		if count > 0 {
-			err = marshalSymbol(t.Mechanism, buf)
+			err = marshalSymbol(t.Mechanism, &itemBuf)
 			if err != nil {
 				return errors.Wrap(err, "marshal field mechanism failed")
 			}
 			if count > 1 {
-				err = marshalBinary(t.InitialResponse, buf)
+				err = marshalBinary(t.InitialResponse, &itemBuf)
 				if err != nil {
 					return errors.Wrap(err, "marshal field initial-response failed")
 				}
 				if count > 2 {
-					err = marshalString(t.Hostname, buf)
+					err = marshalString(t.Hostname, &itemBuf)
 					if err != nil {
 						return errors.Wrap(err, "marshal field hostname failed")
 					}
@@ -5730,6 +6322,21 @@ func (t *SASLInit) MarshalBuffer(buf *bytes.Buffer) (err error) {
 				}
 			}
 		}
+
+		if itemBuf.Len()+1 <= math.MaxUint8 && count <= math.MaxUint8 {
+			buf.WriteByte(List8Encoding)
+			buf.WriteByte(uint8(itemBuf.Len() + 1))
+			buf.WriteByte(uint8(count))
+		} else {
+			var x [4]byte
+			buf.WriteByte(List32Encoding)
+			endian.PutUint32(x[:], uint32(itemBuf.Len()+4))
+			buf.Write(x[:])
+			endian.PutUint32(x[:], count)
+			buf.Write(x[:])
+		}
+
+		buf.Write(itemBuf.Bytes())
 	}
 	return nil
 }
@@ -5743,10 +6350,7 @@ func (t *SASLInit) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
-	var (
-		count uint32
-		done  uint32
-	)
+	var size int
 	switch constructor {
 	case NullEncoding:
 		fallthrough
@@ -5757,40 +6361,61 @@ func (t *SASLInit) UnmarshalBuffer(buf *bytes.Buffer) error {
 		if err != nil {
 			return errors.Wrap(err, "read length failed")
 		}
-		count = uint32(v)
+		size = int(v)
 	case List32Encoding:
 		if buf.Len() < 4 {
 			return errors.New("read length failed: buffer underflow")
 		}
-		count = endian.Uint32(buf.Next(4))
+		size = int(endian.Uint32(buf.Next(4)))
 	}
 
+	if buf.Len() < size {
+		return errors.New("buffer underflow")
+	}
+	itemBuf := bytes.NewBuffer(buf.Next(size))
+
+	var count int
+	switch constructor {
+	case List8Encoding:
+		v, err := itemBuf.ReadByte()
+		if err != nil {
+			return errors.Wrap(err, "read length failed")
+		}
+		count = int(v)
+	case List32Encoding:
+		if itemBuf.Len() < 4 {
+			return errors.New("read length failed: buffer underflow")
+		}
+		count = int(endian.Uint32(itemBuf.Next(4)))
+	}
+
+	var done int = 0
 	if count > 0 {
-		constructor, err = buf.ReadByte()
+		constructor, err = itemBuf.ReadByte()
 		if err != nil {
 			return errors.Wrap(err, "unmarshal field mechanism failed")
 		}
-		err = unmarshalSymbol(&t.Mechanism, constructor, buf)
+		err = unmarshalSymbol(&t.Mechanism, constructor, itemBuf)
 		if err != nil {
 			return errors.Wrap(err, "unmarshal field mechanism failed")
 		}
 		done = 1
 		if count > 1 {
-			constructor, err = buf.ReadByte()
+			constructor, err = itemBuf.ReadByte()
 			if err != nil {
 				return errors.Wrap(err, "unmarshal field initial-response failed")
 			}
-			err = unmarshalBinary(&t.InitialResponse, constructor, buf)
+			err = unmarshalBinary(&t.InitialResponse, constructor, itemBuf)
 			if err != nil {
 				return errors.Wrap(err, "unmarshal field initial-response failed")
 			}
 			done = 2
 			if count > 2 {
-				constructor, err = buf.ReadByte()
+				constructor, err = itemBuf.ReadByte()
 				if err != nil {
 					return errors.Wrap(err, "unmarshal field hostname failed")
 				}
-				err = unmarshalString(&t.Hostname, constructor, buf)
+				err = unmarshalString(&t.Hostname, constructor, itemBuf)
 				if err != nil {
 					return errors.Wrap(err, "unmarshal field hostname failed")
 				}
@@ -5843,23 +6468,30 @@ func (t *SASLChallenge) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	if count == 0 {
 		buf.WriteByte(List0Encoding)
 	} else {
-		if count <= math.MaxUint8 {
-			buf.WriteByte(List8Encoding)
-			buf.WriteByte(byte(count))
-		} else {
-			var x [4]byte
-			buf.WriteByte(List32Encoding)
-			endian.PutUint32(x[:], count)
-			buf.Write(x[:])
-		}
+		itemBuf := bytes.Buffer{}
 
 		if count > 0 {
-			err = marshalBinary(t.Challenge, buf)
+			err = marshalBinary(t.Challenge, &itemBuf)
 			if err != nil {
 				return errors.Wrap(err, "marshal field challenge failed")
 			}
 
 		}
+
+		if itemBuf.Len()+1 <= math.MaxUint8 && count <= math.MaxUint8 {
+			buf.WriteByte(List8Encoding)
+			buf.WriteByte(uint8(itemBuf.Len() + 1))
+			buf.WriteByte(uint8(count))
+		} else {
+			var x [4]byte
+			buf.WriteByte(List32Encoding)
+			endian.PutUint32(x[:], uint32(itemBuf.Len()+4))
+			buf.Write(x[:])
+			endian.PutUint32(x[:], count)
+			buf.Write(x[:])
+		}
+
+		buf.Write(itemBuf.Bytes())
 	}
 	return nil
 }
@@ -5873,10 +6505,7 @@ func (t *SASLChallenge) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
-	var (
-		count uint32
-		done  uint32
-	)
+	var size int
 	switch constructor {
 	case NullEncoding:
 		fallthrough
@@ -5887,20 +6516,41 @@ func (t *SASLChallenge) UnmarshalBuffer(buf *bytes.Buffer) error {
 		if err != nil {
 			return errors.Wrap(err, "read length failed")
 		}
-		count = uint32(v)
+		size = int(v)
 	case List32Encoding:
 		if buf.Len() < 4 {
 			return errors.New("read length failed: buffer underflow")
 		}
-		count = endian.Uint32(buf.Next(4))
+		size = int(endian.Uint32(buf.Next(4)))
 	}
 
+	if buf.Len() < size {
+		return errors.New("buffer underflow")
+	}
+	itemBuf := bytes.NewBuffer(buf.Next(size))
+
+	var count int
+	switch constructor {
+	case List8Encoding:
+		v, err := itemBuf.ReadByte()
+		if err != nil {
+			return errors.Wrap(err, "read length failed")
+		}
+		count = int(v)
+	case List32Encoding:
+		if itemBuf.Len() < 4 {
+			return errors.New("read length failed: buffer underflow")
+		}
+		count = int(endian.Uint32(itemBuf.Next(4)))
+	}
+
+	var done int = 0
 	if count > 0 {
-		constructor, err = buf.ReadByte()
+		constructor, err = itemBuf.ReadByte()
 		if err != nil {
 			return errors.Wrap(err, "unmarshal field challenge failed")
 		}
-		err = unmarshalBinary(&t.Challenge, constructor, buf)
+		err = unmarshalBinary(&t.Challenge, constructor, itemBuf)
 		if err != nil {
 			return errors.Wrap(err, "unmarshal field challenge failed")
 		}
@@ -5951,23 +6601,30 @@ func (t *SASLResponse) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	if count == 0 {
 		buf.WriteByte(List0Encoding)
 	} else {
-		if count <= math.MaxUint8 {
-			buf.WriteByte(List8Encoding)
-			buf.WriteByte(byte(count))
-		} else {
-			var x [4]byte
-			buf.WriteByte(List32Encoding)
-			endian.PutUint32(x[:], count)
-			buf.Write(x[:])
-		}
+		itemBuf := bytes.Buffer{}
 
 		if count > 0 {
-			err = marshalBinary(t.Response, buf)
+			err = marshalBinary(t.Response, &itemBuf)
 			if err != nil {
 				return errors.Wrap(err, "marshal field response failed")
 			}
 
 		}
+
+		if itemBuf.Len()+1 <= math.MaxUint8 && count <= math.MaxUint8 {
+			buf.WriteByte(List8Encoding)
+			buf.WriteByte(uint8(itemBuf.Len() + 1))
+			buf.WriteByte(uint8(count))
+		} else {
+			var x [4]byte
+			buf.WriteByte(List32Encoding)
+			endian.PutUint32(x[:], uint32(itemBuf.Len()+4))
+			buf.Write(x[:])
+			endian.PutUint32(x[:], count)
+			buf.Write(x[:])
+		}
+
+		buf.Write(itemBuf.Bytes())
 	}
 	return nil
 }
@@ -5981,10 +6638,7 @@ func (t *SASLResponse) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
-	var (
-		count uint32
-		done  uint32
-	)
+	var size int
 	switch constructor {
 	case NullEncoding:
 		fallthrough
@@ -5995,20 +6649,41 @@ func (t *SASLResponse) UnmarshalBuffer(buf *bytes.Buffer) error {
 		if err != nil {
 			return errors.Wrap(err, "read length failed")
 		}
-		count = uint32(v)
+		size = int(v)
 	case List32Encoding:
 		if buf.Len() < 4 {
 			return errors.New("read length failed: buffer underflow")
 		}
-		count = endian.Uint32(buf.Next(4))
+		size = int(endian.Uint32(buf.Next(4)))
 	}
 
+	if buf.Len() < size {
+		return errors.New("buffer underflow")
+	}
+	itemBuf := bytes.NewBuffer(buf.Next(size))
+
+	var count int
+	switch constructor {
+	case List8Encoding:
+		v, err := itemBuf.ReadByte()
+		if err != nil {
+			return errors.Wrap(err, "read length failed")
+		}
+		count = int(v)
+	case List32Encoding:
+		if itemBuf.Len() < 4 {
+			return errors.New("read length failed: buffer underflow")
+		}
+		count = int(endian.Uint32(itemBuf.Next(4)))
+	}
+
+	var done int = 0
 	if count > 0 {
-		constructor, err = buf.ReadByte()
+		constructor, err = itemBuf.ReadByte()
 		if err != nil {
 			return errors.Wrap(err, "unmarshal field response failed")
 		}
-		err = unmarshalBinary(&t.Response, constructor, buf)
+		err = unmarshalBinary(&t.Response, constructor, itemBuf)
 		if err != nil {
 			return errors.Wrap(err, "unmarshal field response failed")
 		}
@@ -6063,29 +6738,36 @@ func (t *SASLOutcome) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	if count == 0 {
 		buf.WriteByte(List0Encoding)
 	} else {
-		if count <= math.MaxUint8 {
-			buf.WriteByte(List8Encoding)
-			buf.WriteByte(byte(count))
-		} else {
-			var x [4]byte
-			buf.WriteByte(List32Encoding)
-			endian.PutUint32(x[:], count)
-			buf.Write(x[:])
-		}
+		itemBuf := bytes.Buffer{}
 
 		if count > 0 {
-			err = t.Code.MarshalBuffer(buf)
+			err = t.Code.MarshalBuffer(&itemBuf)
 			if err != nil {
 				return errors.Wrap(err, "marshal field code failed")
 			}
 			if count > 1 {
-				err = marshalBinary(t.AdditionalData, buf)
+				err = marshalBinary(t.AdditionalData, &itemBuf)
 				if err != nil {
 					return errors.Wrap(err, "marshal field additional-data failed")
 				}
 
 			}
 		}
+
+		if itemBuf.Len()+1 <= math.MaxUint8 && count <= math.MaxUint8 {
+			buf.WriteByte(List8Encoding)
+			buf.WriteByte(uint8(itemBuf.Len() + 1))
+			buf.WriteByte(uint8(count))
+		} else {
+			var x [4]byte
+			buf.WriteByte(List32Encoding)
+			endian.PutUint32(x[:], uint32(itemBuf.Len()+4))
+			buf.Write(x[:])
+			endian.PutUint32(x[:], count)
+			buf.Write(x[:])
+		}
+
+		buf.Write(itemBuf.Bytes())
 	}
 	return nil
 }
@@ -6099,10 +6781,7 @@ func (t *SASLOutcome) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
-	var (
-		count uint32
-		done  uint32
-	)
+	var size int
 	switch constructor {
 	case NullEncoding:
 		fallthrough
@@ -6113,26 +6792,47 @@ func (t *SASLOutcome) UnmarshalBuffer(buf *bytes.Buffer) error {
 		if err != nil {
 			return errors.Wrap(err, "read length failed")
 		}
-		count = uint32(v)
+		size = int(v)
 	case List32Encoding:
 		if buf.Len() < 4 {
 			return errors.New("read length failed: buffer underflow")
 		}
-		count = endian.Uint32(buf.Next(4))
+		size = int(endian.Uint32(buf.Next(4)))
 	}
 
+	if buf.Len() < size {
+		return errors.New("buffer underflow")
+	}
+	itemBuf := bytes.NewBuffer(buf.Next(size))
+
+	var count int
+	switch constructor {
+	case List8Encoding:
+		v, err := itemBuf.ReadByte()
+		if err != nil {
+			return errors.Wrap(err, "read length failed")
+		}
+		count = int(v)
+	case List32Encoding:
+		if itemBuf.Len() < 4 {
+			return errors.New("read length failed: buffer underflow")
+		}
+		count = int(endian.Uint32(itemBuf.Next(4)))
+	}
+
+	var done int = 0
 	if count > 0 {
-		err = t.Code.UnmarshalBuffer(buf)
+		err = t.Code.UnmarshalBuffer(itemBuf)
 		if err != nil {
 			return errors.Wrap(err, "unmarshal field code failed")
 		}
 		done = 1
 		if count > 1 {
-			constructor, err = buf.ReadByte()
+			constructor, err = itemBuf.ReadByte()
 			if err != nil {
 				return errors.Wrap(err, "unmarshal field additional-data failed")
 			}
-			err = unmarshalBinary(&t.AdditionalData, constructor, buf)
+			err = unmarshalBinary(&t.AdditionalData, constructor, itemBuf)
 			if err != nil {
 				return errors.Wrap(err, "unmarshal field additional-data failed")
 			}

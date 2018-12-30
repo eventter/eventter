@@ -5,7 +5,7 @@ import (
 )
 
 func main() {
-	client, err := amqp.Dial("amqp://127.0.0.1:5672")
+	client, err := amqp.Dial("amqp://127.0.0.1:16001", amqp.ConnSASLPlain("guest", "guest"))
 	if err != nil {
 		panic(err)
 	}

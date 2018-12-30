@@ -692,22 +692,14 @@ type {{ $name | convert }} interface {
 					if count == 0 {
 						buf.WriteByte(List0Encoding)
 					} else {
-						if count <= math.MaxUint8 {
-							buf.WriteByte(List8Encoding)
-							buf.WriteByte(byte(count))
-						} else {
-							var x [4] byte
-							buf.WriteByte(List32Encoding)
-							endian.PutUint32(x[:], count)
-							buf.Write(x[:])
-						}
+						itemBuf := bytes.Buffer{}
 
 						{{ range $index, $field := $type.Fields -}}
 							if count > {{ $index }} {
 							{{- $fieldClass := $field.TypeClass -}}
 							{{ if $field.Multiple -}}
 								{{ if or (eq $fieldClass "primitive") (eq $fieldClass "restricted") -}}
-									err = marshal{{ $field.TypeName | convert }}Array(t.{{ $field.Name | convert }}, buf)
+									err = marshal{{ $field.TypeName | convert }}Array(t.{{ $field.Name | convert }}, &itemBuf)
 									if err != nil {
 										return errors.Wrap(err, "marshal field {{ $field.Name }} failed")
 									}
@@ -715,17 +707,17 @@ type {{ $name | convert }} interface {
 									panic("implement me: marshal multiple {{ $fieldClass }}")
 								{{- end }}
 							{{- else if eq $fieldClass "primitive" -}}
-								err = marshal{{ $field.TypeName | convert }}(t.{{ $field.Name | convert }}, buf)
+								err = marshal{{ $field.TypeName | convert }}(t.{{ $field.Name | convert }}, &itemBuf)
 								if err != nil {
 									return errors.Wrap(err, "marshal field {{ $field.Name }} failed")
 								}
 							{{- else if or (eq $fieldClass "restricted") (eq $fieldClass "composite") -}}
-								err = t.{{ $field.Name | convert }}.MarshalBuffer(buf)
+								err = t.{{ $field.Name | convert }}.MarshalBuffer(&itemBuf)
 								if err != nil {
 									return errors.Wrap(err, "marshal field {{ $field.Name }} failed")
 								}
 							{{- else if eq $fieldClass "union" -}}
-								err = marshal{{ $field.UnionTypeName | convert }}Union(t.{{ $field.Name | convert }}, buf)
+								err = marshal{{ $field.UnionTypeName | convert }}Union(t.{{ $field.Name | convert }}, &itemBuf)
 								if err != nil {
 									return errors.Wrap(err, "marshal field {{ $field.Name }} failed")
 								}
@@ -736,6 +728,21 @@ type {{ $name | convert }} interface {
 						{{- range $type.Fields }}
 							}
 						{{- end }}
+
+						if itemBuf.Len()+1 <= math.MaxUint8 && count <= math.MaxUint8 {
+							buf.WriteByte(List8Encoding)
+							buf.WriteByte(uint8(itemBuf.Len()+1))
+							buf.WriteByte(uint8(count))
+						} else {
+							var x [4] byte
+							buf.WriteByte(List32Encoding)
+							endian.PutUint32(x[:], uint32(itemBuf.Len()+4))
+							buf.Write(x[:])
+							endian.PutUint32(x[:], count)
+							buf.Write(x[:])
+						}
+
+						buf.Write(itemBuf.Bytes())
 					}
 					return nil
 				}
@@ -749,10 +756,7 @@ type {{ $name | convert }} interface {
 					if err != nil {
 						return errors.Wrap(err, "read constructor failed")
 					}
-					var (
-						count uint32
-						done uint32
-					)
+					var size int
 					switch constructor {
 					case NullEncoding:
 						fallthrough
@@ -763,26 +767,47 @@ type {{ $name | convert }} interface {
 						if err != nil {
 							return errors.Wrap(err, "read length failed")
 						}
-						count = uint32(v)
+						size = int(v)
 					case List32Encoding:
 						if buf.Len() < 4 {
 							return errors.New("read length failed: buffer underflow")
 						}
-						count = endian.Uint32(buf.Next(4))
+						size = int(endian.Uint32(buf.Next(4)))
 					}
 
+					if buf.Len() < size {
+						return errors.New("buffer underflow")
+					}
+					itemBuf := bytes.NewBuffer(buf.Next(size))
+
+					var count int
+					switch constructor {
+					case List8Encoding:
+						v, err := itemBuf.ReadByte()
+						if err != nil {
+							return errors.Wrap(err, "read length failed")
+						}
+						count = int(v)
+					case List32Encoding:
+						if itemBuf.Len() < 4 {
+							return errors.New("read length failed: buffer underflow")
+						}
+						count = int(endian.Uint32(itemBuf.Next(4)))
+					}
+
+					var done int = 0
 					{{ range $index, $field := $type.Fields -}}
 						if count > {{ $index }} {
 						{{- $fieldClass := $field.TypeClass }}
 						{{- if or (ne $fieldClass "restricted") (eq $field.PrimitiveTypeName "map") $field.Multiple }}
-							constructor, err = buf.ReadByte()
+							constructor, err = itemBuf.ReadByte()
 							if err != nil {
 								return errors.Wrap(err, "unmarshal field {{ $field.Name }} failed")
 							}
 						{{- end }}
 						{{ if $field.Multiple -}}
 							{{ if or (eq $fieldClass "primitive") (eq $fieldClass "restricted") -}}
-								err = unmarshal{{ $field.TypeName | convert }}Array(&t.{{ $field.Name | convert }}, constructor, buf)
+								err = unmarshal{{ $field.TypeName | convert }}Array(&t.{{ $field.Name | convert }}, constructor, itemBuf)
 								if err != nil {
 									return errors.Wrap(err, "unmarshal field {{ $field.Name }} failed")
 								}
@@ -791,23 +816,23 @@ type {{ $name | convert }} interface {
 							{{- end }}
 						{{- else if eq $field.PrimitiveTypeName "map" -}}
 							var map{{ $index }} *types.Struct
-							err = unmarshalMap(&map{{ $index }}, constructor, buf)
+							err = unmarshalMap(&map{{ $index }}, constructor, itemBuf)
 							if err != nil {
 								return errors.Wrap(err, "unmarshal field {{ $field.Name }} failed")
 							}
 							t.{{ $field.Name | convert }} = ({{ $field.GoType }})(map{{ $index }})
 						{{- else if eq $fieldClass "primitive" -}}
-							err = unmarshal{{ $field.TypeName | convert }}(&t.{{ $field.Name | convert }}, constructor, buf)
+							err = unmarshal{{ $field.TypeName | convert }}(&t.{{ $field.Name | convert }}, constructor, itemBuf)
 							if err != nil {
 								return errors.Wrap(err, "unmarshal field {{ $field.Name }} failed")
 							}
 						{{- else if or (eq $fieldClass "restricted") (eq $fieldClass "composite") -}}
-							err = t.{{ $field.Name | convert }}.UnmarshalBuffer(buf)
+							err = t.{{ $field.Name | convert }}.UnmarshalBuffer(itemBuf)
 							if err != nil {
 								return errors.Wrap(err, "unmarshal field {{ $field.Name }} failed")
 							}
 						{{- else if eq $fieldClass "union" -}}
-							err = unmarshal{{ $field.UnionTypeName | convert }}Union(&t.{{ $field.Name | convert }}, constructor, buf)
+							err = unmarshal{{ $field.UnionTypeName | convert }}Union(&t.{{ $field.Name | convert }}, constructor, itemBuf)
 							if err != nil {
 								return errors.Wrap(err, "unmarshal field {{ $field.Name }} failed")
 							}
