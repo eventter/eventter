@@ -15,7 +15,7 @@ var ErrFrameTooBig = errors.New("frame size over limit")
 type Transport struct {
 	conn           net.Conn
 	rw             *bufio.ReadWriter
-	buf            []byte
+	data           []byte
 	frameMax       uint32
 	receiveTimeout time.Duration
 	sendTimeout    time.Duration
@@ -25,7 +25,7 @@ func NewTransport(conn net.Conn) *Transport {
 	return &Transport{
 		conn:     conn,
 		rw:       bufio.NewReadWriter(bufio.NewReader(conn), bufio.NewWriter(conn)),
-		buf:      make([]byte, FrameMinSize),
+		data:     make([]byte, FrameMinSize),
 		frameMax: FrameMinSize,
 	}
 }
@@ -165,28 +165,28 @@ func (t *Transport) Receive() (Frame, error) {
 			return nil, errors.Wrap(err, "set read deadline failed")
 		}
 	}
-	if _, err := io.ReadFull(t.rw, t.buf[:7]); err != nil {
+	if _, err := io.ReadFull(t.rw, t.data[:7]); err != nil {
 		return nil, errors.Wrap(err, "read frame header failed")
 	}
 
-	frameType := FrameType(t.buf[0])
-	channel := endian.Uint16(t.buf[1:3])
-	size := endian.Uint32(t.buf[3:7])
+	frameType := FrameType(t.data[0])
+	channel := endian.Uint16(t.data[1:3])
+	size := endian.Uint32(t.data[3:7])
 
 	// ignore frame max for non-body frames, see https://www.rabbitmq.com/amqp-0-9-1-errata.html#section_11
 	if frameType == FrameBody && size+8 > t.frameMax {
 		return nil, ErrFrameTooBig
 	}
 
-	if size+1 > uint32(len(t.buf)) {
-		t.buf = make([]byte, size+1)
+	if size+1 > uint32(len(t.data)) {
+		t.data = make([]byte, size+1)
 	}
 
-	if _, err := io.ReadFull(t.rw, t.buf[:size+1]); err != nil {
+	if _, err := io.ReadFull(t.rw, t.data[:size+1]); err != nil {
 		return nil, errors.Wrap(err, "read frame payload failed")
 	}
 
-	if t.buf[size] != FrameEnd {
+	if t.data[size] != FrameEnd {
 		return nil, ErrMalformedFrame
 	}
 
@@ -196,7 +196,7 @@ func (t *Transport) Receive() (Frame, error) {
 		Size:    size,
 	}
 
-	payload := t.buf[:size]
+	payload := t.data[:size]
 	switch frameType {
 	case FrameMethod:
 		return decodeMethodFrame(meta, payload)

@@ -4,14 +4,12 @@ package v1
 //go:generate go run ./generator ./amqp1-0-0.go  ./types.bare.xml ./transport.bare.xml ./messaging.bare.xml ./security.bare.xml
 
 import (
+	"bytes"
 	"encoding/hex"
 	"time"
 
 	"github.com/gogo/protobuf/types"
 )
-
-var _ = time.Time{}
-var _ = types.Struct{}
 
 type UUID [16]byte
 
@@ -30,7 +28,21 @@ func (u UUID) String() string {
 }
 
 type Frame interface {
-	isFrame()
+	GetFrameMeta() *FrameMeta
+	Marshal() ([]byte, error)
+	UnmarshalBuffer(buf *bytes.Buffer) error
+}
+
+type FrameMeta struct {
+	Size       uint32
+	DataOffset uint8
+	Type       uint8
+	Channel    uint16
+	Payload    []byte
+}
+
+type AMQPFrame interface {
+	isAMQPFrame()
 }
 
 type ErrorCondition interface {
@@ -186,6 +198,7 @@ const (
 )
 
 type Open struct {
+	FrameMeta
 	ContainerID         string
 	Hostname            string
 	MaxFrameSize        uint32
@@ -198,13 +211,26 @@ type Open struct {
 	Properties          *Fields
 }
 
-func (*Open) isFrame() {}
+func (*Open) isAMQPFrame() {}
+
+func (t *Open) GetFrameMeta() *FrameMeta {
+	return &t.FrameMeta
+}
 
 func (t *Open) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *Open) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *Open) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *Open) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
@@ -214,6 +240,7 @@ const (
 )
 
 type Begin struct {
+	FrameMeta
 	RemoteChannel       uint16
 	NextOutgoingID      TransferNumber
 	IncomingWindow      uint32
@@ -224,13 +251,26 @@ type Begin struct {
 	Properties          *Fields
 }
 
-func (*Begin) isFrame() {}
+func (*Begin) isAMQPFrame() {}
+
+func (t *Begin) GetFrameMeta() *FrameMeta {
+	return &t.FrameMeta
+}
 
 func (t *Begin) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *Begin) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *Begin) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *Begin) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
@@ -240,6 +280,7 @@ const (
 )
 
 type Attach struct {
+	FrameMeta
 	Name                 string
 	Handle               Handle
 	Role                 Role
@@ -256,13 +297,26 @@ type Attach struct {
 	Properties           *Fields
 }
 
-func (*Attach) isFrame() {}
+func (*Attach) isAMQPFrame() {}
+
+func (t *Attach) GetFrameMeta() *FrameMeta {
+	return &t.FrameMeta
+}
 
 func (t *Attach) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *Attach) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *Attach) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *Attach) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
@@ -272,6 +326,7 @@ const (
 )
 
 type Flow struct {
+	FrameMeta
 	NextIncomingID TransferNumber
 	IncomingWindow uint32
 	NextOutgoingID TransferNumber
@@ -285,13 +340,26 @@ type Flow struct {
 	Properties     *Fields
 }
 
-func (*Flow) isFrame() {}
+func (*Flow) isAMQPFrame() {}
+
+func (t *Flow) GetFrameMeta() *FrameMeta {
+	return &t.FrameMeta
+}
 
 func (t *Flow) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *Flow) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *Flow) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *Flow) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
@@ -301,6 +369,7 @@ const (
 )
 
 type Transfer struct {
+	FrameMeta
 	Handle        Handle
 	DeliveryID    DeliveryNumber
 	DeliveryTag   DeliveryTag
@@ -314,13 +383,26 @@ type Transfer struct {
 	Batchable     bool
 }
 
-func (*Transfer) isFrame() {}
+func (*Transfer) isAMQPFrame() {}
+
+func (t *Transfer) GetFrameMeta() *FrameMeta {
+	return &t.FrameMeta
+}
 
 func (t *Transfer) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *Transfer) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *Transfer) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *Transfer) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
@@ -330,6 +412,7 @@ const (
 )
 
 type Disposition struct {
+	FrameMeta
 	Role      Role
 	First     DeliveryNumber
 	Last      DeliveryNumber
@@ -338,13 +421,26 @@ type Disposition struct {
 	Batchable bool
 }
 
-func (*Disposition) isFrame() {}
+func (*Disposition) isAMQPFrame() {}
+
+func (t *Disposition) GetFrameMeta() *FrameMeta {
+	return &t.FrameMeta
+}
 
 func (t *Disposition) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *Disposition) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *Disposition) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *Disposition) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
@@ -354,18 +450,32 @@ const (
 )
 
 type Detach struct {
+	FrameMeta
 	Handle Handle
 	Closed bool
 	Error  *Error
 }
 
-func (*Detach) isFrame() {}
+func (*Detach) isAMQPFrame() {}
+
+func (t *Detach) GetFrameMeta() *FrameMeta {
+	return &t.FrameMeta
+}
 
 func (t *Detach) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *Detach) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *Detach) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *Detach) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
@@ -375,16 +485,30 @@ const (
 )
 
 type End struct {
+	FrameMeta
 	Error *Error
 }
 
-func (*End) isFrame() {}
+func (*End) isAMQPFrame() {}
+
+func (t *End) GetFrameMeta() *FrameMeta {
+	return &t.FrameMeta
+}
 
 func (t *End) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *End) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *End) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *End) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
@@ -394,16 +518,30 @@ const (
 )
 
 type Close struct {
+	FrameMeta
 	Error *Error
 }
 
-func (*Close) isFrame() {}
+func (*Close) isAMQPFrame() {}
+
+func (t *Close) GetFrameMeta() *FrameMeta {
+	return &t.FrameMeta
+}
 
 func (t *Close) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *Close) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *Close) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *Close) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
@@ -435,10 +573,19 @@ func (t Role) String() string {
 }
 
 func (t *Role) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *Role) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *Role) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *Role) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
@@ -464,10 +611,19 @@ func (t SenderSettleMode) String() string {
 }
 
 func (t *SenderSettleMode) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *SenderSettleMode) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *SenderSettleMode) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *SenderSettleMode) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
@@ -490,110 +646,209 @@ func (t ReceiverSettleMode) String() string {
 }
 
 func (t *ReceiverSettleMode) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *ReceiverSettleMode) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *ReceiverSettleMode) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *ReceiverSettleMode) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 type Handle uint32
 
 func (t *Handle) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *Handle) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *Handle) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *Handle) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 type Seconds uint32
 
 func (t *Seconds) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *Seconds) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *Seconds) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *Seconds) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 type Milliseconds uint32
 
 func (t *Milliseconds) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *Milliseconds) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *Milliseconds) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *Milliseconds) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 type DeliveryTag []byte
 
 func (t *DeliveryTag) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *DeliveryTag) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *DeliveryTag) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *DeliveryTag) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 type DeliveryNumber uint32
 
 func (t *DeliveryNumber) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *DeliveryNumber) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *DeliveryNumber) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *DeliveryNumber) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 type TransferNumber uint32
 
 func (t *TransferNumber) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *TransferNumber) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *TransferNumber) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *TransferNumber) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 type SequenceNo uint32
 
 func (t *SequenceNo) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *SequenceNo) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *SequenceNo) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *SequenceNo) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 type MessageFormat uint32
 
 func (t *MessageFormat) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *MessageFormat) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *MessageFormat) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *MessageFormat) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 type IETFLanguageTag string
 
 func (t *IETFLanguageTag) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *IETFLanguageTag) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *IETFLanguageTag) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *IETFLanguageTag) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 type Fields types.Struct
 
 func (t *Fields) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *Fields) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *Fields) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *Fields) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
@@ -609,10 +864,19 @@ type Error struct {
 }
 
 func (t *Error) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *Error) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *Error) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *Error) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
@@ -641,10 +905,19 @@ func (t AMQPError) String() string {
 func (AMQPError) isErrorCondition() {}
 
 func (t *AMQPError) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *AMQPError) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *AMQPError) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *AMQPError) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
@@ -663,10 +936,19 @@ func (t ConnectionError) String() string {
 func (ConnectionError) isErrorCondition() {}
 
 func (t *ConnectionError) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *ConnectionError) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *ConnectionError) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *ConnectionError) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
@@ -686,10 +968,19 @@ func (t SessionError) String() string {
 func (SessionError) isErrorCondition() {}
 
 func (t *SessionError) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *SessionError) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *SessionError) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *SessionError) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
@@ -710,10 +1001,19 @@ func (t LinkError) String() string {
 func (LinkError) isErrorCondition() {}
 
 func (t *LinkError) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *LinkError) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *LinkError) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *LinkError) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
@@ -735,10 +1035,19 @@ type Header struct {
 func (*Header) isSection() {}
 
 func (t *Header) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *Header) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *Header) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *Header) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
@@ -752,10 +1061,19 @@ type DeliveryAnnotations types.Struct
 func (DeliveryAnnotations) isSection() {}
 
 func (t *DeliveryAnnotations) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *DeliveryAnnotations) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *DeliveryAnnotations) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *DeliveryAnnotations) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
@@ -769,10 +1087,19 @@ type MessageAnnotations types.Struct
 func (MessageAnnotations) isSection() {}
 
 func (t *MessageAnnotations) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *MessageAnnotations) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *MessageAnnotations) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *MessageAnnotations) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
@@ -800,10 +1127,19 @@ type Properties struct {
 func (*Properties) isSection() {}
 
 func (t *Properties) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *Properties) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *Properties) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *Properties) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
@@ -817,10 +1153,19 @@ type ApplicationProperties types.Struct
 func (ApplicationProperties) isSection() {}
 
 func (t *ApplicationProperties) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *ApplicationProperties) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *ApplicationProperties) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *ApplicationProperties) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
@@ -834,10 +1179,19 @@ type Data []byte
 func (Data) isSection() {}
 
 func (t *Data) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *Data) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *Data) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *Data) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
@@ -851,20 +1205,38 @@ type Footer types.Struct
 func (Footer) isSection() {}
 
 func (t *Footer) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *Footer) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *Footer) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *Footer) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 type Annotations types.Struct
 
 func (t *Annotations) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *Annotations) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *Annotations) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *Annotations) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
@@ -873,10 +1245,19 @@ type MessageIDUlong uint64
 func (MessageIDUlong) isMessageID() {}
 
 func (t *MessageIDUlong) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *MessageIDUlong) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *MessageIDUlong) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *MessageIDUlong) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
@@ -885,10 +1266,19 @@ type MessageIDUUID UUID
 func (MessageIDUUID) isMessageID() {}
 
 func (t *MessageIDUUID) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *MessageIDUUID) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *MessageIDUUID) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *MessageIDUUID) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
@@ -897,10 +1287,19 @@ type MessageIDBinary []byte
 func (MessageIDBinary) isMessageID() {}
 
 func (t *MessageIDBinary) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *MessageIDBinary) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *MessageIDBinary) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *MessageIDBinary) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
@@ -909,10 +1308,19 @@ type MessageIDString string
 func (MessageIDString) isMessageID() {}
 
 func (t *MessageIDString) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *MessageIDString) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *MessageIDString) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *MessageIDString) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
@@ -921,10 +1329,19 @@ type AddressString string
 func (AddressString) isAddress() {}
 
 func (t *AddressString) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *AddressString) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *AddressString) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *AddressString) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
@@ -941,10 +1358,19 @@ type Received struct {
 func (*Received) isDeliveryState() {}
 
 func (t *Received) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *Received) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *Received) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *Received) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
@@ -961,10 +1387,19 @@ func (*Accepted) isDeliveryState() {}
 func (*Accepted) isOutcome() {}
 
 func (t *Accepted) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *Accepted) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *Accepted) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *Accepted) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
@@ -982,10 +1417,19 @@ func (*Rejected) isDeliveryState() {}
 func (*Rejected) isOutcome() {}
 
 func (t *Rejected) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *Rejected) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *Rejected) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *Rejected) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
@@ -1002,10 +1446,19 @@ func (*Released) isDeliveryState() {}
 func (*Released) isOutcome() {}
 
 func (t *Released) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *Released) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *Released) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *Released) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
@@ -1025,10 +1478,19 @@ func (*Modified) isDeliveryState() {}
 func (*Modified) isOutcome() {}
 
 func (t *Modified) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *Modified) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *Modified) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *Modified) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
@@ -1054,10 +1516,19 @@ type Source struct {
 func (*Source) isSource() {}
 
 func (t *Source) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *Source) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *Source) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *Source) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
@@ -1079,10 +1550,19 @@ type Target struct {
 func (*Target) isTarget() {}
 
 func (t *Target) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *Target) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *Target) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *Target) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
@@ -1108,10 +1588,19 @@ func (t TerminusDurability) String() string {
 }
 
 func (t *TerminusDurability) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *TerminusDurability) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *TerminusDurability) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *TerminusDurability) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
@@ -1129,10 +1618,19 @@ func (t TerminusExpiryPolicy) String() string {
 }
 
 func (t *TerminusExpiryPolicy) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *TerminusExpiryPolicy) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *TerminusExpiryPolicy) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *TerminusExpiryPolicy) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
@@ -1150,30 +1648,57 @@ func (t StdDistMode) String() string {
 func (StdDistMode) isDistributionMode() {}
 
 func (t *StdDistMode) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *StdDistMode) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *StdDistMode) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *StdDistMode) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 type FilterSet types.Struct
 
 func (t *FilterSet) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *FilterSet) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *FilterSet) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *FilterSet) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 type NodeProperties types.Struct
 
 func (t *NodeProperties) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *NodeProperties) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *NodeProperties) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *NodeProperties) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
@@ -1188,10 +1713,19 @@ type DeleteOnClose struct {
 func (*DeleteOnClose) isLifetimePolicy() {}
 
 func (t *DeleteOnClose) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *DeleteOnClose) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *DeleteOnClose) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *DeleteOnClose) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
@@ -1206,10 +1740,19 @@ type DeleteOnNoLinks struct {
 func (*DeleteOnNoLinks) isLifetimePolicy() {}
 
 func (t *DeleteOnNoLinks) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *DeleteOnNoLinks) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *DeleteOnNoLinks) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *DeleteOnNoLinks) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
@@ -1224,10 +1767,19 @@ type DeleteOnNoMessages struct {
 func (*DeleteOnNoMessages) isLifetimePolicy() {}
 
 func (t *DeleteOnNoMessages) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *DeleteOnNoMessages) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *DeleteOnNoMessages) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *DeleteOnNoMessages) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
@@ -1242,10 +1794,19 @@ type DeleteOnNoLinksOrMessages struct {
 func (*DeleteOnNoLinksOrMessages) isLifetimePolicy() {}
 
 func (t *DeleteOnNoLinksOrMessages) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *DeleteOnNoLinksOrMessages) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *DeleteOnNoLinksOrMessages) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *DeleteOnNoLinksOrMessages) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
@@ -1267,16 +1828,30 @@ const (
 )
 
 type SASLMechanisms struct {
+	FrameMeta
 	SASLServerMechanisms []string
 }
 
 func (*SASLMechanisms) isSASLFrame() {}
 
+func (t *SASLMechanisms) GetFrameMeta() *FrameMeta {
+	return &t.FrameMeta
+}
+
 func (t *SASLMechanisms) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *SASLMechanisms) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *SASLMechanisms) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *SASLMechanisms) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
@@ -1286,6 +1861,7 @@ const (
 )
 
 type SASLInit struct {
+	FrameMeta
 	Mechanism       string
 	InitialResponse []byte
 	Hostname        string
@@ -1293,11 +1869,24 @@ type SASLInit struct {
 
 func (*SASLInit) isSASLFrame() {}
 
+func (t *SASLInit) GetFrameMeta() *FrameMeta {
+	return &t.FrameMeta
+}
+
 func (t *SASLInit) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *SASLInit) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *SASLInit) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *SASLInit) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
@@ -1307,16 +1896,30 @@ const (
 )
 
 type SASLChallenge struct {
+	FrameMeta
 	Challenge []byte
 }
 
 func (*SASLChallenge) isSASLFrame() {}
 
+func (t *SASLChallenge) GetFrameMeta() *FrameMeta {
+	return &t.FrameMeta
+}
+
 func (t *SASLChallenge) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *SASLChallenge) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *SASLChallenge) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *SASLChallenge) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
@@ -1326,16 +1929,30 @@ const (
 )
 
 type SASLResponse struct {
+	FrameMeta
 	Response []byte
 }
 
 func (*SASLResponse) isSASLFrame() {}
 
+func (t *SASLResponse) GetFrameMeta() *FrameMeta {
+	return &t.FrameMeta
+}
+
 func (t *SASLResponse) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *SASLResponse) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *SASLResponse) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *SASLResponse) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
@@ -1345,17 +1962,31 @@ const (
 )
 
 type SASLOutcome struct {
+	FrameMeta
 	Code           SASLCode
 	AdditionalData []byte
 }
 
 func (*SASLOutcome) isSASLFrame() {}
 
+func (t *SASLOutcome) GetFrameMeta() *FrameMeta {
+	return &t.FrameMeta
+}
+
 func (t *SASLOutcome) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *SASLOutcome) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *SASLOutcome) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *SASLOutcome) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
@@ -1387,9 +2018,18 @@ func (t SASLCode) String() string {
 }
 
 func (t *SASLCode) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	return buf.Bytes(), t.MarshalBuffer(&buf)
+}
+
+func (t *SASLCode) MarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }
 
 func (t *SASLCode) Unmarshal(data []byte) error {
+	return t.UnmarshalBuffer(bytes.NewBuffer(data))
+}
+
+func (t *SASLCode) UnmarshalBuffer(buf *bytes.Buffer) error {
 	panic("implement me")
 }

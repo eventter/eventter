@@ -103,6 +103,10 @@ func (r *Root) UnionTypeNames() []string {
 					continue
 				}
 
+				if provides == "frame" {
+					provides = "amqp-frame"
+				}
+
 				if !known[provides] {
 					names = append(names, provides)
 					known[provides] = true
@@ -138,7 +142,25 @@ func (t *Type) UnionTypeNames() []string {
 		return nil
 	}
 
-	return regexp.MustCompile(`,\s+`).Split(t.Provides, -1)
+	names := regexp.MustCompile(`,\s+`).Split(t.Provides, -1)
+	for i, name := range names {
+		if name == "frame" {
+			names[i] = "amqp-frame"
+		}
+	}
+	return names
+}
+
+func (t *Type) IsFrame() bool {
+	for _, n := range t.UnionTypeNames() {
+		if n == "amqp-frame" {
+			return true
+		}
+		if n == "sasl-frame" {
+			return true
+		}
+	}
+	return false
 }
 
 func (t *Type) GoType() (string, error) {
@@ -402,14 +424,12 @@ package v1
 //go:generate go run ./generator {{ .OutputFilename }} {{ range .InputFilenames }} {{ . }}{{ end }}
 
 import (
+	"bytes"
 	"encoding/hex"
 	"time"
 
 	"github.com/gogo/protobuf/types"
 )
-
-var _ = time.Time{}
-var _ = types.Struct{}
 
 type UUID [16]byte
 
@@ -425,6 +445,20 @@ func (u UUID) String() string {
 	x[23] = '-'
 	hex.Encode(x[24:], u[10:])
 	return string(x[:])
+}
+
+type Frame interface {
+	GetFrameMeta() *FrameMeta
+	Marshal() ([]byte, error)
+	UnmarshalBuffer(buf *bytes.Buffer) error
+}
+
+type FrameMeta struct {
+	Size uint32
+	DataOffset uint8
+	Type uint8
+	Channel uint16
+	Payload []byte
 }
 
 {{ range $name := .UnionTypeNames }}
@@ -454,6 +488,9 @@ type {{ $name | convert }} interface {
 			{{ end }}
 			{{ if eq $type.Class "composite" }}
 				type {{ $goTypeName }} struct {
+					{{ if $type.IsFrame }}
+						FrameMeta
+					{{- end -}}
 					{{ range $field := $type.Fields }}
 						{{ $field.Name | convert }} {{ $field.GoType }}
 					{{- end }}
@@ -463,11 +500,26 @@ type {{ $name | convert }} interface {
 					func (*{{ $goTypeName }}) is{{ $name | convert }}() {}
 				{{ end }}
 
+				{{ if $type.IsFrame }}
+					func (t *{{ $goTypeName}}) GetFrameMeta() *FrameMeta {
+						return &t.FrameMeta
+					}
+				{{ end }}
+
 				func (t *{{ $goTypeName }}) Marshal() ([]byte, error) {
+					buf := bytes.Buffer{}
+					return buf.Bytes(), t.MarshalBuffer(&buf)
+				}
+
+				func (t *{{ $goTypeName }}) MarshalBuffer(buf *bytes.Buffer) error {
 					panic("implement me")
 				}
 
 				func (t *{{ $goTypeName }}) Unmarshal(data []byte) error {
+					return t.UnmarshalBuffer(bytes.NewBuffer(data))
+				}
+
+				func (t *{{ $goTypeName }}) UnmarshalBuffer(buf *bytes.Buffer) error {
 					panic("implement me")
 				}
 
@@ -504,10 +556,19 @@ type {{ $name | convert }} interface {
 				{{ end }}
 
 				func (t *{{ $goTypeName }}) Marshal() ([]byte, error) {
+					buf := bytes.Buffer{}
+					return buf.Bytes(), t.MarshalBuffer(&buf)
+				}
+
+				func (t *{{ $goTypeName }}) MarshalBuffer(buf *bytes.Buffer) error {
 					panic("implement me")
 				}
 
 				func (t *{{ $goTypeName }}) Unmarshal(data []byte) error {
+					return t.UnmarshalBuffer(bytes.NewBuffer(data))
+				}
+
+				func (t *{{ $goTypeName }}) UnmarshalBuffer(buf *bytes.Buffer) error {
 					panic("implement me")
 				}
 			{{ else if eq $type.Class "primitive" }}

@@ -2,6 +2,8 @@ package v1
 
 import (
 	"bufio"
+	"bytes"
+	"encoding/binary"
 	"io"
 	"net"
 	"time"
@@ -9,18 +11,32 @@ import (
 	"github.com/pkg/errors"
 )
 
+var (
+	endian            = binary.BigEndian
+	ErrMalformedFrame = errors.New("malformed frame")
+	ErrFrameTooBig    = errors.New("frame size over limit")
+)
+
 type Transport struct {
 	conn           net.Conn
 	rw             io.ReadWriter
+	data           []byte
+	frameMax       uint32
 	receiveTimeout time.Duration
 	sendTimeout    time.Duration
 }
 
 func NewTransport(conn net.Conn) *Transport {
 	return &Transport{
-		conn: conn,
-		rw:   conn,
+		conn:     conn,
+		rw:       conn,
+		data:     make([]byte, MinMaxFrameSize),
+		frameMax: MinMaxFrameSize,
 	}
+}
+
+func (t *Transport) SetFrameMax(frameMax uint32) {
+	t.frameMax = frameMax
 }
 
 func (t *Transport) SetBuffered(buffered bool) error {
@@ -69,6 +85,118 @@ func (t *Transport) SetSendTimeout(sendTimeout time.Duration) error {
 	return nil
 }
 
-func (t *Transport) Receive() error {
-	panic("implement me")
+func (t *Transport) Receive() (Frame, error) {
+	if t.receiveTimeout != 0 {
+		err := t.conn.SetReadDeadline(time.Now().Add(t.receiveTimeout))
+		if err != nil {
+			return nil, errors.Wrap(err, "set read deadline failed")
+		}
+	}
+
+	_, err := io.ReadFull(t.rw, t.data[:8])
+	if err != nil {
+		return nil, errors.Wrap(err, "read frame header failed")
+	}
+
+	meta := FrameMeta{}
+	meta.Size = endian.Uint32(t.data[:4])
+	meta.DataOffset = uint8(t.data[4])
+	meta.Type = uint8(t.data[5])
+	meta.Channel = endian.Uint16(t.data[6:8])
+
+	if meta.Size > t.frameMax {
+		return nil, ErrFrameTooBig
+	}
+
+	dataSize := meta.Size - 8
+
+	if uint32(len(t.data)) < dataSize {
+		t.data = make([]byte, dataSize)
+	}
+
+	_, err = io.ReadFull(t.rw, t.data[:dataSize])
+	if err != nil {
+		return nil, errors.Wrap(err, "read frame content failed")
+	}
+
+	switch meta.Type {
+	case 0x00: // AMQP frame
+		fallthrough
+	case 0x01: // SASL frame
+		buf := bytes.NewBuffer(t.data[:dataSize-(4*uint32(meta.DataOffset)-8)])
+		b, err := buf.ReadByte()
+		if err != nil {
+			return nil, ErrMalformedFrame
+		}
+		if b != 0x00 {
+			return nil, ErrMalformedFrame
+		}
+		b, err = buf.ReadByte()
+		if err != nil {
+			return nil, ErrMalformedFrame
+		}
+
+		var descriptor uint64
+		switch b {
+		case UlongEncoding:
+			if buf.Len() < 8 {
+				return nil, ErrMalformedFrame
+			}
+			descriptor = endian.Uint64(buf.Next(8))
+		case UlongSmallulongEncoding:
+			b, err = buf.ReadByte()
+			if err != nil {
+				return nil, ErrMalformedFrame
+			}
+			descriptor = uint64(b)
+		default:
+			return nil, ErrMalformedFrame
+		}
+
+		var frame Frame
+		switch descriptor {
+		case OpenDescriptor:
+			frame = &Open{FrameMeta: meta}
+		case BeginDescriptor:
+			frame = &Begin{FrameMeta: meta}
+		case AttachDescriptor:
+			frame = &Attach{FrameMeta: meta}
+		case FlowDescriptor:
+			frame = &Flow{FrameMeta: meta}
+		case TransferDescriptor:
+			frame = &Transfer{FrameMeta: meta}
+		case DispositionDescriptor:
+			frame = &Disposition{FrameMeta: meta}
+		case DetachDescriptor:
+			frame = &Detach{FrameMeta: meta}
+		case EndDescriptor:
+			frame = &End{FrameMeta: meta}
+		case CloseDescriptor:
+			frame = &Close{FrameMeta: meta}
+		case SASLMechanismsDescriptor:
+			frame = &SASLMechanisms{FrameMeta: meta}
+		case SASLInitDescriptor:
+			frame = &SASLInit{FrameMeta: meta}
+		case SASLChallengeDescriptor:
+			frame = &SASLChallenge{FrameMeta: meta}
+		case SASLResponseDescriptor:
+			frame = &SASLResponse{FrameMeta: meta}
+		case SASLOutcomeDescriptor:
+			frame = &SASLOutcome{FrameMeta: meta}
+		default:
+			return nil, ErrMalformedFrame
+		}
+
+		err = frame.UnmarshalBuffer(buf)
+		if err != nil {
+			return nil, errors.Wrap(err, "unmarshal failed")
+		}
+
+		frame.GetFrameMeta().Payload = make([]byte, buf.Len())
+		copy(frame.GetFrameMeta().Payload, buf.Bytes())
+
+		return frame, nil
+	default:
+		return nil, ErrMalformedFrame
+	}
 }
