@@ -470,7 +470,8 @@ func (u UUID) String() string {
 
 type Frame interface {
 	GetFrameMeta() *FrameMeta
-	Marshal() ([]byte, error)
+	Descriptor() uint64
+	MarshalBuffer(buf *bytes.Buffer) error
 	UnmarshalBuffer(buf *bytes.Buffer) error
 }
 
@@ -524,6 +525,10 @@ type {{ $name | convert }} interface {
 				{{ if $type.IsFrame }}
 					func (t *{{ $goTypeName}}) GetFrameMeta() *FrameMeta {
 						return &t.FrameMeta
+					}
+
+					func (t *{{ $goTypeName}}) Descriptor() uint64 {
+						return {{ $goTypeName}}Descriptor
 					}
 				{{ end }}
 

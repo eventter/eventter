@@ -30,7 +30,8 @@ func (u UUID) String() string {
 
 type Frame interface {
 	GetFrameMeta() *FrameMeta
-	Marshal() ([]byte, error)
+	Descriptor() uint64
+	MarshalBuffer(buf *bytes.Buffer) error
 	UnmarshalBuffer(buf *bytes.Buffer) error
 }
 
@@ -218,6 +219,10 @@ func (t *Open) GetFrameMeta() *FrameMeta {
 	return &t.FrameMeta
 }
 
+func (t *Open) Descriptor() uint64 {
+	return OpenDescriptor
+}
+
 func (t *Open) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
 	return buf.Bytes(), t.MarshalBuffer(&buf)
@@ -256,6 +261,10 @@ func (*Begin) isAMQPFrame() {}
 
 func (t *Begin) GetFrameMeta() *FrameMeta {
 	return &t.FrameMeta
+}
+
+func (t *Begin) Descriptor() uint64 {
+	return BeginDescriptor
 }
 
 func (t *Begin) Marshal() ([]byte, error) {
@@ -304,6 +313,10 @@ func (t *Attach) GetFrameMeta() *FrameMeta {
 	return &t.FrameMeta
 }
 
+func (t *Attach) Descriptor() uint64 {
+	return AttachDescriptor
+}
+
 func (t *Attach) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
 	return buf.Bytes(), t.MarshalBuffer(&buf)
@@ -345,6 +358,10 @@ func (*Flow) isAMQPFrame() {}
 
 func (t *Flow) GetFrameMeta() *FrameMeta {
 	return &t.FrameMeta
+}
+
+func (t *Flow) Descriptor() uint64 {
+	return FlowDescriptor
 }
 
 func (t *Flow) Marshal() ([]byte, error) {
@@ -390,6 +407,10 @@ func (t *Transfer) GetFrameMeta() *FrameMeta {
 	return &t.FrameMeta
 }
 
+func (t *Transfer) Descriptor() uint64 {
+	return TransferDescriptor
+}
+
 func (t *Transfer) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
 	return buf.Bytes(), t.MarshalBuffer(&buf)
@@ -428,6 +449,10 @@ func (t *Disposition) GetFrameMeta() *FrameMeta {
 	return &t.FrameMeta
 }
 
+func (t *Disposition) Descriptor() uint64 {
+	return DispositionDescriptor
+}
+
 func (t *Disposition) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
 	return buf.Bytes(), t.MarshalBuffer(&buf)
@@ -463,6 +488,10 @@ func (t *Detach) GetFrameMeta() *FrameMeta {
 	return &t.FrameMeta
 }
 
+func (t *Detach) Descriptor() uint64 {
+	return DetachDescriptor
+}
+
 func (t *Detach) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
 	return buf.Bytes(), t.MarshalBuffer(&buf)
@@ -496,6 +525,10 @@ func (t *End) GetFrameMeta() *FrameMeta {
 	return &t.FrameMeta
 }
 
+func (t *End) Descriptor() uint64 {
+	return EndDescriptor
+}
+
 func (t *End) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
 	return buf.Bytes(), t.MarshalBuffer(&buf)
@@ -527,6 +560,10 @@ func (*Close) isAMQPFrame() {}
 
 func (t *Close) GetFrameMeta() *FrameMeta {
 	return &t.FrameMeta
+}
+
+func (t *Close) Descriptor() uint64 {
+	return CloseDescriptor
 }
 
 func (t *Close) Marshal() ([]byte, error) {
@@ -1971,6 +2008,10 @@ func (t *SASLMechanisms) GetFrameMeta() *FrameMeta {
 	return &t.FrameMeta
 }
 
+func (t *SASLMechanisms) Descriptor() uint64 {
+	return SASLMechanismsDescriptor
+}
+
 func (t *SASLMechanisms) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
 	return buf.Bytes(), t.MarshalBuffer(&buf)
@@ -2006,6 +2047,10 @@ func (t *SASLInit) GetFrameMeta() *FrameMeta {
 	return &t.FrameMeta
 }
 
+func (t *SASLInit) Descriptor() uint64 {
+	return SASLInitDescriptor
+}
+
 func (t *SASLInit) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
 	return buf.Bytes(), t.MarshalBuffer(&buf)
@@ -2037,6 +2082,10 @@ func (*SASLChallenge) isSASLFrame() {}
 
 func (t *SASLChallenge) GetFrameMeta() *FrameMeta {
 	return &t.FrameMeta
+}
+
+func (t *SASLChallenge) Descriptor() uint64 {
+	return SASLChallengeDescriptor
 }
 
 func (t *SASLChallenge) Marshal() ([]byte, error) {
@@ -2072,6 +2121,10 @@ func (t *SASLResponse) GetFrameMeta() *FrameMeta {
 	return &t.FrameMeta
 }
 
+func (t *SASLResponse) Descriptor() uint64 {
+	return SASLResponseDescriptor
+}
+
 func (t *SASLResponse) Marshal() ([]byte, error) {
 	buf := bytes.Buffer{}
 	return buf.Bytes(), t.MarshalBuffer(&buf)
@@ -2104,6 +2157,10 @@ func (*SASLOutcome) isSASLFrame() {}
 
 func (t *SASLOutcome) GetFrameMeta() *FrameMeta {
 	return &t.FrameMeta
+}
+
+func (t *SASLOutcome) Descriptor() uint64 {
+	return SASLOutcomeDescriptor
 }
 
 func (t *SASLOutcome) Marshal() ([]byte, error) {
