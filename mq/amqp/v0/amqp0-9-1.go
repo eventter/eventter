@@ -124,7 +124,7 @@ type MethodFrame interface {
 	Frame
 	FixMethodMeta()
 	GetMethodMeta() *MethodMeta
-	Marshal() ([]byte, error)
+	MarshalBuffer(buf *bytes.Buffer) error
 }
 
 type FrameMeta struct {
@@ -237,35 +237,43 @@ func (f *ConnectionStart) Unmarshal(data []byte) error {
 }
 
 func (f *ConnectionStart) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := f.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *ConnectionStart) MarshalBuffer(buf *bytes.Buffer) error {
 	var x [8]byte
 	_ = x
 	var bits byte = 0
 	_ = bits
-	buf := bytes.Buffer{}
 	buf.WriteByte(f.VersionMajor)
 	buf.WriteByte(f.VersionMinor)
 	if tableBuf, err := MarshalTable(f.ServerProperties); err != nil {
-		return nil, errors.Wrap(err, "server-properties table marshal failed")
+		return errors.Wrap(err, "server-properties table marshal failed")
 	} else {
 		endian.PutUint32(x[:4], uint32(len(tableBuf)))
 		buf.Write(x[:4])
 		buf.Write(tableBuf)
 	}
 	if l := len(f.Mechanisms); l > math.MaxUint32 {
-		return nil, errors.Errorf("mechanisms can be at most %d bytes long, got %d bytes", math.MaxUint32, l)
+		return errors.Errorf("mechanisms can be at most %d bytes long, got %d bytes", math.MaxUint32, l)
 	} else {
 		endian.PutUint32(x[:4], uint32(l))
 		buf.Write(x[:4])
 		buf.WriteString(f.Mechanisms)
 	}
 	if l := len(f.Locales); l > math.MaxUint32 {
-		return nil, errors.Errorf("locales can be at most %d bytes long, got %d bytes", math.MaxUint32, l)
+		return errors.Errorf("locales can be at most %d bytes long, got %d bytes", math.MaxUint32, l)
 	} else {
 		endian.PutUint32(x[:4], uint32(l))
 		buf.Write(x[:4])
 		buf.WriteString(f.Locales)
 	}
-	return buf.Bytes(), nil
+	return nil
 }
 
 type ConnectionStartOk struct {
@@ -347,38 +355,46 @@ func (f *ConnectionStartOk) Unmarshal(data []byte) error {
 }
 
 func (f *ConnectionStartOk) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := f.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *ConnectionStartOk) MarshalBuffer(buf *bytes.Buffer) error {
 	var x [8]byte
 	_ = x
 	var bits byte = 0
 	_ = bits
-	buf := bytes.Buffer{}
 	if tableBuf, err := MarshalTable(f.ClientProperties); err != nil {
-		return nil, errors.Wrap(err, "client-properties table marshal failed")
+		return errors.Wrap(err, "client-properties table marshal failed")
 	} else {
 		endian.PutUint32(x[:4], uint32(len(tableBuf)))
 		buf.Write(x[:4])
 		buf.Write(tableBuf)
 	}
 	if l := len(f.Mechanism); l > math.MaxUint8 {
-		return nil, errors.Errorf("mechanism can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
+		return errors.Errorf("mechanism can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
 	} else {
 		buf.WriteByte(byte(l))
 		buf.WriteString(f.Mechanism)
 	}
 	if l := len(f.Response); l > math.MaxUint32 {
-		return nil, errors.Errorf("response can be at most %d bytes long, got %d bytes", math.MaxUint32, l)
+		return errors.Errorf("response can be at most %d bytes long, got %d bytes", math.MaxUint32, l)
 	} else {
 		endian.PutUint32(x[:4], uint32(l))
 		buf.Write(x[:4])
 		buf.WriteString(f.Response)
 	}
 	if l := len(f.Locale); l > math.MaxUint8 {
-		return nil, errors.Errorf("locale can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
+		return errors.Errorf("locale can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
 	} else {
 		buf.WriteByte(byte(l))
 		buf.WriteString(f.Locale)
 	}
-	return buf.Bytes(), nil
+	return nil
 }
 
 type ConnectionSecure struct {
@@ -423,19 +439,27 @@ func (f *ConnectionSecure) Unmarshal(data []byte) error {
 }
 
 func (f *ConnectionSecure) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := f.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *ConnectionSecure) MarshalBuffer(buf *bytes.Buffer) error {
 	var x [8]byte
 	_ = x
 	var bits byte = 0
 	_ = bits
-	buf := bytes.Buffer{}
 	if l := len(f.Challenge); l > math.MaxUint32 {
-		return nil, errors.Errorf("challenge can be at most %d bytes long, got %d bytes", math.MaxUint32, l)
+		return errors.Errorf("challenge can be at most %d bytes long, got %d bytes", math.MaxUint32, l)
 	} else {
 		endian.PutUint32(x[:4], uint32(l))
 		buf.Write(x[:4])
 		buf.WriteString(f.Challenge)
 	}
-	return buf.Bytes(), nil
+	return nil
 }
 
 type ConnectionSecureOk struct {
@@ -480,19 +504,27 @@ func (f *ConnectionSecureOk) Unmarshal(data []byte) error {
 }
 
 func (f *ConnectionSecureOk) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := f.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *ConnectionSecureOk) MarshalBuffer(buf *bytes.Buffer) error {
 	var x [8]byte
 	_ = x
 	var bits byte = 0
 	_ = bits
-	buf := bytes.Buffer{}
 	if l := len(f.Response); l > math.MaxUint32 {
-		return nil, errors.Errorf("response can be at most %d bytes long, got %d bytes", math.MaxUint32, l)
+		return errors.Errorf("response can be at most %d bytes long, got %d bytes", math.MaxUint32, l)
 	} else {
 		endian.PutUint32(x[:4], uint32(l))
 		buf.Write(x[:4])
 		buf.WriteString(f.Response)
 	}
-	return buf.Bytes(), nil
+	return nil
 }
 
 type ConnectionTune struct {
@@ -545,18 +577,26 @@ func (f *ConnectionTune) Unmarshal(data []byte) error {
 }
 
 func (f *ConnectionTune) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := f.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *ConnectionTune) MarshalBuffer(buf *bytes.Buffer) error {
 	var x [8]byte
 	_ = x
 	var bits byte = 0
 	_ = bits
-	buf := bytes.Buffer{}
 	endian.PutUint16(x[:2], f.ChannelMax)
 	buf.Write(x[:2])
 	endian.PutUint32(x[:4], f.FrameMax)
 	buf.Write(x[:4])
 	endian.PutUint16(x[:2], f.Heartbeat)
 	buf.Write(x[:2])
-	return buf.Bytes(), nil
+	return nil
 }
 
 type ConnectionTuneOk struct {
@@ -609,18 +649,26 @@ func (f *ConnectionTuneOk) Unmarshal(data []byte) error {
 }
 
 func (f *ConnectionTuneOk) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := f.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *ConnectionTuneOk) MarshalBuffer(buf *bytes.Buffer) error {
 	var x [8]byte
 	_ = x
 	var bits byte = 0
 	_ = bits
-	buf := bytes.Buffer{}
 	endian.PutUint16(x[:2], f.ChannelMax)
 	buf.Write(x[:2])
 	endian.PutUint32(x[:4], f.FrameMax)
 	buf.Write(x[:4])
 	endian.PutUint16(x[:2], f.Heartbeat)
 	buf.Write(x[:2])
-	return buf.Bytes(), nil
+	return nil
 }
 
 type ConnectionOpen struct {
@@ -680,19 +728,27 @@ func (f *ConnectionOpen) Unmarshal(data []byte) error {
 }
 
 func (f *ConnectionOpen) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := f.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *ConnectionOpen) MarshalBuffer(buf *bytes.Buffer) error {
 	var x [8]byte
 	_ = x
 	var bits byte = 0
 	_ = bits
-	buf := bytes.Buffer{}
 	if l := len(f.VirtualHost); l > math.MaxUint8 {
-		return nil, errors.Errorf("virtual-host can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
+		return errors.Errorf("virtual-host can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
 	} else {
 		buf.WriteByte(byte(l))
 		buf.WriteString(f.VirtualHost)
 	}
 	if l := len(f.Reserved1); l > math.MaxUint8 {
-		return nil, errors.Errorf("reserved-1 can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
+		return errors.Errorf("reserved-1 can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
 	} else {
 		buf.WriteByte(byte(l))
 		buf.WriteString(f.Reserved1)
@@ -702,7 +758,7 @@ func (f *ConnectionOpen) Marshal() ([]byte, error) {
 	}
 	buf.WriteByte(bits)
 	bits = 0
-	return buf.Bytes(), nil
+	return nil
 }
 
 type ConnectionOpenOk struct {
@@ -745,18 +801,26 @@ func (f *ConnectionOpenOk) Unmarshal(data []byte) error {
 }
 
 func (f *ConnectionOpenOk) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := f.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *ConnectionOpenOk) MarshalBuffer(buf *bytes.Buffer) error {
 	var x [8]byte
 	_ = x
 	var bits byte = 0
 	_ = bits
-	buf := bytes.Buffer{}
 	if l := len(f.Reserved1); l > math.MaxUint8 {
-		return nil, errors.Errorf("reserved-1 can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
+		return errors.Errorf("reserved-1 can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
 	} else {
 		buf.WriteByte(byte(l))
 		buf.WriteString(f.Reserved1)
 	}
-	return buf.Bytes(), nil
+	return nil
 }
 
 type ConnectionClose struct {
@@ -824,15 +888,23 @@ func (f *ConnectionClose) Unmarshal(data []byte) error {
 }
 
 func (f *ConnectionClose) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := f.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *ConnectionClose) MarshalBuffer(buf *bytes.Buffer) error {
 	var x [8]byte
 	_ = x
 	var bits byte = 0
 	_ = bits
-	buf := bytes.Buffer{}
 	endian.PutUint16(x[:2], f.ReplyCode)
 	buf.Write(x[:2])
 	if l := len(f.ReplyText); l > math.MaxUint8 {
-		return nil, errors.Errorf("reply-text can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
+		return errors.Errorf("reply-text can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
 	} else {
 		buf.WriteByte(byte(l))
 		buf.WriteString(f.ReplyText)
@@ -841,7 +913,7 @@ func (f *ConnectionClose) Marshal() ([]byte, error) {
 	buf.Write(x[:2])
 	endian.PutUint16(x[:2], f.MethodID)
 	buf.Write(x[:2])
-	return buf.Bytes(), nil
+	return nil
 }
 
 type ConnectionCloseOk struct {
@@ -870,7 +942,16 @@ func (f *ConnectionCloseOk) Unmarshal(data []byte) error {
 }
 
 func (f *ConnectionCloseOk) Marshal() ([]byte, error) {
-	return nil, nil
+	buf := bytes.Buffer{}
+	err := f.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *ConnectionCloseOk) MarshalBuffer(buf *bytes.Buffer) error {
+	return nil
 }
 
 type ChannelOpen struct {
@@ -913,18 +994,26 @@ func (f *ChannelOpen) Unmarshal(data []byte) error {
 }
 
 func (f *ChannelOpen) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := f.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *ChannelOpen) MarshalBuffer(buf *bytes.Buffer) error {
 	var x [8]byte
 	_ = x
 	var bits byte = 0
 	_ = bits
-	buf := bytes.Buffer{}
 	if l := len(f.Reserved1); l > math.MaxUint8 {
-		return nil, errors.Errorf("reserved-1 can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
+		return errors.Errorf("reserved-1 can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
 	} else {
 		buf.WriteByte(byte(l))
 		buf.WriteString(f.Reserved1)
 	}
-	return buf.Bytes(), nil
+	return nil
 }
 
 type ChannelOpenOk struct {
@@ -969,19 +1058,27 @@ func (f *ChannelOpenOk) Unmarshal(data []byte) error {
 }
 
 func (f *ChannelOpenOk) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := f.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *ChannelOpenOk) MarshalBuffer(buf *bytes.Buffer) error {
 	var x [8]byte
 	_ = x
 	var bits byte = 0
 	_ = bits
-	buf := bytes.Buffer{}
 	if l := len(f.Reserved1); l > math.MaxUint32 {
-		return nil, errors.Errorf("reserved-1 can be at most %d bytes long, got %d bytes", math.MaxUint32, l)
+		return errors.Errorf("reserved-1 can be at most %d bytes long, got %d bytes", math.MaxUint32, l)
 	} else {
 		endian.PutUint32(x[:4], uint32(l))
 		buf.Write(x[:4])
 		buf.WriteString(f.Reserved1)
 	}
-	return buf.Bytes(), nil
+	return nil
 }
 
 type ChannelFlow struct {
@@ -1019,17 +1116,25 @@ func (f *ChannelFlow) Unmarshal(data []byte) error {
 }
 
 func (f *ChannelFlow) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := f.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *ChannelFlow) MarshalBuffer(buf *bytes.Buffer) error {
 	var x [8]byte
 	_ = x
 	var bits byte = 0
 	_ = bits
-	buf := bytes.Buffer{}
 	if f.Active {
 		bits |= 1
 	}
 	buf.WriteByte(bits)
 	bits = 0
-	return buf.Bytes(), nil
+	return nil
 }
 
 type ChannelFlowOk struct {
@@ -1067,17 +1172,25 @@ func (f *ChannelFlowOk) Unmarshal(data []byte) error {
 }
 
 func (f *ChannelFlowOk) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := f.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *ChannelFlowOk) MarshalBuffer(buf *bytes.Buffer) error {
 	var x [8]byte
 	_ = x
 	var bits byte = 0
 	_ = bits
-	buf := bytes.Buffer{}
 	if f.Active {
 		bits |= 1
 	}
 	buf.WriteByte(bits)
 	bits = 0
-	return buf.Bytes(), nil
+	return nil
 }
 
 type ChannelClose struct {
@@ -1145,15 +1258,23 @@ func (f *ChannelClose) Unmarshal(data []byte) error {
 }
 
 func (f *ChannelClose) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := f.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *ChannelClose) MarshalBuffer(buf *bytes.Buffer) error {
 	var x [8]byte
 	_ = x
 	var bits byte = 0
 	_ = bits
-	buf := bytes.Buffer{}
 	endian.PutUint16(x[:2], f.ReplyCode)
 	buf.Write(x[:2])
 	if l := len(f.ReplyText); l > math.MaxUint8 {
-		return nil, errors.Errorf("reply-text can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
+		return errors.Errorf("reply-text can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
 	} else {
 		buf.WriteByte(byte(l))
 		buf.WriteString(f.ReplyText)
@@ -1162,7 +1283,7 @@ func (f *ChannelClose) Marshal() ([]byte, error) {
 	buf.Write(x[:2])
 	endian.PutUint16(x[:2], f.MethodID)
 	buf.Write(x[:2])
-	return buf.Bytes(), nil
+	return nil
 }
 
 type ChannelCloseOk struct {
@@ -1191,7 +1312,16 @@ func (f *ChannelCloseOk) Unmarshal(data []byte) error {
 }
 
 func (f *ChannelCloseOk) Marshal() ([]byte, error) {
-	return nil, nil
+	buf := bytes.Buffer{}
+	err := f.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *ChannelCloseOk) MarshalBuffer(buf *bytes.Buffer) error {
+	return nil
 }
 
 type ExchangeDeclare struct {
@@ -1282,21 +1412,29 @@ func (f *ExchangeDeclare) Unmarshal(data []byte) error {
 }
 
 func (f *ExchangeDeclare) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := f.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *ExchangeDeclare) MarshalBuffer(buf *bytes.Buffer) error {
 	var x [8]byte
 	_ = x
 	var bits byte = 0
 	_ = bits
-	buf := bytes.Buffer{}
 	endian.PutUint16(x[:2], f.Reserved1)
 	buf.Write(x[:2])
 	if l := len(f.Exchange); l > math.MaxUint8 {
-		return nil, errors.Errorf("exchange can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
+		return errors.Errorf("exchange can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
 	} else {
 		buf.WriteByte(byte(l))
 		buf.WriteString(f.Exchange)
 	}
 	if l := len(f.Type); l > math.MaxUint8 {
-		return nil, errors.Errorf("type can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
+		return errors.Errorf("type can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
 	} else {
 		buf.WriteByte(byte(l))
 		buf.WriteString(f.Type)
@@ -1323,13 +1461,13 @@ func (f *ExchangeDeclare) Marshal() ([]byte, error) {
 	buf.WriteByte(bits)
 	bits = 0
 	if tableBuf, err := MarshalTable(f.Arguments); err != nil {
-		return nil, errors.Wrap(err, "arguments table marshal failed")
+		return errors.Wrap(err, "arguments table marshal failed")
 	} else {
 		endian.PutUint32(x[:4], uint32(len(tableBuf)))
 		buf.Write(x[:4])
 		buf.Write(tableBuf)
 	}
-	return buf.Bytes(), nil
+	return nil
 }
 
 type ExchangeDeclareOk struct {
@@ -1358,7 +1496,16 @@ func (f *ExchangeDeclareOk) Unmarshal(data []byte) error {
 }
 
 func (f *ExchangeDeclareOk) Marshal() ([]byte, error) {
-	return nil, nil
+	buf := bytes.Buffer{}
+	err := f.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *ExchangeDeclareOk) MarshalBuffer(buf *bytes.Buffer) error {
+	return nil
 }
 
 type ExchangeDelete struct {
@@ -1417,15 +1564,23 @@ func (f *ExchangeDelete) Unmarshal(data []byte) error {
 }
 
 func (f *ExchangeDelete) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := f.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *ExchangeDelete) MarshalBuffer(buf *bytes.Buffer) error {
 	var x [8]byte
 	_ = x
 	var bits byte = 0
 	_ = bits
-	buf := bytes.Buffer{}
 	endian.PutUint16(x[:2], f.Reserved1)
 	buf.Write(x[:2])
 	if l := len(f.Exchange); l > math.MaxUint8 {
-		return nil, errors.Errorf("exchange can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
+		return errors.Errorf("exchange can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
 	} else {
 		buf.WriteByte(byte(l))
 		buf.WriteString(f.Exchange)
@@ -1439,7 +1594,7 @@ func (f *ExchangeDelete) Marshal() ([]byte, error) {
 	}
 	buf.WriteByte(bits)
 	bits = 0
-	return buf.Bytes(), nil
+	return nil
 }
 
 type ExchangeDeleteOk struct {
@@ -1468,7 +1623,16 @@ func (f *ExchangeDeleteOk) Unmarshal(data []byte) error {
 }
 
 func (f *ExchangeDeleteOk) Marshal() ([]byte, error) {
-	return nil, nil
+	buf := bytes.Buffer{}
+	err := f.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *ExchangeDeleteOk) MarshalBuffer(buf *bytes.Buffer) error {
+	return nil
 }
 
 type QueueDeclare struct {
@@ -1548,15 +1712,23 @@ func (f *QueueDeclare) Unmarshal(data []byte) error {
 }
 
 func (f *QueueDeclare) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := f.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *QueueDeclare) MarshalBuffer(buf *bytes.Buffer) error {
 	var x [8]byte
 	_ = x
 	var bits byte = 0
 	_ = bits
-	buf := bytes.Buffer{}
 	endian.PutUint16(x[:2], f.Reserved1)
 	buf.Write(x[:2])
 	if l := len(f.Queue); l > math.MaxUint8 {
-		return nil, errors.Errorf("queue can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
+		return errors.Errorf("queue can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
 	} else {
 		buf.WriteByte(byte(l))
 		buf.WriteString(f.Queue)
@@ -1583,13 +1755,13 @@ func (f *QueueDeclare) Marshal() ([]byte, error) {
 	buf.WriteByte(bits)
 	bits = 0
 	if tableBuf, err := MarshalTable(f.Arguments); err != nil {
-		return nil, errors.Wrap(err, "arguments table marshal failed")
+		return errors.Wrap(err, "arguments table marshal failed")
 	} else {
 		endian.PutUint32(x[:4], uint32(len(tableBuf)))
 		buf.Write(x[:4])
 		buf.Write(tableBuf)
 	}
-	return buf.Bytes(), nil
+	return nil
 }
 
 type QueueDeclareOk struct {
@@ -1646,13 +1818,21 @@ func (f *QueueDeclareOk) Unmarshal(data []byte) error {
 }
 
 func (f *QueueDeclareOk) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := f.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *QueueDeclareOk) MarshalBuffer(buf *bytes.Buffer) error {
 	var x [8]byte
 	_ = x
 	var bits byte = 0
 	_ = bits
-	buf := bytes.Buffer{}
 	if l := len(f.Queue); l > math.MaxUint8 {
-		return nil, errors.Errorf("queue can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
+		return errors.Errorf("queue can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
 	} else {
 		buf.WriteByte(byte(l))
 		buf.WriteString(f.Queue)
@@ -1661,7 +1841,7 @@ func (f *QueueDeclareOk) Marshal() ([]byte, error) {
 	buf.Write(x[:4])
 	endian.PutUint32(x[:4], f.ConsumerCount)
 	buf.Write(x[:4])
-	return buf.Bytes(), nil
+	return nil
 }
 
 type QueueBind struct {
@@ -1754,27 +1934,35 @@ func (f *QueueBind) Unmarshal(data []byte) error {
 }
 
 func (f *QueueBind) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := f.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *QueueBind) MarshalBuffer(buf *bytes.Buffer) error {
 	var x [8]byte
 	_ = x
 	var bits byte = 0
 	_ = bits
-	buf := bytes.Buffer{}
 	endian.PutUint16(x[:2], f.Reserved1)
 	buf.Write(x[:2])
 	if l := len(f.Queue); l > math.MaxUint8 {
-		return nil, errors.Errorf("queue can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
+		return errors.Errorf("queue can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
 	} else {
 		buf.WriteByte(byte(l))
 		buf.WriteString(f.Queue)
 	}
 	if l := len(f.Exchange); l > math.MaxUint8 {
-		return nil, errors.Errorf("exchange can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
+		return errors.Errorf("exchange can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
 	} else {
 		buf.WriteByte(byte(l))
 		buf.WriteString(f.Exchange)
 	}
 	if l := len(f.RoutingKey); l > math.MaxUint8 {
-		return nil, errors.Errorf("routing-key can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
+		return errors.Errorf("routing-key can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
 	} else {
 		buf.WriteByte(byte(l))
 		buf.WriteString(f.RoutingKey)
@@ -1785,13 +1973,13 @@ func (f *QueueBind) Marshal() ([]byte, error) {
 	buf.WriteByte(bits)
 	bits = 0
 	if tableBuf, err := MarshalTable(f.Arguments); err != nil {
-		return nil, errors.Wrap(err, "arguments table marshal failed")
+		return errors.Wrap(err, "arguments table marshal failed")
 	} else {
 		endian.PutUint32(x[:4], uint32(len(tableBuf)))
 		buf.Write(x[:4])
 		buf.Write(tableBuf)
 	}
-	return buf.Bytes(), nil
+	return nil
 }
 
 type QueueBindOk struct {
@@ -1820,7 +2008,16 @@ func (f *QueueBindOk) Unmarshal(data []byte) error {
 }
 
 func (f *QueueBindOk) Marshal() ([]byte, error) {
-	return nil, nil
+	buf := bytes.Buffer{}
+	err := f.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *QueueBindOk) MarshalBuffer(buf *bytes.Buffer) error {
+	return nil
 }
 
 type QueueUnbind struct {
@@ -1907,39 +2104,47 @@ func (f *QueueUnbind) Unmarshal(data []byte) error {
 }
 
 func (f *QueueUnbind) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := f.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *QueueUnbind) MarshalBuffer(buf *bytes.Buffer) error {
 	var x [8]byte
 	_ = x
 	var bits byte = 0
 	_ = bits
-	buf := bytes.Buffer{}
 	endian.PutUint16(x[:2], f.Reserved1)
 	buf.Write(x[:2])
 	if l := len(f.Queue); l > math.MaxUint8 {
-		return nil, errors.Errorf("queue can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
+		return errors.Errorf("queue can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
 	} else {
 		buf.WriteByte(byte(l))
 		buf.WriteString(f.Queue)
 	}
 	if l := len(f.Exchange); l > math.MaxUint8 {
-		return nil, errors.Errorf("exchange can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
+		return errors.Errorf("exchange can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
 	} else {
 		buf.WriteByte(byte(l))
 		buf.WriteString(f.Exchange)
 	}
 	if l := len(f.RoutingKey); l > math.MaxUint8 {
-		return nil, errors.Errorf("routing-key can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
+		return errors.Errorf("routing-key can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
 	} else {
 		buf.WriteByte(byte(l))
 		buf.WriteString(f.RoutingKey)
 	}
 	if tableBuf, err := MarshalTable(f.Arguments); err != nil {
-		return nil, errors.Wrap(err, "arguments table marshal failed")
+		return errors.Wrap(err, "arguments table marshal failed")
 	} else {
 		endian.PutUint32(x[:4], uint32(len(tableBuf)))
 		buf.Write(x[:4])
 		buf.Write(tableBuf)
 	}
-	return buf.Bytes(), nil
+	return nil
 }
 
 type QueueUnbindOk struct {
@@ -1968,7 +2173,16 @@ func (f *QueueUnbindOk) Unmarshal(data []byte) error {
 }
 
 func (f *QueueUnbindOk) Marshal() ([]byte, error) {
-	return nil, nil
+	buf := bytes.Buffer{}
+	err := f.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *QueueUnbindOk) MarshalBuffer(buf *bytes.Buffer) error {
+	return nil
 }
 
 type QueuePurge struct {
@@ -2024,15 +2238,23 @@ func (f *QueuePurge) Unmarshal(data []byte) error {
 }
 
 func (f *QueuePurge) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := f.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *QueuePurge) MarshalBuffer(buf *bytes.Buffer) error {
 	var x [8]byte
 	_ = x
 	var bits byte = 0
 	_ = bits
-	buf := bytes.Buffer{}
 	endian.PutUint16(x[:2], f.Reserved1)
 	buf.Write(x[:2])
 	if l := len(f.Queue); l > math.MaxUint8 {
-		return nil, errors.Errorf("queue can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
+		return errors.Errorf("queue can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
 	} else {
 		buf.WriteByte(byte(l))
 		buf.WriteString(f.Queue)
@@ -2042,7 +2264,7 @@ func (f *QueuePurge) Marshal() ([]byte, error) {
 	}
 	buf.WriteByte(bits)
 	bits = 0
-	return buf.Bytes(), nil
+	return nil
 }
 
 type QueuePurgeOk struct {
@@ -2081,14 +2303,22 @@ func (f *QueuePurgeOk) Unmarshal(data []byte) error {
 }
 
 func (f *QueuePurgeOk) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := f.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *QueuePurgeOk) MarshalBuffer(buf *bytes.Buffer) error {
 	var x [8]byte
 	_ = x
 	var bits byte = 0
 	_ = bits
-	buf := bytes.Buffer{}
 	endian.PutUint32(x[:4], f.MessageCount)
 	buf.Write(x[:4])
-	return buf.Bytes(), nil
+	return nil
 }
 
 type QueueDelete struct {
@@ -2149,15 +2379,23 @@ func (f *QueueDelete) Unmarshal(data []byte) error {
 }
 
 func (f *QueueDelete) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := f.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *QueueDelete) MarshalBuffer(buf *bytes.Buffer) error {
 	var x [8]byte
 	_ = x
 	var bits byte = 0
 	_ = bits
-	buf := bytes.Buffer{}
 	endian.PutUint16(x[:2], f.Reserved1)
 	buf.Write(x[:2])
 	if l := len(f.Queue); l > math.MaxUint8 {
-		return nil, errors.Errorf("queue can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
+		return errors.Errorf("queue can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
 	} else {
 		buf.WriteByte(byte(l))
 		buf.WriteString(f.Queue)
@@ -2175,7 +2413,7 @@ func (f *QueueDelete) Marshal() ([]byte, error) {
 	}
 	buf.WriteByte(bits)
 	bits = 0
-	return buf.Bytes(), nil
+	return nil
 }
 
 type QueueDeleteOk struct {
@@ -2214,14 +2452,22 @@ func (f *QueueDeleteOk) Unmarshal(data []byte) error {
 }
 
 func (f *QueueDeleteOk) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := f.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *QueueDeleteOk) MarshalBuffer(buf *bytes.Buffer) error {
 	var x [8]byte
 	_ = x
 	var bits byte = 0
 	_ = bits
-	buf := bytes.Buffer{}
 	endian.PutUint32(x[:4], f.MessageCount)
 	buf.Write(x[:4])
-	return buf.Bytes(), nil
+	return nil
 }
 
 type ContentHeaderFrame struct {
@@ -2466,6 +2712,15 @@ func (f *ContentHeaderFrame) Unmarshal(data []byte) error {
 }
 
 func (f *ContentHeaderFrame) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := f.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *ContentHeaderFrame) MarshalBuffer(ret *bytes.Buffer) error {
 	var x [8]byte
 	_ = x
 	var flags uint16
@@ -2475,7 +2730,7 @@ func (f *ContentHeaderFrame) Marshal() ([]byte, error) {
 		flags |= 1
 
 		if l := len(f.ContentType); l > math.MaxUint8 {
-			return nil, errors.Errorf("content-type can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
+			return errors.Errorf("content-type can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
 		} else {
 			buf.WriteByte(byte(l))
 			buf.WriteString(f.ContentType)
@@ -2486,7 +2741,7 @@ func (f *ContentHeaderFrame) Marshal() ([]byte, error) {
 		flags |= 2
 
 		if l := len(f.ContentEncoding); l > math.MaxUint8 {
-			return nil, errors.Errorf("content-encoding can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
+			return errors.Errorf("content-encoding can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
 		} else {
 			buf.WriteByte(byte(l))
 			buf.WriteString(f.ContentEncoding)
@@ -2497,7 +2752,7 @@ func (f *ContentHeaderFrame) Marshal() ([]byte, error) {
 		flags |= 4
 
 		if tableBuf, err := MarshalTable(f.Headers); err != nil {
-			return nil, errors.Wrap(err, "headers table marshal failed")
+			return errors.Wrap(err, "headers table marshal failed")
 		} else {
 			endian.PutUint32(x[:4], uint32(len(tableBuf)))
 			buf.Write(x[:4])
@@ -2521,7 +2776,7 @@ func (f *ContentHeaderFrame) Marshal() ([]byte, error) {
 		flags |= 32
 
 		if l := len(f.CorrelationID); l > math.MaxUint8 {
-			return nil, errors.Errorf("correlation-id can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
+			return errors.Errorf("correlation-id can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
 		} else {
 			buf.WriteByte(byte(l))
 			buf.WriteString(f.CorrelationID)
@@ -2532,7 +2787,7 @@ func (f *ContentHeaderFrame) Marshal() ([]byte, error) {
 		flags |= 64
 
 		if l := len(f.ReplyTo); l > math.MaxUint8 {
-			return nil, errors.Errorf("reply-to can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
+			return errors.Errorf("reply-to can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
 		} else {
 			buf.WriteByte(byte(l))
 			buf.WriteString(f.ReplyTo)
@@ -2543,7 +2798,7 @@ func (f *ContentHeaderFrame) Marshal() ([]byte, error) {
 		flags |= 128
 
 		if l := len(f.Expiration); l > math.MaxUint8 {
-			return nil, errors.Errorf("expiration can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
+			return errors.Errorf("expiration can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
 		} else {
 			buf.WriteByte(byte(l))
 			buf.WriteString(f.Expiration)
@@ -2554,7 +2809,7 @@ func (f *ContentHeaderFrame) Marshal() ([]byte, error) {
 		flags |= 256
 
 		if l := len(f.MessageID); l > math.MaxUint8 {
-			return nil, errors.Errorf("message-id can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
+			return errors.Errorf("message-id can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
 		} else {
 			buf.WriteByte(byte(l))
 			buf.WriteString(f.MessageID)
@@ -2572,7 +2827,7 @@ func (f *ContentHeaderFrame) Marshal() ([]byte, error) {
 		flags |= 1024
 
 		if l := len(f.Type); l > math.MaxUint8 {
-			return nil, errors.Errorf("type can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
+			return errors.Errorf("type can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
 		} else {
 			buf.WriteByte(byte(l))
 			buf.WriteString(f.Type)
@@ -2583,7 +2838,7 @@ func (f *ContentHeaderFrame) Marshal() ([]byte, error) {
 		flags |= 2048
 
 		if l := len(f.UserID); l > math.MaxUint8 {
-			return nil, errors.Errorf("user-id can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
+			return errors.Errorf("user-id can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
 		} else {
 			buf.WriteByte(byte(l))
 			buf.WriteString(f.UserID)
@@ -2594,7 +2849,7 @@ func (f *ContentHeaderFrame) Marshal() ([]byte, error) {
 		flags |= 4096
 
 		if l := len(f.AppID); l > math.MaxUint8 {
-			return nil, errors.Errorf("app-id can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
+			return errors.Errorf("app-id can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
 		} else {
 			buf.WriteByte(byte(l))
 			buf.WriteString(f.AppID)
@@ -2605,14 +2860,13 @@ func (f *ContentHeaderFrame) Marshal() ([]byte, error) {
 		flags |= 8192
 
 		if l := len(f.Reserved); l > math.MaxUint8 {
-			return nil, errors.Errorf("reserved can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
+			return errors.Errorf("reserved can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
 		} else {
 			buf.WriteByte(byte(l))
 			buf.WriteString(f.Reserved)
 		}
 	}
 
-	ret := bytes.Buffer{}
 	endian.PutUint16(x[:2], uint16(f.ClassID))
 	ret.Write(x[:2])
 	endian.PutUint16(x[:2], f.Weight)
@@ -2623,7 +2877,7 @@ func (f *ContentHeaderFrame) Marshal() ([]byte, error) {
 	ret.Write(x[:2])
 	ret.Write(buf.Bytes())
 
-	return ret.Bytes(), nil
+	return nil
 }
 
 type BasicQos struct {
@@ -2675,11 +2929,19 @@ func (f *BasicQos) Unmarshal(data []byte) error {
 }
 
 func (f *BasicQos) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := f.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *BasicQos) MarshalBuffer(buf *bytes.Buffer) error {
 	var x [8]byte
 	_ = x
 	var bits byte = 0
 	_ = bits
-	buf := bytes.Buffer{}
 	endian.PutUint32(x[:4], f.PrefetchSize)
 	buf.Write(x[:4])
 	endian.PutUint16(x[:2], f.PrefetchCount)
@@ -2689,7 +2951,7 @@ func (f *BasicQos) Marshal() ([]byte, error) {
 	}
 	buf.WriteByte(bits)
 	bits = 0
-	return buf.Bytes(), nil
+	return nil
 }
 
 type BasicQosOk struct {
@@ -2718,7 +2980,16 @@ func (f *BasicQosOk) Unmarshal(data []byte) error {
 }
 
 func (f *BasicQosOk) Marshal() ([]byte, error) {
-	return nil, nil
+	buf := bytes.Buffer{}
+	err := f.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *BasicQosOk) MarshalBuffer(buf *bytes.Buffer) error {
+	return nil
 }
 
 type BasicConsume struct {
@@ -2807,21 +3078,29 @@ func (f *BasicConsume) Unmarshal(data []byte) error {
 }
 
 func (f *BasicConsume) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := f.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *BasicConsume) MarshalBuffer(buf *bytes.Buffer) error {
 	var x [8]byte
 	_ = x
 	var bits byte = 0
 	_ = bits
-	buf := bytes.Buffer{}
 	endian.PutUint16(x[:2], f.Reserved1)
 	buf.Write(x[:2])
 	if l := len(f.Queue); l > math.MaxUint8 {
-		return nil, errors.Errorf("queue can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
+		return errors.Errorf("queue can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
 	} else {
 		buf.WriteByte(byte(l))
 		buf.WriteString(f.Queue)
 	}
 	if l := len(f.ConsumerTag); l > math.MaxUint8 {
-		return nil, errors.Errorf("consumer-tag can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
+		return errors.Errorf("consumer-tag can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
 	} else {
 		buf.WriteByte(byte(l))
 		buf.WriteString(f.ConsumerTag)
@@ -2844,13 +3123,13 @@ func (f *BasicConsume) Marshal() ([]byte, error) {
 	buf.WriteByte(bits)
 	bits = 0
 	if tableBuf, err := MarshalTable(f.Arguments); err != nil {
-		return nil, errors.Wrap(err, "arguments table marshal failed")
+		return errors.Wrap(err, "arguments table marshal failed")
 	} else {
 		endian.PutUint32(x[:4], uint32(len(tableBuf)))
 		buf.Write(x[:4])
 		buf.Write(tableBuf)
 	}
-	return buf.Bytes(), nil
+	return nil
 }
 
 type BasicConsumeOk struct {
@@ -2893,18 +3172,26 @@ func (f *BasicConsumeOk) Unmarshal(data []byte) error {
 }
 
 func (f *BasicConsumeOk) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := f.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *BasicConsumeOk) MarshalBuffer(buf *bytes.Buffer) error {
 	var x [8]byte
 	_ = x
 	var bits byte = 0
 	_ = bits
-	buf := bytes.Buffer{}
 	if l := len(f.ConsumerTag); l > math.MaxUint8 {
-		return nil, errors.Errorf("consumer-tag can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
+		return errors.Errorf("consumer-tag can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
 	} else {
 		buf.WriteByte(byte(l))
 		buf.WriteString(f.ConsumerTag)
 	}
-	return buf.Bytes(), nil
+	return nil
 }
 
 type BasicCancel struct {
@@ -2953,13 +3240,21 @@ func (f *BasicCancel) Unmarshal(data []byte) error {
 }
 
 func (f *BasicCancel) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := f.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *BasicCancel) MarshalBuffer(buf *bytes.Buffer) error {
 	var x [8]byte
 	_ = x
 	var bits byte = 0
 	_ = bits
-	buf := bytes.Buffer{}
 	if l := len(f.ConsumerTag); l > math.MaxUint8 {
-		return nil, errors.Errorf("consumer-tag can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
+		return errors.Errorf("consumer-tag can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
 	} else {
 		buf.WriteByte(byte(l))
 		buf.WriteString(f.ConsumerTag)
@@ -2969,7 +3264,7 @@ func (f *BasicCancel) Marshal() ([]byte, error) {
 	}
 	buf.WriteByte(bits)
 	bits = 0
-	return buf.Bytes(), nil
+	return nil
 }
 
 type BasicCancelOk struct {
@@ -3012,18 +3307,26 @@ func (f *BasicCancelOk) Unmarshal(data []byte) error {
 }
 
 func (f *BasicCancelOk) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := f.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *BasicCancelOk) MarshalBuffer(buf *bytes.Buffer) error {
 	var x [8]byte
 	_ = x
 	var bits byte = 0
 	_ = bits
-	buf := bytes.Buffer{}
 	if l := len(f.ConsumerTag); l > math.MaxUint8 {
-		return nil, errors.Errorf("consumer-tag can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
+		return errors.Errorf("consumer-tag can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
 	} else {
 		buf.WriteByte(byte(l))
 		buf.WriteString(f.ConsumerTag)
 	}
-	return buf.Bytes(), nil
+	return nil
 }
 
 type BasicPublish struct {
@@ -3093,21 +3396,29 @@ func (f *BasicPublish) Unmarshal(data []byte) error {
 }
 
 func (f *BasicPublish) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := f.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *BasicPublish) MarshalBuffer(buf *bytes.Buffer) error {
 	var x [8]byte
 	_ = x
 	var bits byte = 0
 	_ = bits
-	buf := bytes.Buffer{}
 	endian.PutUint16(x[:2], f.Reserved1)
 	buf.Write(x[:2])
 	if l := len(f.Exchange); l > math.MaxUint8 {
-		return nil, errors.Errorf("exchange can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
+		return errors.Errorf("exchange can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
 	} else {
 		buf.WriteByte(byte(l))
 		buf.WriteString(f.Exchange)
 	}
 	if l := len(f.RoutingKey); l > math.MaxUint8 {
-		return nil, errors.Errorf("routing-key can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
+		return errors.Errorf("routing-key can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
 	} else {
 		buf.WriteByte(byte(l))
 		buf.WriteString(f.RoutingKey)
@@ -3121,7 +3432,7 @@ func (f *BasicPublish) Marshal() ([]byte, error) {
 	}
 	buf.WriteByte(bits)
 	bits = 0
-	return buf.Bytes(), nil
+	return nil
 }
 
 type BasicReturn struct {
@@ -3193,32 +3504,40 @@ func (f *BasicReturn) Unmarshal(data []byte) error {
 }
 
 func (f *BasicReturn) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := f.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *BasicReturn) MarshalBuffer(buf *bytes.Buffer) error {
 	var x [8]byte
 	_ = x
 	var bits byte = 0
 	_ = bits
-	buf := bytes.Buffer{}
 	endian.PutUint16(x[:2], f.ReplyCode)
 	buf.Write(x[:2])
 	if l := len(f.ReplyText); l > math.MaxUint8 {
-		return nil, errors.Errorf("reply-text can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
+		return errors.Errorf("reply-text can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
 	} else {
 		buf.WriteByte(byte(l))
 		buf.WriteString(f.ReplyText)
 	}
 	if l := len(f.Exchange); l > math.MaxUint8 {
-		return nil, errors.Errorf("exchange can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
+		return errors.Errorf("exchange can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
 	} else {
 		buf.WriteByte(byte(l))
 		buf.WriteString(f.Exchange)
 	}
 	if l := len(f.RoutingKey); l > math.MaxUint8 {
-		return nil, errors.Errorf("routing-key can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
+		return errors.Errorf("routing-key can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
 	} else {
 		buf.WriteByte(byte(l))
 		buf.WriteString(f.RoutingKey)
 	}
-	return buf.Bytes(), nil
+	return nil
 }
 
 type BasicDeliver struct {
@@ -3296,13 +3615,21 @@ func (f *BasicDeliver) Unmarshal(data []byte) error {
 }
 
 func (f *BasicDeliver) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := f.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *BasicDeliver) MarshalBuffer(buf *bytes.Buffer) error {
 	var x [8]byte
 	_ = x
 	var bits byte = 0
 	_ = bits
-	buf := bytes.Buffer{}
 	if l := len(f.ConsumerTag); l > math.MaxUint8 {
-		return nil, errors.Errorf("consumer-tag can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
+		return errors.Errorf("consumer-tag can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
 	} else {
 		buf.WriteByte(byte(l))
 		buf.WriteString(f.ConsumerTag)
@@ -3315,18 +3642,18 @@ func (f *BasicDeliver) Marshal() ([]byte, error) {
 	buf.WriteByte(bits)
 	bits = 0
 	if l := len(f.Exchange); l > math.MaxUint8 {
-		return nil, errors.Errorf("exchange can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
+		return errors.Errorf("exchange can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
 	} else {
 		buf.WriteByte(byte(l))
 		buf.WriteString(f.Exchange)
 	}
 	if l := len(f.RoutingKey); l > math.MaxUint8 {
-		return nil, errors.Errorf("routing-key can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
+		return errors.Errorf("routing-key can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
 	} else {
 		buf.WriteByte(byte(l))
 		buf.WriteString(f.RoutingKey)
 	}
-	return buf.Bytes(), nil
+	return nil
 }
 
 type BasicGet struct {
@@ -3382,15 +3709,23 @@ func (f *BasicGet) Unmarshal(data []byte) error {
 }
 
 func (f *BasicGet) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := f.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *BasicGet) MarshalBuffer(buf *bytes.Buffer) error {
 	var x [8]byte
 	_ = x
 	var bits byte = 0
 	_ = bits
-	buf := bytes.Buffer{}
 	endian.PutUint16(x[:2], f.Reserved1)
 	buf.Write(x[:2])
 	if l := len(f.Queue); l > math.MaxUint8 {
-		return nil, errors.Errorf("queue can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
+		return errors.Errorf("queue can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
 	} else {
 		buf.WriteByte(byte(l))
 		buf.WriteString(f.Queue)
@@ -3400,7 +3735,7 @@ func (f *BasicGet) Marshal() ([]byte, error) {
 	}
 	buf.WriteByte(bits)
 	bits = 0
-	return buf.Bytes(), nil
+	return nil
 }
 
 type BasicGetOk struct {
@@ -3474,11 +3809,19 @@ func (f *BasicGetOk) Unmarshal(data []byte) error {
 }
 
 func (f *BasicGetOk) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := f.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *BasicGetOk) MarshalBuffer(buf *bytes.Buffer) error {
 	var x [8]byte
 	_ = x
 	var bits byte = 0
 	_ = bits
-	buf := bytes.Buffer{}
 	endian.PutUint64(x[:8], f.DeliveryTag)
 	buf.Write(x[:8])
 	if f.Redelivered {
@@ -3487,20 +3830,20 @@ func (f *BasicGetOk) Marshal() ([]byte, error) {
 	buf.WriteByte(bits)
 	bits = 0
 	if l := len(f.Exchange); l > math.MaxUint8 {
-		return nil, errors.Errorf("exchange can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
+		return errors.Errorf("exchange can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
 	} else {
 		buf.WriteByte(byte(l))
 		buf.WriteString(f.Exchange)
 	}
 	if l := len(f.RoutingKey); l > math.MaxUint8 {
-		return nil, errors.Errorf("routing-key can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
+		return errors.Errorf("routing-key can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
 	} else {
 		buf.WriteByte(byte(l))
 		buf.WriteString(f.RoutingKey)
 	}
 	endian.PutUint32(x[:4], f.MessageCount)
 	buf.Write(x[:4])
-	return buf.Bytes(), nil
+	return nil
 }
 
 type BasicGetEmpty struct {
@@ -3543,18 +3886,26 @@ func (f *BasicGetEmpty) Unmarshal(data []byte) error {
 }
 
 func (f *BasicGetEmpty) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := f.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *BasicGetEmpty) MarshalBuffer(buf *bytes.Buffer) error {
 	var x [8]byte
 	_ = x
 	var bits byte = 0
 	_ = bits
-	buf := bytes.Buffer{}
 	if l := len(f.Reserved1); l > math.MaxUint8 {
-		return nil, errors.Errorf("reserved-1 can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
+		return errors.Errorf("reserved-1 can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
 	} else {
 		buf.WriteByte(byte(l))
 		buf.WriteString(f.Reserved1)
 	}
-	return buf.Bytes(), nil
+	return nil
 }
 
 type BasicAck struct {
@@ -3599,11 +3950,19 @@ func (f *BasicAck) Unmarshal(data []byte) error {
 }
 
 func (f *BasicAck) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := f.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *BasicAck) MarshalBuffer(buf *bytes.Buffer) error {
 	var x [8]byte
 	_ = x
 	var bits byte = 0
 	_ = bits
-	buf := bytes.Buffer{}
 	endian.PutUint64(x[:8], f.DeliveryTag)
 	buf.Write(x[:8])
 	if f.Multiple {
@@ -3611,7 +3970,7 @@ func (f *BasicAck) Marshal() ([]byte, error) {
 	}
 	buf.WriteByte(bits)
 	bits = 0
-	return buf.Bytes(), nil
+	return nil
 }
 
 type BasicReject struct {
@@ -3656,11 +4015,19 @@ func (f *BasicReject) Unmarshal(data []byte) error {
 }
 
 func (f *BasicReject) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := f.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *BasicReject) MarshalBuffer(buf *bytes.Buffer) error {
 	var x [8]byte
 	_ = x
 	var bits byte = 0
 	_ = bits
-	buf := bytes.Buffer{}
 	endian.PutUint64(x[:8], f.DeliveryTag)
 	buf.Write(x[:8])
 	if f.Requeue {
@@ -3668,7 +4035,7 @@ func (f *BasicReject) Marshal() ([]byte, error) {
 	}
 	buf.WriteByte(bits)
 	bits = 0
-	return buf.Bytes(), nil
+	return nil
 }
 
 type BasicRecoverAsync struct {
@@ -3706,17 +4073,25 @@ func (f *BasicRecoverAsync) Unmarshal(data []byte) error {
 }
 
 func (f *BasicRecoverAsync) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := f.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *BasicRecoverAsync) MarshalBuffer(buf *bytes.Buffer) error {
 	var x [8]byte
 	_ = x
 	var bits byte = 0
 	_ = bits
-	buf := bytes.Buffer{}
 	if f.Requeue {
 		bits |= 1
 	}
 	buf.WriteByte(bits)
 	bits = 0
-	return buf.Bytes(), nil
+	return nil
 }
 
 type BasicRecover struct {
@@ -3754,17 +4129,25 @@ func (f *BasicRecover) Unmarshal(data []byte) error {
 }
 
 func (f *BasicRecover) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := f.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *BasicRecover) MarshalBuffer(buf *bytes.Buffer) error {
 	var x [8]byte
 	_ = x
 	var bits byte = 0
 	_ = bits
-	buf := bytes.Buffer{}
 	if f.Requeue {
 		bits |= 1
 	}
 	buf.WriteByte(bits)
 	bits = 0
-	return buf.Bytes(), nil
+	return nil
 }
 
 type BasicRecoverOk struct {
@@ -3793,7 +4176,16 @@ func (f *BasicRecoverOk) Unmarshal(data []byte) error {
 }
 
 func (f *BasicRecoverOk) Marshal() ([]byte, error) {
-	return nil, nil
+	buf := bytes.Buffer{}
+	err := f.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *BasicRecoverOk) MarshalBuffer(buf *bytes.Buffer) error {
+	return nil
 }
 
 type BasicNack struct {
@@ -3841,11 +4233,19 @@ func (f *BasicNack) Unmarshal(data []byte) error {
 }
 
 func (f *BasicNack) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := f.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *BasicNack) MarshalBuffer(buf *bytes.Buffer) error {
 	var x [8]byte
 	_ = x
 	var bits byte = 0
 	_ = bits
-	buf := bytes.Buffer{}
 	endian.PutUint64(x[:8], f.DeliveryTag)
 	buf.Write(x[:8])
 	if f.Multiple {
@@ -3857,7 +4257,7 @@ func (f *BasicNack) Marshal() ([]byte, error) {
 	}
 	buf.WriteByte(bits)
 	bits = 0
-	return buf.Bytes(), nil
+	return nil
 }
 
 type TxSelect struct {
@@ -3886,7 +4286,16 @@ func (f *TxSelect) Unmarshal(data []byte) error {
 }
 
 func (f *TxSelect) Marshal() ([]byte, error) {
-	return nil, nil
+	buf := bytes.Buffer{}
+	err := f.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *TxSelect) MarshalBuffer(buf *bytes.Buffer) error {
+	return nil
 }
 
 type TxSelectOk struct {
@@ -3915,7 +4324,16 @@ func (f *TxSelectOk) Unmarshal(data []byte) error {
 }
 
 func (f *TxSelectOk) Marshal() ([]byte, error) {
-	return nil, nil
+	buf := bytes.Buffer{}
+	err := f.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *TxSelectOk) MarshalBuffer(buf *bytes.Buffer) error {
+	return nil
 }
 
 type TxCommit struct {
@@ -3944,7 +4362,16 @@ func (f *TxCommit) Unmarshal(data []byte) error {
 }
 
 func (f *TxCommit) Marshal() ([]byte, error) {
-	return nil, nil
+	buf := bytes.Buffer{}
+	err := f.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *TxCommit) MarshalBuffer(buf *bytes.Buffer) error {
+	return nil
 }
 
 type TxCommitOk struct {
@@ -3973,7 +4400,16 @@ func (f *TxCommitOk) Unmarshal(data []byte) error {
 }
 
 func (f *TxCommitOk) Marshal() ([]byte, error) {
-	return nil, nil
+	buf := bytes.Buffer{}
+	err := f.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *TxCommitOk) MarshalBuffer(buf *bytes.Buffer) error {
+	return nil
 }
 
 type TxRollback struct {
@@ -4002,7 +4438,16 @@ func (f *TxRollback) Unmarshal(data []byte) error {
 }
 
 func (f *TxRollback) Marshal() ([]byte, error) {
-	return nil, nil
+	buf := bytes.Buffer{}
+	err := f.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *TxRollback) MarshalBuffer(buf *bytes.Buffer) error {
+	return nil
 }
 
 type TxRollbackOk struct {
@@ -4031,7 +4476,16 @@ func (f *TxRollbackOk) Unmarshal(data []byte) error {
 }
 
 func (f *TxRollbackOk) Marshal() ([]byte, error) {
-	return nil, nil
+	buf := bytes.Buffer{}
+	err := f.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *TxRollbackOk) MarshalBuffer(buf *bytes.Buffer) error {
+	return nil
 }
 
 func decodeMethodFrame(frameMeta FrameMeta, data []byte) (MethodFrame, error) {

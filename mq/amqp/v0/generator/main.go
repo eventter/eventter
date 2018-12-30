@@ -167,14 +167,14 @@ var tpl = template.Must(template.New("tpl").Funcs(map[string]interface{}{
 	buf.Write(x[:8])
 {{- else if eq .Type "shortstr" }}
 	if l := len(f.{{ $goFieldName }}); l > math.MaxUint8 {
-		return nil, errors.Errorf("{{ .Name }} can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
+		return errors.Errorf("{{ .Name }} can be at most %d bytes long, got %d bytes", math.MaxUint8, l)
 	} else {
 		buf.WriteByte(byte(l))
 		buf.WriteString(f.{{ $goFieldName }})
 	}
 {{- else if eq .Type "longstr" }}
 	if l := len(f.{{ $goFieldName }}); l > math.MaxUint32 {
-		return nil, errors.Errorf("{{ .Name }} can be at most %d bytes long, got %d bytes", math.MaxUint32, l)
+		return errors.Errorf("{{ .Name }} can be at most %d bytes long, got %d bytes", math.MaxUint32, l)
 	} else {
 		endian.PutUint32(x[:4], uint32(l))
 		buf.Write(x[:4])
@@ -182,7 +182,7 @@ var tpl = template.Must(template.New("tpl").Funcs(map[string]interface{}{
 	}
 {{- else if eq .Type "table" }}
 	if tableBuf, err := MarshalTable(f.{{ $goFieldName }}); err != nil {
-		return nil, errors.Wrap(err, "{{ .Name }} table marshal failed")
+		return errors.Wrap(err, "{{ .Name }} table marshal failed")
 	} else {
 		endian.PutUint32(x[:4], uint32(len(tableBuf)))
 		buf.Write(x[:4])
@@ -323,7 +323,7 @@ type MethodFrame interface {
 	Frame
 	FixMethodMeta()
 	GetMethodMeta() *MethodMeta
-	Marshal() ([]byte, error)
+	MarshalBuffer(buf *bytes.Buffer) error
 }
 
 type FrameMeta struct {
@@ -422,6 +422,15 @@ func (f *ContentHeaderFrame) Unmarshal(data []byte) error {
 }
 
 func (f *ContentHeaderFrame) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := f.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *ContentHeaderFrame) MarshalBuffer(ret *bytes.Buffer) error {
 	var x [8]byte
 	_ = x
 	var flags uint16
@@ -444,7 +453,6 @@ func (f *ContentHeaderFrame) Marshal() ([]byte, error) {
 		}
 	{{- end }}
 
-	ret := bytes.Buffer{}
 	endian.PutUint16(x[:2], uint16(f.ClassID))
 	ret.Write(x[:2])
 	endian.PutUint16(x[:2], f.Weight)
@@ -455,7 +463,7 @@ func (f *ContentHeaderFrame) Marshal() ([]byte, error) {
 	ret.Write(x[:2])
 	ret.Write(buf.Bytes())
 
-	return ret.Bytes(), nil
+	return nil
 }
 
 {{ end }}
@@ -535,14 +543,22 @@ func (f *{{ $frame }}) Unmarshal(data []byte) error {
 }
 
 func (f *{{ $frame }}) Marshal() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := f.MarshalBuffer(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (f *{{ $frame }}) MarshalBuffer(buf *bytes.Buffer) error {
 	{{- if eq (len $method.Fields) 0 }}
-	return nil, nil
+	return nil
 	{{- else }}
 	var x [8]byte
 	_ = x
 	var bits byte = 0
 	_ = bits
-	buf := bytes.Buffer{}
 	{{- $bitFields := 0 }}
 	{{- range $field := $method.Fields }}
 		{{- $goFieldName := $field.Name|convert -}}
@@ -565,7 +581,7 @@ func (f *{{ $frame }}) Marshal() ([]byte, error) {
 		bits = 0
 		{{- $bitFields = 0 -}}
 	{{- end }}
-	return buf.Bytes(), nil
+	return nil
 	{{- end }}
 }
 {{ end }}

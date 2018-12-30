@@ -21,8 +21,8 @@ var (
 type Transport struct {
 	conn           net.Conn
 	rw             io.ReadWriter
-	readData       []byte
-	writeData      []byte
+	data           []byte
+	buf            bytes.Buffer
 	frameMax       uint32
 	receiveTimeout time.Duration
 	sendTimeout    time.Duration
@@ -30,11 +30,10 @@ type Transport struct {
 
 func NewTransport(conn net.Conn) *Transport {
 	return &Transport{
-		conn:      conn,
-		rw:        conn,
-		readData:  make([]byte, util.NextPowerOfTwo32(MinMaxFrameSize)),
-		writeData: make([]byte, util.NextPowerOfTwo32(MinMaxFrameSize)),
-		frameMax:  MinMaxFrameSize,
+		conn:     conn,
+		rw:       conn,
+		data:     make([]byte, util.NextPowerOfTwo32(MinMaxFrameSize)),
+		frameMax: MinMaxFrameSize,
 	}
 }
 
@@ -98,49 +97,62 @@ func (t *Transport) Send(frame Frame) (err error) {
 
 	var x [18]byte // 8 bytes frame header + 1 byte descriptor constructor + (at most) 9 bytes ulong
 
-	meta := frame.GetFrameMeta()
+	var data []byte
+	var meta *FrameMeta
+	if frame != nil {
+		meta = frame.GetFrameMeta()
 
-	frameBuf := bytes.NewBuffer(t.writeData[:0])
-	err = frame.MarshalBuffer(frameBuf)
-	if err != nil {
-		return errors.Wrap(err, "marshal failed")
+		t.buf.Reset()
+		err = frame.MarshalBuffer(&t.buf)
+		if err != nil {
+			return errors.Wrap(err, "marshal failed")
+		}
+		data = t.buf.Bytes()
 	}
-	data := frameBuf.Bytes()
-	t.writeData = data
 
-	size := uint32(8) + uint32(len(data)) + uint32(len(meta.Payload))
+	size := uint32(8) + uint32(len(data))
+	if meta != nil {
+		size += uint32(len(meta.Payload))
+	}
 	if size > t.frameMax {
 		return ErrFrameTooBig
 	}
 
 	endian.PutUint32(x[:4], size)
 	x[4] = 8 / 4 // data offset
-	switch frame.(type) {
-	case AMQPFrame:
+
+	var descriptorLength int
+	if frame == nil {
 		x[5] = 0x00
-	case SASLFrame:
-		x[5] = 0x01
-	default:
-		return errors.Errorf("unhandled frame type %T", frame)
+	} else {
+		switch frame.(type) {
+		case AMQPFrame:
+			x[5] = 0x00
+		case SASLFrame:
+			x[5] = 0x01
+		default:
+			return errors.Errorf("unhandled frame type %T", frame)
+		}
+		endian.PutUint16(x[6:8], meta.Channel)
+		x[8] = 0x00
+		buf := bytes.NewBuffer(x[9:9])
+		err = marshalUlong(frame.Descriptor(), buf)
+		if err != nil {
+			return errors.Wrap(err, "marshal descriptor failed")
+		}
+		descriptorLength = 1 + buf.Len()
 	}
-	endian.PutUint16(x[6:8], meta.Channel)
-
-	x[8] = 0x00
-	buf := bytes.NewBuffer(x[9:9])
-	err = marshalUlong(frame.Descriptor(), buf)
-	if err != nil {
-		return errors.Wrap(err, "marshal descriptor failed")
-	}
-
-	_, err = t.rw.Write(x[:9+buf.Len()])
+	_, err = t.rw.Write(x[:8+descriptorLength])
 	if err != nil {
 		return errors.Wrap(err, "write frame header failed")
 	}
-	_, err = t.rw.Write(data)
-	if err != nil {
-		return errors.Wrap(err, "write frame data failed")
+	if len(data) > 0 {
+		_, err = t.rw.Write(data)
+		if err != nil {
+			return errors.Wrap(err, "write frame data failed")
+		}
 	}
-	if len(meta.Payload) > 0 {
+	if meta != nil && len(meta.Payload) > 0 {
 		_, err = t.rw.Write(meta.Payload)
 		if err != nil {
 			return errors.Wrap(err, "write frame payload failed")
@@ -165,16 +177,16 @@ func (t *Transport) Receive() (Frame, error) {
 		}
 	}
 
-	_, err := io.ReadFull(t.rw, t.readData[:8])
+	_, err := io.ReadFull(t.rw, t.data[:8])
 	if err != nil {
 		return nil, errors.Wrap(err, "read frame header failed")
 	}
 
 	meta := FrameMeta{}
-	meta.Size = endian.Uint32(t.readData[:4])
-	meta.DataOffset = uint8(t.readData[4])
-	meta.Type = uint8(t.readData[5])
-	meta.Channel = endian.Uint16(t.readData[6:8])
+	meta.Size = endian.Uint32(t.data[:4])
+	meta.DataOffset = uint8(t.data[4])
+	meta.Type = uint8(t.data[5])
+	meta.Channel = endian.Uint16(t.data[6:8])
 
 	if meta.Size > t.frameMax {
 		return nil, ErrFrameTooBig
@@ -182,11 +194,20 @@ func (t *Transport) Receive() (Frame, error) {
 
 	dataSize := meta.Size - 8
 
-	if uint32(len(t.readData)) < dataSize {
-		t.readData = make([]byte, util.NextPowerOfTwo32(dataSize))
+	if uint32(len(t.data)) < dataSize {
+		t.data = make([]byte, util.NextPowerOfTwo32(dataSize))
 	}
 
-	_, err = io.ReadFull(t.rw, t.readData[:dataSize])
+	if dataSize == 0 {
+		switch meta.Type {
+		case 0x00: // AMQP heartbeat frame
+			return nil, nil
+		default:
+			return nil, ErrMalformedFrame
+		}
+	}
+
+	_, err = io.ReadFull(t.rw, t.data[:dataSize])
 	if err != nil {
 		return nil, errors.Wrap(err, "read frame content failed")
 	}
@@ -195,7 +216,7 @@ func (t *Transport) Receive() (Frame, error) {
 	case 0x00: // AMQP frame
 		fallthrough
 	case 0x01: // SASL frame
-		buf := bytes.NewBuffer(t.readData[:dataSize-(4*uint32(meta.DataOffset)-8)])
+		buf := bytes.NewBuffer(t.data[:dataSize-(4*uint32(meta.DataOffset)-8)])
 		b, err := buf.ReadByte()
 		if err != nil {
 			return nil, errors.Wrap(err, "read descriptor failed")
