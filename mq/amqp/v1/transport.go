@@ -126,31 +126,19 @@ func (t *Transport) Receive() (Frame, error) {
 		buf := bytes.NewBuffer(t.data[:dataSize-(4*uint32(meta.DataOffset)-8)])
 		b, err := buf.ReadByte()
 		if err != nil {
-			return nil, ErrMalformedFrame
+			return nil, errors.Wrap(err, "read descriptor failed")
 		}
 		if b != 0x00 {
 			return nil, ErrMalformedFrame
 		}
 		b, err = buf.ReadByte()
 		if err != nil {
-			return nil, ErrMalformedFrame
+			return nil, errors.Wrap(err, "read descriptor failed")
 		}
-
 		var descriptor uint64
-		switch b {
-		case UlongEncoding:
-			if buf.Len() < 8 {
-				return nil, ErrMalformedFrame
-			}
-			descriptor = endian.Uint64(buf.Next(8))
-		case UlongSmallulongEncoding:
-			b, err = buf.ReadByte()
-			if err != nil {
-				return nil, ErrMalformedFrame
-			}
-			descriptor = uint64(b)
-		default:
-			return nil, ErrMalformedFrame
+		err = unmarshalUlong(&descriptor, b, buf)
+		if err != nil {
+			return nil, errors.Wrap(err, "read descriptor failed")
 		}
 
 		var frame Frame
@@ -192,8 +180,10 @@ func (t *Transport) Receive() (Frame, error) {
 			return nil, errors.Wrap(err, "unmarshal failed")
 		}
 
-		frame.GetFrameMeta().Payload = make([]byte, buf.Len())
-		copy(frame.GetFrameMeta().Payload, buf.Bytes())
+		if buf.Len() > 0 {
+			frame.GetFrameMeta().Payload = make([]byte, buf.Len())
+			copy(frame.GetFrameMeta().Payload, buf.Bytes())
+		}
 
 		return frame, nil
 	default:

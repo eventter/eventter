@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/gogo/protobuf/types"
+	"github.com/pkg/errors"
 )
 
 type UUID [16]byte
@@ -102,13 +103,13 @@ const (
 const (
 	UintEncoding          = 0x70
 	UintSmalluintEncoding = 0x52
-	UintUint0Encoding     = 0x43
+	Uint0Encoding         = 0x43
 )
 
 const (
 	UlongEncoding           = 0x80
 	UlongSmallulongEncoding = 0x53
-	UlongUlong0Encoding     = 0x44
+	Ulong0Encoding          = 0x44
 )
 
 const (
@@ -177,19 +178,19 @@ const (
 )
 
 const (
-	ListList0Encoding  = 0x45
-	ListList8Encoding  = 0xc0
-	ListList32Encoding = 0xd0
+	List0Encoding  = 0x45
+	List8Encoding  = 0xc0
+	List32Encoding = 0xd0
 )
 
 const (
-	MapMap8Encoding  = 0xc1
-	MapMap32Encoding = 0xd1
+	Map8Encoding  = 0xc1
+	Map32Encoding = 0xd1
 )
 
 const (
-	ArrayArray8Encoding  = 0xe0
-	ArrayArray32Encoding = 0xf0
+	Array8Encoding  = 0xe0
+	Array32Encoding = 0xf0
 )
 
 const (
@@ -586,7 +587,11 @@ func (t *Role) Unmarshal(data []byte) error {
 }
 
 func (t *Role) UnmarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+	constructor, err := buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read constructor failed")
+	}
+	return unmarshalBoolean((*bool)(t), constructor, buf)
 }
 
 type SenderSettleMode uint8
@@ -624,7 +629,11 @@ func (t *SenderSettleMode) Unmarshal(data []byte) error {
 }
 
 func (t *SenderSettleMode) UnmarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+	constructor, err := buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read constructor failed")
+	}
+	return unmarshalUbyte((*uint8)(t), constructor, buf)
 }
 
 type ReceiverSettleMode uint8
@@ -659,7 +668,11 @@ func (t *ReceiverSettleMode) Unmarshal(data []byte) error {
 }
 
 func (t *ReceiverSettleMode) UnmarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+	constructor, err := buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read constructor failed")
+	}
+	return unmarshalUbyte((*uint8)(t), constructor, buf)
 }
 
 type Handle uint32
@@ -678,7 +691,11 @@ func (t *Handle) Unmarshal(data []byte) error {
 }
 
 func (t *Handle) UnmarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+	constructor, err := buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read constructor failed")
+	}
+	return unmarshalUint((*uint32)(t), constructor, buf)
 }
 
 type Seconds uint32
@@ -697,7 +714,11 @@ func (t *Seconds) Unmarshal(data []byte) error {
 }
 
 func (t *Seconds) UnmarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+	constructor, err := buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read constructor failed")
+	}
+	return unmarshalUint((*uint32)(t), constructor, buf)
 }
 
 type Milliseconds uint32
@@ -716,7 +737,11 @@ func (t *Milliseconds) Unmarshal(data []byte) error {
 }
 
 func (t *Milliseconds) UnmarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+	constructor, err := buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read constructor failed")
+	}
+	return unmarshalUint((*uint32)(t), constructor, buf)
 }
 
 type DeliveryTag []byte
@@ -735,7 +760,11 @@ func (t *DeliveryTag) Unmarshal(data []byte) error {
 }
 
 func (t *DeliveryTag) UnmarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+	constructor, err := buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read constructor failed")
+	}
+	return unmarshalBinary((*[]byte)(t), constructor, buf)
 }
 
 type DeliveryNumber uint32
@@ -754,7 +783,11 @@ func (t *DeliveryNumber) Unmarshal(data []byte) error {
 }
 
 func (t *DeliveryNumber) UnmarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+	constructor, err := buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read constructor failed")
+	}
+	return unmarshalUint((*uint32)(t), constructor, buf)
 }
 
 type TransferNumber uint32
@@ -773,7 +806,11 @@ func (t *TransferNumber) Unmarshal(data []byte) error {
 }
 
 func (t *TransferNumber) UnmarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+	constructor, err := buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read constructor failed")
+	}
+	return unmarshalUint((*uint32)(t), constructor, buf)
 }
 
 type SequenceNo uint32
@@ -792,7 +829,11 @@ func (t *SequenceNo) Unmarshal(data []byte) error {
 }
 
 func (t *SequenceNo) UnmarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+	constructor, err := buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read constructor failed")
+	}
+	return unmarshalUint((*uint32)(t), constructor, buf)
 }
 
 type MessageFormat uint32
@@ -811,7 +852,11 @@ func (t *MessageFormat) Unmarshal(data []byte) error {
 }
 
 func (t *MessageFormat) UnmarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+	constructor, err := buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read constructor failed")
+	}
+	return unmarshalUint((*uint32)(t), constructor, buf)
 }
 
 type IETFLanguageTag string
@@ -830,7 +875,11 @@ func (t *IETFLanguageTag) Unmarshal(data []byte) error {
 }
 
 func (t *IETFLanguageTag) UnmarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+	constructor, err := buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read constructor failed")
+	}
+	return unmarshalSymbol((*string)(t), constructor, buf)
 }
 
 type Fields types.Struct
@@ -849,7 +898,11 @@ func (t *Fields) Unmarshal(data []byte) error {
 }
 
 func (t *Fields) UnmarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+	constructor, err := buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read constructor failed")
+	}
+	return unmarshalMap((*types.Struct)(t), constructor, buf)
 }
 
 const (
@@ -918,7 +971,11 @@ func (t *AMQPError) Unmarshal(data []byte) error {
 }
 
 func (t *AMQPError) UnmarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+	constructor, err := buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read constructor failed")
+	}
+	return unmarshalSymbol((*string)(t), constructor, buf)
 }
 
 type ConnectionError string
@@ -949,7 +1006,11 @@ func (t *ConnectionError) Unmarshal(data []byte) error {
 }
 
 func (t *ConnectionError) UnmarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+	constructor, err := buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read constructor failed")
+	}
+	return unmarshalSymbol((*string)(t), constructor, buf)
 }
 
 type SessionError string
@@ -981,7 +1042,11 @@ func (t *SessionError) Unmarshal(data []byte) error {
 }
 
 func (t *SessionError) UnmarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+	constructor, err := buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read constructor failed")
+	}
+	return unmarshalSymbol((*string)(t), constructor, buf)
 }
 
 type LinkError string
@@ -1014,7 +1079,11 @@ func (t *LinkError) Unmarshal(data []byte) error {
 }
 
 func (t *LinkError) UnmarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+	constructor, err := buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read constructor failed")
+	}
+	return unmarshalSymbol((*string)(t), constructor, buf)
 }
 
 const ()
@@ -1074,7 +1143,11 @@ func (t *DeliveryAnnotations) Unmarshal(data []byte) error {
 }
 
 func (t *DeliveryAnnotations) UnmarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+	constructor, err := buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read constructor failed")
+	}
+	return unmarshalMap((*types.Struct)(t), constructor, buf)
 }
 
 const (
@@ -1100,7 +1173,11 @@ func (t *MessageAnnotations) Unmarshal(data []byte) error {
 }
 
 func (t *MessageAnnotations) UnmarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+	constructor, err := buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read constructor failed")
+	}
+	return unmarshalMap((*types.Struct)(t), constructor, buf)
 }
 
 const (
@@ -1166,7 +1243,11 @@ func (t *ApplicationProperties) Unmarshal(data []byte) error {
 }
 
 func (t *ApplicationProperties) UnmarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+	constructor, err := buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read constructor failed")
+	}
+	return unmarshalMap((*types.Struct)(t), constructor, buf)
 }
 
 const (
@@ -1192,7 +1273,11 @@ func (t *Data) Unmarshal(data []byte) error {
 }
 
 func (t *Data) UnmarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+	constructor, err := buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read constructor failed")
+	}
+	return unmarshalBinary((*[]byte)(t), constructor, buf)
 }
 
 const (
@@ -1218,7 +1303,11 @@ func (t *Footer) Unmarshal(data []byte) error {
 }
 
 func (t *Footer) UnmarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+	constructor, err := buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read constructor failed")
+	}
+	return unmarshalMap((*types.Struct)(t), constructor, buf)
 }
 
 type Annotations types.Struct
@@ -1237,7 +1326,11 @@ func (t *Annotations) Unmarshal(data []byte) error {
 }
 
 func (t *Annotations) UnmarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+	constructor, err := buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read constructor failed")
+	}
+	return unmarshalMap((*types.Struct)(t), constructor, buf)
 }
 
 type MessageIDUlong uint64
@@ -1258,7 +1351,11 @@ func (t *MessageIDUlong) Unmarshal(data []byte) error {
 }
 
 func (t *MessageIDUlong) UnmarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+	constructor, err := buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read constructor failed")
+	}
+	return unmarshalUlong((*uint64)(t), constructor, buf)
 }
 
 type MessageIDUUID UUID
@@ -1279,7 +1376,11 @@ func (t *MessageIDUUID) Unmarshal(data []byte) error {
 }
 
 func (t *MessageIDUUID) UnmarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+	constructor, err := buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read constructor failed")
+	}
+	return unmarshalUUID((*UUID)(t), constructor, buf)
 }
 
 type MessageIDBinary []byte
@@ -1300,7 +1401,11 @@ func (t *MessageIDBinary) Unmarshal(data []byte) error {
 }
 
 func (t *MessageIDBinary) UnmarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+	constructor, err := buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read constructor failed")
+	}
+	return unmarshalBinary((*[]byte)(t), constructor, buf)
 }
 
 type MessageIDString string
@@ -1321,7 +1426,11 @@ func (t *MessageIDString) Unmarshal(data []byte) error {
 }
 
 func (t *MessageIDString) UnmarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+	constructor, err := buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read constructor failed")
+	}
+	return unmarshalString((*string)(t), constructor, buf)
 }
 
 type AddressString string
@@ -1342,7 +1451,11 @@ func (t *AddressString) Unmarshal(data []byte) error {
 }
 
 func (t *AddressString) UnmarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+	constructor, err := buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read constructor failed")
+	}
+	return unmarshalString((*string)(t), constructor, buf)
 }
 
 const (
@@ -1601,7 +1714,11 @@ func (t *TerminusDurability) Unmarshal(data []byte) error {
 }
 
 func (t *TerminusDurability) UnmarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+	constructor, err := buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read constructor failed")
+	}
+	return unmarshalUint((*uint32)(t), constructor, buf)
 }
 
 type TerminusExpiryPolicy string
@@ -1631,7 +1748,11 @@ func (t *TerminusExpiryPolicy) Unmarshal(data []byte) error {
 }
 
 func (t *TerminusExpiryPolicy) UnmarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+	constructor, err := buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read constructor failed")
+	}
+	return unmarshalSymbol((*string)(t), constructor, buf)
 }
 
 type StdDistMode string
@@ -1661,7 +1782,11 @@ func (t *StdDistMode) Unmarshal(data []byte) error {
 }
 
 func (t *StdDistMode) UnmarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+	constructor, err := buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read constructor failed")
+	}
+	return unmarshalSymbol((*string)(t), constructor, buf)
 }
 
 type FilterSet types.Struct
@@ -1680,7 +1805,11 @@ func (t *FilterSet) Unmarshal(data []byte) error {
 }
 
 func (t *FilterSet) UnmarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+	constructor, err := buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read constructor failed")
+	}
+	return unmarshalMap((*types.Struct)(t), constructor, buf)
 }
 
 type NodeProperties types.Struct
@@ -1699,7 +1828,11 @@ func (t *NodeProperties) Unmarshal(data []byte) error {
 }
 
 func (t *NodeProperties) UnmarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+	constructor, err := buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read constructor failed")
+	}
+	return unmarshalMap((*types.Struct)(t), constructor, buf)
 }
 
 const (
@@ -2031,5 +2164,9 @@ func (t *SASLCode) Unmarshal(data []byte) error {
 }
 
 func (t *SASLCode) UnmarshalBuffer(buf *bytes.Buffer) error {
-	panic("implement me")
+	constructor, err := buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read constructor failed")
+	}
+	return unmarshalUbyte((*uint8)(t), constructor, buf)
 }

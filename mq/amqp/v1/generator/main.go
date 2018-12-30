@@ -163,6 +163,23 @@ func (t *Type) IsFrame() bool {
 	return false
 }
 
+func (t *Type) PrimitiveType() (*Type, error) {
+	if t.Class == "primitive" {
+		return t, nil
+	} else if t.Class == "restricted" {
+		for _, section := range t.Parent.Parent.Sections {
+			for _, typ := range section.Types {
+				if typ.Name == t.Source {
+					return typ.PrimitiveType()
+				}
+			}
+		}
+		return nil, errors.Errorf("cannot find primitive type %s", t.Name)
+	} else {
+		return nil, errors.Errorf("%s is neither primitive, nor restricted type", t.Name)
+	}
+}
+
 func (t *Type) GoType() (string, error) {
 	root := t.Parent.Parent
 
@@ -392,6 +409,9 @@ func run() error {
 			return strings.Join(s, sep)
 		},
 		"convert": convert,
+		"hasPrefix": func(s, prefix string) bool {
+			return strings.HasPrefix(s, prefix)
+		},
 	})
 	tpl, err = tpl.Parse(templateText)
 	if err != nil {
@@ -429,6 +449,7 @@ import (
 	"time"
 
 	"github.com/gogo/protobuf/types"
+	"github.com/pkg/errors"
 )
 
 type UUID [16]byte
@@ -569,12 +590,21 @@ type {{ $name | convert }} interface {
 				}
 
 				func (t *{{ $goTypeName }}) UnmarshalBuffer(buf *bytes.Buffer) error {
-					panic("implement me")
+					{{ $primitiveType := $type.PrimitiveType -}}
+					constructor, err := buf.ReadByte()
+					if err != nil {
+						return errors.Wrap(err, "read constructor failed")
+					}
+					return unmarshal{{ $primitiveType.Name | convert }}((*{{ $type.GoType }})(t), constructor, buf)
 				}
 			{{ else if eq $type.Class "primitive" }}
 				const (
 					{{- range $encoding := $type.Encodings }}
-						{{ joinWith "-" $type.Name $encoding.Name | convert }}Encoding = {{ printf "0x%02x" $encoding.Code }}
+						{{- if hasPrefix $encoding.Name $type.Name }}
+							{{ $encoding.Name | convert }}Encoding = {{ printf "0x%02x" $encoding.Code }}
+						{{- else }}
+							{{ joinWith "-" $type.Name $encoding.Name | convert }}Encoding = {{ printf "0x%02x" $encoding.Code }}
+						{{- end }}
 					{{- end }}
 				)
 			{{ end }}
