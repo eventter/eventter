@@ -312,12 +312,37 @@ func (f *Field) Type() *Type {
 	return nil
 }
 
+func (f *Field) UnionTypeName() string {
+	t := f.Type()
+	if t != nil {
+		return t.Name
+	}
+	return ""
+}
+
 func (f *Field) TypeClass() string {
 	t := f.Type()
 	if t != nil {
 		return t.Class
 	}
 	return ""
+}
+
+func (f *Field) PrimitiveTypeName() (string, error) {
+	t := f.Type()
+	if t.Class == "union" || t.Class == "composite" {
+		return "", nil
+	}
+	if t == nil {
+		return "", errors.Errorf("field %s (of type %s) couldn't find field type", f.Name, f.Parent.Name)
+	}
+	pt, err := t.PrimitiveType()
+	if err != nil {
+		return "", errors.Wrapf(err, "field %s (of type %s) could find field type's primitive type", f.Name, f.Parent.Name)
+	}
+
+	return pt.Name, nil
+
 }
 
 func (f *Field) goType() (string, error) {
@@ -366,8 +391,12 @@ func (f *Field) goType() (string, error) {
 }
 
 func (f *Field) GoNonZeroCheck(expr string) (string, error) {
-	if f.Multiple || f.TypeName == "*" {
+	if f.TypeName == "*" {
 		return expr + " != nil", nil
+	}
+
+	if f.Multiple {
+		return "len(" + expr + ") > 0", nil
 	}
 
 	t := f.Type()
@@ -541,6 +570,10 @@ import (
 	"github.com/pkg/errors"
 )
 
+const (
+	DescriptorEncoding = 0x00
+)
+
 type UUID [16]byte
 
 func (u UUID) String() string {
@@ -557,11 +590,23 @@ func (u UUID) String() string {
 	return string(x[:])
 }
 
+type DescribedType interface {
+	Descriptor() uint64
+}
+
+type BufferMarshaler interface {
+	MarshalBuffer(buf *bytes.Buffer) error
+}
+
+type BufferUnmarshaler interface {
+	UnmarshalBuffer(buf *bytes.Buffer) error
+}
+
 type Frame interface {
 	GetFrameMeta() *FrameMeta
-	Descriptor() uint64
-	MarshalBuffer(buf *bytes.Buffer) error
-	UnmarshalBuffer(buf *bytes.Buffer) error
+	DescribedType
+	BufferMarshaler
+	BufferUnmarshaler
 }
 
 type FrameMeta struct {
@@ -575,8 +620,6 @@ type FrameMeta struct {
 {{ range $name := .UnionTypeNames }}
 type {{ $name | convert }} interface {
 	is{{ $name | convert }}()
-	MarshalBuffer(buf *bytes.Buffer) error
-	Descriptor() uint64
 }
 {{ end }}
 
@@ -648,56 +691,52 @@ type {{ $name | convert }} interface {
 
 					if count == 0 {
 						buf.WriteByte(List0Encoding)
-						return nil
-					} else if count <= math.MaxUint8 {
-						buf.WriteByte(List8Encoding)
-						buf.WriteByte(byte(count))
 					} else {
-						var x [4] byte
-						buf.WriteByte(List32Encoding)
-						endian.PutUint32(x[:], count)
-						buf.Write(x[:])
-					}
-
-					{{ range $index, $field := $type.Fields -}}
-						if count > {{ $index }} {
-						{{- $fieldClass := $field.TypeClass -}}
-						{{ if $field.Multiple -}}
-							{{ if or (eq $fieldClass "primitive") (eq $fieldClass "restricted") -}}
-								err = marshal{{ $field.TypeName | convert }}Array(t.{{ $field.Name | convert }}, buf)
-								if err != nil {
-									return errors.Wrap(err, "marshal filed {{ $field.Name }} failed")
-								}
-							{{ else }}
-								panic("implement me: marshal multiple {{ $fieldClass }}")
-							{{- end }}
-						{{- else if eq $fieldClass "primitive" -}}
-							err = marshal{{ $field.TypeName | convert }}(t.{{ $field.Name | convert }}, buf)
-							if err != nil {
-								return errors.Wrap(err, "marshal field {{ $field.Name }} failed")
-							}
-						{{- else if or (eq $fieldClass "restricted") (eq $fieldClass "composite") -}}
-							err = t.{{ $field.Name | convert }}.MarshalBuffer(buf)
-							if err != nil {
-								return errors.Wrap(err, "marshal field {{ $field.Name }} failed")
-							}
-						{{- else if eq $fieldClass "union" -}}
-							buf.WriteByte(0x00)
-							err = marshalUlong(t.{{ $field.Name | convert }}.Descriptor(), buf)
-							if err != nil {
-								return errors.Wrap(err, "marshal field {{ $field.Name }} descriptor failed")
-							}
-							err = t.{{ $field.Name | convert }}.MarshalBuffer(buf)
-							if err != nil {
-								return errors.Wrap(err, "marshal field {{ $field.Name }} failed")
-							}
-						{{- else -}}
-							panic("implement me: marshal {{ $fieldClass }} field")
-						{{- end }}
-					{{ end }}
-					{{- range $type.Fields }}
+						if count <= math.MaxUint8 {
+							buf.WriteByte(List8Encoding)
+							buf.WriteByte(byte(count))
+						} else {
+							var x [4] byte
+							buf.WriteByte(List32Encoding)
+							endian.PutUint32(x[:], count)
+							buf.Write(x[:])
 						}
-					{{- end }}
+
+						{{ range $index, $field := $type.Fields -}}
+							if count > {{ $index }} {
+							{{- $fieldClass := $field.TypeClass -}}
+							{{ if $field.Multiple -}}
+								{{ if or (eq $fieldClass "primitive") (eq $fieldClass "restricted") -}}
+									err = marshal{{ $field.TypeName | convert }}Array(t.{{ $field.Name | convert }}, buf)
+									if err != nil {
+										return errors.Wrap(err, "marshal field {{ $field.Name }} failed")
+									}
+								{{ else }}
+									panic("implement me: marshal multiple {{ $fieldClass }}")
+								{{- end }}
+							{{- else if eq $fieldClass "primitive" -}}
+								err = marshal{{ $field.TypeName | convert }}(t.{{ $field.Name | convert }}, buf)
+								if err != nil {
+									return errors.Wrap(err, "marshal field {{ $field.Name }} failed")
+								}
+							{{- else if or (eq $fieldClass "restricted") (eq $fieldClass "composite") -}}
+								err = t.{{ $field.Name | convert }}.MarshalBuffer(buf)
+								if err != nil {
+									return errors.Wrap(err, "marshal field {{ $field.Name }} failed")
+								}
+							{{- else if eq $fieldClass "union" -}}
+								err = marshal{{ $field.UnionTypeName | convert }}Union(t.{{ $field.Name | convert }}, buf)
+								if err != nil {
+									return errors.Wrap(err, "marshal field {{ $field.Name }} failed")
+								}
+							{{- else -}}
+								panic("implement me: marshal {{ $fieldClass }} field")
+							{{- end }}
+						{{ end }}
+						{{- range $type.Fields }}
+							}
+						{{- end }}
+					}
 					return nil
 				}
 
@@ -706,7 +745,86 @@ type {{ $name | convert }} interface {
 				}
 
 				func (t *{{ $goTypeName }}) UnmarshalBuffer(buf *bytes.Buffer) error {
-					panic("implement me")
+					constructor, err := buf.ReadByte()
+					if err != nil {
+						return errors.Wrap(err, "read constructor failed")
+					}
+					var (
+						count uint32
+						done uint32
+					)
+					switch constructor {
+					case NullEncoding:
+						fallthrough
+					case List0Encoding:
+						return nil
+					case List8Encoding:
+						v, err := buf.ReadByte()
+						if err != nil {
+							return errors.Wrap(err, "read length failed")
+						}
+						count = uint32(v)
+					case List32Encoding:
+						if buf.Len() < 4 {
+							return errors.New("read length failed: buffer underflow")
+						}
+						count = endian.Uint32(buf.Next(4))
+					}
+
+					{{ range $index, $field := $type.Fields -}}
+						if count > {{ $index }} {
+						{{- $fieldClass := $field.TypeClass }}
+						{{- if or (ne $fieldClass "restricted") (eq $field.PrimitiveTypeName "map") $field.Multiple }}
+							constructor, err = buf.ReadByte()
+							if err != nil {
+								return errors.Wrap(err, "unmarshal field {{ $field.Name }} failed")
+							}
+						{{- end }}
+						{{ if $field.Multiple -}}
+							{{ if or (eq $fieldClass "primitive") (eq $fieldClass "restricted") -}}
+								err = unmarshal{{ $field.TypeName | convert }}Array(&t.{{ $field.Name | convert }}, constructor, buf)
+								if err != nil {
+									return errors.Wrap(err, "unmarshal field {{ $field.Name }} failed")
+								}
+							{{ else }}
+								panic("implement me: unmarshal multiple {{ $fieldClass }}")
+							{{- end }}
+						{{- else if eq $field.PrimitiveTypeName "map" -}}
+							var map{{ $index }} *types.Struct
+							err = unmarshalMap(&map{{ $index }}, constructor, buf)
+							if err != nil {
+								return errors.Wrap(err, "unmarshal field {{ $field.Name }} failed")
+							}
+							t.{{ $field.Name | convert }} = ({{ $field.GoType }})(map{{ $index }})
+						{{- else if eq $fieldClass "primitive" -}}
+							err = unmarshal{{ $field.TypeName | convert }}(&t.{{ $field.Name | convert }}, constructor, buf)
+							if err != nil {
+								return errors.Wrap(err, "unmarshal field {{ $field.Name }} failed")
+							}
+						{{- else if or (eq $fieldClass "restricted") (eq $fieldClass "composite") -}}
+							err = t.{{ $field.Name | convert }}.UnmarshalBuffer(buf)
+							if err != nil {
+								return errors.Wrap(err, "unmarshal field {{ $field.Name }} failed")
+							}
+						{{- else if eq $fieldClass "union" -}}
+							err = unmarshal{{ $field.UnionTypeName | convert }}Union(&t.{{ $field.Name | convert }}, constructor, buf)
+							if err != nil {
+								return errors.Wrap(err, "unmarshal field {{ $field.Name }} failed")
+							}
+						{{- else -}}
+							panic("implement me: unmarshal {{ $fieldClass }} field")
+						{{- end }}
+							done = {{ inc $index }}
+					{{ end }}
+					{{- range $type.Fields }}
+						}
+					{{- end }}
+
+					if count > done {
+						return errors.New("unmarshal failed: some fields were not read")
+					}
+
+					return nil
 				}
 
 			{{ else if eq $type.Class "restricted" }}
@@ -741,39 +859,70 @@ type {{ $name | convert }} interface {
 					func ({{ $goTypeName }}) is{{ $name | convert }}() {}
 				{{ end }}
 
-				func (t {{ $goTypeName }}) Marshal() ([]byte, error) {
-					buf := bytes.Buffer{}
-					err := t.MarshalBuffer(&buf)
-					if err != nil {
-						return nil, err
-					}
-					return buf.Bytes(), nil
-				}
-
 				{{ $primitiveType := $type.PrimitiveType -}}
 
 				{{ if eq $primitiveType.Name "map" }}
+					func (t *{{ $goTypeName }}) Marshal() ([]byte, error) {
+						buf := bytes.Buffer{}
+						err := t.MarshalBuffer(&buf)
+						if err != nil {
+							return nil, err
+						}
+						return buf.Bytes(), nil
+					}
+
 					func (t *{{ $goTypeName }}) MarshalBuffer(buf *bytes.Buffer) error {
 						return marshalMap((*types.Struct)(t), buf)
 					}
+
+					func (t *{{ $goTypeName }}) Unmarshal(data []byte) error {
+						return t.UnmarshalBuffer(bytes.NewBuffer(data))
+					}
+
+					func (t *{{ $goTypeName }}) UnmarshalBuffer(buf *bytes.Buffer) error {
+						constructor, err := buf.ReadByte()
+						if err != nil {
+							return errors.Wrap(err, "read constructor failed")
+						}
+
+						var m *types.Struct
+						err = unmarshalMap(&m, constructor, buf)
+						if err != nil {
+							return err
+						}
+
+						*t = ({{ $goTypeName }})(*m)
+						return nil
+					}
+
 				{{ else }}
+					func (t {{ $goTypeName }}) Marshal() ([]byte, error) {
+						buf := bytes.Buffer{}
+						err := t.MarshalBuffer(&buf)
+						if err != nil {
+							return nil, err
+						}
+						return buf.Bytes(), nil
+					}
+
 					func (t {{ $goTypeName }}) MarshalBuffer(buf *bytes.Buffer) error {
 						return marshal{{ $primitiveType.Name | convert }}({{ $type.GoType }}(t), buf)
 					}
+
+					func (t *{{ $goTypeName }}) Unmarshal(data []byte) error {
+						return t.UnmarshalBuffer(bytes.NewBuffer(data))
+					}
+
+					func (t *{{ $goTypeName }}) UnmarshalBuffer(buf *bytes.Buffer) error {
+						{{ $primitiveType := $type.PrimitiveType -}}
+						constructor, err := buf.ReadByte()
+						if err != nil {
+							return errors.Wrap(err, "read constructor failed")
+						}
+						return unmarshal{{ $primitiveType.Name | convert }}((*{{ $type.GoType }})(t), constructor, buf)
+					}
 				{{ end }}
 
-				func (t *{{ $goTypeName }}) Unmarshal(data []byte) error {
-					return t.UnmarshalBuffer(bytes.NewBuffer(data))
-				}
-
-				func (t *{{ $goTypeName }}) UnmarshalBuffer(buf *bytes.Buffer) error {
-					{{ $primitiveType := $type.PrimitiveType -}}
-					constructor, err := buf.ReadByte()
-					if err != nil {
-						return errors.Wrap(err, "read constructor failed")
-					}
-					return unmarshal{{ $primitiveType.Name | convert }}((*{{ $type.GoType }})(t), constructor, buf)
-				}
 			{{ else if eq $type.Class "primitive" }}
 				const (
 					{{- range $encoding := $type.Encodings }}

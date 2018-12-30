@@ -23,6 +23,7 @@ type Transport struct {
 	rw             io.ReadWriter
 	data           []byte
 	buf            bytes.Buffer
+	scratch        [18]byte // 8 bytes frame header + 1 byte descriptor constructor + (at most) 9 bytes ulong
 	frameMax       uint32
 	receiveTimeout time.Duration
 	sendTimeout    time.Duration
@@ -95,8 +96,6 @@ func (t *Transport) Send(frame Frame) (err error) {
 		}
 	}
 
-	var x [18]byte // 8 bytes frame header + 1 byte descriptor constructor + (at most) 9 bytes ulong
-
 	var data []byte
 	var meta *FrameMeta
 	if frame != nil {
@@ -118,31 +117,33 @@ func (t *Transport) Send(frame Frame) (err error) {
 		return ErrFrameTooBig
 	}
 
-	endian.PutUint32(x[:4], size)
-	x[4] = 8 / 4 // data offset
-
 	var descriptorLength int
 	if frame == nil {
-		x[5] = 0x00
+		t.scratch[5] = 0x00
 	} else {
 		switch frame.(type) {
 		case AMQPFrame:
-			x[5] = 0x00
+			t.scratch[5] = 0x00
 		case SASLFrame:
-			x[5] = 0x01
+			t.scratch[5] = 0x01
 		default:
 			return errors.Errorf("unhandled frame type %T", frame)
 		}
-		endian.PutUint16(x[6:8], meta.Channel)
-		x[8] = 0x00
-		buf := bytes.NewBuffer(x[9:9])
+		endian.PutUint16(t.scratch[6:8], meta.Channel)
+		t.scratch[8] = DescriptorEncoding
+		buf := bytes.NewBuffer(t.scratch[9:9])
 		err = marshalUlong(frame.Descriptor(), buf)
 		if err != nil {
 			return errors.Wrap(err, "marshal descriptor failed")
 		}
 		descriptorLength = 1 + buf.Len()
+		size += uint32(descriptorLength)
 	}
-	_, err = t.rw.Write(x[:8+descriptorLength])
+
+	endian.PutUint32(t.scratch[:4], size)
+	t.scratch[4] = 8 / 4 // data offset
+
+	_, err = t.rw.Write(t.scratch[:8+descriptorLength])
 	if err != nil {
 		return errors.Wrap(err, "write frame header failed")
 	}
@@ -221,7 +222,7 @@ func (t *Transport) Receive() (Frame, error) {
 		if err != nil {
 			return nil, errors.Wrap(err, "read descriptor failed")
 		}
-		if b != 0x00 {
+		if b != DescriptorEncoding {
 			return nil, ErrMalformedFrame
 		}
 		b, err = buf.ReadByte()

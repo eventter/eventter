@@ -40,4 +40,5 @@ require (
 	golang.org/x/tools v0.0.0-20181026183834-f60e5f99f081
 	google.golang.org/genproto v0.0.0-20181026194446-8b5d7a19e2d9
 	google.golang.org/grpc v1.16.0
+	pack.ag/amqp v0.10.2
 )

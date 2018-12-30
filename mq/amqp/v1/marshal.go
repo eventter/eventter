@@ -228,7 +228,7 @@ func marshalList(src *types.ListValue, buf *bytes.Buffer) error {
 	for index, value := range src.Values {
 		err := marshalValue(value, buf)
 		if err != nil {
-			return errors.Wrapf(err, "marshal liste item at index %d failed", index)
+			return errors.Wrapf(err, "marshal list item at index %d failed", index)
 		}
 	}
 
@@ -356,4 +356,68 @@ func marshalIETFLanguageTagArray(src []IETFLanguageTag, buf *bytes.Buffer) error
 	}
 
 	return nil
+}
+
+func marshalDeliveryStateUnion(src DeliveryState, buf *bytes.Buffer) error {
+	describedBy, ok := src.(DescribedType)
+	if !ok {
+		return errors.Errorf("marshal delivery-state failed: %T is not described", src)
+	}
+
+	buf.WriteByte(DescriptorEncoding)
+	err := marshalUlong(describedBy.Descriptor(), buf)
+	if err != nil {
+		return errors.Wrap(err, "marshal delivery-state failed")
+	}
+
+	marshaler, ok := src.(BufferMarshaler)
+	if !ok {
+		return errors.Errorf("marshal delivery-state failed: %T is not marshaler", src)
+	}
+
+	return errors.Wrap(marshaler.MarshalBuffer(buf), "marshal delivery-state failed")
+}
+
+func marshalMessageIDUnion(src MessageID, buf *bytes.Buffer) error {
+	switch src := src.(type) {
+	case MessageIDBinary:
+		return marshalBinary([]byte(src), buf)
+	case MessageIDString:
+		return marshalString(string(src), buf)
+	case MessageIDUUID:
+		return marshalUUID(UUID(src), buf)
+	case MessageIDUlong:
+		return marshalUlong(uint64(src), buf)
+	default:
+		return errors.Errorf("marshal message-id failed: %T not handled", src)
+	}
+}
+
+func marshalAddressUnion(src Address, buf *bytes.Buffer) error {
+	switch src := src.(type) {
+	case AddressString:
+		return marshalString(string(src), buf)
+	default:
+		return errors.Errorf("marshal address failed: %T not handled", src)
+	}
+}
+
+func marshalOutcomeUnion(src Outcome, buf *bytes.Buffer) error {
+	describedBy, ok := src.(DescribedType)
+	if !ok {
+		return errors.Errorf("marshal outcome failed: %T is not described", src)
+	}
+
+	buf.WriteByte(DescriptorEncoding)
+	err := marshalUlong(describedBy.Descriptor(), buf)
+	if err != nil {
+		return errors.Wrap(err, "marshal outcome failed")
+	}
+
+	marshaler, ok := src.(BufferMarshaler)
+	if !ok {
+		return errors.Errorf("marshal outcome failed: %T is not marshaler", src)
+	}
+
+	return errors.Wrap(marshaler.MarshalBuffer(buf), "marshal outcome failed")
 }

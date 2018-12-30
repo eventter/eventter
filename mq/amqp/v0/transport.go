@@ -19,6 +19,7 @@ type Transport struct {
 	rw             *bufio.ReadWriter
 	data           []byte
 	buf            bytes.Buffer
+	scratch        [12]byte
 	frameMax       uint32
 	receiveTimeout time.Duration
 	sendTimeout    time.Duration
@@ -92,7 +93,6 @@ func (t *Transport) Send(frame Frame) (err error) {
 	var (
 		frameType FrameType
 		payload   []byte
-		x         [12]byte
 		end       = 7
 	)
 
@@ -101,8 +101,8 @@ func (t *Transport) Send(frame Frame) (err error) {
 		frameType = FrameMethod
 		frame.FixMethodMeta()
 		mm := frame.GetMethodMeta()
-		endian.PutUint16(x[7:9], uint16(mm.ClassID))
-		endian.PutUint16(x[9:11], uint16(mm.MethodID))
+		endian.PutUint16(t.scratch[7:9], uint16(mm.ClassID))
+		endian.PutUint16(t.scratch[9:11], uint16(mm.MethodID))
 		end = 11
 		t.buf.Reset()
 		err = frame.MarshalBuffer(&t.buf)
@@ -133,18 +133,18 @@ func (t *Transport) Send(frame Frame) (err error) {
 		return ErrFrameTooBig
 	}
 
-	x[0] = byte(frameType)
-	endian.PutUint16(x[1:3], frame.GetFrameMeta().Channel)
-	endian.PutUint32(x[3:7], uint32(len(payload)+(end-7)))
-	x[end] = FrameEnd
+	t.scratch[0] = byte(frameType)
+	endian.PutUint16(t.scratch[1:3], frame.GetFrameMeta().Channel)
+	endian.PutUint32(t.scratch[3:7], uint32(len(payload)+(end-7)))
+	t.scratch[end] = FrameEnd
 
 	if len(payload) == 0 {
-		_, err = t.rw.Write(x[:end+1])
+		_, err = t.rw.Write(t.scratch[:end+1])
 		if err != nil {
 			return errors.Wrap(err, "write frame failed")
 		}
 	} else {
-		_, err = t.rw.Write(x[:end])
+		_, err = t.rw.Write(t.scratch[:end])
 		if err != nil {
 			return errors.Wrap(err, "write frame header failed")
 		}
@@ -152,7 +152,7 @@ func (t *Transport) Send(frame Frame) (err error) {
 		if err != nil {
 			return errors.Wrap(err, "write frame payload failed")
 		}
-		_, err = t.rw.Write(x[end : end+1])
+		_, err = t.rw.Write(t.scratch[end : end+1])
 		if err != nil {
 			return errors.Wrap(err, "write frame end failed")
 		}
