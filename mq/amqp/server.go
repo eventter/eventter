@@ -109,7 +109,8 @@ func (s *Server) accept(conn net.Conn) {
 }
 
 func (s *Server) handle(conn net.Conn) error {
-	err := conn.SetDeadline(time.Now().Add(s.ConnectTimeout))
+	deadline := time.Now().Add(s.ConnectTimeout)
+	err := conn.SetDeadline(deadline)
 	if err != nil {
 		return errors.Wrap(err, "set deadline failed")
 	}
@@ -127,7 +128,7 @@ func (s *Server) handle(conn net.Conn) error {
 		// AMQP 0.9.1
 
 		transport := v0.NewTransport(conn)
-		ctx, err := s.initV0(transport)
+		ctx, err := s.initV0(transport, deadline)
 		if err != nil {
 			return errors.Wrapf(err, "init v%d.%d.%d connection failed", x[5], x[6], x[7])
 		}

@@ -1,6 +1,8 @@
 package sasl
 
 import (
+	"context"
+
 	"eventter.io/mq/amqp/v0"
 	"eventter.io/mq/structvalue"
 	"github.com/pkg/errors"
@@ -18,7 +20,7 @@ func (p *amqplainProvider) Mechanism() string {
 	return "AMQPLAIN"
 }
 
-func (p *amqplainProvider) Authenticate(challenge string, response string) (token Token, nextChallenge string, err error) {
+func (p *amqplainProvider) Authenticate(ctx context.Context, challenge string, response string) (token Token, nextChallenge string, err error) {
 	table, err := v0.UnmarshalTable([]byte(response))
 	if err != nil {
 		return nil, "", errors.Wrap(err, "unmarshal failed")
@@ -38,7 +40,7 @@ func (p *amqplainProvider) Authenticate(challenge string, response string) (toke
 		return nil, "", errors.New("PASSWORD not found / empty")
 	}
 
-	ok, err := p.verify(username, password)
+	ok, err := p.verify(ctx, username, password)
 	if err != nil {
 		return nil, "", errors.Wrap(err, "authentication failed")
 	}

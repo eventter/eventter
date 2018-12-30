@@ -30,7 +30,10 @@ type contextValueV0 struct {
 	virtualHost string
 }
 
-func (s *Server) initV0(transport *v0.Transport) (ctx context.Context, err error) {
+func (s *Server) initV0(transport *v0.Transport, deadline time.Time) (ctx context.Context, err error) {
+	ctx, cancel := context.WithDeadline(s.ctx, deadline)
+	defer cancel()
+
 	var mechanisms []string
 	for _, provider := range s.SASLProviders {
 		mechanisms = append(mechanisms, provider.Mechanism())
@@ -82,7 +85,7 @@ func (s *Server) initV0(transport *v0.Transport) (ctx context.Context, err error
 			continue
 		}
 
-		token, challenge, err = provider.Authenticate(challenge, startOk.Response)
+		token, challenge, err = provider.Authenticate(ctx, challenge, startOk.Response)
 		if err != nil {
 			return nil, errors.Wrapf(err, "sasl using %s failed", startOk.Mechanism)
 		}
@@ -101,7 +104,7 @@ func (s *Server) initV0(transport *v0.Transport) (ctx context.Context, err error
 				return nil, errors.Errorf("did not receive connection.secure-ok, got %T instead", frame)
 			}
 
-			token, challenge, err = provider.Authenticate(challenge, secureOk.Response)
+			token, challenge, err = provider.Authenticate(ctx, challenge, secureOk.Response)
 			if err != nil {
 				return nil, errors.Wrapf(err, "sasl using %s failed", startOk.Mechanism)
 			}

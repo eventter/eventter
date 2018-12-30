@@ -1,8 +1,12 @@
 package sasl
 
+import (
+	"context"
+)
+
 type Provider interface {
 	Mechanism() string
-	Authenticate(challenge string, response string) (token Token, nextChallenge string, err error)
+	Authenticate(ctx context.Context, challenge string, response string) (token Token, nextChallenge string, err error)
 }
 
 type Token interface {
@@ -32,4 +36,4 @@ func (t *UsernamePasswordToken) IsAuthenticated() bool {
 	return true
 }
 
-type UsernamePasswordVerifier func(username, password string) (bool, error)
+type UsernamePasswordVerifier func(ctx context.Context, username, password string) (bool, error)

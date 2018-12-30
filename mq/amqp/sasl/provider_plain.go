@@ -1,6 +1,7 @@
 package sasl
 
 import (
+	"context"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -18,13 +19,13 @@ func (p *plainProvider) Mechanism() string {
 	return "PLAIN"
 }
 
-func (p *plainProvider) Authenticate(challenge string, response string) (tok Token, nextChallenge string, err error) {
+func (p *plainProvider) Authenticate(ctx context.Context, challenge string, response string) (token Token, nextChallenge string, err error) {
 	parts := strings.Split(response, "\000")
 	if len(parts) != 3 {
 		return nil, "", errors.Errorf("expected %d parts, got %d parts", 3, len(parts))
 	}
 
-	ok, err := p.verify(parts[1], parts[2])
+	ok, err := p.verify(ctx, parts[1], parts[2])
 	if err != nil {
 		return nil, "", errors.Wrap(err, "authentication failed")
 	}

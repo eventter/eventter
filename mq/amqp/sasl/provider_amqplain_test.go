@@ -1,6 +1,7 @@
 package sasl
 
 import (
+	"context"
 	"testing"
 
 	"eventter.io/mq/amqp/v0"
@@ -11,7 +12,7 @@ import (
 func TestAmqplainProvider_Authenticate_Success(t *testing.T) {
 	assert := require.New(t)
 
-	provider := NewAMQPLAIN(func(username, password string) (ok bool, err error) {
+	provider := NewAMQPLAIN(func(ctx context.Context, username, password string) (ok bool, err error) {
 		return true, nil
 	})
 
@@ -23,7 +24,7 @@ func TestAmqplainProvider_Authenticate_Success(t *testing.T) {
 	})
 	assert.NoError(err)
 
-	token, challenge, err := provider.Authenticate("", string(buf))
+	token, challenge, err := provider.Authenticate(context.Background(), "", string(buf))
 	assert.NoError(err)
 	assert.Empty(challenge)
 	assert.NotNil(token)
@@ -37,11 +38,11 @@ func TestAmqplainProvider_Authenticate_Success(t *testing.T) {
 func TestAmqplainProvider_Authenticate_BadResponse(t *testing.T) {
 	assert := require.New(t)
 
-	provider := NewAMQPLAIN(func(username, password string) (ok bool, err error) {
+	provider := NewAMQPLAIN(func(ctx context.Context, username, password string) (ok bool, err error) {
 		return true, nil
 	})
 
-	token, challenge, err := provider.Authenticate("", "")
+	token, challenge, err := provider.Authenticate(context.Background(), "", "")
 	assert.Error(err)
 	assert.Empty(challenge)
 	assert.Nil(token)
@@ -50,7 +51,7 @@ func TestAmqplainProvider_Authenticate_BadResponse(t *testing.T) {
 func TestAmqplainProvider_Authenticate_NotVerified(t *testing.T) {
 	assert := require.New(t)
 
-	provider := NewAMQPLAIN(func(username, password string) (ok bool, err error) {
+	provider := NewAMQPLAIN(func(ctx context.Context, username, password string) (ok bool, err error) {
 		return false, nil
 	})
 
@@ -62,7 +63,7 @@ func TestAmqplainProvider_Authenticate_NotVerified(t *testing.T) {
 	})
 	assert.NoError(err)
 
-	token, challenge, err := provider.Authenticate("", string(buf))
+	token, challenge, err := provider.Authenticate(context.Background(), "", string(buf))
 	assert.NoError(err)
 	assert.Empty(challenge)
 	assert.Nil(token)

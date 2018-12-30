@@ -1,6 +1,7 @@
 package sasl
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -11,7 +12,7 @@ func TestAnonymousProvider_Authenticate(t *testing.T) {
 
 	provider := NewANONYMOUS()
 
-	token, challenge, err := provider.Authenticate("", "")
+	token, challenge, err := provider.Authenticate(context.Background(), "", "")
 	assert.NoError(err)
 	assert.Empty(challenge)
 	assert.NotNil(token)

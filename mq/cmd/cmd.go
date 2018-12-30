@@ -192,7 +192,7 @@ func Cmd() *cobra.Command {
 				return errors.Wrap(err, "amqp listen failed")
 			}
 			defer amqpListener.Close()
-			allowAll := func(username, password string) (bool, error) {
+			allowAll := func(ctx context.Context, username, password string) (bool, error) {
 				return true, nil
 			}
 			amqpServer := &amqp.Server{
