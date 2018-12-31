@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func newClient(t *testing.T) (x1 *testServer, x2 *v0.Transport, cleanup func(), err error) {
+func newClientAMQPv0(t *testing.T) (x1 *testServer, x2 *v0.Transport, cleanup func(), err error) {
 	assert := require.New(t)
 
 	ts, err := newTestServer(0)
@@ -65,7 +65,7 @@ func newClient(t *testing.T) (x1 *testServer, x2 *v0.Transport, cleanup func(), 
 func TestServer_ServeAMQPv0_QueuePurge(t *testing.T) {
 	assert := require.New(t)
 
-	_, client, cleanup, err := newClient(t)
+	_, client, cleanup, err := newClientAMQPv0(t)
 	assert.NoError(err)
 	defer cleanup()
 
@@ -113,7 +113,7 @@ func TestServer_ServeAMQPv0_BasicRecover(t *testing.T) {
 		t.Run(fmt.Sprintf("requeue=%t", test.requeue), func(t *testing.T) {
 			assert := require.New(t)
 
-			_, client, cleanup, err := newClient(t)
+			_, client, cleanup, err := newClientAMQPv0(t)
 			assert.NoError(err)
 			defer cleanup()
 
@@ -163,7 +163,7 @@ func TestServer_ServeAMQPv0_BasicRecoverAsync(t *testing.T) {
 		t.Run(fmt.Sprintf("requeue=%t", test.requeue), func(t *testing.T) {
 			assert := require.New(t)
 
-			_, client, cleanup, err := newClient(t)
+			_, client, cleanup, err := newClientAMQPv0(t)
 			assert.NoError(err)
 			defer cleanup()
 
@@ -205,7 +205,7 @@ func TestServer_ServeAMQPv0_BasicRecoverAsync(t *testing.T) {
 func TestServer_ServeAMQPv0_TxSelect(t *testing.T) {
 	assert := require.New(t)
 
-	_, client, cleanup, err := newClient(t)
+	_, client, cleanup, err := newClientAMQPv0(t)
 	assert.NoError(err)
 	defer cleanup()
 
@@ -233,7 +233,7 @@ func TestServer_ServeAMQPv0_TxSelect(t *testing.T) {
 func TestServer_ServeAMQPv0_TxCommit(t *testing.T) {
 	assert := require.New(t)
 
-	_, client, cleanup, err := newClient(t)
+	_, client, cleanup, err := newClientAMQPv0(t)
 	assert.NoError(err)
 	defer cleanup()
 
@@ -261,7 +261,7 @@ func TestServer_ServeAMQPv0_TxCommit(t *testing.T) {
 func TestServer_ServeAMQPv0_TxRollback(t *testing.T) {
 	assert := require.New(t)
 
-	_, client, cleanup, err := newClient(t)
+	_, client, cleanup, err := newClientAMQPv0(t)
 	assert.NoError(err)
 	defer cleanup()
 

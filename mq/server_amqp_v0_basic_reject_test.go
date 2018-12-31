@@ -20,7 +20,7 @@ func TestServer_ServeAMQPv0_BasicReject(t *testing.T) {
 		t.Run(fmt.Sprintf("requeue=%t", test.requeue), func(t *testing.T) {
 			assert := require.New(t)
 
-			ts, client, cleanup, err := newClient(t)
+			ts, client, cleanup, err := newClientAMQPv0(t)
 			assert.NoError(err)
 			defer cleanup()
 

@@ -17,6 +17,11 @@ const (
 	DescriptorEncoding = 0x00
 )
 
+const (
+	RemoteChannelNull = math.MaxUint16
+	ChannelMax        = math.MaxUint16 - 1
+)
+
 type UUID [16]byte
 
 func (u UUID) String() string {
@@ -250,6 +255,10 @@ func (t *Open) Marshal() ([]byte, error) {
 }
 
 func (t *Open) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	if t == nil {
+		return errors.New("<nil>")
+	}
+
 	buf.WriteByte(DescriptorEncoding)
 	err = marshalUlong(OpenDescriptor, buf)
 	if err != nil {
@@ -444,6 +453,10 @@ func (t *Open) Unmarshal(data []byte) error {
 }
 
 func (t *Open) UnmarshalBuffer(buf *bytes.Buffer) error {
+	if t == nil {
+		return errors.New("<nil>")
+	}
+
 	constructor, err := buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
@@ -667,6 +680,10 @@ func (t *Begin) Marshal() ([]byte, error) {
 }
 
 func (t *Begin) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	if t == nil {
+		return errors.New("<nil>")
+	}
+
 	buf.WriteByte(DescriptorEncoding)
 	err = marshalUlong(BeginDescriptor, buf)
 	if err != nil {
@@ -697,7 +714,7 @@ func (t *Begin) MarshalBuffer(buf *bytes.Buffer) (err error) {
 		itemBuf := bytes.Buffer{}
 
 		if count > 0 {
-			if t.RemoteChannel != 0 {
+			if t.RemoteChannel != RemoteChannelNull {
 				err = marshalUshort(t.RemoteChannel, &itemBuf)
 				if err != nil {
 					return errors.Wrap(err, "marshal field remote-channel failed")
@@ -809,6 +826,10 @@ func (t *Begin) Unmarshal(data []byte) error {
 }
 
 func (t *Begin) UnmarshalBuffer(buf *bytes.Buffer) error {
+	if t == nil {
+		return errors.New("<nil>")
+	}
+
 	constructor, err := buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
@@ -1010,6 +1031,10 @@ func (t *Attach) Marshal() ([]byte, error) {
 }
 
 func (t *Attach) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	if t == nil {
+		return errors.New("<nil>")
+	}
+
 	buf.WriteByte(DescriptorEncoding)
 	err = marshalUlong(AttachDescriptor, buf)
 	if err != nil {
@@ -1250,6 +1275,10 @@ func (t *Attach) Unmarshal(data []byte) error {
 }
 
 func (t *Attach) UnmarshalBuffer(buf *bytes.Buffer) error {
+	if t == nil {
+		return errors.New("<nil>")
+	}
+
 	constructor, err := buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
@@ -1350,20 +1379,14 @@ func (t *Attach) UnmarshalBuffer(buf *bytes.Buffer) error {
 						}
 						done = 5
 						if count > 5 {
-							constructor, err = itemBuf.ReadByte()
-							if err != nil {
-								return errors.Wrap(err, "unmarshal field source failed")
-							}
+							t.Source = &Source{}
 							err = t.Source.UnmarshalBuffer(itemBuf)
 							if err != nil {
 								return errors.Wrap(err, "unmarshal field source failed")
 							}
 							done = 6
 							if count > 6 {
-								constructor, err = itemBuf.ReadByte()
-								if err != nil {
-									return errors.Wrap(err, "unmarshal field target failed")
-								}
+								t.Target = &Target{}
 								err = t.Target.UnmarshalBuffer(itemBuf)
 								if err != nil {
 									return errors.Wrap(err, "unmarshal field target failed")
@@ -1504,6 +1527,10 @@ func (t *Flow) Marshal() ([]byte, error) {
 }
 
 func (t *Flow) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	if t == nil {
+		return errors.New("<nil>")
+	}
+
 	buf.WriteByte(DescriptorEncoding)
 	err = marshalUlong(FlowDescriptor, buf)
 	if err != nil {
@@ -1692,6 +1719,10 @@ func (t *Flow) Unmarshal(data []byte) error {
 }
 
 func (t *Flow) UnmarshalBuffer(buf *bytes.Buffer) error {
+	if t == nil {
+		return errors.New("<nil>")
+	}
+
 	constructor, err := buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
@@ -1913,6 +1944,10 @@ func (t *Transfer) Marshal() ([]byte, error) {
 }
 
 func (t *Transfer) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	if t == nil {
+		return errors.New("<nil>")
+	}
+
 	buf.WriteByte(DescriptorEncoding)
 	err = marshalUlong(TransferDescriptor, buf)
 	if err != nil {
@@ -2119,6 +2154,10 @@ func (t *Transfer) Unmarshal(data []byte) error {
 }
 
 func (t *Transfer) UnmarshalBuffer(buf *bytes.Buffer) error {
+	if t == nil {
+		return errors.New("<nil>")
+	}
+
 	constructor, err := buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
@@ -2325,6 +2364,10 @@ func (t *Disposition) Marshal() ([]byte, error) {
 }
 
 func (t *Disposition) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	if t == nil {
+		return errors.New("<nil>")
+	}
+
 	buf.WriteByte(DescriptorEncoding)
 	err = marshalUlong(DispositionDescriptor, buf)
 	if err != nil {
@@ -2443,6 +2486,10 @@ func (t *Disposition) Unmarshal(data []byte) error {
 }
 
 func (t *Disposition) UnmarshalBuffer(buf *bytes.Buffer) error {
+	if t == nil {
+		return errors.New("<nil>")
+	}
+
 	constructor, err := buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
@@ -2599,6 +2646,10 @@ func (t *Detach) Marshal() ([]byte, error) {
 }
 
 func (t *Detach) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	if t == nil {
+		return errors.New("<nil>")
+	}
+
 	buf.WriteByte(DescriptorEncoding)
 	err = marshalUlong(DetachDescriptor, buf)
 	if err != nil {
@@ -2677,6 +2728,10 @@ func (t *Detach) Unmarshal(data []byte) error {
 }
 
 func (t *Detach) UnmarshalBuffer(buf *bytes.Buffer) error {
+	if t == nil {
+		return errors.New("<nil>")
+	}
+
 	constructor, err := buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
@@ -2759,10 +2814,7 @@ func (t *Detach) UnmarshalBuffer(buf *bytes.Buffer) error {
 			}
 			done = 2
 			if count > 2 {
-				constructor, err = itemBuf.ReadByte()
-				if err != nil {
-					return errors.Wrap(err, "unmarshal field error failed")
-				}
+				t.Error = &Error{}
 				err = t.Error.UnmarshalBuffer(itemBuf)
 				if err != nil {
 					return errors.Wrap(err, "unmarshal field error failed")
@@ -2810,6 +2862,10 @@ func (t *End) Marshal() ([]byte, error) {
 }
 
 func (t *End) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	if t == nil {
+		return errors.New("<nil>")
+	}
+
 	buf.WriteByte(DescriptorEncoding)
 	err = marshalUlong(EndDescriptor, buf)
 	if err != nil {
@@ -2864,6 +2920,10 @@ func (t *End) Unmarshal(data []byte) error {
 }
 
 func (t *End) UnmarshalBuffer(buf *bytes.Buffer) error {
+	if t == nil {
+		return errors.New("<nil>")
+	}
+
 	constructor, err := buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
@@ -2930,10 +2990,7 @@ func (t *End) UnmarshalBuffer(buf *bytes.Buffer) error {
 
 	var done int = 0
 	if count > 0 {
-		constructor, err = itemBuf.ReadByte()
-		if err != nil {
-			return errors.Wrap(err, "unmarshal field error failed")
-		}
+		t.Error = &Error{}
 		err = t.Error.UnmarshalBuffer(itemBuf)
 		if err != nil {
 			return errors.Wrap(err, "unmarshal field error failed")
@@ -2979,6 +3036,10 @@ func (t *Close) Marshal() ([]byte, error) {
 }
 
 func (t *Close) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	if t == nil {
+		return errors.New("<nil>")
+	}
+
 	buf.WriteByte(DescriptorEncoding)
 	err = marshalUlong(CloseDescriptor, buf)
 	if err != nil {
@@ -3033,6 +3094,10 @@ func (t *Close) Unmarshal(data []byte) error {
 }
 
 func (t *Close) UnmarshalBuffer(buf *bytes.Buffer) error {
+	if t == nil {
+		return errors.New("<nil>")
+	}
+
 	constructor, err := buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
@@ -3099,10 +3164,7 @@ func (t *Close) UnmarshalBuffer(buf *bytes.Buffer) error {
 
 	var done int = 0
 	if count > 0 {
-		constructor, err = itemBuf.ReadByte()
-		if err != nil {
-			return errors.Wrap(err, "unmarshal field error failed")
-		}
+		t.Error = &Error{}
 		err = t.Error.UnmarshalBuffer(itemBuf)
 		if err != nil {
 			return errors.Wrap(err, "unmarshal field error failed")
@@ -3562,6 +3624,10 @@ func (t *Error) Marshal() ([]byte, error) {
 }
 
 func (t *Error) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	if t == nil {
+		return errors.New("<nil>")
+	}
+
 	buf.WriteByte(DescriptorEncoding)
 	err = marshalUlong(ErrorDescriptor, buf)
 	if err != nil {
@@ -3640,6 +3706,10 @@ func (t *Error) Unmarshal(data []byte) error {
 }
 
 func (t *Error) UnmarshalBuffer(buf *bytes.Buffer) error {
+	if t == nil {
+		return errors.New("<nil>")
+	}
+
 	constructor, err := buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
@@ -3949,6 +4019,10 @@ func (t *Header) Marshal() ([]byte, error) {
 }
 
 func (t *Header) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	if t == nil {
+		return errors.New("<nil>")
+	}
+
 	buf.WriteByte(DescriptorEncoding)
 	err = marshalUlong(HeaderDescriptor, buf)
 	if err != nil {
@@ -4067,6 +4141,10 @@ func (t *Header) Unmarshal(data []byte) error {
 }
 
 func (t *Header) UnmarshalBuffer(buf *bytes.Buffer) error {
+	if t == nil {
+		return errors.New("<nil>")
+	}
+
 	constructor, err := buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
@@ -4313,6 +4391,10 @@ func (t *Properties) Marshal() ([]byte, error) {
 }
 
 func (t *Properties) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	if t == nil {
+		return errors.New("<nil>")
+	}
+
 	buf.WriteByte(DescriptorEncoding)
 	err = marshalUlong(PropertiesDescriptor, buf)
 	if err != nil {
@@ -4559,6 +4641,10 @@ func (t *Properties) Unmarshal(data []byte) error {
 }
 
 func (t *Properties) UnmarshalBuffer(buf *bytes.Buffer) error {
+	if t == nil {
+		return errors.New("<nil>")
+	}
+
 	constructor, err := buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
@@ -5080,6 +5166,10 @@ func (t *Received) Marshal() ([]byte, error) {
 }
 
 func (t *Received) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	if t == nil {
+		return errors.New("<nil>")
+	}
+
 	buf.WriteByte(DescriptorEncoding)
 	err = marshalUlong(ReceivedDescriptor, buf)
 	if err != nil {
@@ -5133,6 +5223,10 @@ func (t *Received) Unmarshal(data []byte) error {
 }
 
 func (t *Received) UnmarshalBuffer(buf *bytes.Buffer) error {
+	if t == nil {
+		return errors.New("<nil>")
+	}
+
 	constructor, err := buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
@@ -5255,6 +5349,10 @@ func (t *Accepted) Marshal() ([]byte, error) {
 }
 
 func (t *Accepted) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	if t == nil {
+		return errors.New("<nil>")
+	}
+
 	buf.WriteByte(DescriptorEncoding)
 	err = marshalUlong(AcceptedDescriptor, buf)
 	if err != nil {
@@ -5291,6 +5389,10 @@ func (t *Accepted) Unmarshal(data []byte) error {
 }
 
 func (t *Accepted) UnmarshalBuffer(buf *bytes.Buffer) error {
+	if t == nil {
+		return errors.New("<nil>")
+	}
+
 	constructor, err := buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
@@ -5391,6 +5493,10 @@ func (t *Rejected) Marshal() ([]byte, error) {
 }
 
 func (t *Rejected) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	if t == nil {
+		return errors.New("<nil>")
+	}
+
 	buf.WriteByte(DescriptorEncoding)
 	err = marshalUlong(RejectedDescriptor, buf)
 	if err != nil {
@@ -5445,6 +5551,10 @@ func (t *Rejected) Unmarshal(data []byte) error {
 }
 
 func (t *Rejected) UnmarshalBuffer(buf *bytes.Buffer) error {
+	if t == nil {
+		return errors.New("<nil>")
+	}
+
 	constructor, err := buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
@@ -5511,10 +5621,7 @@ func (t *Rejected) UnmarshalBuffer(buf *bytes.Buffer) error {
 
 	var done int = 0
 	if count > 0 {
-		constructor, err = itemBuf.ReadByte()
-		if err != nil {
-			return errors.Wrap(err, "unmarshal field error failed")
-		}
+		t.Error = &Error{}
 		err = t.Error.UnmarshalBuffer(itemBuf)
 		if err != nil {
 			return errors.Wrap(err, "unmarshal field error failed")
@@ -5556,6 +5663,10 @@ func (t *Released) Marshal() ([]byte, error) {
 }
 
 func (t *Released) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	if t == nil {
+		return errors.New("<nil>")
+	}
+
 	buf.WriteByte(DescriptorEncoding)
 	err = marshalUlong(ReleasedDescriptor, buf)
 	if err != nil {
@@ -5592,6 +5703,10 @@ func (t *Released) Unmarshal(data []byte) error {
 }
 
 func (t *Released) UnmarshalBuffer(buf *bytes.Buffer) error {
+	if t == nil {
+		return errors.New("<nil>")
+	}
+
 	constructor, err := buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
@@ -5694,6 +5809,10 @@ func (t *Modified) Marshal() ([]byte, error) {
 }
 
 func (t *Modified) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	if t == nil {
+		return errors.New("<nil>")
+	}
+
 	buf.WriteByte(DescriptorEncoding)
 	err = marshalUlong(ModifiedDescriptor, buf)
 	if err != nil {
@@ -5780,6 +5899,10 @@ func (t *Modified) Unmarshal(data []byte) error {
 }
 
 func (t *Modified) UnmarshalBuffer(buf *bytes.Buffer) error {
+	if t == nil {
+		return errors.New("<nil>")
+	}
+
 	constructor, err := buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
@@ -5924,6 +6047,10 @@ func (t *Source) Marshal() ([]byte, error) {
 }
 
 func (t *Source) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	if t == nil {
+		return errors.New("<nil>")
+	}
+
 	buf.WriteByte(DescriptorEncoding)
 	err = marshalUlong(SourceDescriptor, buf)
 	if err != nil {
@@ -6140,6 +6267,10 @@ func (t *Source) Unmarshal(data []byte) error {
 }
 
 func (t *Source) UnmarshalBuffer(buf *bytes.Buffer) error {
+	if t == nil {
+		return errors.New("<nil>")
+	}
+
 	constructor, err := buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
@@ -6352,6 +6483,10 @@ func (t *Target) Marshal() ([]byte, error) {
 }
 
 func (t *Target) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	if t == nil {
+		return errors.New("<nil>")
+	}
+
 	buf.WriteByte(DescriptorEncoding)
 	err = marshalUlong(TargetDescriptor, buf)
 	if err != nil {
@@ -6503,6 +6638,10 @@ func (t *Target) Unmarshal(data []byte) error {
 }
 
 func (t *Target) UnmarshalBuffer(buf *bytes.Buffer) error {
+	if t == nil {
+		return errors.New("<nil>")
+	}
+
 	constructor, err := buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
@@ -6857,6 +6996,10 @@ func (t *DeleteOnClose) Marshal() ([]byte, error) {
 }
 
 func (t *DeleteOnClose) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	if t == nil {
+		return errors.New("<nil>")
+	}
+
 	buf.WriteByte(DescriptorEncoding)
 	err = marshalUlong(DeleteOnCloseDescriptor, buf)
 	if err != nil {
@@ -6893,6 +7036,10 @@ func (t *DeleteOnClose) Unmarshal(data []byte) error {
 }
 
 func (t *DeleteOnClose) UnmarshalBuffer(buf *bytes.Buffer) error {
+	if t == nil {
+		return errors.New("<nil>")
+	}
+
 	constructor, err := buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
@@ -6990,6 +7137,10 @@ func (t *DeleteOnNoLinks) Marshal() ([]byte, error) {
 }
 
 func (t *DeleteOnNoLinks) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	if t == nil {
+		return errors.New("<nil>")
+	}
+
 	buf.WriteByte(DescriptorEncoding)
 	err = marshalUlong(DeleteOnNoLinksDescriptor, buf)
 	if err != nil {
@@ -7026,6 +7177,10 @@ func (t *DeleteOnNoLinks) Unmarshal(data []byte) error {
 }
 
 func (t *DeleteOnNoLinks) UnmarshalBuffer(buf *bytes.Buffer) error {
+	if t == nil {
+		return errors.New("<nil>")
+	}
+
 	constructor, err := buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
@@ -7123,6 +7278,10 @@ func (t *DeleteOnNoMessages) Marshal() ([]byte, error) {
 }
 
 func (t *DeleteOnNoMessages) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	if t == nil {
+		return errors.New("<nil>")
+	}
+
 	buf.WriteByte(DescriptorEncoding)
 	err = marshalUlong(DeleteOnNoMessagesDescriptor, buf)
 	if err != nil {
@@ -7159,6 +7318,10 @@ func (t *DeleteOnNoMessages) Unmarshal(data []byte) error {
 }
 
 func (t *DeleteOnNoMessages) UnmarshalBuffer(buf *bytes.Buffer) error {
+	if t == nil {
+		return errors.New("<nil>")
+	}
+
 	constructor, err := buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
@@ -7256,6 +7419,10 @@ func (t *DeleteOnNoLinksOrMessages) Marshal() ([]byte, error) {
 }
 
 func (t *DeleteOnNoLinksOrMessages) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	if t == nil {
+		return errors.New("<nil>")
+	}
+
 	buf.WriteByte(DescriptorEncoding)
 	err = marshalUlong(DeleteOnNoLinksOrMessagesDescriptor, buf)
 	if err != nil {
@@ -7292,6 +7459,10 @@ func (t *DeleteOnNoLinksOrMessages) Unmarshal(data []byte) error {
 }
 
 func (t *DeleteOnNoLinksOrMessages) UnmarshalBuffer(buf *bytes.Buffer) error {
+	if t == nil {
+		return errors.New("<nil>")
+	}
+
 	constructor, err := buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
@@ -7407,6 +7578,10 @@ func (t *SASLMechanisms) Marshal() ([]byte, error) {
 }
 
 func (t *SASLMechanisms) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	if t == nil {
+		return errors.New("<nil>")
+	}
+
 	buf.WriteByte(DescriptorEncoding)
 	err = marshalUlong(SASLMechanismsDescriptor, buf)
 	if err != nil {
@@ -7452,6 +7627,10 @@ func (t *SASLMechanisms) Unmarshal(data []byte) error {
 }
 
 func (t *SASLMechanisms) UnmarshalBuffer(buf *bytes.Buffer) error {
+	if t == nil {
+		return errors.New("<nil>")
+	}
+
 	constructor, err := buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
@@ -7570,6 +7749,10 @@ func (t *SASLInit) Marshal() ([]byte, error) {
 }
 
 func (t *SASLInit) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	if t == nil {
+		return errors.New("<nil>")
+	}
+
 	buf.WriteByte(DescriptorEncoding)
 	err = marshalUlong(SASLInitDescriptor, buf)
 	if err != nil {
@@ -7648,6 +7831,10 @@ func (t *SASLInit) Unmarshal(data []byte) error {
 }
 
 func (t *SASLInit) UnmarshalBuffer(buf *bytes.Buffer) error {
+	if t == nil {
+		return errors.New("<nil>")
+	}
+
 	constructor, err := buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
@@ -7785,6 +7972,10 @@ func (t *SASLChallenge) Marshal() ([]byte, error) {
 }
 
 func (t *SASLChallenge) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	if t == nil {
+		return errors.New("<nil>")
+	}
+
 	buf.WriteByte(DescriptorEncoding)
 	err = marshalUlong(SASLChallengeDescriptor, buf)
 	if err != nil {
@@ -7830,6 +8021,10 @@ func (t *SASLChallenge) Unmarshal(data []byte) error {
 }
 
 func (t *SASLChallenge) UnmarshalBuffer(buf *bytes.Buffer) error {
+	if t == nil {
+		return errors.New("<nil>")
+	}
+
 	constructor, err := buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
@@ -7945,6 +8140,10 @@ func (t *SASLResponse) Marshal() ([]byte, error) {
 }
 
 func (t *SASLResponse) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	if t == nil {
+		return errors.New("<nil>")
+	}
+
 	buf.WriteByte(DescriptorEncoding)
 	err = marshalUlong(SASLResponseDescriptor, buf)
 	if err != nil {
@@ -7990,6 +8189,10 @@ func (t *SASLResponse) Unmarshal(data []byte) error {
 }
 
 func (t *SASLResponse) UnmarshalBuffer(buf *bytes.Buffer) error {
+	if t == nil {
+		return errors.New("<nil>")
+	}
+
 	constructor, err := buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
@@ -8106,6 +8309,10 @@ func (t *SASLOutcome) Marshal() ([]byte, error) {
 }
 
 func (t *SASLOutcome) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	if t == nil {
+		return errors.New("<nil>")
+	}
+
 	buf.WriteByte(DescriptorEncoding)
 	err = marshalUlong(SASLOutcomeDescriptor, buf)
 	if err != nil {
@@ -8168,6 +8375,10 @@ func (t *SASLOutcome) Unmarshal(data []byte) error {
 }
 
 func (t *SASLOutcome) UnmarshalBuffer(buf *bytes.Buffer) error {
+	if t == nil {
+		return errors.New("<nil>")
+	}
+
 	constructor, err := buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")

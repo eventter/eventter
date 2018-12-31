@@ -288,6 +288,51 @@ func (f *Field) GoType() (string, error) {
 	return t, nil
 }
 
+func (f *Field) goType() (string, error) {
+	if f.TypeName == "*" {
+		if f.Requires == "" {
+			return "", errors.Errorf("field %s (of type %s): empty requires", f.Name, f.Parent.Name)
+		}
+
+		if f.Requires == "source" {
+			return "*Source", nil
+		} else if f.Requires == "target" {
+			return "*Target", nil
+		} else {
+			return convert(f.Requires), nil
+		}
+	}
+
+	t := f.Type()
+	if t == nil {
+		return "", errors.Errorf("field %s (of type %s): did not find type %s", f.Name, f.Parent.Name, f.TypeName)
+	}
+
+	if t.Class == "primitive" {
+		s, err := t.GoType()
+		if err != nil {
+			return "", errors.Wrapf(err, "field %s (of type %s)", f.Name, f.Parent.Name)
+		}
+		if s == "types.Struct" {
+			return "*" + s, nil
+		}
+		return s, nil
+	} else if t.Class == "composite" {
+		return "*" + convert(f.TypeName), nil
+	} else if t.Class == "restricted" {
+		s, err := t.GoType()
+		if err != nil {
+			return "", errors.Wrapf(err, "field %s (of type %s)", f.Name, f.Parent.Name)
+		}
+		if s == "types.Struct" {
+			return "*" + convert(f.TypeName), nil
+		}
+		return convert(f.TypeName), nil
+	} else {
+		return "", errors.Errorf("field %s (of type %s): class not handled %s", f.Name, f.Parent.Name, t.Class)
+	}
+}
+
 func (f *Field) Type() *Type {
 	typeName := f.TypeName
 	if typeName == "*" {
@@ -345,52 +390,11 @@ func (f *Field) PrimitiveTypeName() (string, error) {
 
 }
 
-func (f *Field) goType() (string, error) {
-	if f.TypeName == "*" {
-		if f.Requires == "" {
-			return "", errors.Errorf("field %s (of type %s): empty requires", f.Name, f.Parent.Name)
-		}
-
-		if f.Requires == "source" {
-			return "*Source", nil
-		} else if f.Requires == "target" {
-			return "*Target", nil
-		} else {
-			return convert(f.Requires), nil
-		}
-	}
-
-	t := f.Type()
-	if t == nil {
-		return "", errors.Errorf("field %s (of type %s): did not find type %s", f.Name, f.Parent.Name, f.TypeName)
-	}
-
-	if t.Class == "primitive" {
-		s, err := t.GoType()
-		if err != nil {
-			return "", errors.Wrapf(err, "field %s (of type %s)", f.Name, f.Parent.Name)
-		}
-		if s == "types.Struct" {
-			return "*" + s, nil
-		}
-		return s, nil
-	} else if t.Class == "composite" {
-		return "*" + convert(f.TypeName), nil
-	} else if t.Class == "restricted" {
-		s, err := t.GoType()
-		if err != nil {
-			return "", errors.Wrapf(err, "field %s (of type %s)", f.Name, f.Parent.Name)
-		}
-		if s == "types.Struct" {
-			return "*" + convert(f.TypeName), nil
-		}
-		return convert(f.TypeName), nil
-	} else {
-		return "", errors.Errorf("field %s (of type %s): class not handled %s", f.Name, f.Parent.Name, t.Class)
-	}
-}
-
 func (f *Field) GoNonZeroCheck(expr string) (string, error) {
+	if f.Name == "remote-channel" && f.Parent.Name == "begin" {
+		return expr + " != RemoteChannelNull", nil
+	}
+
 	if f.TypeName == "*" {
 		return expr + " != nil", nil
 	}
@@ -451,6 +455,32 @@ func (f *Field) AlwaysPresent() bool {
 	}
 
 	return false
+}
+
+func (f *Field) CompositeTypeName() (string, error) {
+	if f.TypeName == "*" {
+		if f.Requires == "" {
+			return "", errors.Errorf("field %s (of type %s): empty requires", f.Name, f.Parent.Name)
+		}
+
+		if f.Requires == "source" {
+			return "Source", nil
+		} else if f.Requires == "target" {
+			return "Target", nil
+		} else {
+			return "", errors.Errorf("field %s (of type %s): unhandled requires %s", f.Name, f.Parent.Name, f.Requires)
+		}
+	}
+
+	t := f.Type()
+	if t == nil {
+		return "", errors.Errorf("field %s (of type %s): did not find type %s", f.Name, f.Parent.Name, f.TypeName)
+	}
+	if t.Class != "composite" {
+		return "", errors.Errorf("field %s (of type %s): type %s is not composite", f.Name, f.Parent.Name, f.TypeName)
+	}
+
+	return convert(f.TypeName), nil
 }
 
 type Choice struct {
@@ -574,6 +604,11 @@ const (
 	DescriptorEncoding = 0x00
 )
 
+const (
+	RemoteChannelNull = math.MaxUint16
+	ChannelMax = math.MaxUint16 - 1
+)
+
 type UUID [16]byte
 
 func (u UUID) String() string {
@@ -678,6 +713,10 @@ type {{ $name | convert }} interface {
 				}
 
 				func (t *{{ $goTypeName }}) MarshalBuffer(buf *bytes.Buffer) (err error) {
+					if t == nil {
+						return errors.New("<nil>")
+					}
+
 					buf.WriteByte(DescriptorEncoding)
 					err = marshalUlong({{ $goTypeName }}Descriptor, buf)
 					if err != nil {
@@ -767,6 +806,10 @@ type {{ $name | convert }} interface {
 				}
 
 				func (t *{{ $goTypeName }}) UnmarshalBuffer(buf *bytes.Buffer) error {
+					if t == nil {
+						return errors.New("<nil>")
+					}
+
 					constructor, err := buf.ReadByte()
 					if err != nil {
 						return errors.Wrap(err, "read descriptor failed")
@@ -835,7 +878,7 @@ type {{ $name | convert }} interface {
 					{{ range $index, $field := $type.Fields -}}
 						if count > {{ $index }} {
 						{{- $fieldClass := $field.TypeClass }}
-						{{- if and (ne $fieldClass "union") (or (ne $fieldClass "restricted") (eq $field.PrimitiveTypeName "map") $field.Multiple) }}
+						{{- if and (ne $fieldClass "union") (ne $fieldClass "composite") (or (ne $fieldClass "restricted") (eq $field.PrimitiveTypeName "map") $field.Multiple) }}
 							constructor, err = itemBuf.ReadByte()
 							if err != nil {
 								return errors.Wrap(err, "unmarshal field {{ $field.Name }} failed")
@@ -862,7 +905,13 @@ type {{ $name | convert }} interface {
 							if err != nil {
 								return errors.Wrap(err, "unmarshal field {{ $field.Name }} failed")
 							}
-						{{- else if or (eq $fieldClass "restricted") (eq $fieldClass "composite") -}}
+						{{- else if eq $fieldClass "restricted" -}}
+							err = t.{{ $field.Name | convert }}.UnmarshalBuffer(itemBuf)
+							if err != nil {
+								return errors.Wrap(err, "unmarshal field {{ $field.Name }} failed")
+							}
+						{{- else if eq $fieldClass "composite" -}}
+							t.{{ $field.Name | convert }} = &{{ $field.CompositeTypeName }}{}
 							err = t.{{ $field.Name | convert }}.UnmarshalBuffer(itemBuf)
 							if err != nil {
 								return errors.Wrap(err, "unmarshal field {{ $field.Name }} failed")

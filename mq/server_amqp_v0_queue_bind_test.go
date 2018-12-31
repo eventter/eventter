@@ -36,7 +36,7 @@ func TestServer_ServeAMQPv0_QueueBind(t *testing.T) {
 		t.Run(test.exchangeType+"/"+test.routingKey, func(t *testing.T) {
 			assert := require.New(t)
 
-			ts, client, cleanup, err := newClient(t)
+			ts, client, cleanup, err := newClientAMQPv0(t)
 			assert.NoError(err)
 			defer cleanup()
 

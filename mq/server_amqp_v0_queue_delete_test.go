@@ -10,7 +10,7 @@ import (
 func TestServer_ServeAMQPv0_QueueDelete(t *testing.T) {
 	assert := require.New(t)
 
-	ts, client, cleanup, err := newClient(t)
+	ts, client, cleanup, err := newClientAMQPv0(t)
 	assert.NoError(err)
 	defer cleanup()
 

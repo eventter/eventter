@@ -178,7 +178,18 @@ func marshalString(src string, buf *bytes.Buffer) error {
 }
 
 func marshalSymbol(src string, buf *bytes.Buffer) error {
-	return marshalString(src, buf)
+	var x [4]byte
+	if len(src) <= math.MaxUint8 {
+		buf.WriteByte(SymbolSym8Encoding)
+		buf.WriteByte(uint8(len(src)))
+		buf.WriteString(src)
+	} else {
+		buf.WriteByte(SymbolSym8Encoding)
+		endian.PutUint32(x[:], uint32(len(src)))
+		buf.Write(x[:])
+		buf.WriteString(src)
+	}
+	return nil
 }
 
 func marshalMap(src *types.Struct, buf *bytes.Buffer) error {
