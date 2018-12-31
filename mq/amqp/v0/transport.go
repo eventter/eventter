@@ -228,16 +228,17 @@ func (t *Transport) Receive() (Frame, error) {
 }
 
 func (t *Transport) Call(request MethodFrame, response interface{}) error {
+	err := t.Send(request)
+	if err != nil {
+		return errors.Wrap(err, "send failed")
+	}
+	return t.Expect(response)
+}
+
+func (t *Transport) Expect(response interface{}) error {
 	responseValue := reflect.ValueOf(response).Elem()
 	if !responseValue.CanSet() {
 		return errors.New("response is not pointer")
-	}
-
-	if request != nil {
-		err := t.Send(request)
-		if err != nil {
-			return errors.Wrap(err, "send failed")
-		}
 	}
 
 	frame, err := t.Receive()

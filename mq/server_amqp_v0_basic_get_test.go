@@ -106,11 +106,11 @@ func TestServer_ServeAMQPv0_BasicGet(t *testing.T) {
 			assert.Equal("", response.RoutingKey)
 
 			var header *v0.ContentHeaderFrame
-			err = client.Call(nil, &header)
+			err = client.Expect(&header)
 			assert.NoError(err)
 
 			var body *v0.ContentBodyFrame
-			err = client.Call(nil, &body)
+			err = client.Expect(&body)
 			assert.NoError(err)
 			assert.Equal("foo", string(body.Data))
 		}
@@ -129,11 +129,11 @@ func TestServer_ServeAMQPv0_BasicGet(t *testing.T) {
 			assert.Equal("", response.RoutingKey)
 
 			var header *v0.ContentHeaderFrame
-			err = client.Call(nil, &header)
+			err = client.Expect(&header)
 			assert.NoError(err)
 
 			var body *v0.ContentBodyFrame
-			err = client.Call(nil, &body)
+			err = client.Expect(&body)
 			assert.NoError(err)
 			assert.Equal("bar", string(body.Data))
 		}
@@ -160,11 +160,11 @@ func TestServer_ServeAMQPv0_BasicGet(t *testing.T) {
 			assert.Equal("", response.RoutingKey)
 
 			var header *v0.ContentHeaderFrame
-			err = client.Call(nil, &header)
+			err = client.Expect(&header)
 			assert.NoError(err)
 
 			var body *v0.ContentBodyFrame
-			err = client.Call(nil, &body)
+			err = client.Expect(&body)
 			assert.NoError(err)
 			assert.Equal("foo", string(body.Data))
 		}
@@ -182,11 +182,11 @@ func TestServer_ServeAMQPv0_BasicGet(t *testing.T) {
 			assert.Equal("", response.RoutingKey)
 
 			var header *v0.ContentHeaderFrame
-			err = client.Call(nil, &header)
+			err = client.Expect(&header)
 			assert.NoError(err)
 
 			var body *v0.ContentBodyFrame
-			err = client.Call(nil, &body)
+			err = client.Expect(&body)
 			assert.NoError(err)
 			assert.Equal("baz", string(body.Data))
 		}

@@ -112,15 +112,15 @@ func TestServer_ServeAMQPv0_BasicReject(t *testing.T) {
 
 				{
 					var deliver *v0.BasicDeliver
-					err := client.Call(nil, &deliver)
+					err := client.Expect(&deliver)
 					assert.NoError(err)
 
 					var header *v0.ContentHeaderFrame
-					err = client.Call(nil, &header)
+					err = client.Expect(&header)
 					assert.NoError(err)
 
 					var body *v0.ContentBodyFrame
-					err = client.Call(nil, &body)
+					err = client.Expect(&body)
 					assert.NoError(err)
 
 					assert.Equal("foo", string(body.Data))
@@ -128,15 +128,15 @@ func TestServer_ServeAMQPv0_BasicReject(t *testing.T) {
 
 				{
 					var deliver *v0.BasicDeliver
-					err := client.Call(nil, &deliver)
+					err := client.Expect(&deliver)
 					assert.NoError(err)
 
 					var header *v0.ContentHeaderFrame
-					err = client.Call(nil, &header)
+					err = client.Expect(&header)
 					assert.NoError(err)
 
 					var body *v0.ContentBodyFrame
-					err = client.Call(nil, &body)
+					err = client.Expect(&body)
 					assert.NoError(err)
 
 					assert.Equal("bar", string(body.Data))
@@ -151,15 +151,15 @@ func TestServer_ServeAMQPv0_BasicReject(t *testing.T) {
 
 				{
 					var deliver *v0.BasicDeliver
-					err := client.Call(nil, &deliver)
+					err := client.Expect(&deliver)
 					assert.NoError(err)
 
 					var header *v0.ContentHeaderFrame
-					err = client.Call(nil, &header)
+					err = client.Expect(&header)
 					assert.NoError(err)
 
 					var body *v0.ContentBodyFrame
-					err = client.Call(nil, &body)
+					err = client.Expect(&body)
 					assert.NoError(err)
 
 					assert.Equal(test.next, string(body.Data))

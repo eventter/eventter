@@ -20,16 +20,6 @@ type HandlerV1 interface {
 	ServeAMQPv1(ctx context.Context, transport *v1.Transport) error // TODO: should serve accept connection / session / link?
 }
 
-func NewContextV1(parent context.Context, token sasl.Token) context.Context {
-	return context.WithValue(parent, contextKey, &contextValueV0{
-		token: token,
-	})
-}
-
-type contextValueV1 struct {
-	token sasl.Token
-}
-
 func (s *Server) initV1(transport *v1.Transport, deadline time.Time, conn net.Conn, protoID byte) (ctx context.Context, err error) {
 	ctx, cancel := context.WithDeadline(s.ctx, deadline)
 	defer cancel()
@@ -57,7 +47,7 @@ START:
 			return nil, errors.Wrap(err, "start of transport buffering failed")
 		}
 
-		return NewContextV1(s.ctx, token), nil
+		return NewServerContext(s.ctx, token), nil
 
 	case protoSASL:
 		if len(s.SASLProviders) == 0 {

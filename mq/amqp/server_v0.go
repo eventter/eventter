@@ -16,20 +16,6 @@ type HandlerV0 interface {
 	ServeAMQPv0(ctx context.Context, transport *v0.Transport) error
 }
 
-func NewContextV0(parent context.Context, token sasl.Token, heartbeat time.Duration, virtualHost string) context.Context {
-	return context.WithValue(parent, contextKey, &contextValueV0{
-		token:       token,
-		heartbeat:   heartbeat,
-		virtualHost: virtualHost,
-	})
-}
-
-type contextValueV0 struct {
-	token       sasl.Token
-	heartbeat   time.Duration
-	virtualHost string
-}
-
 func (s *Server) initV0(transport *v0.Transport, deadline time.Time) (ctx context.Context, err error) {
 	ctx, cancel := context.WithDeadline(s.ctx, deadline)
 	defer cancel()
@@ -134,16 +120,5 @@ func (s *Server) initV0(transport *v0.Transport, deadline time.Time) (ctx contex
 		return nil, errors.Wrap(err, "set send timeout failed")
 	}
 
-	var open *v0.ConnectionOpen
-	err = transport.Call(nil, &open)
-	if err != nil {
-		return nil, errors.Wrap(err, "receive connection.open failed")
-	}
-
-	err = transport.Send(&v0.ConnectionOpenOk{})
-	if err != nil {
-		return nil, errors.Errorf("send connection.open-ok failed")
-	}
-
-	return NewContextV0(s.ctx, token, heartbeat, open.VirtualHost), nil
+	return NewServerContext(s.ctx, token), nil
 }

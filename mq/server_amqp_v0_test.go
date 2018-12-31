@@ -7,7 +7,6 @@ import (
 	"net"
 	"testing"
 
-	"eventter.io/mq/amqp"
 	"eventter.io/mq/amqp/v0"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
@@ -33,8 +32,6 @@ func newClient(t *testing.T) (x1 *testServer, x2 *v0.Transport, cleanup func(), 
 		}
 	}()
 
-	ctx = amqp.NewContextV0(ctx, nil, 0, "/")
-
 	clientConn, serverConn := net.Pipe()
 
 	go func() {
@@ -44,6 +41,11 @@ func newClient(t *testing.T) (x1 *testServer, x2 *v0.Transport, cleanup func(), 
 	}()
 
 	client := v0.NewTransport(clientConn)
+
+	err = client.Send(&v0.ConnectionOpen{VirtualHost: "/"})
+	if err != nil {
+		return nil, nil, nil, errors.Wrap(err, "send connection.open failed")
+	}
 
 	return ts, client, func() {
 		cancel()

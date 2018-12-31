@@ -2,8 +2,8 @@ package mq
 
 import (
 	"context"
+	"fmt"
 
-	"eventter.io/mq/amqp"
 	"eventter.io/mq/amqp/v0"
 	"eventter.io/mq/emq"
 	"github.com/gogo/protobuf/types"
@@ -19,11 +19,24 @@ const (
 )
 
 func (s *Server) ServeAMQPv0(ctx context.Context, transport *v0.Transport) error {
-	namespace, err := amqp.VirtualHost(ctx)
+	var open *v0.ConnectionOpen
+	err := transport.Expect(&open)
 	if err != nil {
-		return errors.Wrap(err, "get virtual host from context")
-	} else if namespace == "/" {
+		return errors.Wrap(err, "receive connection.open failed")
+	}
+
+	namespace := open.VirtualHost
+	if namespace == "/" {
 		namespace = emq.DefaultNamespace
+	}
+
+	ns, _ := s.clusterState.Current().FindNamespace(namespace)
+	if ns == nil {
+		err = transport.Send(&v0.ConnectionClose{
+			ReplyCode: v0.NotAllowed,
+			ReplyText: fmt.Sprintf("vhost %q doesn't exist", namespace),
+		})
+		return errors.Wrap(err, "send connect.close failed")
 	}
 
 	ctx, cancel := context.WithCancel(ctx)
