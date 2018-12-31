@@ -103,7 +103,10 @@ func (s *Server) ServeAMQPv1(ctx context.Context, transport *v1.Transport) (err 
 	sessions := make(map[uint16]*sessionAMQPv1)
 	defer func() {
 		for _, session := range sessions {
-			session.Close()
+			err := session.Close()
+			if err != nil {
+				log.Printf("session close failed with: %v", err)
+			}
 		}
 	}()
 
@@ -288,6 +291,13 @@ func (s *sessionAMQPv1) Send(frame v1.Frame) error {
 }
 
 func (s *sessionAMQPv1) Close() error {
+	for _, link := range s.links {
+		err := link.Close()
+		if err != nil {
+			log.Printf("link close failed with: %v", err)
+		}
+	}
+	s.links = make(map[v1.Handle]*linkAMQPv1)
 	return nil
 }
 
@@ -298,7 +308,12 @@ func (s *sessionAMQPv1) Process(ctx context.Context, frame v1.Frame) (err error)
 	case *v1.Attach:
 		return s.Attach(ctx, frame)
 	case *v1.Detach:
-		return s.Detach(ctx, frame)
+		link, ok := s.links[frame.Handle]
+		if !ok {
+			handle = frame.Handle
+			goto EndHandleNotFound
+		}
+		return link.Detach(ctx, frame)
 	case *v1.Flow:
 		link, ok := s.links[frame.Handle]
 		if !ok {
