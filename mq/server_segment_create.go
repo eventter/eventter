@@ -88,7 +88,45 @@ func (s *Server) txSegmentOpen(state *ClusterState, primaryNodeID uint64, owner 
 
 	// open new segment
 
-	// a) find nodes for replicas
+	// a) find latest generation
+	generation := uint32(1)
+	generationSegments := make([]*ClusterSegment, 0, shards)
+
+	for _, segments := range [][]*ClusterSegment{state.ClosedSegments, state.OpenSegments} {
+		for _, segment := range segments {
+			if segment.Type == segmentType && segment.Owner.Namespace == owner.Namespace && segment.Owner.Name == owner.Name {
+				if segment.Generation > generation {
+					generation = segment.Generation
+					generationSegments = generationSegments[:0]
+				}
+				if segment.Generation == generation {
+					generationSegments = append(generationSegments, segment)
+				}
+			}
+		}
+	}
+
+	// b) find first available shard in generation
+	shard := uint32(1)
+	if uint32(len(generationSegments)) >= shards {
+		generation++
+	} else {
+		for i := uint32(1); i <= shards; i++ {
+			found := false
+			for _, segment := range generationSegments {
+				if segment.Shard == i {
+					found = true
+					break
+				}
+			}
+			if !found {
+				shard = i
+				break
+			}
+		}
+	}
+
+	// c) find nodes for replicas
 	var replicatingNodeIDs []uint64
 	if replicationFactor > 1 {
 		nodeSegmentCounts := state.CountSegmentsPerNode()
@@ -114,12 +152,14 @@ func (s *Server) txSegmentOpen(state *ClusterState, primaryNodeID uint64, owner 
 		}
 	}
 
-	// b) create segment
+	// d) create segment
 	segmentID := s.clusterState.NextSegmentID()
 	cmd := &ClusterCommandSegmentCreate{
 		ID:                 segmentID,
 		Owner:              owner,
 		Type:               segmentType,
+		Generation:         generation,
+		Shard:              shard,
 		OpenedAt:           time.Now(),
 		PrimaryNodeID:      primaryNodeID,
 		ReplicatingNodeIDs: replicatingNodeIDs,
@@ -129,7 +169,7 @@ func (s *Server) txSegmentOpen(state *ClusterState, primaryNodeID uint64, owner 
 		return nil, errors.Wrap(err, "apply failed")
 	}
 
-	// c) update consumer group offset commits if topic segment
+	// e) update consumer group offset commits if topic segment
 	if segmentType == ClusterSegment_TOPIC {
 		namespace, _ := state.FindNamespace(owner.Namespace)
 		// namespace must not be nil as topic was found earlier and this method is called with tx mutex

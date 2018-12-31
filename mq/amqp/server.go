@@ -192,7 +192,7 @@ func (s *Server) handle(conn net.Conn) error {
 			panic("implement me")
 
 		default:
-			// unknown id-protocol ID
+			// unknown sub-protocol ID
 			if s.SASLRequired {
 				x[4] = 3
 			} else {

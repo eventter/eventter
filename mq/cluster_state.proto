@@ -64,16 +64,18 @@ message ClusterSegment {
         TOPIC = 1;
         CONSUMER_GROUP_OFFSET_COMMITS = 2;
     }
-    google.protobuf.Timestamp created_at = 4 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
-    google.protobuf.Timestamp closed_at = 5 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
-    Nodes nodes = 6 [(gogoproto.nullable) = false];
+    uint32 generation = 4;
+    uint32 shard = 5;
+    google.protobuf.Timestamp created_at = 6 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
+    google.protobuf.Timestamp closed_at = 7 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
+    Nodes nodes = 8 [(gogoproto.nullable) = false];
     message Nodes {
         uint64 primary_node_id = 1 [(gogoproto.customname) = "PrimaryNodeID"];
         repeated uint64 done_node_ids = 2 [(gogoproto.customname) = "DoneNodeIDs"];
         repeated uint64 replicating_node_ids = 3 [(gogoproto.customname) = "ReplicatingNodeIDs"];
     }
-    int64 size = 7;
-    bytes sha1 = 8;
+    int64 size = 9;
+    bytes sha1 = 10;
 }
 
 message ClusterNode {
@@ -119,9 +121,11 @@ message ClusterCommandSegmentCreate {
     uint64 id = 1 [(gogoproto.customname) = "ID"];
     NamespaceName owner = 2 [(gogoproto.nullable) = false];
     ClusterSegment.Type type = 3;
-    google.protobuf.Timestamp opened_at = 4 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
-    uint64 primary_node_id = 5 [(gogoproto.customname) = "PrimaryNodeID"];
-    repeated uint64 replicating_node_ids = 6 [(gogoproto.customname) = "ReplicatingNodeIDs"];
+    uint32 generation = 4;
+    uint32 shard = 5;
+    google.protobuf.Timestamp opened_at = 6 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
+    uint64 primary_node_id = 7 [(gogoproto.customname) = "PrimaryNodeID"];
+    repeated uint64 replicating_node_ids = 8 [(gogoproto.customname) = "ReplicatingNodeIDs"];
 }
 
 message ClusterCommandSegmentClose {
