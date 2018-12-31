@@ -250,6 +250,12 @@ func (t *Open) Marshal() ([]byte, error) {
 }
 
 func (t *Open) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	buf.WriteByte(DescriptorEncoding)
+	err = marshalUlong(OpenDescriptor, buf)
+	if err != nil {
+		return errors.Wrap(err, "marshal descriptor failed")
+	}
+
 	var count uint32 = 0
 	count = 1 // container-id is mandatory
 	if t.Hostname != "" {
@@ -440,6 +446,25 @@ func (t *Open) Unmarshal(data []byte) error {
 func (t *Open) UnmarshalBuffer(buf *bytes.Buffer) error {
 	constructor, err := buf.ReadByte()
 	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if constructor != DescriptorEncoding {
+		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	var descriptor uint64
+	err = unmarshalUlong(&descriptor, constructor, buf)
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if descriptor != OpenDescriptor {
+		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
 	var size int
@@ -459,6 +484,8 @@ func (t *Open) UnmarshalBuffer(buf *bytes.Buffer) error {
 			return errors.New("read length failed: buffer underflow")
 		}
 		size = int(endian.Uint32(buf.Next(4)))
+	default:
+		return errors.Errorf("unmarshal open failed: unexpected constructor 0x%02x", constructor)
 	}
 
 	if buf.Len() < size {
@@ -640,6 +667,12 @@ func (t *Begin) Marshal() ([]byte, error) {
 }
 
 func (t *Begin) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	buf.WriteByte(DescriptorEncoding)
+	err = marshalUlong(BeginDescriptor, buf)
+	if err != nil {
+		return errors.Wrap(err, "marshal descriptor failed")
+	}
+
 	var count uint32 = 0
 	count = 1 // remote-channel precedes mandatory field(s), must be always present
 	count = 2 // next-outgoing-id is mandatory
@@ -778,6 +811,25 @@ func (t *Begin) Unmarshal(data []byte) error {
 func (t *Begin) UnmarshalBuffer(buf *bytes.Buffer) error {
 	constructor, err := buf.ReadByte()
 	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if constructor != DescriptorEncoding {
+		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	var descriptor uint64
+	err = unmarshalUlong(&descriptor, constructor, buf)
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if descriptor != BeginDescriptor {
+		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
 	var size int
@@ -797,6 +849,8 @@ func (t *Begin) UnmarshalBuffer(buf *bytes.Buffer) error {
 			return errors.New("read length failed: buffer underflow")
 		}
 		size = int(endian.Uint32(buf.Next(4)))
+	default:
+		return errors.Errorf("unmarshal begin failed: unexpected constructor 0x%02x", constructor)
 	}
 
 	if buf.Len() < size {
@@ -956,6 +1010,12 @@ func (t *Attach) Marshal() ([]byte, error) {
 }
 
 func (t *Attach) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	buf.WriteByte(DescriptorEncoding)
+	err = marshalUlong(AttachDescriptor, buf)
+	if err != nil {
+		return errors.Wrap(err, "marshal descriptor failed")
+	}
+
 	var count uint32 = 0
 	count = 1 // name is mandatory
 	count = 2 // handle is mandatory
@@ -1192,6 +1252,25 @@ func (t *Attach) Unmarshal(data []byte) error {
 func (t *Attach) UnmarshalBuffer(buf *bytes.Buffer) error {
 	constructor, err := buf.ReadByte()
 	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if constructor != DescriptorEncoding {
+		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	var descriptor uint64
+	err = unmarshalUlong(&descriptor, constructor, buf)
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if descriptor != AttachDescriptor {
+		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
 	var size int
@@ -1211,6 +1290,8 @@ func (t *Attach) UnmarshalBuffer(buf *bytes.Buffer) error {
 			return errors.New("read length failed: buffer underflow")
 		}
 		size = int(endian.Uint32(buf.Next(4)))
+	default:
+		return errors.Errorf("unmarshal attach failed: unexpected constructor 0x%02x", constructor)
 	}
 
 	if buf.Len() < size {
@@ -1423,6 +1504,12 @@ func (t *Flow) Marshal() ([]byte, error) {
 }
 
 func (t *Flow) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	buf.WriteByte(DescriptorEncoding)
+	err = marshalUlong(FlowDescriptor, buf)
+	if err != nil {
+		return errors.Wrap(err, "marshal descriptor failed")
+	}
+
 	var count uint32 = 0
 	count = 1 // next-incoming-id precedes mandatory field(s), must be always present
 	count = 2 // incoming-window is mandatory
@@ -1607,6 +1694,25 @@ func (t *Flow) Unmarshal(data []byte) error {
 func (t *Flow) UnmarshalBuffer(buf *bytes.Buffer) error {
 	constructor, err := buf.ReadByte()
 	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if constructor != DescriptorEncoding {
+		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	var descriptor uint64
+	err = unmarshalUlong(&descriptor, constructor, buf)
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if descriptor != FlowDescriptor {
+		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
 	var size int
@@ -1626,6 +1732,8 @@ func (t *Flow) UnmarshalBuffer(buf *bytes.Buffer) error {
 			return errors.New("read length failed: buffer underflow")
 		}
 		size = int(endian.Uint32(buf.Next(4)))
+	default:
+		return errors.Errorf("unmarshal flow failed: unexpected constructor 0x%02x", constructor)
 	}
 
 	if buf.Len() < size {
@@ -1805,6 +1913,12 @@ func (t *Transfer) Marshal() ([]byte, error) {
 }
 
 func (t *Transfer) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	buf.WriteByte(DescriptorEncoding)
+	err = marshalUlong(TransferDescriptor, buf)
+	if err != nil {
+		return errors.Wrap(err, "marshal descriptor failed")
+	}
+
 	var count uint32 = 0
 	count = 1 // handle is mandatory
 	if t.DeliveryID != 0 {
@@ -2007,6 +2121,25 @@ func (t *Transfer) Unmarshal(data []byte) error {
 func (t *Transfer) UnmarshalBuffer(buf *bytes.Buffer) error {
 	constructor, err := buf.ReadByte()
 	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if constructor != DescriptorEncoding {
+		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	var descriptor uint64
+	err = unmarshalUlong(&descriptor, constructor, buf)
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if descriptor != TransferDescriptor {
+		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
 	var size int
@@ -2026,6 +2159,8 @@ func (t *Transfer) UnmarshalBuffer(buf *bytes.Buffer) error {
 			return errors.New("read length failed: buffer underflow")
 		}
 		size = int(endian.Uint32(buf.Next(4)))
+	default:
+		return errors.Errorf("unmarshal transfer failed: unexpected constructor 0x%02x", constructor)
 	}
 
 	if buf.Len() < size {
@@ -2100,11 +2235,7 @@ func (t *Transfer) UnmarshalBuffer(buf *bytes.Buffer) error {
 								}
 								done = 7
 								if count > 7 {
-									constructor, err = itemBuf.ReadByte()
-									if err != nil {
-										return errors.Wrap(err, "unmarshal field state failed")
-									}
-									err = unmarshalDeliveryStateUnion(&t.State, constructor, itemBuf)
+									err = unmarshalDeliveryStateUnion(&t.State, itemBuf)
 									if err != nil {
 										return errors.Wrap(err, "unmarshal field state failed")
 									}
@@ -2194,6 +2325,12 @@ func (t *Disposition) Marshal() ([]byte, error) {
 }
 
 func (t *Disposition) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	buf.WriteByte(DescriptorEncoding)
+	err = marshalUlong(DispositionDescriptor, buf)
+	if err != nil {
+		return errors.Wrap(err, "marshal descriptor failed")
+	}
+
 	var count uint32 = 0
 	count = 1 // role is mandatory
 	count = 2 // first is mandatory
@@ -2308,6 +2445,25 @@ func (t *Disposition) Unmarshal(data []byte) error {
 func (t *Disposition) UnmarshalBuffer(buf *bytes.Buffer) error {
 	constructor, err := buf.ReadByte()
 	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if constructor != DescriptorEncoding {
+		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	var descriptor uint64
+	err = unmarshalUlong(&descriptor, constructor, buf)
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if descriptor != DispositionDescriptor {
+		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
 	var size int
@@ -2327,6 +2483,8 @@ func (t *Disposition) UnmarshalBuffer(buf *bytes.Buffer) error {
 			return errors.New("read length failed: buffer underflow")
 		}
 		size = int(endian.Uint32(buf.Next(4)))
+	default:
+		return errors.Errorf("unmarshal disposition failed: unexpected constructor 0x%02x", constructor)
 	}
 
 	if buf.Len() < size {
@@ -2379,11 +2537,7 @@ func (t *Disposition) UnmarshalBuffer(buf *bytes.Buffer) error {
 					}
 					done = 4
 					if count > 4 {
-						constructor, err = itemBuf.ReadByte()
-						if err != nil {
-							return errors.Wrap(err, "unmarshal field state failed")
-						}
-						err = unmarshalDeliveryStateUnion(&t.State, constructor, itemBuf)
+						err = unmarshalDeliveryStateUnion(&t.State, itemBuf)
 						if err != nil {
 							return errors.Wrap(err, "unmarshal field state failed")
 						}
@@ -2445,6 +2599,12 @@ func (t *Detach) Marshal() ([]byte, error) {
 }
 
 func (t *Detach) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	buf.WriteByte(DescriptorEncoding)
+	err = marshalUlong(DetachDescriptor, buf)
+	if err != nil {
+		return errors.Wrap(err, "marshal descriptor failed")
+	}
+
 	var count uint32 = 0
 	count = 1 // handle is mandatory
 	if t.Closed != false {
@@ -2519,6 +2679,25 @@ func (t *Detach) Unmarshal(data []byte) error {
 func (t *Detach) UnmarshalBuffer(buf *bytes.Buffer) error {
 	constructor, err := buf.ReadByte()
 	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if constructor != DescriptorEncoding {
+		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	var descriptor uint64
+	err = unmarshalUlong(&descriptor, constructor, buf)
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if descriptor != DetachDescriptor {
+		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
 	var size int
@@ -2538,6 +2717,8 @@ func (t *Detach) UnmarshalBuffer(buf *bytes.Buffer) error {
 			return errors.New("read length failed: buffer underflow")
 		}
 		size = int(endian.Uint32(buf.Next(4)))
+	default:
+		return errors.Errorf("unmarshal detach failed: unexpected constructor 0x%02x", constructor)
 	}
 
 	if buf.Len() < size {
@@ -2629,6 +2810,12 @@ func (t *End) Marshal() ([]byte, error) {
 }
 
 func (t *End) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	buf.WriteByte(DescriptorEncoding)
+	err = marshalUlong(EndDescriptor, buf)
+	if err != nil {
+		return errors.Wrap(err, "marshal descriptor failed")
+	}
+
 	var count uint32 = 0
 	if t.Error != nil {
 		count = 1
@@ -2679,6 +2866,25 @@ func (t *End) Unmarshal(data []byte) error {
 func (t *End) UnmarshalBuffer(buf *bytes.Buffer) error {
 	constructor, err := buf.ReadByte()
 	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if constructor != DescriptorEncoding {
+		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	var descriptor uint64
+	err = unmarshalUlong(&descriptor, constructor, buf)
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if descriptor != EndDescriptor {
+		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
 	var size int
@@ -2698,6 +2904,8 @@ func (t *End) UnmarshalBuffer(buf *bytes.Buffer) error {
 			return errors.New("read length failed: buffer underflow")
 		}
 		size = int(endian.Uint32(buf.Next(4)))
+	default:
+		return errors.Errorf("unmarshal end failed: unexpected constructor 0x%02x", constructor)
 	}
 
 	if buf.Len() < size {
@@ -2771,6 +2979,12 @@ func (t *Close) Marshal() ([]byte, error) {
 }
 
 func (t *Close) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	buf.WriteByte(DescriptorEncoding)
+	err = marshalUlong(CloseDescriptor, buf)
+	if err != nil {
+		return errors.Wrap(err, "marshal descriptor failed")
+	}
+
 	var count uint32 = 0
 	if t.Error != nil {
 		count = 1
@@ -2821,6 +3035,25 @@ func (t *Close) Unmarshal(data []byte) error {
 func (t *Close) UnmarshalBuffer(buf *bytes.Buffer) error {
 	constructor, err := buf.ReadByte()
 	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if constructor != DescriptorEncoding {
+		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	var descriptor uint64
+	err = unmarshalUlong(&descriptor, constructor, buf)
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if descriptor != CloseDescriptor {
+		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
 	var size int
@@ -2840,6 +3073,8 @@ func (t *Close) UnmarshalBuffer(buf *bytes.Buffer) error {
 			return errors.New("read length failed: buffer underflow")
 		}
 		size = int(endian.Uint32(buf.Next(4)))
+	default:
+		return errors.Errorf("unmarshal close failed: unexpected constructor 0x%02x", constructor)
 	}
 
 	if buf.Len() < size {
@@ -3327,6 +3562,12 @@ func (t *Error) Marshal() ([]byte, error) {
 }
 
 func (t *Error) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	buf.WriteByte(DescriptorEncoding)
+	err = marshalUlong(ErrorDescriptor, buf)
+	if err != nil {
+		return errors.Wrap(err, "marshal descriptor failed")
+	}
+
 	var count uint32 = 0
 	count = 1 // condition is mandatory
 	if t.Description != "" {
@@ -3401,6 +3642,25 @@ func (t *Error) Unmarshal(data []byte) error {
 func (t *Error) UnmarshalBuffer(buf *bytes.Buffer) error {
 	constructor, err := buf.ReadByte()
 	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if constructor != DescriptorEncoding {
+		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	var descriptor uint64
+	err = unmarshalUlong(&descriptor, constructor, buf)
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if descriptor != ErrorDescriptor {
+		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
 	var size int
@@ -3420,6 +3680,8 @@ func (t *Error) UnmarshalBuffer(buf *bytes.Buffer) error {
 			return errors.New("read length failed: buffer underflow")
 		}
 		size = int(endian.Uint32(buf.Next(4)))
+	default:
+		return errors.Errorf("unmarshal error failed: unexpected constructor 0x%02x", constructor)
 	}
 
 	if buf.Len() < size {
@@ -3687,6 +3949,12 @@ func (t *Header) Marshal() ([]byte, error) {
 }
 
 func (t *Header) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	buf.WriteByte(DescriptorEncoding)
+	err = marshalUlong(HeaderDescriptor, buf)
+	if err != nil {
+		return errors.Wrap(err, "marshal descriptor failed")
+	}
+
 	var count uint32 = 0
 	if t.Durable != false {
 		count = 1
@@ -3801,6 +4069,25 @@ func (t *Header) Unmarshal(data []byte) error {
 func (t *Header) UnmarshalBuffer(buf *bytes.Buffer) error {
 	constructor, err := buf.ReadByte()
 	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if constructor != DescriptorEncoding {
+		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	var descriptor uint64
+	err = unmarshalUlong(&descriptor, constructor, buf)
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if descriptor != HeaderDescriptor {
+		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
 	var size int
@@ -3820,6 +4107,8 @@ func (t *Header) UnmarshalBuffer(buf *bytes.Buffer) error {
 			return errors.New("read length failed: buffer underflow")
 		}
 		size = int(endian.Uint32(buf.Next(4)))
+	default:
+		return errors.Errorf("unmarshal header failed: unexpected constructor 0x%02x", constructor)
 	}
 
 	if buf.Len() < size {
@@ -4024,6 +4313,12 @@ func (t *Properties) Marshal() ([]byte, error) {
 }
 
 func (t *Properties) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	buf.WriteByte(DescriptorEncoding)
+	err = marshalUlong(PropertiesDescriptor, buf)
+	if err != nil {
+		return errors.Wrap(err, "marshal descriptor failed")
+	}
+
 	var count uint32 = 0
 	if t.MessageID != nil {
 		count = 1
@@ -4266,6 +4561,25 @@ func (t *Properties) Unmarshal(data []byte) error {
 func (t *Properties) UnmarshalBuffer(buf *bytes.Buffer) error {
 	constructor, err := buf.ReadByte()
 	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if constructor != DescriptorEncoding {
+		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	var descriptor uint64
+	err = unmarshalUlong(&descriptor, constructor, buf)
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if descriptor != PropertiesDescriptor {
+		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
 	var size int
@@ -4285,6 +4599,8 @@ func (t *Properties) UnmarshalBuffer(buf *bytes.Buffer) error {
 			return errors.New("read length failed: buffer underflow")
 		}
 		size = int(endian.Uint32(buf.Next(4)))
+	default:
+		return errors.Errorf("unmarshal properties failed: unexpected constructor 0x%02x", constructor)
 	}
 
 	if buf.Len() < size {
@@ -4309,11 +4625,7 @@ func (t *Properties) UnmarshalBuffer(buf *bytes.Buffer) error {
 
 	var done int = 0
 	if count > 0 {
-		constructor, err = itemBuf.ReadByte()
-		if err != nil {
-			return errors.Wrap(err, "unmarshal field message-id failed")
-		}
-		err = unmarshalMessageIDUnion(&t.MessageID, constructor, itemBuf)
+		err = unmarshalMessageIDUnion(&t.MessageID, itemBuf)
 		if err != nil {
 			return errors.Wrap(err, "unmarshal field message-id failed")
 		}
@@ -4329,11 +4641,7 @@ func (t *Properties) UnmarshalBuffer(buf *bytes.Buffer) error {
 			}
 			done = 2
 			if count > 2 {
-				constructor, err = itemBuf.ReadByte()
-				if err != nil {
-					return errors.Wrap(err, "unmarshal field to failed")
-				}
-				err = unmarshalAddressUnion(&t.To, constructor, itemBuf)
+				err = unmarshalAddressUnion(&t.To, itemBuf)
 				if err != nil {
 					return errors.Wrap(err, "unmarshal field to failed")
 				}
@@ -4349,21 +4657,13 @@ func (t *Properties) UnmarshalBuffer(buf *bytes.Buffer) error {
 					}
 					done = 4
 					if count > 4 {
-						constructor, err = itemBuf.ReadByte()
-						if err != nil {
-							return errors.Wrap(err, "unmarshal field reply-to failed")
-						}
-						err = unmarshalAddressUnion(&t.ReplyTo, constructor, itemBuf)
+						err = unmarshalAddressUnion(&t.ReplyTo, itemBuf)
 						if err != nil {
 							return errors.Wrap(err, "unmarshal field reply-to failed")
 						}
 						done = 5
 						if count > 5 {
-							constructor, err = itemBuf.ReadByte()
-							if err != nil {
-								return errors.Wrap(err, "unmarshal field correlation-id failed")
-							}
-							err = unmarshalMessageIDUnion(&t.CorrelationID, constructor, itemBuf)
+							err = unmarshalMessageIDUnion(&t.CorrelationID, itemBuf)
 							if err != nil {
 								return errors.Wrap(err, "unmarshal field correlation-id failed")
 							}
@@ -4780,6 +5080,12 @@ func (t *Received) Marshal() ([]byte, error) {
 }
 
 func (t *Received) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	buf.WriteByte(DescriptorEncoding)
+	err = marshalUlong(ReceivedDescriptor, buf)
+	if err != nil {
+		return errors.Wrap(err, "marshal descriptor failed")
+	}
+
 	var count uint32 = 0
 	count = 1 // section-number is mandatory
 	count = 2 // section-offset is mandatory
@@ -4829,6 +5135,25 @@ func (t *Received) Unmarshal(data []byte) error {
 func (t *Received) UnmarshalBuffer(buf *bytes.Buffer) error {
 	constructor, err := buf.ReadByte()
 	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if constructor != DescriptorEncoding {
+		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	var descriptor uint64
+	err = unmarshalUlong(&descriptor, constructor, buf)
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if descriptor != ReceivedDescriptor {
+		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
 	var size int
@@ -4848,6 +5173,8 @@ func (t *Received) UnmarshalBuffer(buf *bytes.Buffer) error {
 			return errors.New("read length failed: buffer underflow")
 		}
 		size = int(endian.Uint32(buf.Next(4)))
+	default:
+		return errors.Errorf("unmarshal received failed: unexpected constructor 0x%02x", constructor)
 	}
 
 	if buf.Len() < size {
@@ -4928,6 +5255,12 @@ func (t *Accepted) Marshal() ([]byte, error) {
 }
 
 func (t *Accepted) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	buf.WriteByte(DescriptorEncoding)
+	err = marshalUlong(AcceptedDescriptor, buf)
+	if err != nil {
+		return errors.Wrap(err, "marshal descriptor failed")
+	}
+
 	var count uint32 = 0
 
 	if count == 0 {
@@ -4960,6 +5293,25 @@ func (t *Accepted) Unmarshal(data []byte) error {
 func (t *Accepted) UnmarshalBuffer(buf *bytes.Buffer) error {
 	constructor, err := buf.ReadByte()
 	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if constructor != DescriptorEncoding {
+		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	var descriptor uint64
+	err = unmarshalUlong(&descriptor, constructor, buf)
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if descriptor != AcceptedDescriptor {
+		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
 	var size int
@@ -4979,6 +5331,8 @@ func (t *Accepted) UnmarshalBuffer(buf *bytes.Buffer) error {
 			return errors.New("read length failed: buffer underflow")
 		}
 		size = int(endian.Uint32(buf.Next(4)))
+	default:
+		return errors.Errorf("unmarshal accepted failed: unexpected constructor 0x%02x", constructor)
 	}
 
 	if buf.Len() < size {
@@ -5037,6 +5391,12 @@ func (t *Rejected) Marshal() ([]byte, error) {
 }
 
 func (t *Rejected) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	buf.WriteByte(DescriptorEncoding)
+	err = marshalUlong(RejectedDescriptor, buf)
+	if err != nil {
+		return errors.Wrap(err, "marshal descriptor failed")
+	}
+
 	var count uint32 = 0
 	if t.Error != nil {
 		count = 1
@@ -5087,6 +5447,25 @@ func (t *Rejected) Unmarshal(data []byte) error {
 func (t *Rejected) UnmarshalBuffer(buf *bytes.Buffer) error {
 	constructor, err := buf.ReadByte()
 	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if constructor != DescriptorEncoding {
+		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	var descriptor uint64
+	err = unmarshalUlong(&descriptor, constructor, buf)
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if descriptor != RejectedDescriptor {
+		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
 	var size int
@@ -5106,6 +5485,8 @@ func (t *Rejected) UnmarshalBuffer(buf *bytes.Buffer) error {
 			return errors.New("read length failed: buffer underflow")
 		}
 		size = int(endian.Uint32(buf.Next(4)))
+	default:
+		return errors.Errorf("unmarshal rejected failed: unexpected constructor 0x%02x", constructor)
 	}
 
 	if buf.Len() < size {
@@ -5175,6 +5556,12 @@ func (t *Released) Marshal() ([]byte, error) {
 }
 
 func (t *Released) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	buf.WriteByte(DescriptorEncoding)
+	err = marshalUlong(ReleasedDescriptor, buf)
+	if err != nil {
+		return errors.Wrap(err, "marshal descriptor failed")
+	}
+
 	var count uint32 = 0
 
 	if count == 0 {
@@ -5207,6 +5594,25 @@ func (t *Released) Unmarshal(data []byte) error {
 func (t *Released) UnmarshalBuffer(buf *bytes.Buffer) error {
 	constructor, err := buf.ReadByte()
 	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if constructor != DescriptorEncoding {
+		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	var descriptor uint64
+	err = unmarshalUlong(&descriptor, constructor, buf)
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if descriptor != ReleasedDescriptor {
+		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
 	var size int
@@ -5226,6 +5632,8 @@ func (t *Released) UnmarshalBuffer(buf *bytes.Buffer) error {
 			return errors.New("read length failed: buffer underflow")
 		}
 		size = int(endian.Uint32(buf.Next(4)))
+	default:
+		return errors.Errorf("unmarshal released failed: unexpected constructor 0x%02x", constructor)
 	}
 
 	if buf.Len() < size {
@@ -5286,6 +5694,12 @@ func (t *Modified) Marshal() ([]byte, error) {
 }
 
 func (t *Modified) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	buf.WriteByte(DescriptorEncoding)
+	err = marshalUlong(ModifiedDescriptor, buf)
+	if err != nil {
+		return errors.Wrap(err, "marshal descriptor failed")
+	}
+
 	var count uint32 = 0
 	if t.DeliveryFailed != false {
 		count = 1
@@ -5368,6 +5782,25 @@ func (t *Modified) Unmarshal(data []byte) error {
 func (t *Modified) UnmarshalBuffer(buf *bytes.Buffer) error {
 	constructor, err := buf.ReadByte()
 	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if constructor != DescriptorEncoding {
+		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	var descriptor uint64
+	err = unmarshalUlong(&descriptor, constructor, buf)
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if descriptor != ModifiedDescriptor {
+		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
 	var size int
@@ -5387,6 +5820,8 @@ func (t *Modified) UnmarshalBuffer(buf *bytes.Buffer) error {
 			return errors.New("read length failed: buffer underflow")
 		}
 		size = int(endian.Uint32(buf.Next(4)))
+	default:
+		return errors.Errorf("unmarshal modified failed: unexpected constructor 0x%02x", constructor)
 	}
 
 	if buf.Len() < size {
@@ -5489,6 +5924,12 @@ func (t *Source) Marshal() ([]byte, error) {
 }
 
 func (t *Source) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	buf.WriteByte(DescriptorEncoding)
+	err = marshalUlong(SourceDescriptor, buf)
+	if err != nil {
+		return errors.Wrap(err, "marshal descriptor failed")
+	}
+
 	var count uint32 = 0
 	if t.Address != nil {
 		count = 1
@@ -5701,6 +6142,25 @@ func (t *Source) Unmarshal(data []byte) error {
 func (t *Source) UnmarshalBuffer(buf *bytes.Buffer) error {
 	constructor, err := buf.ReadByte()
 	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if constructor != DescriptorEncoding {
+		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	var descriptor uint64
+	err = unmarshalUlong(&descriptor, constructor, buf)
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if descriptor != SourceDescriptor {
+		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
 	var size int
@@ -5720,6 +6180,8 @@ func (t *Source) UnmarshalBuffer(buf *bytes.Buffer) error {
 			return errors.New("read length failed: buffer underflow")
 		}
 		size = int(endian.Uint32(buf.Next(4)))
+	default:
+		return errors.Errorf("unmarshal source failed: unexpected constructor 0x%02x", constructor)
 	}
 
 	if buf.Len() < size {
@@ -5744,11 +6206,7 @@ func (t *Source) UnmarshalBuffer(buf *bytes.Buffer) error {
 
 	var done int = 0
 	if count > 0 {
-		constructor, err = itemBuf.ReadByte()
-		if err != nil {
-			return errors.Wrap(err, "unmarshal field address failed")
-		}
-		err = unmarshalAddressUnion(&t.Address, constructor, itemBuf)
+		err = unmarshalAddressUnion(&t.Address, itemBuf)
 		if err != nil {
 			return errors.Wrap(err, "unmarshal field address failed")
 		}
@@ -5816,11 +6274,7 @@ func (t *Source) UnmarshalBuffer(buf *bytes.Buffer) error {
 									t.Filter = (*FilterSet)(map7)
 									done = 8
 									if count > 8 {
-										constructor, err = itemBuf.ReadByte()
-										if err != nil {
-											return errors.Wrap(err, "unmarshal field default-outcome failed")
-										}
-										err = unmarshalOutcomeUnion(&t.DefaultOutcome, constructor, itemBuf)
+										err = unmarshalOutcomeUnion(&t.DefaultOutcome, itemBuf)
 										if err != nil {
 											return errors.Wrap(err, "unmarshal field default-outcome failed")
 										}
@@ -5898,6 +6352,12 @@ func (t *Target) Marshal() ([]byte, error) {
 }
 
 func (t *Target) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	buf.WriteByte(DescriptorEncoding)
+	err = marshalUlong(TargetDescriptor, buf)
+	if err != nil {
+		return errors.Wrap(err, "marshal descriptor failed")
+	}
+
 	var count uint32 = 0
 	if t.Address != nil {
 		count = 1
@@ -6045,6 +6505,25 @@ func (t *Target) Unmarshal(data []byte) error {
 func (t *Target) UnmarshalBuffer(buf *bytes.Buffer) error {
 	constructor, err := buf.ReadByte()
 	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if constructor != DescriptorEncoding {
+		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	var descriptor uint64
+	err = unmarshalUlong(&descriptor, constructor, buf)
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if descriptor != TargetDescriptor {
+		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
 	var size int
@@ -6064,6 +6543,8 @@ func (t *Target) UnmarshalBuffer(buf *bytes.Buffer) error {
 			return errors.New("read length failed: buffer underflow")
 		}
 		size = int(endian.Uint32(buf.Next(4)))
+	default:
+		return errors.Errorf("unmarshal target failed: unexpected constructor 0x%02x", constructor)
 	}
 
 	if buf.Len() < size {
@@ -6088,11 +6569,7 @@ func (t *Target) UnmarshalBuffer(buf *bytes.Buffer) error {
 
 	var done int = 0
 	if count > 0 {
-		constructor, err = itemBuf.ReadByte()
-		if err != nil {
-			return errors.Wrap(err, "unmarshal field address failed")
-		}
-		err = unmarshalAddressUnion(&t.Address, constructor, itemBuf)
+		err = unmarshalAddressUnion(&t.Address, itemBuf)
 		if err != nil {
 			return errors.Wrap(err, "unmarshal field address failed")
 		}
@@ -6380,6 +6857,12 @@ func (t *DeleteOnClose) Marshal() ([]byte, error) {
 }
 
 func (t *DeleteOnClose) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	buf.WriteByte(DescriptorEncoding)
+	err = marshalUlong(DeleteOnCloseDescriptor, buf)
+	if err != nil {
+		return errors.Wrap(err, "marshal descriptor failed")
+	}
+
 	var count uint32 = 0
 
 	if count == 0 {
@@ -6412,6 +6895,25 @@ func (t *DeleteOnClose) Unmarshal(data []byte) error {
 func (t *DeleteOnClose) UnmarshalBuffer(buf *bytes.Buffer) error {
 	constructor, err := buf.ReadByte()
 	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if constructor != DescriptorEncoding {
+		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	var descriptor uint64
+	err = unmarshalUlong(&descriptor, constructor, buf)
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if descriptor != DeleteOnCloseDescriptor {
+		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
 	var size int
@@ -6431,6 +6933,8 @@ func (t *DeleteOnClose) UnmarshalBuffer(buf *bytes.Buffer) error {
 			return errors.New("read length failed: buffer underflow")
 		}
 		size = int(endian.Uint32(buf.Next(4)))
+	default:
+		return errors.Errorf("unmarshal delete-on-close failed: unexpected constructor 0x%02x", constructor)
 	}
 
 	if buf.Len() < size {
@@ -6486,6 +6990,12 @@ func (t *DeleteOnNoLinks) Marshal() ([]byte, error) {
 }
 
 func (t *DeleteOnNoLinks) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	buf.WriteByte(DescriptorEncoding)
+	err = marshalUlong(DeleteOnNoLinksDescriptor, buf)
+	if err != nil {
+		return errors.Wrap(err, "marshal descriptor failed")
+	}
+
 	var count uint32 = 0
 
 	if count == 0 {
@@ -6518,6 +7028,25 @@ func (t *DeleteOnNoLinks) Unmarshal(data []byte) error {
 func (t *DeleteOnNoLinks) UnmarshalBuffer(buf *bytes.Buffer) error {
 	constructor, err := buf.ReadByte()
 	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if constructor != DescriptorEncoding {
+		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	var descriptor uint64
+	err = unmarshalUlong(&descriptor, constructor, buf)
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if descriptor != DeleteOnNoLinksDescriptor {
+		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
 	var size int
@@ -6537,6 +7066,8 @@ func (t *DeleteOnNoLinks) UnmarshalBuffer(buf *bytes.Buffer) error {
 			return errors.New("read length failed: buffer underflow")
 		}
 		size = int(endian.Uint32(buf.Next(4)))
+	default:
+		return errors.Errorf("unmarshal delete-on-no-links failed: unexpected constructor 0x%02x", constructor)
 	}
 
 	if buf.Len() < size {
@@ -6592,6 +7123,12 @@ func (t *DeleteOnNoMessages) Marshal() ([]byte, error) {
 }
 
 func (t *DeleteOnNoMessages) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	buf.WriteByte(DescriptorEncoding)
+	err = marshalUlong(DeleteOnNoMessagesDescriptor, buf)
+	if err != nil {
+		return errors.Wrap(err, "marshal descriptor failed")
+	}
+
 	var count uint32 = 0
 
 	if count == 0 {
@@ -6624,6 +7161,25 @@ func (t *DeleteOnNoMessages) Unmarshal(data []byte) error {
 func (t *DeleteOnNoMessages) UnmarshalBuffer(buf *bytes.Buffer) error {
 	constructor, err := buf.ReadByte()
 	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if constructor != DescriptorEncoding {
+		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	var descriptor uint64
+	err = unmarshalUlong(&descriptor, constructor, buf)
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if descriptor != DeleteOnNoMessagesDescriptor {
+		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
 	var size int
@@ -6643,6 +7199,8 @@ func (t *DeleteOnNoMessages) UnmarshalBuffer(buf *bytes.Buffer) error {
 			return errors.New("read length failed: buffer underflow")
 		}
 		size = int(endian.Uint32(buf.Next(4)))
+	default:
+		return errors.Errorf("unmarshal delete-on-no-messages failed: unexpected constructor 0x%02x", constructor)
 	}
 
 	if buf.Len() < size {
@@ -6698,6 +7256,12 @@ func (t *DeleteOnNoLinksOrMessages) Marshal() ([]byte, error) {
 }
 
 func (t *DeleteOnNoLinksOrMessages) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	buf.WriteByte(DescriptorEncoding)
+	err = marshalUlong(DeleteOnNoLinksOrMessagesDescriptor, buf)
+	if err != nil {
+		return errors.Wrap(err, "marshal descriptor failed")
+	}
+
 	var count uint32 = 0
 
 	if count == 0 {
@@ -6730,6 +7294,25 @@ func (t *DeleteOnNoLinksOrMessages) Unmarshal(data []byte) error {
 func (t *DeleteOnNoLinksOrMessages) UnmarshalBuffer(buf *bytes.Buffer) error {
 	constructor, err := buf.ReadByte()
 	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if constructor != DescriptorEncoding {
+		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	var descriptor uint64
+	err = unmarshalUlong(&descriptor, constructor, buf)
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if descriptor != DeleteOnNoLinksOrMessagesDescriptor {
+		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
 	var size int
@@ -6749,6 +7332,8 @@ func (t *DeleteOnNoLinksOrMessages) UnmarshalBuffer(buf *bytes.Buffer) error {
 			return errors.New("read length failed: buffer underflow")
 		}
 		size = int(endian.Uint32(buf.Next(4)))
+	default:
+		return errors.Errorf("unmarshal delete-on-no-links-or-messages failed: unexpected constructor 0x%02x", constructor)
 	}
 
 	if buf.Len() < size {
@@ -6822,6 +7407,12 @@ func (t *SASLMechanisms) Marshal() ([]byte, error) {
 }
 
 func (t *SASLMechanisms) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	buf.WriteByte(DescriptorEncoding)
+	err = marshalUlong(SASLMechanismsDescriptor, buf)
+	if err != nil {
+		return errors.Wrap(err, "marshal descriptor failed")
+	}
+
 	var count uint32 = 0
 	count = 1 // sasl-server-mechanisms is mandatory
 
@@ -6863,6 +7454,25 @@ func (t *SASLMechanisms) Unmarshal(data []byte) error {
 func (t *SASLMechanisms) UnmarshalBuffer(buf *bytes.Buffer) error {
 	constructor, err := buf.ReadByte()
 	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if constructor != DescriptorEncoding {
+		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	var descriptor uint64
+	err = unmarshalUlong(&descriptor, constructor, buf)
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if descriptor != SASLMechanismsDescriptor {
+		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
 	var size int
@@ -6882,6 +7492,8 @@ func (t *SASLMechanisms) UnmarshalBuffer(buf *bytes.Buffer) error {
 			return errors.New("read length failed: buffer underflow")
 		}
 		size = int(endian.Uint32(buf.Next(4)))
+	default:
+		return errors.Errorf("unmarshal sasl-mechanisms failed: unexpected constructor 0x%02x", constructor)
 	}
 
 	if buf.Len() < size {
@@ -6958,6 +7570,12 @@ func (t *SASLInit) Marshal() ([]byte, error) {
 }
 
 func (t *SASLInit) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	buf.WriteByte(DescriptorEncoding)
+	err = marshalUlong(SASLInitDescriptor, buf)
+	if err != nil {
+		return errors.Wrap(err, "marshal descriptor failed")
+	}
+
 	var count uint32 = 0
 	count = 1 // mechanism is mandatory
 	if t.InitialResponse != nil {
@@ -7032,6 +7650,25 @@ func (t *SASLInit) Unmarshal(data []byte) error {
 func (t *SASLInit) UnmarshalBuffer(buf *bytes.Buffer) error {
 	constructor, err := buf.ReadByte()
 	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if constructor != DescriptorEncoding {
+		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	var descriptor uint64
+	err = unmarshalUlong(&descriptor, constructor, buf)
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if descriptor != SASLInitDescriptor {
+		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
 	var size int
@@ -7051,6 +7688,8 @@ func (t *SASLInit) UnmarshalBuffer(buf *bytes.Buffer) error {
 			return errors.New("read length failed: buffer underflow")
 		}
 		size = int(endian.Uint32(buf.Next(4)))
+	default:
+		return errors.Errorf("unmarshal sasl-init failed: unexpected constructor 0x%02x", constructor)
 	}
 
 	if buf.Len() < size {
@@ -7146,6 +7785,12 @@ func (t *SASLChallenge) Marshal() ([]byte, error) {
 }
 
 func (t *SASLChallenge) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	buf.WriteByte(DescriptorEncoding)
+	err = marshalUlong(SASLChallengeDescriptor, buf)
+	if err != nil {
+		return errors.Wrap(err, "marshal descriptor failed")
+	}
+
 	var count uint32 = 0
 	count = 1 // challenge is mandatory
 
@@ -7187,6 +7832,25 @@ func (t *SASLChallenge) Unmarshal(data []byte) error {
 func (t *SASLChallenge) UnmarshalBuffer(buf *bytes.Buffer) error {
 	constructor, err := buf.ReadByte()
 	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if constructor != DescriptorEncoding {
+		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	var descriptor uint64
+	err = unmarshalUlong(&descriptor, constructor, buf)
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if descriptor != SASLChallengeDescriptor {
+		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
 	var size int
@@ -7206,6 +7870,8 @@ func (t *SASLChallenge) UnmarshalBuffer(buf *bytes.Buffer) error {
 			return errors.New("read length failed: buffer underflow")
 		}
 		size = int(endian.Uint32(buf.Next(4)))
+	default:
+		return errors.Errorf("unmarshal sasl-challenge failed: unexpected constructor 0x%02x", constructor)
 	}
 
 	if buf.Len() < size {
@@ -7279,6 +7945,12 @@ func (t *SASLResponse) Marshal() ([]byte, error) {
 }
 
 func (t *SASLResponse) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	buf.WriteByte(DescriptorEncoding)
+	err = marshalUlong(SASLResponseDescriptor, buf)
+	if err != nil {
+		return errors.Wrap(err, "marshal descriptor failed")
+	}
+
 	var count uint32 = 0
 	count = 1 // response is mandatory
 
@@ -7320,6 +7992,25 @@ func (t *SASLResponse) Unmarshal(data []byte) error {
 func (t *SASLResponse) UnmarshalBuffer(buf *bytes.Buffer) error {
 	constructor, err := buf.ReadByte()
 	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if constructor != DescriptorEncoding {
+		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	var descriptor uint64
+	err = unmarshalUlong(&descriptor, constructor, buf)
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if descriptor != SASLResponseDescriptor {
+		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
 	var size int
@@ -7339,6 +8030,8 @@ func (t *SASLResponse) UnmarshalBuffer(buf *bytes.Buffer) error {
 			return errors.New("read length failed: buffer underflow")
 		}
 		size = int(endian.Uint32(buf.Next(4)))
+	default:
+		return errors.Errorf("unmarshal sasl-response failed: unexpected constructor 0x%02x", constructor)
 	}
 
 	if buf.Len() < size {
@@ -7413,6 +8106,12 @@ func (t *SASLOutcome) Marshal() ([]byte, error) {
 }
 
 func (t *SASLOutcome) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	buf.WriteByte(DescriptorEncoding)
+	err = marshalUlong(SASLOutcomeDescriptor, buf)
+	if err != nil {
+		return errors.Wrap(err, "marshal descriptor failed")
+	}
+
 	var count uint32 = 0
 	count = 1 // code is mandatory
 	if t.AdditionalData != nil {
@@ -7471,6 +8170,25 @@ func (t *SASLOutcome) Unmarshal(data []byte) error {
 func (t *SASLOutcome) UnmarshalBuffer(buf *bytes.Buffer) error {
 	constructor, err := buf.ReadByte()
 	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if constructor != DescriptorEncoding {
+		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	var descriptor uint64
+	err = unmarshalUlong(&descriptor, constructor, buf)
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if descriptor != SASLOutcomeDescriptor {
+		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
 	var size int
@@ -7490,6 +8208,8 @@ func (t *SASLOutcome) UnmarshalBuffer(buf *bytes.Buffer) error {
 			return errors.New("read length failed: buffer underflow")
 		}
 		size = int(endian.Uint32(buf.Next(4)))
+	default:
+		return errors.Errorf("unmarshal sasl-outcome failed: unexpected constructor 0x%02x", constructor)
 	}
 
 	if buf.Len() < size {

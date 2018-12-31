@@ -53,7 +53,7 @@ func (s *Server) ServeAMQPv0(ctx context.Context, transport *v0.Transport) error
 			default:
 				frame, err := transport.Receive()
 				if err != nil {
-					receiveErrors <- errors.Wrap(err, "receive failed")
+					receiveErrors <- err
 					return
 				}
 				frames <- frame
@@ -211,7 +211,7 @@ func (s *Server) ServeAMQPv0(ctx context.Context, transport *v0.Transport) error
 			if cause == v0.ErrMalformedFrame {
 				err = s.forceCloseAMQPv0(transport, v0.FrameError, errors.New("malformed frame"))
 			}
-			return err
+			return errors.Wrap(err, "receive failed")
 		case err := <-subscribeErrors:
 			return s.forceCloseAMQPv0(transport, v0.InternalError, errors.Wrap(err, "subscribe failed"))
 		case delivery := <-deliveries:

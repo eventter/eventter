@@ -13,6 +13,11 @@ import (
 	"github.com/pkg/errors"
 )
 
+const (
+	AMQPFrameType = 0x00
+	SASLFrameType = 0x01
+)
+
 var (
 	endian            = binary.BigEndian
 	ErrMalformedFrame = errors.New("malformed frame")
@@ -25,7 +30,7 @@ type Transport struct {
 	w              *bufio.Writer
 	data           []byte
 	buf            bytes.Buffer
-	scratch        [18]byte // 8 bytes frame header + 1 byte descriptor constructor + (at most) 9 bytes ulong
+	scratch        [8]byte // 8 bytes for frame header
 	frameMax       uint32
 	receiveTimeout time.Duration
 	sendTimeout    time.Duration
@@ -114,33 +119,26 @@ func (t *Transport) Send(frame Frame) (err error) {
 		return ErrFrameTooBig
 	}
 
-	var descriptorLength int
+	endian.PutUint32(t.scratch[:4], size)
+	t.scratch[4] = 8 / 4 // data offset
+
 	if frame == nil {
-		t.scratch[5] = 0x00
+		t.scratch[5] = AMQPFrameType
+		t.scratch[6] = 0
+		t.scratch[7] = 0
 	} else {
 		switch frame.(type) {
 		case AMQPFrame:
-			t.scratch[5] = 0x00
+			t.scratch[5] = AMQPFrameType
 		case SASLFrame:
-			t.scratch[5] = 0x01
+			t.scratch[5] = SASLFrameType
 		default:
 			return errors.Errorf("unhandled frame type %T", frame)
 		}
 		endian.PutUint16(t.scratch[6:8], meta.Channel)
-		t.scratch[8] = DescriptorEncoding
-		buf := bytes.NewBuffer(t.scratch[9:9])
-		err = marshalUlong(frame.Descriptor(), buf)
-		if err != nil {
-			return errors.Wrap(err, "marshal descriptor failed")
-		}
-		descriptorLength = 1 + buf.Len()
-		size += uint32(descriptorLength)
 	}
 
-	endian.PutUint32(t.scratch[:4], size)
-	t.scratch[4] = 8 / 4 // data offset
-
-	_, err = t.w.Write(t.scratch[:8+descriptorLength])
+	_, err = t.w.Write(t.scratch[:])
 	if err != nil {
 		return errors.Wrap(err, "write frame header failed")
 	}
@@ -195,7 +193,7 @@ func (t *Transport) Receive() (Frame, error) {
 
 	if dataSize == 0 {
 		switch meta.Type {
-		case 0x00: // AMQP heartbeat frame
+		case AMQPFrameType: // AMQP heartbeat frame
 			return nil, nil
 		default:
 			return nil, ErrMalformedFrame
@@ -208,9 +206,9 @@ func (t *Transport) Receive() (Frame, error) {
 	}
 
 	switch meta.Type {
-	case 0x00: // AMQP frame
+	case AMQPFrameType: // AMQP frame
 		fallthrough
-	case 0x01: // SASL frame
+	case SASLFrameType: // SASL frame
 		buf := bytes.NewBuffer(t.data[:dataSize-(4*uint32(meta.DataOffset)-8)])
 		b, err := buf.ReadByte()
 		if err != nil {
@@ -228,6 +226,10 @@ func (t *Transport) Receive() (Frame, error) {
 		if err != nil {
 			return nil, errors.Wrap(err, "read descriptor failed")
 		}
+
+		// reset buffer
+		buf.Reset()
+		buf.Write(t.data[:dataSize-(4*uint32(meta.DataOffset)-8)])
 
 		var frame Frame
 		switch descriptor {

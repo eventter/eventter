@@ -286,7 +286,7 @@ func marshalValue(src *types.Value, buf *bytes.Buffer) error {
 func marshalSymbolArray(src []string, buf *bytes.Buffer) error {
 	var x [4]byte
 
-	if len(src) == 0 {
+	if src == nil {
 		buf.WriteByte(NullEncoding)
 		return nil
 	}
@@ -339,7 +339,7 @@ func marshalSymbolArray(src []string, buf *bytes.Buffer) error {
 func marshalIETFLanguageTagArray(src []IETFLanguageTag, buf *bytes.Buffer) error {
 	var x [4]byte
 
-	if len(src) == 0 {
+	if src == nil {
 		buf.WriteByte(NullEncoding)
 		return nil
 	}
@@ -390,22 +390,10 @@ func marshalIETFLanguageTagArray(src []IETFLanguageTag, buf *bytes.Buffer) error
 }
 
 func marshalDeliveryStateUnion(src DeliveryState, buf *bytes.Buffer) error {
-	describedBy, ok := src.(DescribedType)
-	if !ok {
-		return errors.Errorf("marshal delivery-state failed: %T is not described", src)
-	}
-
-	buf.WriteByte(DescriptorEncoding)
-	err := marshalUlong(describedBy.Descriptor(), buf)
-	if err != nil {
-		return errors.Wrap(err, "marshal delivery-state failed")
-	}
-
 	marshaler, ok := src.(BufferMarshaler)
 	if !ok {
 		return errors.Errorf("marshal delivery-state failed: %T is not marshaler", src)
 	}
-
 	return errors.Wrap(marshaler.MarshalBuffer(buf), "marshal delivery-state failed")
 }
 
@@ -434,21 +422,9 @@ func marshalAddressUnion(src Address, buf *bytes.Buffer) error {
 }
 
 func marshalOutcomeUnion(src Outcome, buf *bytes.Buffer) error {
-	describedBy, ok := src.(DescribedType)
-	if !ok {
-		return errors.Errorf("marshal outcome failed: %T is not described", src)
-	}
-
-	buf.WriteByte(DescriptorEncoding)
-	err := marshalUlong(describedBy.Descriptor(), buf)
-	if err != nil {
-		return errors.Wrap(err, "marshal outcome failed")
-	}
-
 	marshaler, ok := src.(BufferMarshaler)
 	if !ok {
 		return errors.Errorf("marshal outcome failed: %T is not marshaler", src)
 	}
-
 	return errors.Wrap(marshaler.MarshalBuffer(buf), "marshal outcome failed")
 }

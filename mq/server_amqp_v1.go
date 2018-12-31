@@ -42,7 +42,7 @@ func (s *Server) ServeAMQPv1(ctx context.Context, transport *v1.Transport) error
 		err = transport.Send(&v1.Close{Error: &v1.Error{Condition: "client timeout too long"}})
 		return errors.Wrap(err, "close failed")
 	} else {
-		// use client's proposed idle timeout
+		// use client-proposed idle timeout
 		serverOpen.IdleTimeOut = clientOpen.IdleTimeOut
 		err = transport.Send(serverOpen)
 		if err != nil {
@@ -60,9 +60,45 @@ func (s *Server) ServeAMQPv1(ctx context.Context, transport *v1.Transport) error
 		return errors.Wrap(err, "set send timeout failed")
 	}
 
+	frames := make(chan v1.Frame, 64)
+	receiveErrors := make(chan error, 1)
+
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				frame, err := transport.Receive()
+				if err != nil {
+					receiveErrors <- err
+					return
+				}
+				frames <- frame
+			}
+		}
+	}()
+
 	heartbeats := time.NewTicker(heartbeat)
+	defer heartbeats.Stop()
 
-	_ = heartbeats
+	for {
+		select {
+		case <-s.closed:
+			return s.forceCloseAMQPv1(transport, errors.New("shutdown"))
+		case frame := <-frames:
+			_ = frame
+			panic("wip")
+		case <-heartbeats.C:
+			err = transport.Send(nil)
+			if err != nil {
+				return errors.Wrap(err, "send heartbeat failed")
+			}
+		}
+	}
+}
 
-	panic("wip")
+func (s *Server) forceCloseAMQPv1(transport *v1.Transport, reason error) error {
+	err := transport.Send(&v1.Close{Error: &v1.Error{Condition: reason.Error()}})
+	return errors.Wrap(err, "force close failed")
 }

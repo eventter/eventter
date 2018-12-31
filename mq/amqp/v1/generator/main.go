@@ -678,6 +678,12 @@ type {{ $name | convert }} interface {
 				}
 
 				func (t *{{ $goTypeName }}) MarshalBuffer(buf *bytes.Buffer) (err error) {
+					buf.WriteByte(DescriptorEncoding)
+					err = marshalUlong({{ $goTypeName }}Descriptor, buf)
+					if err != nil {
+						return errors.Wrap(err, "marshal descriptor failed")
+					}
+
 					var count uint32 = 0
 					{{ range $index, $field := $type.Fields -}}
 						{{- if $field.Mandatory -}}
@@ -763,6 +769,25 @@ type {{ $name | convert }} interface {
 				func (t *{{ $goTypeName }}) UnmarshalBuffer(buf *bytes.Buffer) error {
 					constructor, err := buf.ReadByte()
 					if err != nil {
+						return errors.Wrap(err, "read descriptor failed")
+					}
+					if constructor != DescriptorEncoding {
+						return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
+					}
+					constructor, err = buf.ReadByte()
+					if err != nil {
+						return errors.Wrap(err, "read descriptor failed")
+					}
+					var descriptor uint64
+					err = unmarshalUlong(&descriptor, constructor, buf)
+					if err != nil {
+						return errors.Wrap(err, "read descriptor failed")
+					}
+					if descriptor != {{ $goTypeName }}Descriptor {
+						return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
+					}
+					constructor, err = buf.ReadByte()
+					if err != nil {
 						return errors.Wrap(err, "read constructor failed")
 					}
 					var size int
@@ -782,6 +807,8 @@ type {{ $name | convert }} interface {
 							return errors.New("read length failed: buffer underflow")
 						}
 						size = int(endian.Uint32(buf.Next(4)))
+					default:
+						return errors.Errorf("unmarshal {{ $type.Name }} failed: unexpected constructor 0x%02x", constructor)
 					}
 
 					if buf.Len() < size {
@@ -808,7 +835,7 @@ type {{ $name | convert }} interface {
 					{{ range $index, $field := $type.Fields -}}
 						if count > {{ $index }} {
 						{{- $fieldClass := $field.TypeClass }}
-						{{- if or (ne $fieldClass "restricted") (eq $field.PrimitiveTypeName "map") $field.Multiple }}
+						{{- if and (ne $fieldClass "union") (or (ne $fieldClass "restricted") (eq $field.PrimitiveTypeName "map") $field.Multiple) }}
 							constructor, err = itemBuf.ReadByte()
 							if err != nil {
 								return errors.Wrap(err, "unmarshal field {{ $field.Name }} failed")
@@ -841,7 +868,7 @@ type {{ $name | convert }} interface {
 								return errors.Wrap(err, "unmarshal field {{ $field.Name }} failed")
 							}
 						{{- else if eq $fieldClass "union" -}}
-							err = unmarshal{{ $field.UnionTypeName | convert }}Union(&t.{{ $field.Name | convert }}, constructor, itemBuf)
+							err = unmarshal{{ $field.UnionTypeName | convert }}Union(&t.{{ $field.Name | convert }}, itemBuf)
 							if err != nil {
 								return errors.Wrap(err, "unmarshal field {{ $field.Name }} failed")
 							}

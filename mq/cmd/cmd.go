@@ -158,12 +158,12 @@ func Cmd() *cobra.Command {
 
 			grpcListener, err := net.Listen("tcp", rootConfig.BindHost+":"+strconv.Itoa(rootConfig.Port))
 			if err != nil {
-				return errors.Wrap(err, "grpc listen failed")
+				return errors.Wrap(err, "gRPC listen failed")
 			}
 			defer grpcListener.Close()
 			go grpcServer.Serve(grpcListener)
 			defer grpcServer.Stop()
-			log.Println("grpc server started on", grpcListener.Addr())
+			log.Println("gRPC server started on", grpcListener.Addr())
 
 			if len(join) == 0 {
 				hasExistingState, err := raft.HasExistingState(raftLogStore, raftStableStore, raftSnapshotStore)
@@ -213,7 +213,7 @@ func Cmd() *cobra.Command {
 			}
 			go amqpServer.Serve(amqpListener)
 			defer amqpServer.Close()
-			log.Println("amqp server started at", amqpListener.Addr())
+			log.Println("AMQP server started at", amqpListener.Addr())
 
 			interrupt := make(chan os.Signal, 1)
 			signal.Notify(interrupt, syscall.SIGINT, syscall.SIGTERM)
