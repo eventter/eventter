@@ -609,6 +609,10 @@ const (
 	ChannelMax = math.MaxUint16 - 1
 )
 
+var (
+	errNull = errors.New("composite is null")
+)
+
 type UUID [16]byte
 
 func (u UUID) String() string {
@@ -814,7 +818,9 @@ type {{ $name | convert }} interface {
 					if err != nil {
 						return errors.Wrap(err, "read descriptor failed")
 					}
-					if constructor != DescriptorEncoding {
+					if constructor == NullEncoding {
+						return errNull
+					} else if constructor != DescriptorEncoding {
 						return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
 					}
 					constructor, err = buf.ReadByte()
@@ -913,7 +919,9 @@ type {{ $name | convert }} interface {
 						{{- else if eq $fieldClass "composite" -}}
 							t.{{ $field.Name | convert }} = &{{ $field.CompositeTypeName }}{}
 							err = t.{{ $field.Name | convert }}.UnmarshalBuffer(itemBuf)
-							if err != nil {
+							if err == errNull {
+								t.{{ $field.Name | convert }} = nil
+							} else if err != nil {
 								return errors.Wrap(err, "unmarshal field {{ $field.Name }} failed")
 							}
 						{{- else if eq $fieldClass "union" -}}

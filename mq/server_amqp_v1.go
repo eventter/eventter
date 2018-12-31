@@ -12,9 +12,9 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (s *Server) ServeAMQPv1(ctx context.Context, transport *v1.Transport) error {
+func (s *Server) ServeAMQPv1(ctx context.Context, transport *v1.Transport) (err error) {
 	var clientOpen *v1.Open
-	err := transport.Expect(&clientOpen)
+	err = transport.Expect(&clientOpen)
 	if err != nil {
 		return errors.Wrap(err, "expect open failed")
 	}
@@ -82,7 +82,9 @@ func (s *Server) ServeAMQPv1(ctx context.Context, transport *v1.Transport) error
 					receiveErrors <- err
 					return
 				}
-				frames <- frame
+				if frame != nil { // do not send empty (heartbeat) frames
+					frames <- frame
+				}
 			}
 		}
 	}()
@@ -101,6 +103,16 @@ func (s *Server) ServeAMQPv1(ctx context.Context, transport *v1.Transport) error
 		select {
 		case <-s.closed:
 			return s.forceCloseAMQPv1(transport, errors.New("shutdown"))
+
+		case <-heartbeats.C:
+			err = transport.Send(nil)
+			if err != nil {
+				return errors.Wrap(err, "send heartbeat failed")
+			}
+
+		case receiveErr := <-receiveErrors:
+			return s.forceCloseAMQPv1(transport, errors.Wrap(receiveErr, "receive failed"))
+
 		case frame := <-frames:
 			switch frame := frame.(type) {
 			case *v1.Close:
@@ -125,6 +137,9 @@ func (s *Server) ServeAMQPv1(ctx context.Context, transport *v1.Transport) error
 					)
 				}
 				session := &sessionAMQPv1{
+					server:               s,
+					transport:            transport,
+					state:                sessionStateReady,
 					remoteChannel:        frame.FrameMeta.Channel,
 					remoteNextOutgoingID: frame.NextOutgoingID,
 					remoteIncomingWindow: frame.IncomingWindow,
@@ -165,25 +180,45 @@ func (s *Server) ServeAMQPv1(ctx context.Context, transport *v1.Transport) error
 				}
 
 				delete(sessions, frame.FrameMeta.Channel)
-
 				err = session.Close()
 				var endError *v1.Error
 				if err != nil {
-					endError = &v1.Error{Condition: errors.Wrap(err, "session close failed").Error()}
+					endError = &v1.Error{Condition: err.Error()}
+					if session.state == sessionStateClosing {
+						log.Printf("session close failed: %s", err)
+					}
 				}
 
-				err = transport.Send(&v1.End{FrameMeta: v1.FrameMeta{Channel: session.channel}, Error: endError})
-				if err != nil {
-					return errors.Wrap(err, "send end failed")
+				if session.state != sessionStateClosing {
+					err = transport.Send(&v1.End{FrameMeta: v1.FrameMeta{Channel: session.channel}, Error: endError})
+					if err != nil {
+						return errors.Wrap(err, "send end failed")
+					}
 				}
 
 			default:
-				panic("wip")
-			}
-		case <-heartbeats.C:
-			err = transport.Send(nil)
-			if err != nil {
-				return errors.Wrap(err, "send heartbeat failed")
+				meta := frame.GetFrameMeta()
+				session, ok := sessions[meta.Channel]
+				if !ok {
+					return s.forceCloseAMQPv1(
+						transport,
+						errors.Errorf("received attach on channel %d, but no session begun", meta.Channel),
+					)
+				}
+
+				if session.state != sessionStateClosing {
+					err = session.Handle(ctx, frame)
+					if err != nil {
+						session.state = sessionStateClosing
+						err = transport.Send(&v1.End{
+							FrameMeta: v1.FrameMeta{Channel: session.channel},
+							Error:     &v1.Error{Condition: err.Error()},
+						})
+						if err != nil {
+							return errors.Wrap(err, "send end failed")
+						}
+					}
+				}
 			}
 		}
 	}
@@ -194,7 +229,15 @@ func (s *Server) forceCloseAMQPv1(transport *v1.Transport, reason error) error {
 	return errors.Wrap(err, "force close failed")
 }
 
+const (
+	sessionStateReady   = 0
+	sessionStateClosing = 1
+)
+
 type sessionAMQPv1 struct {
+	server               *Server
+	transport            *v1.Transport
+	state                int
 	remoteChannel        uint16
 	remoteNextOutgoingID v1.TransferNumber
 	remoteIncomingWindow uint32
@@ -207,4 +250,21 @@ type sessionAMQPv1 struct {
 
 func (s *sessionAMQPv1) Close() error {
 	return nil
+}
+
+func (s *sessionAMQPv1) Handle(ctx context.Context, frame v1.Frame) error {
+	switch frame := frame.(type) {
+	case *v1.Attach:
+		return s.Attach(ctx, frame)
+	case *v1.Detach:
+		return s.Detach(ctx, frame)
+	case *v1.Flow:
+		return s.Flow(ctx, frame)
+	case *v1.Disposition:
+		return s.Disposition(ctx, frame)
+	case *v1.Transfer:
+		return s.Transfer(ctx, frame)
+	default:
+		return errors.Errorf("unexpected frame %T", frame)
+	}
 }

@@ -22,6 +22,10 @@ const (
 	ChannelMax        = math.MaxUint16 - 1
 )
 
+var (
+	errNull = errors.New("composite is null")
+)
+
 type UUID [16]byte
 
 func (u UUID) String() string {
@@ -461,7 +465,9 @@ func (t *Open) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
 	}
-	if constructor != DescriptorEncoding {
+	if constructor == NullEncoding {
+		return errNull
+	} else if constructor != DescriptorEncoding {
 		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
 	}
 	constructor, err = buf.ReadByte()
@@ -834,7 +840,9 @@ func (t *Begin) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
 	}
-	if constructor != DescriptorEncoding {
+	if constructor == NullEncoding {
+		return errNull
+	} else if constructor != DescriptorEncoding {
 		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
 	}
 	constructor, err = buf.ReadByte()
@@ -1283,7 +1291,9 @@ func (t *Attach) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
 	}
-	if constructor != DescriptorEncoding {
+	if constructor == NullEncoding {
+		return errNull
+	} else if constructor != DescriptorEncoding {
 		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
 	}
 	constructor, err = buf.ReadByte()
@@ -1381,14 +1391,18 @@ func (t *Attach) UnmarshalBuffer(buf *bytes.Buffer) error {
 						if count > 5 {
 							t.Source = &Source{}
 							err = t.Source.UnmarshalBuffer(itemBuf)
-							if err != nil {
+							if err == errNull {
+								t.Source = nil
+							} else if err != nil {
 								return errors.Wrap(err, "unmarshal field source failed")
 							}
 							done = 6
 							if count > 6 {
 								t.Target = &Target{}
 								err = t.Target.UnmarshalBuffer(itemBuf)
-								if err != nil {
+								if err == errNull {
+									t.Target = nil
+								} else if err != nil {
 									return errors.Wrap(err, "unmarshal field target failed")
 								}
 								done = 7
@@ -1727,7 +1741,9 @@ func (t *Flow) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
 	}
-	if constructor != DescriptorEncoding {
+	if constructor == NullEncoding {
+		return errNull
+	} else if constructor != DescriptorEncoding {
 		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
 	}
 	constructor, err = buf.ReadByte()
@@ -2162,7 +2178,9 @@ func (t *Transfer) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
 	}
-	if constructor != DescriptorEncoding {
+	if constructor == NullEncoding {
+		return errNull
+	} else if constructor != DescriptorEncoding {
 		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
 	}
 	constructor, err = buf.ReadByte()
@@ -2494,7 +2512,9 @@ func (t *Disposition) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
 	}
-	if constructor != DescriptorEncoding {
+	if constructor == NullEncoding {
+		return errNull
+	} else if constructor != DescriptorEncoding {
 		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
 	}
 	constructor, err = buf.ReadByte()
@@ -2736,7 +2756,9 @@ func (t *Detach) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
 	}
-	if constructor != DescriptorEncoding {
+	if constructor == NullEncoding {
+		return errNull
+	} else if constructor != DescriptorEncoding {
 		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
 	}
 	constructor, err = buf.ReadByte()
@@ -2816,7 +2838,9 @@ func (t *Detach) UnmarshalBuffer(buf *bytes.Buffer) error {
 			if count > 2 {
 				t.Error = &Error{}
 				err = t.Error.UnmarshalBuffer(itemBuf)
-				if err != nil {
+				if err == errNull {
+					t.Error = nil
+				} else if err != nil {
 					return errors.Wrap(err, "unmarshal field error failed")
 				}
 				done = 3
@@ -2928,7 +2952,9 @@ func (t *End) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
 	}
-	if constructor != DescriptorEncoding {
+	if constructor == NullEncoding {
+		return errNull
+	} else if constructor != DescriptorEncoding {
 		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
 	}
 	constructor, err = buf.ReadByte()
@@ -2992,7 +3018,9 @@ func (t *End) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if count > 0 {
 		t.Error = &Error{}
 		err = t.Error.UnmarshalBuffer(itemBuf)
-		if err != nil {
+		if err == errNull {
+			t.Error = nil
+		} else if err != nil {
 			return errors.Wrap(err, "unmarshal field error failed")
 		}
 		done = 1
@@ -3102,7 +3130,9 @@ func (t *Close) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
 	}
-	if constructor != DescriptorEncoding {
+	if constructor == NullEncoding {
+		return errNull
+	} else if constructor != DescriptorEncoding {
 		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
 	}
 	constructor, err = buf.ReadByte()
@@ -3166,7 +3196,9 @@ func (t *Close) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if count > 0 {
 		t.Error = &Error{}
 		err = t.Error.UnmarshalBuffer(itemBuf)
-		if err != nil {
+		if err == errNull {
+			t.Error = nil
+		} else if err != nil {
 			return errors.Wrap(err, "unmarshal field error failed")
 		}
 		done = 1
@@ -3714,7 +3746,9 @@ func (t *Error) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
 	}
-	if constructor != DescriptorEncoding {
+	if constructor == NullEncoding {
+		return errNull
+	} else if constructor != DescriptorEncoding {
 		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
 	}
 	constructor, err = buf.ReadByte()
@@ -4149,7 +4183,9 @@ func (t *Header) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
 	}
-	if constructor != DescriptorEncoding {
+	if constructor == NullEncoding {
+		return errNull
+	} else if constructor != DescriptorEncoding {
 		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
 	}
 	constructor, err = buf.ReadByte()
@@ -4649,7 +4685,9 @@ func (t *Properties) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
 	}
-	if constructor != DescriptorEncoding {
+	if constructor == NullEncoding {
+		return errNull
+	} else if constructor != DescriptorEncoding {
 		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
 	}
 	constructor, err = buf.ReadByte()
@@ -5231,7 +5269,9 @@ func (t *Received) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
 	}
-	if constructor != DescriptorEncoding {
+	if constructor == NullEncoding {
+		return errNull
+	} else if constructor != DescriptorEncoding {
 		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
 	}
 	constructor, err = buf.ReadByte()
@@ -5397,7 +5437,9 @@ func (t *Accepted) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
 	}
-	if constructor != DescriptorEncoding {
+	if constructor == NullEncoding {
+		return errNull
+	} else if constructor != DescriptorEncoding {
 		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
 	}
 	constructor, err = buf.ReadByte()
@@ -5559,7 +5601,9 @@ func (t *Rejected) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
 	}
-	if constructor != DescriptorEncoding {
+	if constructor == NullEncoding {
+		return errNull
+	} else if constructor != DescriptorEncoding {
 		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
 	}
 	constructor, err = buf.ReadByte()
@@ -5623,7 +5667,9 @@ func (t *Rejected) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if count > 0 {
 		t.Error = &Error{}
 		err = t.Error.UnmarshalBuffer(itemBuf)
-		if err != nil {
+		if err == errNull {
+			t.Error = nil
+		} else if err != nil {
 			return errors.Wrap(err, "unmarshal field error failed")
 		}
 		done = 1
@@ -5711,7 +5757,9 @@ func (t *Released) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
 	}
-	if constructor != DescriptorEncoding {
+	if constructor == NullEncoding {
+		return errNull
+	} else if constructor != DescriptorEncoding {
 		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
 	}
 	constructor, err = buf.ReadByte()
@@ -5907,7 +5955,9 @@ func (t *Modified) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
 	}
-	if constructor != DescriptorEncoding {
+	if constructor == NullEncoding {
+		return errNull
+	} else if constructor != DescriptorEncoding {
 		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
 	}
 	constructor, err = buf.ReadByte()
@@ -6275,7 +6325,9 @@ func (t *Source) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
 	}
-	if constructor != DescriptorEncoding {
+	if constructor == NullEncoding {
+		return errNull
+	} else if constructor != DescriptorEncoding {
 		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
 	}
 	constructor, err = buf.ReadByte()
@@ -6646,7 +6698,9 @@ func (t *Target) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
 	}
-	if constructor != DescriptorEncoding {
+	if constructor == NullEncoding {
+		return errNull
+	} else if constructor != DescriptorEncoding {
 		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
 	}
 	constructor, err = buf.ReadByte()
@@ -7044,7 +7098,9 @@ func (t *DeleteOnClose) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
 	}
-	if constructor != DescriptorEncoding {
+	if constructor == NullEncoding {
+		return errNull
+	} else if constructor != DescriptorEncoding {
 		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
 	}
 	constructor, err = buf.ReadByte()
@@ -7185,7 +7241,9 @@ func (t *DeleteOnNoLinks) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
 	}
-	if constructor != DescriptorEncoding {
+	if constructor == NullEncoding {
+		return errNull
+	} else if constructor != DescriptorEncoding {
 		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
 	}
 	constructor, err = buf.ReadByte()
@@ -7326,7 +7384,9 @@ func (t *DeleteOnNoMessages) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
 	}
-	if constructor != DescriptorEncoding {
+	if constructor == NullEncoding {
+		return errNull
+	} else if constructor != DescriptorEncoding {
 		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
 	}
 	constructor, err = buf.ReadByte()
@@ -7467,7 +7527,9 @@ func (t *DeleteOnNoLinksOrMessages) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
 	}
-	if constructor != DescriptorEncoding {
+	if constructor == NullEncoding {
+		return errNull
+	} else if constructor != DescriptorEncoding {
 		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
 	}
 	constructor, err = buf.ReadByte()
@@ -7635,7 +7697,9 @@ func (t *SASLMechanisms) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
 	}
-	if constructor != DescriptorEncoding {
+	if constructor == NullEncoding {
+		return errNull
+	} else if constructor != DescriptorEncoding {
 		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
 	}
 	constructor, err = buf.ReadByte()
@@ -7839,7 +7903,9 @@ func (t *SASLInit) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
 	}
-	if constructor != DescriptorEncoding {
+	if constructor == NullEncoding {
+		return errNull
+	} else if constructor != DescriptorEncoding {
 		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
 	}
 	constructor, err = buf.ReadByte()
@@ -8029,7 +8095,9 @@ func (t *SASLChallenge) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
 	}
-	if constructor != DescriptorEncoding {
+	if constructor == NullEncoding {
+		return errNull
+	} else if constructor != DescriptorEncoding {
 		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
 	}
 	constructor, err = buf.ReadByte()
@@ -8197,7 +8265,9 @@ func (t *SASLResponse) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
 	}
-	if constructor != DescriptorEncoding {
+	if constructor == NullEncoding {
+		return errNull
+	} else if constructor != DescriptorEncoding {
 		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
 	}
 	constructor, err = buf.ReadByte()
@@ -8383,7 +8453,9 @@ func (t *SASLOutcome) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
 	}
-	if constructor != DescriptorEncoding {
+	if constructor == NullEncoding {
+		return errNull
+	} else if constructor != DescriptorEncoding {
 		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
 	}
 	constructor, err = buf.ReadByte()
