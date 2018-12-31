@@ -6,6 +6,7 @@ import (
 	"encoding/binary"
 	"io"
 	"net"
+	"reflect"
 	"time"
 
 	"eventter.io/mq/util"
@@ -276,4 +277,33 @@ func (t *Transport) Receive() (Frame, error) {
 	default:
 		return nil, ErrMalformedFrame
 	}
+}
+
+func (t *Transport) Call(request Frame, response interface{}) error {
+	responseValue := reflect.ValueOf(response).Elem()
+	if !responseValue.CanSet() {
+		return errors.New("response is not pointer")
+	}
+
+	if request != nil {
+		err := t.Send(request)
+		if err != nil {
+			return errors.Wrap(err, "send failed")
+		}
+	}
+
+	frame, err := t.Receive()
+	if err != nil {
+		return errors.Wrap(err, "receive failed")
+	}
+
+	frameValue := reflect.ValueOf(frame)
+
+	if !frameValue.Type().AssignableTo(responseValue.Type()) {
+		return errors.Errorf("expected frame of type %s, got %#v", responseValue.Type(), frame)
+	}
+
+	responseValue.Set(frameValue)
+
+	return nil
 }

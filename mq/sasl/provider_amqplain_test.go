@@ -14,7 +14,7 @@ func TestAmqplainProvider_Authenticate_Success(t *testing.T) {
 
 	provider := NewAMQPLAIN(&allowAllDirectory{})
 
-	buf, err := v0.MarshalTable(&types.Struct{
+	response, err := v0.MarshalTable(&types.Struct{
 		Fields: map[string]*types.Value{
 			"LOGIN":    {Kind: &types.Value_StringValue{StringValue: "user"}},
 			"PASSWORD": {Kind: &types.Value_StringValue{StringValue: "pass"}},
@@ -22,7 +22,7 @@ func TestAmqplainProvider_Authenticate_Success(t *testing.T) {
 	})
 	assert.NoError(err)
 
-	token, challenge, err := provider.Authenticate(context.Background(), "", string(buf))
+	token, challenge, err := provider.Authenticate(context.Background(), nil, response)
 	assert.NoError(err)
 	assert.Empty(challenge)
 	assert.NotNil(token)
@@ -38,7 +38,7 @@ func TestAmqplainProvider_Authenticate_BadResponse(t *testing.T) {
 
 	provider := NewAMQPLAIN(&allowAllDirectory{})
 
-	token, challenge, err := provider.Authenticate(context.Background(), "", "")
+	token, challenge, err := provider.Authenticate(context.Background(), nil, nil)
 	assert.Error(err)
 	assert.Empty(challenge)
 	assert.Nil(token)
@@ -49,7 +49,7 @@ func TestAmqplainProvider_Authenticate_NotVerified(t *testing.T) {
 
 	provider := NewAMQPLAIN(&denyAllDirectory{})
 
-	buf, err := v0.MarshalTable(&types.Struct{
+	response, err := v0.MarshalTable(&types.Struct{
 		Fields: map[string]*types.Value{
 			"LOGIN":    {Kind: &types.Value_StringValue{StringValue: "user"}},
 			"PASSWORD": {Kind: &types.Value_StringValue{StringValue: "pass"}},
@@ -57,7 +57,7 @@ func TestAmqplainProvider_Authenticate_NotVerified(t *testing.T) {
 	})
 	assert.NoError(err)
 
-	token, challenge, err := provider.Authenticate(context.Background(), "", string(buf))
+	token, challenge, err := provider.Authenticate(context.Background(), nil, response)
 	assert.NoError(err)
 	assert.Empty(challenge)
 	assert.Nil(token)

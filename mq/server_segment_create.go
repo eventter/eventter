@@ -126,7 +126,7 @@ func (s *Server) txSegmentOpen(state *ClusterState, primaryNodeID uint64, owner 
 			}
 		}
 		if nodeFound {
-			// each node must have at most one node in each generation => start a new one
+			// each node must have at most one segment in each generation => start a new one
 			generation++
 		} else {
 			for i := uint32(1); i <= shards; i++ {

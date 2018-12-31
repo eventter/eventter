@@ -12,7 +12,7 @@ func TestPlainProvider_Authenticate_Success(t *testing.T) {
 
 	provider := NewPLAIN(&allowAllDirectory{})
 
-	token, challenge, err := provider.Authenticate(context.Background(), "", "\000user\000pass")
+	token, challenge, err := provider.Authenticate(context.Background(), nil, []byte("\000user\000pass"))
 	assert.NoError(err)
 	assert.Empty(challenge)
 	assert.NotNil(token)
@@ -28,7 +28,7 @@ func TestPlainProvider_Authenticate_BadResponse(t *testing.T) {
 
 	provider := NewPLAIN(&allowAllDirectory{})
 
-	token, challenge, err := provider.Authenticate(context.Background(), "", "")
+	token, challenge, err := provider.Authenticate(context.Background(), nil, nil)
 	assert.Error(err)
 	assert.Empty(challenge)
 	assert.Nil(token)
@@ -39,7 +39,7 @@ func TestPlainProvider_Authenticate_NotVerified(t *testing.T) {
 
 	provider := NewPLAIN(&denyAllDirectory{})
 
-	token, challenge, err := provider.Authenticate(context.Background(), "", "\000user\000pass")
+	token, challenge, err := provider.Authenticate(context.Background(), nil, []byte("\000user\000pass"))
 	assert.NoError(err)
 	assert.Empty(challenge)
 	assert.Nil(token)

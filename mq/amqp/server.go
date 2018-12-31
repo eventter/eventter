@@ -115,121 +115,52 @@ func (s *Server) handle(conn net.Conn) error {
 		return errors.Wrap(err, "set deadline failed")
 	}
 
-	var x [8]byte
+	var proto [8]byte
 
-	_, err = io.ReadFull(conn, x[:])
+	_, err = io.ReadFull(conn, proto[:])
 	if err != nil {
 		return errors.Wrap(err, "read protocol header failed")
 	}
 
-	if x[0] == 'A' && x[1] == 'M' && x[2] == 'Q' && x[3] == 'P' && x[4] == 0 &&
-		x[5] == v0.Major && x[6] == v0.Minor && x[7] == v0.Revision && s.HandlerV0 != nil {
-
-		// AMQP 0.9.1
+	if proto[0] == 'A' && proto[1] == 'M' && proto[2] == 'Q' && proto[3] == 'P' && proto[4] == 0 &&
+		proto[5] == v0.Major && proto[6] == v0.Minor && proto[7] == v0.Revision && s.HandlerV0 != nil {
 
 		transport := v0.NewTransport(conn)
 		ctx, err := s.initV0(transport, deadline)
 		if err != nil {
-			return errors.Wrapf(err, "init v%d.%d.%d connection failed", x[5], x[6], x[7])
+			return errors.Wrapf(err, "init v%d.%d.%d connection failed", proto[5], proto[6], proto[7])
 		}
 
 		return s.HandlerV0.ServeAMQPv0(ctx, transport)
 
-	} else if x[0] == 'A' && x[1] == 'M' && x[2] == 'Q' && x[3] == 'P' &&
-		x[5] == v1.Major && x[6] == v1.Minor && x[7] == v1.Revision && s.HandlerV1 != nil {
+	} else if proto[0] == 'A' && proto[1] == 'M' && proto[2] == 'Q' && proto[3] == 'P' &&
+		proto[5] == v1.Major && proto[6] == v1.Minor && proto[7] == v1.Revision && s.HandlerV1 != nil {
 
-		// AMQP 1.0
-
-		var token sasl.Token
-		transport := v1.NewTransport(conn) // un-buffered
-		id := x[4]
-
-		switch id {
-		case 0: // plain
-			if token == nil && s.SASLRequired {
-				x[4] = 3
-				_, err = conn.Write(x[:])
-				return errors.Wrap(err, "write protocol header failed")
-			}
-
-			_, err = conn.Write(x[:])
-			if err != nil {
-				return errors.Wrap(err, "echo protocol header failed")
-			}
-
-			err = transport.SetBuffered(true)
-			if err != nil {
-				return errors.Wrap(err, "transport buffering failed")
-			}
-
-			return s.HandlerV1.ServeAMQPv1(NewContextV1(s.ctx, token), transport)
-
-		case 3: // SASL
-			if len(s.SASLProviders) == 0 {
-				// no SASL providers => force client to use plain connection
-				x[4] = 0
-				_, err = conn.Write(x[:])
-				return errors.Wrap(err, "write protocol header failed")
-			}
-
-			_, err = conn.Write(x[:])
-			if err != nil {
-				return errors.Wrap(err, "echo protocol header failed")
-			}
-
-			mechanisms := make([]string, 0, len(s.SASLProviders))
-			for _, provider := range s.SASLProviders {
-				mechanisms = append(mechanisms, provider.Mechanism())
-			}
-
-			err = transport.Send(&v1.SASLMechanisms{
-				SASLServerMechanisms: mechanisms,
-			})
-			if err != nil {
-				return errors.Wrap(err, "send sasl-mechanisms failed")
-			}
-
-			panic("implement me")
-
-		default:
-			// unknown sub-protocol ID
-			if s.SASLRequired {
-				x[4] = 3
-			} else {
-				x[4] = 0
-			}
-			_, err = conn.Write(x[:])
-			return errors.Wrap(err, "write protocol header failed")
+		transport := v1.NewTransport(conn) // intentionally un-buffered
+		ctx, err := s.initV1(transport, deadline, conn, proto[4])
+		if err != nil {
+			return errors.Wrapf(err, "init v%d.%d.%d connection failed", proto[5], proto[6], proto[7])
 		}
 
+		return s.HandlerV1.ServeAMQPv1(ctx, transport)
+
 	} else {
-		x[0] = 'A'
-		x[1] = 'M'
-		x[2] = 'Q'
-		x[3] = 'P'
+		proto = [8]byte{'A', 'M', 'Q', 'P', 0, 0, 0, 0}
 
 		if s.HandlerV1 != nil {
 			if s.SASLRequired {
-				x[4] = 3
-			} else {
-				x[4] = 0
+				proto[4] = protoSASL
 			}
-			x[5] = v1.Major
-			x[6] = v1.Minor
-			x[7] = v1.Revision
+			proto[5] = v1.Major
+			proto[6] = v1.Minor
+			proto[7] = v1.Revision
 		} else if s.HandlerV0 != nil {
-			x[4] = 0
-			x[5] = v0.Major
-			x[6] = v0.Minor
-			x[7] = v0.Revision
-		} else {
-			x[4] = 0
-			x[5] = 0
-			x[6] = 0
-			x[7] = 0
+			proto[5] = v0.Major
+			proto[6] = v0.Minor
+			proto[7] = v0.Revision
 		}
 
-		_, err := conn.Write(x[:])
+		_, err := conn.Write(proto[:])
 		return errors.Wrap(err, "write protocol header failed")
 	}
 }

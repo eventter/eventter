@@ -20,35 +20,35 @@ func (p *amqplainProvider) Mechanism() string {
 	return "AMQPLAIN"
 }
 
-func (p *amqplainProvider) Authenticate(ctx context.Context, challenge string, response string) (token Token, nextChallenge string, err error) {
-	table, err := v0.UnmarshalTable([]byte(response))
+func (p *amqplainProvider) Authenticate(ctx context.Context, challenge []byte, response []byte) (token Token, nextChallenge []byte, err error) {
+	table, err := v0.UnmarshalTable(response)
 	if err != nil {
-		return nil, "", errors.Wrap(err, "unmarshal failed")
+		return nil, nil, errors.Wrap(err, "unmarshal failed")
 	}
 
 	username, err := structvalue.String(table, "LOGIN", "")
 	if err != nil {
-		return nil, "", errors.Wrap(err, "get LOGIN failed")
+		return nil, nil, errors.Wrap(err, "get LOGIN failed")
 	} else if username == "" {
-		return nil, "", errors.New("LOGIN not found / empty")
+		return nil, nil, errors.New("LOGIN not found / empty")
 	}
 
 	password, err := structvalue.String(table, "PASSWORD", "")
 	if err != nil {
-		return nil, "", errors.Wrap(err, "get PASSWORD failed")
+		return nil, nil, errors.Wrap(err, "get PASSWORD failed")
 	} else if password == "" {
-		return nil, "", errors.New("PASSWORD not found / empty")
+		return nil, nil, errors.New("PASSWORD not found / empty")
 	}
 
 	ok, err := p.directory.Verify(ctx, username, password)
 	if err != nil {
-		return nil, "", errors.Wrap(err, "authentication failed")
+		return nil, nil, errors.Wrap(err, "authentication failed")
 	}
 	if !ok {
-		return nil, "", nil
+		return nil, nil, nil
 	}
 	return &UsernamePasswordToken{
 		Username: username,
 		Password: password,
-	}, "", nil
+	}, nil, nil
 }

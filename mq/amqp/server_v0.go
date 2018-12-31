@@ -56,84 +56,61 @@ func (s *Server) initV0(transport *v0.Transport, deadline time.Time) (ctx contex
 		}}}
 	}
 
-	err = transport.Send(&v0.ConnectionStart{
+	var startOk *v0.ConnectionStartOk
+	err = transport.Call(&v0.ConnectionStart{
 		VersionMajor:     v0.Major,
 		VersionMinor:     v0.Minor,
 		ServerProperties: &types.Struct{Fields: serverProperties},
 		Mechanisms:       strings.Join(mechanisms, " "),
 		Locales:          "en_US",
-	})
+	}, &startOk)
 	if err != nil {
-		return nil, errors.Wrap(err, "send connection.start failed")
+		return nil, errors.Wrap(err, "call connection.start failed")
 	}
 
-	frame, err := transport.Receive()
-	if err != nil {
-		return nil, errors.Wrap(err, "receive connection.start-ok failed")
-	}
-	startOk, ok := frame.(*v0.ConnectionStartOk)
-	if !ok {
-		return nil, errors.Errorf("did not receive connection.start-ok, got %T instead", frame)
-	}
-
-	var (
-		token     sasl.Token
-		challenge string
-	)
-	for _, provider := range s.SASLProviders {
-		if startOk.Mechanism != provider.Mechanism() {
-			continue
+	var provider sasl.Provider
+	for _, p := range s.SASLProviders {
+		if p.Mechanism() == startOk.Mechanism {
+			provider = p
+			break
 		}
+	}
 
-		token, challenge, err = provider.Authenticate(ctx, challenge, startOk.Response)
+	if provider == nil {
+		return nil, errors.Errorf("client selected unknown SASL mechanism %s", startOk.Mechanism)
+	}
+
+	var token sasl.Token
+	var challenge []byte = nil
+	response := []byte(startOk.Response)
+	for {
+		token, challenge, err = provider.Authenticate(ctx, challenge, response)
 		if err != nil {
-			return nil, errors.Wrapf(err, "sasl using %s failed", startOk.Mechanism)
+			return nil, errors.Wrap(err, "SASL provider failed")
+		} else if token == nil && challenge == nil {
+			return nil, errors.New("not authenticated")
+		} else if token != nil {
+			break
 		}
 
-		for token == nil {
-			err = transport.Send(&v0.ConnectionSecure{Challenge: challenge})
-			if err != nil {
-				return nil, errors.Wrap(err, "send connection.secure failed")
-			}
-			frame, err = transport.Receive()
-			if err != nil {
-				return nil, errors.Wrap(err, "receive connection.secure-ok failed")
-			}
-			secureOk, ok := frame.(*v0.ConnectionSecureOk)
-			if !ok {
-				return nil, errors.Errorf("did not receive connection.secure-ok, got %T instead", frame)
-			}
-
-			token, challenge, err = provider.Authenticate(ctx, challenge, secureOk.Response)
-			if err != nil {
-				return nil, errors.Wrapf(err, "sasl using %s failed", startOk.Mechanism)
-			}
+		var secureOk *v0.ConnectionSecureOk
+		err = transport.Call(&v0.ConnectionSecure{Challenge: string(challenge)}, &secureOk)
+		if err != nil {
+			return nil, errors.Wrap(err, "call connection.secure failed")
 		}
-
-		break
-	}
-	if token == nil {
-		return nil, errors.Errorf("client selected unsupported sasl mechanism %s", startOk.Mechanism)
 	}
 
+	var tuneOk *v0.ConnectionTuneOk
 	tune := &v0.ConnectionTune{
 		ChannelMax: 2047, // see https://github.com/rabbitmq/rabbitmq-server/issues/1593
 		FrameMax:   math.MaxUint32,
 		Heartbeat:  uint16(s.Heartbeat / time.Second),
 	}
-	err = transport.Send(tune)
+	err = transport.Call(tune, &tuneOk)
 	if err != nil {
-		return nil, errors.Wrap(err, "send connection.tune failed")
+		return nil, errors.Wrap(err, "call connection.tune failed")
 	}
 
-	frame, err = transport.Receive()
-	if err != nil {
-		return nil, errors.Wrap(err, "receive connection.tune-ok failed")
-	}
-	tuneOk, ok := frame.(*v0.ConnectionTuneOk)
-	if !ok {
-		return nil, errors.Errorf("did not receive connection.tune-ok, got %T instead", frame)
-	}
 	if tuneOk.ChannelMax == 0 {
 		tuneOk.ChannelMax = tune.ChannelMax
 	} else if tuneOk.ChannelMax > tune.ChannelMax {
@@ -157,13 +134,10 @@ func (s *Server) initV0(transport *v0.Transport, deadline time.Time) (ctx contex
 		return nil, errors.Wrap(err, "set send timeout failed")
 	}
 
-	frame, err = transport.Receive()
+	var open *v0.ConnectionOpen
+	err = transport.Call(nil, &open)
 	if err != nil {
 		return nil, errors.Wrap(err, "receive connection.open failed")
-	}
-	open, ok := frame.(*v0.ConnectionOpen)
-	if !ok {
-		return nil, errors.Errorf("did not receive connection.open got %T instead", frame)
 	}
 
 	err = transport.Send(&v0.ConnectionOpenOk{})

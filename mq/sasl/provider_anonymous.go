@@ -15,6 +15,6 @@ func (*anonymousProvider) Mechanism() string {
 	return "ANONYMOUS"
 }
 
-func (*anonymousProvider) Authenticate(ctx context.Context, challenge string, response string) (token Token, nextChallenge string, err error) {
-	return &AnonymousToken{}, "", nil
+func (*anonymousProvider) Authenticate(ctx context.Context, challenge []byte, response []byte) (token Token, nextChallenge []byte, err error) {
+	return &AnonymousToken{}, nil, nil
 }

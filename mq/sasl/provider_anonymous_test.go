@@ -12,7 +12,7 @@ func TestAnonymousProvider_Authenticate(t *testing.T) {
 
 	provider := NewANONYMOUS()
 
-	token, challenge, err := provider.Authenticate(context.Background(), "", "")
+	token, challenge, err := provider.Authenticate(context.Background(), nil, nil)
 	assert.NoError(err)
 	assert.Empty(challenge)
 	assert.NotNil(token)

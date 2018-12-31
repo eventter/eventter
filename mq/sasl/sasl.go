@@ -6,7 +6,7 @@ import (
 
 type Provider interface {
 	Mechanism() string
-	Authenticate(ctx context.Context, challenge string, response string) (token Token, nextChallenge string, err error)
+	Authenticate(ctx context.Context, challenge []byte, response []byte) (token Token, nextChallenge []byte, err error)
 }
 
 type Token interface {
