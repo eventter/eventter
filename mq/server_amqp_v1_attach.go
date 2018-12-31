@@ -5,7 +5,6 @@ import (
 	"math"
 
 	"eventter.io/mq/amqp/v1"
-	"eventter.io/mq/emq"
 	"eventter.io/mq/structvalue"
 	"github.com/gogo/protobuf/types"
 	"github.com/pkg/errors"
@@ -34,11 +33,19 @@ func (s *sessionAMQPv1) Attach(ctx context.Context, frame *v1.Attach) error {
 
 func (s *sessionAMQPv1) attachTopic(ctx context.Context, frame *v1.Attach) (err error) {
 	var link *linkAMQPv1
-	request := &emq.CreateTopicRequest{}
+	var namespaceName, topicName string
+	var namespace *ClusterNamespace
+	var topic *ClusterTopic
 
-	request.Topic.Name.Namespace, err = structvalue.String((*types.Struct)(frame.Properties), "namespace", s.namespace)
+	namespaceName, err = structvalue.String((*types.Struct)(frame.Properties), "namespace", s.namespace)
 	if err != nil {
 		err = errors.Wrap(err, "get namespace failed")
+		goto ImmediateDetach
+	}
+
+	namespace, _ = s.server.clusterState.Current().FindNamespace(namespaceName)
+	if namespace == nil {
+		err = errors.Errorf("namespace %q not found", namespaceName)
 		goto ImmediateDetach
 	}
 
@@ -49,39 +56,15 @@ func (s *sessionAMQPv1) attachTopic(ctx context.Context, frame *v1.Attach) (err 
 
 	switch address := frame.Target.Address.(type) {
 	case v1.AddressString:
-		request.Topic.Name.Name = string(address)
+		topicName = string(address)
 	default:
 		err = errors.Errorf("unhandled address type %T", address)
 		goto ImmediateDetach
 	}
 
-	request.Topic.Shards, err = structvalue.Uint32((*types.Struct)(frame.Properties), "shards", 1)
-	if err != nil {
-		err = errors.Wrap(err, "get shards failed")
-		goto ImmediateDetach
-	}
-
-	request.Topic.ReplicationFactor, err = structvalue.Uint32((*types.Struct)(frame.Properties), "replication-factor", defaultReplicationFactor)
-	if err != nil {
-		err = errors.Wrap(err, "get replication-factor failed")
-		goto ImmediateDetach
-	}
-
-	request.Topic.Retention, err = structvalue.Duration((*types.Struct)(frame.Properties), "retention", 1)
-	if err != nil {
-		err = errors.Wrap(err, "get retention failed")
-		goto ImmediateDetach
-	}
-
-	request.Topic.DefaultExchangeType, err = structvalue.String((*types.Struct)(frame.Properties), "default-exchange-type", emq.ExchangeTypeFanout)
-	if err != nil {
-		err = errors.Wrap(err, "get default-exchange-type failed")
-		goto ImmediateDetach
-	}
-
-	_, err = s.server.CreateTopic(ctx, request)
-	if err != nil {
-		err = errors.Wrap(err, "create topic failed")
+	topic, _ = namespace.FindTopic(topicName)
+	if topic == nil {
+		err = errors.Errorf("topic %q not found", topicName)
 		goto ImmediateDetach
 	}
 
@@ -91,8 +74,8 @@ func (s *sessionAMQPv1) attachTopic(ctx context.Context, frame *v1.Attach) (err 
 		role:          frame.Role,
 		deliveryCount: frame.InitialDeliveryCount,
 		linkCredit:    math.MaxUint16,
-		namespace:     request.Topic.Name.Namespace,
-		topic:         request.Topic.Name.Name,
+		namespace:     namespaceName,
+		topic:         topicName,
 	}
 
 	s.links[frame.Handle] = link
@@ -117,22 +100,26 @@ func (s *sessionAMQPv1) attachTopic(ctx context.Context, frame *v1.Attach) (err 
 	return nil
 
 ImmediateDetach:
+	return s.detachImmediately(frame, err)
+}
+
+func (s *sessionAMQPv1) attachConsumerGroup(ctx context.Context, frame *v1.Attach) error {
+	return errors.New("attach consumer group not implemented")
+}
+
+func (s *sessionAMQPv1) detachImmediately(frame *v1.Attach, description error) error {
 	frame.Role = !frame.Role
 	sendErr := s.Send(frame)
 	if sendErr != nil {
-		return errors.Wrapf(sendErr, "immediate detach because of (%v) failed", err)
+		return errors.Wrapf(sendErr, "immediate detach because of (%v) failed", description)
 	}
 	sendErr = s.Send(&v1.Detach{
 		Handle: frame.Handle,
 		Closed: true,
 		Error: &v1.Error{
 			Condition:   string(v1.InternalErrorAMQPError),
-			Description: err.Error(),
+			Description: description.Error(),
 		},
 	})
-	return errors.Wrapf(sendErr, "immediate detach because of (%v) failed", err)
-}
-
-func (s *sessionAMQPv1) attachConsumerGroup(ctx context.Context, frame *v1.Attach) error {
-	return errors.New("attach consumer group not implemented")
+	return errors.Wrapf(sendErr, "immediate detach because of (%v) failed", description)
 }

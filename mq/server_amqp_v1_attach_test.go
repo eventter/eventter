@@ -1,18 +1,36 @@
 package mq
 
 import (
+	"context"
 	"testing"
 
 	"eventter.io/mq/amqp/v1"
+	"eventter.io/mq/emq"
 	"github.com/stretchr/testify/require"
 )
 
 func TestServer_ServeAMQPv1_Attach_Topic(t *testing.T) {
 	assert := require.New(t)
 
-	_, client, cleanup, err := newClientAMQPv1(t)
+	ts, client, cleanup, err := newClientAMQPv1(t)
 	assert.NoError(err)
 	defer cleanup()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	{
+		_, err := ts.CreateTopic(ctx, &emq.CreateTopicRequest{
+			Topic: emq.Topic{
+				Name: emq.NamespaceName{
+					Namespace: "default",
+					Name:      "my-topic",
+				},
+				DefaultExchangeType: emq.ExchangeTypeFanout,
+			},
+		})
+		assert.NoError(err)
+	}
 
 	{
 		var response *v1.Begin
