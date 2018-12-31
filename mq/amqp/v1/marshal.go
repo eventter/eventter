@@ -9,6 +9,10 @@ import (
 	"github.com/pkg/errors"
 )
 
+func marshalNull(buf *bytes.Buffer) error {
+	return buf.WriteByte(NullEncoding)
+}
+
 func marshalBoolean(src bool, buf *bytes.Buffer) error {
 	if src {
 		buf.WriteByte(BooleanTrueEncoding)
@@ -283,8 +287,7 @@ func marshalSymbolArray(src []string, buf *bytes.Buffer) error {
 	var x [4]byte
 
 	if len(src) == 0 {
-		buf.WriteByte(Array8Encoding)
-		buf.WriteByte(0)
+		buf.WriteByte(NullEncoding)
 		return nil
 	}
 
@@ -337,8 +340,7 @@ func marshalIETFLanguageTagArray(src []IETFLanguageTag, buf *bytes.Buffer) error
 	var x [4]byte
 
 	if len(src) == 0 {
-		buf.WriteByte(Array8Encoding)
-		buf.WriteByte(0)
+		buf.WriteByte(NullEncoding)
 		return nil
 	}
 

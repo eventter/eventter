@@ -696,6 +696,9 @@ type {{ $name | convert }} interface {
 
 						{{ range $index, $field := $type.Fields -}}
 							if count > {{ $index }} {
+							{{ if not $field.Mandatory -}}
+								if {{ $field.GoNonZeroCheck (join "t." (convert $field.Name)) }} {
+							{{- end }}
 							{{- $fieldClass := $field.TypeClass -}}
 							{{ if $field.Multiple -}}
 								{{ if or (eq $fieldClass "primitive") (eq $fieldClass "restricted") -}}
@@ -723,6 +726,12 @@ type {{ $name | convert }} interface {
 								}
 							{{- else -}}
 								panic("implement me: marshal {{ $fieldClass }} field")
+							{{- end }}
+							{{ if not $field.Mandatory -}}
+								} else {
+									err = marshalNull(&itemBuf)
+									if err != nil { return errors.Wrap(err, "marshal field {{ $field.Name }} failed") }
+								}
 							{{- end }}
 						{{ end }}
 						{{- range $type.Fields }}

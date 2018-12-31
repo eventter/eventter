@@ -90,7 +90,7 @@ func (s *Server) initV0(transport *v0.Transport, deadline time.Time) (ctx contex
 	tune := &v0.ConnectionTune{
 		ChannelMax: 2047, // see https://github.com/rabbitmq/rabbitmq-server/issues/1593
 		FrameMax:   math.MaxUint32,
-		Heartbeat:  uint16(s.Heartbeat / time.Second),
+		Heartbeat:  uint16(s.HeartbeatV0 / time.Second),
 	}
 	err = transport.Call(tune, &tuneOk)
 	if err != nil {

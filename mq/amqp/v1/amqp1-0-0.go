@@ -290,54 +290,118 @@ func (t *Open) MarshalBuffer(buf *bytes.Buffer) (err error) {
 			if err != nil {
 				return errors.Wrap(err, "marshal field container-id failed")
 			}
+
 			if count > 1 {
-				err = marshalString(t.Hostname, &itemBuf)
-				if err != nil {
-					return errors.Wrap(err, "marshal field hostname failed")
+				if t.Hostname != "" {
+					err = marshalString(t.Hostname, &itemBuf)
+					if err != nil {
+						return errors.Wrap(err, "marshal field hostname failed")
+					}
+				} else {
+					err = marshalNull(&itemBuf)
+					if err != nil {
+						return errors.Wrap(err, "marshal field hostname failed")
+					}
 				}
 				if count > 2 {
-					err = marshalUint(t.MaxFrameSize, &itemBuf)
-					if err != nil {
-						return errors.Wrap(err, "marshal field max-frame-size failed")
+					if t.MaxFrameSize != 0 {
+						err = marshalUint(t.MaxFrameSize, &itemBuf)
+						if err != nil {
+							return errors.Wrap(err, "marshal field max-frame-size failed")
+						}
+					} else {
+						err = marshalNull(&itemBuf)
+						if err != nil {
+							return errors.Wrap(err, "marshal field max-frame-size failed")
+						}
 					}
 					if count > 3 {
-						err = marshalUshort(t.ChannelMax, &itemBuf)
-						if err != nil {
-							return errors.Wrap(err, "marshal field channel-max failed")
+						if t.ChannelMax != 0 {
+							err = marshalUshort(t.ChannelMax, &itemBuf)
+							if err != nil {
+								return errors.Wrap(err, "marshal field channel-max failed")
+							}
+						} else {
+							err = marshalNull(&itemBuf)
+							if err != nil {
+								return errors.Wrap(err, "marshal field channel-max failed")
+							}
 						}
 						if count > 4 {
-							err = t.IdleTimeOut.MarshalBuffer(&itemBuf)
-							if err != nil {
-								return errors.Wrap(err, "marshal field idle-time-out failed")
+							if t.IdleTimeOut != 0 {
+								err = t.IdleTimeOut.MarshalBuffer(&itemBuf)
+								if err != nil {
+									return errors.Wrap(err, "marshal field idle-time-out failed")
+								}
+							} else {
+								err = marshalNull(&itemBuf)
+								if err != nil {
+									return errors.Wrap(err, "marshal field idle-time-out failed")
+								}
 							}
 							if count > 5 {
-								err = marshalIETFLanguageTagArray(t.OutgoingLocales, &itemBuf)
-								if err != nil {
-									return errors.Wrap(err, "marshal field outgoing-locales failed")
-								}
-
-								if count > 6 {
-									err = marshalIETFLanguageTagArray(t.IncomingLocales, &itemBuf)
+								if len(t.OutgoingLocales) > 0 {
+									err = marshalIETFLanguageTagArray(t.OutgoingLocales, &itemBuf)
 									if err != nil {
-										return errors.Wrap(err, "marshal field incoming-locales failed")
+										return errors.Wrap(err, "marshal field outgoing-locales failed")
 									}
 
-									if count > 7 {
-										err = marshalSymbolArray(t.OfferedCapabilities, &itemBuf)
+								} else {
+									err = marshalNull(&itemBuf)
+									if err != nil {
+										return errors.Wrap(err, "marshal field outgoing-locales failed")
+									}
+								}
+								if count > 6 {
+									if len(t.IncomingLocales) > 0 {
+										err = marshalIETFLanguageTagArray(t.IncomingLocales, &itemBuf)
 										if err != nil {
-											return errors.Wrap(err, "marshal field offered-capabilities failed")
+											return errors.Wrap(err, "marshal field incoming-locales failed")
 										}
 
-										if count > 8 {
-											err = marshalSymbolArray(t.DesiredCapabilities, &itemBuf)
+									} else {
+										err = marshalNull(&itemBuf)
+										if err != nil {
+											return errors.Wrap(err, "marshal field incoming-locales failed")
+										}
+									}
+									if count > 7 {
+										if len(t.OfferedCapabilities) > 0 {
+											err = marshalSymbolArray(t.OfferedCapabilities, &itemBuf)
 											if err != nil {
-												return errors.Wrap(err, "marshal field desired-capabilities failed")
+												return errors.Wrap(err, "marshal field offered-capabilities failed")
 											}
 
-											if count > 9 {
-												err = t.Properties.MarshalBuffer(&itemBuf)
+										} else {
+											err = marshalNull(&itemBuf)
+											if err != nil {
+												return errors.Wrap(err, "marshal field offered-capabilities failed")
+											}
+										}
+										if count > 8 {
+											if len(t.DesiredCapabilities) > 0 {
+												err = marshalSymbolArray(t.DesiredCapabilities, &itemBuf)
 												if err != nil {
-													return errors.Wrap(err, "marshal field properties failed")
+													return errors.Wrap(err, "marshal field desired-capabilities failed")
+												}
+
+											} else {
+												err = marshalNull(&itemBuf)
+												if err != nil {
+													return errors.Wrap(err, "marshal field desired-capabilities failed")
+												}
+											}
+											if count > 9 {
+												if t.Properties != nil {
+													err = t.Properties.MarshalBuffer(&itemBuf)
+													if err != nil {
+														return errors.Wrap(err, "marshal field properties failed")
+													}
+												} else {
+													err = marshalNull(&itemBuf)
+													if err != nil {
+														return errors.Wrap(err, "marshal field properties failed")
+													}
 												}
 
 											}
@@ -600,46 +664,84 @@ func (t *Begin) MarshalBuffer(buf *bytes.Buffer) (err error) {
 		itemBuf := bytes.Buffer{}
 
 		if count > 0 {
-			err = marshalUshort(t.RemoteChannel, &itemBuf)
-			if err != nil {
-				return errors.Wrap(err, "marshal field remote-channel failed")
+			if t.RemoteChannel != 0 {
+				err = marshalUshort(t.RemoteChannel, &itemBuf)
+				if err != nil {
+					return errors.Wrap(err, "marshal field remote-channel failed")
+				}
+			} else {
+				err = marshalNull(&itemBuf)
+				if err != nil {
+					return errors.Wrap(err, "marshal field remote-channel failed")
+				}
 			}
 			if count > 1 {
 				err = t.NextOutgoingID.MarshalBuffer(&itemBuf)
 				if err != nil {
 					return errors.Wrap(err, "marshal field next-outgoing-id failed")
 				}
+
 				if count > 2 {
 					err = marshalUint(t.IncomingWindow, &itemBuf)
 					if err != nil {
 						return errors.Wrap(err, "marshal field incoming-window failed")
 					}
+
 					if count > 3 {
 						err = marshalUint(t.OutgoingWindow, &itemBuf)
 						if err != nil {
 							return errors.Wrap(err, "marshal field outgoing-window failed")
 						}
+
 						if count > 4 {
-							err = t.HandleMax.MarshalBuffer(&itemBuf)
-							if err != nil {
-								return errors.Wrap(err, "marshal field handle-max failed")
+							if t.HandleMax != 0 {
+								err = t.HandleMax.MarshalBuffer(&itemBuf)
+								if err != nil {
+									return errors.Wrap(err, "marshal field handle-max failed")
+								}
+							} else {
+								err = marshalNull(&itemBuf)
+								if err != nil {
+									return errors.Wrap(err, "marshal field handle-max failed")
+								}
 							}
 							if count > 5 {
-								err = marshalSymbolArray(t.OfferedCapabilities, &itemBuf)
-								if err != nil {
-									return errors.Wrap(err, "marshal field offered-capabilities failed")
-								}
-
-								if count > 6 {
-									err = marshalSymbolArray(t.DesiredCapabilities, &itemBuf)
+								if len(t.OfferedCapabilities) > 0 {
+									err = marshalSymbolArray(t.OfferedCapabilities, &itemBuf)
 									if err != nil {
-										return errors.Wrap(err, "marshal field desired-capabilities failed")
+										return errors.Wrap(err, "marshal field offered-capabilities failed")
 									}
 
-									if count > 7 {
-										err = t.Properties.MarshalBuffer(&itemBuf)
+								} else {
+									err = marshalNull(&itemBuf)
+									if err != nil {
+										return errors.Wrap(err, "marshal field offered-capabilities failed")
+									}
+								}
+								if count > 6 {
+									if len(t.DesiredCapabilities) > 0 {
+										err = marshalSymbolArray(t.DesiredCapabilities, &itemBuf)
 										if err != nil {
-											return errors.Wrap(err, "marshal field properties failed")
+											return errors.Wrap(err, "marshal field desired-capabilities failed")
+										}
+
+									} else {
+										err = marshalNull(&itemBuf)
+										if err != nil {
+											return errors.Wrap(err, "marshal field desired-capabilities failed")
+										}
+									}
+									if count > 7 {
+										if t.Properties != nil {
+											err = t.Properties.MarshalBuffer(&itemBuf)
+											if err != nil {
+												return errors.Wrap(err, "marshal field properties failed")
+											}
+										} else {
+											err = marshalNull(&itemBuf)
+											if err != nil {
+												return errors.Wrap(err, "marshal field properties failed")
+											}
 										}
 
 									}
@@ -902,72 +1004,152 @@ func (t *Attach) MarshalBuffer(buf *bytes.Buffer) (err error) {
 			if err != nil {
 				return errors.Wrap(err, "marshal field name failed")
 			}
+
 			if count > 1 {
 				err = t.Handle.MarshalBuffer(&itemBuf)
 				if err != nil {
 					return errors.Wrap(err, "marshal field handle failed")
 				}
+
 				if count > 2 {
 					err = t.Role.MarshalBuffer(&itemBuf)
 					if err != nil {
 						return errors.Wrap(err, "marshal field role failed")
 					}
+
 					if count > 3 {
-						err = t.SndSettleMode.MarshalBuffer(&itemBuf)
-						if err != nil {
-							return errors.Wrap(err, "marshal field snd-settle-mode failed")
+						if t.SndSettleMode != 0 {
+							err = t.SndSettleMode.MarshalBuffer(&itemBuf)
+							if err != nil {
+								return errors.Wrap(err, "marshal field snd-settle-mode failed")
+							}
+						} else {
+							err = marshalNull(&itemBuf)
+							if err != nil {
+								return errors.Wrap(err, "marshal field snd-settle-mode failed")
+							}
 						}
 						if count > 4 {
-							err = t.RcvSettleMode.MarshalBuffer(&itemBuf)
-							if err != nil {
-								return errors.Wrap(err, "marshal field rcv-settle-mode failed")
+							if t.RcvSettleMode != 0 {
+								err = t.RcvSettleMode.MarshalBuffer(&itemBuf)
+								if err != nil {
+									return errors.Wrap(err, "marshal field rcv-settle-mode failed")
+								}
+							} else {
+								err = marshalNull(&itemBuf)
+								if err != nil {
+									return errors.Wrap(err, "marshal field rcv-settle-mode failed")
+								}
 							}
 							if count > 5 {
-								err = t.Source.MarshalBuffer(&itemBuf)
-								if err != nil {
-									return errors.Wrap(err, "marshal field source failed")
+								if t.Source != nil {
+									err = t.Source.MarshalBuffer(&itemBuf)
+									if err != nil {
+										return errors.Wrap(err, "marshal field source failed")
+									}
+								} else {
+									err = marshalNull(&itemBuf)
+									if err != nil {
+										return errors.Wrap(err, "marshal field source failed")
+									}
 								}
 								if count > 6 {
-									err = t.Target.MarshalBuffer(&itemBuf)
-									if err != nil {
-										return errors.Wrap(err, "marshal field target failed")
+									if t.Target != nil {
+										err = t.Target.MarshalBuffer(&itemBuf)
+										if err != nil {
+											return errors.Wrap(err, "marshal field target failed")
+										}
+									} else {
+										err = marshalNull(&itemBuf)
+										if err != nil {
+											return errors.Wrap(err, "marshal field target failed")
+										}
 									}
 									if count > 7 {
-										err = marshalMap(t.Unsettled, &itemBuf)
-										if err != nil {
-											return errors.Wrap(err, "marshal field unsettled failed")
+										if t.Unsettled != nil {
+											err = marshalMap(t.Unsettled, &itemBuf)
+											if err != nil {
+												return errors.Wrap(err, "marshal field unsettled failed")
+											}
+										} else {
+											err = marshalNull(&itemBuf)
+											if err != nil {
+												return errors.Wrap(err, "marshal field unsettled failed")
+											}
 										}
 										if count > 8 {
-											err = marshalBoolean(t.IncompleteUnsettled, &itemBuf)
-											if err != nil {
-												return errors.Wrap(err, "marshal field incomplete-unsettled failed")
+											if t.IncompleteUnsettled != false {
+												err = marshalBoolean(t.IncompleteUnsettled, &itemBuf)
+												if err != nil {
+													return errors.Wrap(err, "marshal field incomplete-unsettled failed")
+												}
+											} else {
+												err = marshalNull(&itemBuf)
+												if err != nil {
+													return errors.Wrap(err, "marshal field incomplete-unsettled failed")
+												}
 											}
 											if count > 9 {
-												err = t.InitialDeliveryCount.MarshalBuffer(&itemBuf)
-												if err != nil {
-													return errors.Wrap(err, "marshal field initial-delivery-count failed")
+												if t.InitialDeliveryCount != 0 {
+													err = t.InitialDeliveryCount.MarshalBuffer(&itemBuf)
+													if err != nil {
+														return errors.Wrap(err, "marshal field initial-delivery-count failed")
+													}
+												} else {
+													err = marshalNull(&itemBuf)
+													if err != nil {
+														return errors.Wrap(err, "marshal field initial-delivery-count failed")
+													}
 												}
 												if count > 10 {
-													err = marshalUlong(t.MaxMessageSize, &itemBuf)
-													if err != nil {
-														return errors.Wrap(err, "marshal field max-message-size failed")
+													if t.MaxMessageSize != 0 {
+														err = marshalUlong(t.MaxMessageSize, &itemBuf)
+														if err != nil {
+															return errors.Wrap(err, "marshal field max-message-size failed")
+														}
+													} else {
+														err = marshalNull(&itemBuf)
+														if err != nil {
+															return errors.Wrap(err, "marshal field max-message-size failed")
+														}
 													}
 													if count > 11 {
-														err = marshalSymbolArray(t.OfferedCapabilities, &itemBuf)
-														if err != nil {
-															return errors.Wrap(err, "marshal field offered-capabilities failed")
-														}
-
-														if count > 12 {
-															err = marshalSymbolArray(t.DesiredCapabilities, &itemBuf)
+														if len(t.OfferedCapabilities) > 0 {
+															err = marshalSymbolArray(t.OfferedCapabilities, &itemBuf)
 															if err != nil {
-																return errors.Wrap(err, "marshal field desired-capabilities failed")
+																return errors.Wrap(err, "marshal field offered-capabilities failed")
 															}
 
-															if count > 13 {
-																err = t.Properties.MarshalBuffer(&itemBuf)
+														} else {
+															err = marshalNull(&itemBuf)
+															if err != nil {
+																return errors.Wrap(err, "marshal field offered-capabilities failed")
+															}
+														}
+														if count > 12 {
+															if len(t.DesiredCapabilities) > 0 {
+																err = marshalSymbolArray(t.DesiredCapabilities, &itemBuf)
 																if err != nil {
-																	return errors.Wrap(err, "marshal field properties failed")
+																	return errors.Wrap(err, "marshal field desired-capabilities failed")
+																}
+
+															} else {
+																err = marshalNull(&itemBuf)
+																if err != nil {
+																	return errors.Wrap(err, "marshal field desired-capabilities failed")
+																}
+															}
+															if count > 13 {
+																if t.Properties != nil {
+																	err = t.Properties.MarshalBuffer(&itemBuf)
+																	if err != nil {
+																		return errors.Wrap(err, "marshal field properties failed")
+																	}
+																} else {
+																	err = marshalNull(&itemBuf)
+																	if err != nil {
+																		return errors.Wrap(err, "marshal field properties failed")
+																	}
 																}
 
 															}
@@ -1274,59 +1456,118 @@ func (t *Flow) MarshalBuffer(buf *bytes.Buffer) (err error) {
 		itemBuf := bytes.Buffer{}
 
 		if count > 0 {
-			err = t.NextIncomingID.MarshalBuffer(&itemBuf)
-			if err != nil {
-				return errors.Wrap(err, "marshal field next-incoming-id failed")
+			if t.NextIncomingID != 0 {
+				err = t.NextIncomingID.MarshalBuffer(&itemBuf)
+				if err != nil {
+					return errors.Wrap(err, "marshal field next-incoming-id failed")
+				}
+			} else {
+				err = marshalNull(&itemBuf)
+				if err != nil {
+					return errors.Wrap(err, "marshal field next-incoming-id failed")
+				}
 			}
 			if count > 1 {
 				err = marshalUint(t.IncomingWindow, &itemBuf)
 				if err != nil {
 					return errors.Wrap(err, "marshal field incoming-window failed")
 				}
+
 				if count > 2 {
 					err = t.NextOutgoingID.MarshalBuffer(&itemBuf)
 					if err != nil {
 						return errors.Wrap(err, "marshal field next-outgoing-id failed")
 					}
+
 					if count > 3 {
 						err = marshalUint(t.OutgoingWindow, &itemBuf)
 						if err != nil {
 							return errors.Wrap(err, "marshal field outgoing-window failed")
 						}
+
 						if count > 4 {
-							err = t.Handle.MarshalBuffer(&itemBuf)
-							if err != nil {
-								return errors.Wrap(err, "marshal field handle failed")
+							if t.Handle != 0 {
+								err = t.Handle.MarshalBuffer(&itemBuf)
+								if err != nil {
+									return errors.Wrap(err, "marshal field handle failed")
+								}
+							} else {
+								err = marshalNull(&itemBuf)
+								if err != nil {
+									return errors.Wrap(err, "marshal field handle failed")
+								}
 							}
 							if count > 5 {
-								err = t.DeliveryCount.MarshalBuffer(&itemBuf)
-								if err != nil {
-									return errors.Wrap(err, "marshal field delivery-count failed")
+								if t.DeliveryCount != 0 {
+									err = t.DeliveryCount.MarshalBuffer(&itemBuf)
+									if err != nil {
+										return errors.Wrap(err, "marshal field delivery-count failed")
+									}
+								} else {
+									err = marshalNull(&itemBuf)
+									if err != nil {
+										return errors.Wrap(err, "marshal field delivery-count failed")
+									}
 								}
 								if count > 6 {
-									err = marshalUint(t.LinkCredit, &itemBuf)
-									if err != nil {
-										return errors.Wrap(err, "marshal field link-credit failed")
+									if t.LinkCredit != 0 {
+										err = marshalUint(t.LinkCredit, &itemBuf)
+										if err != nil {
+											return errors.Wrap(err, "marshal field link-credit failed")
+										}
+									} else {
+										err = marshalNull(&itemBuf)
+										if err != nil {
+											return errors.Wrap(err, "marshal field link-credit failed")
+										}
 									}
 									if count > 7 {
-										err = marshalUint(t.Available, &itemBuf)
-										if err != nil {
-											return errors.Wrap(err, "marshal field available failed")
+										if t.Available != 0 {
+											err = marshalUint(t.Available, &itemBuf)
+											if err != nil {
+												return errors.Wrap(err, "marshal field available failed")
+											}
+										} else {
+											err = marshalNull(&itemBuf)
+											if err != nil {
+												return errors.Wrap(err, "marshal field available failed")
+											}
 										}
 										if count > 8 {
-											err = marshalBoolean(t.Drain, &itemBuf)
-											if err != nil {
-												return errors.Wrap(err, "marshal field drain failed")
+											if t.Drain != false {
+												err = marshalBoolean(t.Drain, &itemBuf)
+												if err != nil {
+													return errors.Wrap(err, "marshal field drain failed")
+												}
+											} else {
+												err = marshalNull(&itemBuf)
+												if err != nil {
+													return errors.Wrap(err, "marshal field drain failed")
+												}
 											}
 											if count > 9 {
-												err = marshalBoolean(t.Echo, &itemBuf)
-												if err != nil {
-													return errors.Wrap(err, "marshal field echo failed")
+												if t.Echo != false {
+													err = marshalBoolean(t.Echo, &itemBuf)
+													if err != nil {
+														return errors.Wrap(err, "marshal field echo failed")
+													}
+												} else {
+													err = marshalNull(&itemBuf)
+													if err != nil {
+														return errors.Wrap(err, "marshal field echo failed")
+													}
 												}
 												if count > 10 {
-													err = t.Properties.MarshalBuffer(&itemBuf)
-													if err != nil {
-														return errors.Wrap(err, "marshal field properties failed")
+													if t.Properties != nil {
+														err = t.Properties.MarshalBuffer(&itemBuf)
+														if err != nil {
+															return errors.Wrap(err, "marshal field properties failed")
+														}
+													} else {
+														err = marshalNull(&itemBuf)
+														if err != nil {
+															return errors.Wrap(err, "marshal field properties failed")
+														}
 													}
 
 												}
@@ -1607,55 +1848,126 @@ func (t *Transfer) MarshalBuffer(buf *bytes.Buffer) (err error) {
 			if err != nil {
 				return errors.Wrap(err, "marshal field handle failed")
 			}
+
 			if count > 1 {
-				err = t.DeliveryID.MarshalBuffer(&itemBuf)
-				if err != nil {
-					return errors.Wrap(err, "marshal field delivery-id failed")
+				if t.DeliveryID != 0 {
+					err = t.DeliveryID.MarshalBuffer(&itemBuf)
+					if err != nil {
+						return errors.Wrap(err, "marshal field delivery-id failed")
+					}
+				} else {
+					err = marshalNull(&itemBuf)
+					if err != nil {
+						return errors.Wrap(err, "marshal field delivery-id failed")
+					}
 				}
 				if count > 2 {
-					err = t.DeliveryTag.MarshalBuffer(&itemBuf)
-					if err != nil {
-						return errors.Wrap(err, "marshal field delivery-tag failed")
+					if t.DeliveryTag != nil {
+						err = t.DeliveryTag.MarshalBuffer(&itemBuf)
+						if err != nil {
+							return errors.Wrap(err, "marshal field delivery-tag failed")
+						}
+					} else {
+						err = marshalNull(&itemBuf)
+						if err != nil {
+							return errors.Wrap(err, "marshal field delivery-tag failed")
+						}
 					}
 					if count > 3 {
-						err = t.MessageFormat.MarshalBuffer(&itemBuf)
-						if err != nil {
-							return errors.Wrap(err, "marshal field message-format failed")
+						if t.MessageFormat != 0 {
+							err = t.MessageFormat.MarshalBuffer(&itemBuf)
+							if err != nil {
+								return errors.Wrap(err, "marshal field message-format failed")
+							}
+						} else {
+							err = marshalNull(&itemBuf)
+							if err != nil {
+								return errors.Wrap(err, "marshal field message-format failed")
+							}
 						}
 						if count > 4 {
-							err = marshalBoolean(t.Settled, &itemBuf)
-							if err != nil {
-								return errors.Wrap(err, "marshal field settled failed")
+							if t.Settled != false {
+								err = marshalBoolean(t.Settled, &itemBuf)
+								if err != nil {
+									return errors.Wrap(err, "marshal field settled failed")
+								}
+							} else {
+								err = marshalNull(&itemBuf)
+								if err != nil {
+									return errors.Wrap(err, "marshal field settled failed")
+								}
 							}
 							if count > 5 {
-								err = marshalBoolean(t.More, &itemBuf)
-								if err != nil {
-									return errors.Wrap(err, "marshal field more failed")
+								if t.More != false {
+									err = marshalBoolean(t.More, &itemBuf)
+									if err != nil {
+										return errors.Wrap(err, "marshal field more failed")
+									}
+								} else {
+									err = marshalNull(&itemBuf)
+									if err != nil {
+										return errors.Wrap(err, "marshal field more failed")
+									}
 								}
 								if count > 6 {
-									err = t.RcvSettleMode.MarshalBuffer(&itemBuf)
-									if err != nil {
-										return errors.Wrap(err, "marshal field rcv-settle-mode failed")
+									if t.RcvSettleMode != 0 {
+										err = t.RcvSettleMode.MarshalBuffer(&itemBuf)
+										if err != nil {
+											return errors.Wrap(err, "marshal field rcv-settle-mode failed")
+										}
+									} else {
+										err = marshalNull(&itemBuf)
+										if err != nil {
+											return errors.Wrap(err, "marshal field rcv-settle-mode failed")
+										}
 									}
 									if count > 7 {
-										err = marshalDeliveryStateUnion(t.State, &itemBuf)
-										if err != nil {
-											return errors.Wrap(err, "marshal field state failed")
+										if t.State != nil {
+											err = marshalDeliveryStateUnion(t.State, &itemBuf)
+											if err != nil {
+												return errors.Wrap(err, "marshal field state failed")
+											}
+										} else {
+											err = marshalNull(&itemBuf)
+											if err != nil {
+												return errors.Wrap(err, "marshal field state failed")
+											}
 										}
 										if count > 8 {
-											err = marshalBoolean(t.Resume, &itemBuf)
-											if err != nil {
-												return errors.Wrap(err, "marshal field resume failed")
+											if t.Resume != false {
+												err = marshalBoolean(t.Resume, &itemBuf)
+												if err != nil {
+													return errors.Wrap(err, "marshal field resume failed")
+												}
+											} else {
+												err = marshalNull(&itemBuf)
+												if err != nil {
+													return errors.Wrap(err, "marshal field resume failed")
+												}
 											}
 											if count > 9 {
-												err = marshalBoolean(t.Aborted, &itemBuf)
-												if err != nil {
-													return errors.Wrap(err, "marshal field aborted failed")
+												if t.Aborted != false {
+													err = marshalBoolean(t.Aborted, &itemBuf)
+													if err != nil {
+														return errors.Wrap(err, "marshal field aborted failed")
+													}
+												} else {
+													err = marshalNull(&itemBuf)
+													if err != nil {
+														return errors.Wrap(err, "marshal field aborted failed")
+													}
 												}
 												if count > 10 {
-													err = marshalBoolean(t.Batchable, &itemBuf)
-													if err != nil {
-														return errors.Wrap(err, "marshal field batchable failed")
+													if t.Batchable != false {
+														err = marshalBoolean(t.Batchable, &itemBuf)
+														if err != nil {
+															return errors.Wrap(err, "marshal field batchable failed")
+														}
+													} else {
+														err = marshalNull(&itemBuf)
+														if err != nil {
+															return errors.Wrap(err, "marshal field batchable failed")
+														}
 													}
 
 												}
@@ -1908,30 +2220,60 @@ func (t *Disposition) MarshalBuffer(buf *bytes.Buffer) (err error) {
 			if err != nil {
 				return errors.Wrap(err, "marshal field role failed")
 			}
+
 			if count > 1 {
 				err = t.First.MarshalBuffer(&itemBuf)
 				if err != nil {
 					return errors.Wrap(err, "marshal field first failed")
 				}
+
 				if count > 2 {
-					err = t.Last.MarshalBuffer(&itemBuf)
-					if err != nil {
-						return errors.Wrap(err, "marshal field last failed")
+					if t.Last != 0 {
+						err = t.Last.MarshalBuffer(&itemBuf)
+						if err != nil {
+							return errors.Wrap(err, "marshal field last failed")
+						}
+					} else {
+						err = marshalNull(&itemBuf)
+						if err != nil {
+							return errors.Wrap(err, "marshal field last failed")
+						}
 					}
 					if count > 3 {
-						err = marshalBoolean(t.Settled, &itemBuf)
-						if err != nil {
-							return errors.Wrap(err, "marshal field settled failed")
+						if t.Settled != false {
+							err = marshalBoolean(t.Settled, &itemBuf)
+							if err != nil {
+								return errors.Wrap(err, "marshal field settled failed")
+							}
+						} else {
+							err = marshalNull(&itemBuf)
+							if err != nil {
+								return errors.Wrap(err, "marshal field settled failed")
+							}
 						}
 						if count > 4 {
-							err = marshalDeliveryStateUnion(t.State, &itemBuf)
-							if err != nil {
-								return errors.Wrap(err, "marshal field state failed")
+							if t.State != nil {
+								err = marshalDeliveryStateUnion(t.State, &itemBuf)
+								if err != nil {
+									return errors.Wrap(err, "marshal field state failed")
+								}
+							} else {
+								err = marshalNull(&itemBuf)
+								if err != nil {
+									return errors.Wrap(err, "marshal field state failed")
+								}
 							}
 							if count > 5 {
-								err = marshalBoolean(t.Batchable, &itemBuf)
-								if err != nil {
-									return errors.Wrap(err, "marshal field batchable failed")
+								if t.Batchable != false {
+									err = marshalBoolean(t.Batchable, &itemBuf)
+									if err != nil {
+										return errors.Wrap(err, "marshal field batchable failed")
+									}
+								} else {
+									err = marshalNull(&itemBuf)
+									if err != nil {
+										return errors.Wrap(err, "marshal field batchable failed")
+									}
 								}
 
 							}
@@ -2122,15 +2464,30 @@ func (t *Detach) MarshalBuffer(buf *bytes.Buffer) (err error) {
 			if err != nil {
 				return errors.Wrap(err, "marshal field handle failed")
 			}
+
 			if count > 1 {
-				err = marshalBoolean(t.Closed, &itemBuf)
-				if err != nil {
-					return errors.Wrap(err, "marshal field closed failed")
+				if t.Closed != false {
+					err = marshalBoolean(t.Closed, &itemBuf)
+					if err != nil {
+						return errors.Wrap(err, "marshal field closed failed")
+					}
+				} else {
+					err = marshalNull(&itemBuf)
+					if err != nil {
+						return errors.Wrap(err, "marshal field closed failed")
+					}
 				}
 				if count > 2 {
-					err = t.Error.MarshalBuffer(&itemBuf)
-					if err != nil {
-						return errors.Wrap(err, "marshal field error failed")
+					if t.Error != nil {
+						err = t.Error.MarshalBuffer(&itemBuf)
+						if err != nil {
+							return errors.Wrap(err, "marshal field error failed")
+						}
+					} else {
+						err = marshalNull(&itemBuf)
+						if err != nil {
+							return errors.Wrap(err, "marshal field error failed")
+						}
 					}
 
 				}
@@ -2283,9 +2640,16 @@ func (t *End) MarshalBuffer(buf *bytes.Buffer) (err error) {
 		itemBuf := bytes.Buffer{}
 
 		if count > 0 {
-			err = t.Error.MarshalBuffer(&itemBuf)
-			if err != nil {
-				return errors.Wrap(err, "marshal field error failed")
+			if t.Error != nil {
+				err = t.Error.MarshalBuffer(&itemBuf)
+				if err != nil {
+					return errors.Wrap(err, "marshal field error failed")
+				}
+			} else {
+				err = marshalNull(&itemBuf)
+				if err != nil {
+					return errors.Wrap(err, "marshal field error failed")
+				}
 			}
 
 		}
@@ -2418,9 +2782,16 @@ func (t *Close) MarshalBuffer(buf *bytes.Buffer) (err error) {
 		itemBuf := bytes.Buffer{}
 
 		if count > 0 {
-			err = t.Error.MarshalBuffer(&itemBuf)
-			if err != nil {
-				return errors.Wrap(err, "marshal field error failed")
+			if t.Error != nil {
+				err = t.Error.MarshalBuffer(&itemBuf)
+				if err != nil {
+					return errors.Wrap(err, "marshal field error failed")
+				}
+			} else {
+				err = marshalNull(&itemBuf)
+				if err != nil {
+					return errors.Wrap(err, "marshal field error failed")
+				}
 			}
 
 		}
@@ -2975,15 +3346,30 @@ func (t *Error) MarshalBuffer(buf *bytes.Buffer) (err error) {
 			if err != nil {
 				return errors.Wrap(err, "marshal field condition failed")
 			}
+
 			if count > 1 {
-				err = marshalString(t.Description, &itemBuf)
-				if err != nil {
-					return errors.Wrap(err, "marshal field description failed")
+				if t.Description != "" {
+					err = marshalString(t.Description, &itemBuf)
+					if err != nil {
+						return errors.Wrap(err, "marshal field description failed")
+					}
+				} else {
+					err = marshalNull(&itemBuf)
+					if err != nil {
+						return errors.Wrap(err, "marshal field description failed")
+					}
 				}
 				if count > 2 {
-					err = t.Info.MarshalBuffer(&itemBuf)
-					if err != nil {
-						return errors.Wrap(err, "marshal field info failed")
+					if t.Info != nil {
+						err = t.Info.MarshalBuffer(&itemBuf)
+						if err != nil {
+							return errors.Wrap(err, "marshal field info failed")
+						}
+					} else {
+						err = marshalNull(&itemBuf)
+						if err != nil {
+							return errors.Wrap(err, "marshal field info failed")
+						}
 					}
 
 				}
@@ -3324,29 +3710,64 @@ func (t *Header) MarshalBuffer(buf *bytes.Buffer) (err error) {
 		itemBuf := bytes.Buffer{}
 
 		if count > 0 {
-			err = marshalBoolean(t.Durable, &itemBuf)
-			if err != nil {
-				return errors.Wrap(err, "marshal field durable failed")
+			if t.Durable != false {
+				err = marshalBoolean(t.Durable, &itemBuf)
+				if err != nil {
+					return errors.Wrap(err, "marshal field durable failed")
+				}
+			} else {
+				err = marshalNull(&itemBuf)
+				if err != nil {
+					return errors.Wrap(err, "marshal field durable failed")
+				}
 			}
 			if count > 1 {
-				err = marshalUbyte(t.Priority, &itemBuf)
-				if err != nil {
-					return errors.Wrap(err, "marshal field priority failed")
+				if t.Priority != 0 {
+					err = marshalUbyte(t.Priority, &itemBuf)
+					if err != nil {
+						return errors.Wrap(err, "marshal field priority failed")
+					}
+				} else {
+					err = marshalNull(&itemBuf)
+					if err != nil {
+						return errors.Wrap(err, "marshal field priority failed")
+					}
 				}
 				if count > 2 {
-					err = t.Ttl.MarshalBuffer(&itemBuf)
-					if err != nil {
-						return errors.Wrap(err, "marshal field ttl failed")
+					if t.Ttl != 0 {
+						err = t.Ttl.MarshalBuffer(&itemBuf)
+						if err != nil {
+							return errors.Wrap(err, "marshal field ttl failed")
+						}
+					} else {
+						err = marshalNull(&itemBuf)
+						if err != nil {
+							return errors.Wrap(err, "marshal field ttl failed")
+						}
 					}
 					if count > 3 {
-						err = marshalBoolean(t.FirstAcquirer, &itemBuf)
-						if err != nil {
-							return errors.Wrap(err, "marshal field first-acquirer failed")
+						if t.FirstAcquirer != false {
+							err = marshalBoolean(t.FirstAcquirer, &itemBuf)
+							if err != nil {
+								return errors.Wrap(err, "marshal field first-acquirer failed")
+							}
+						} else {
+							err = marshalNull(&itemBuf)
+							if err != nil {
+								return errors.Wrap(err, "marshal field first-acquirer failed")
+							}
 						}
 						if count > 4 {
-							err = marshalUint(t.DeliveryCount, &itemBuf)
-							if err != nil {
-								return errors.Wrap(err, "marshal field delivery-count failed")
+							if t.DeliveryCount != 0 {
+								err = marshalUint(t.DeliveryCount, &itemBuf)
+								if err != nil {
+									return errors.Wrap(err, "marshal field delivery-count failed")
+								}
+							} else {
+								err = marshalNull(&itemBuf)
+								if err != nil {
+									return errors.Wrap(err, "marshal field delivery-count failed")
+								}
 							}
 
 						}
@@ -3650,69 +4071,160 @@ func (t *Properties) MarshalBuffer(buf *bytes.Buffer) (err error) {
 		itemBuf := bytes.Buffer{}
 
 		if count > 0 {
-			err = marshalMessageIDUnion(t.MessageID, &itemBuf)
-			if err != nil {
-				return errors.Wrap(err, "marshal field message-id failed")
+			if t.MessageID != nil {
+				err = marshalMessageIDUnion(t.MessageID, &itemBuf)
+				if err != nil {
+					return errors.Wrap(err, "marshal field message-id failed")
+				}
+			} else {
+				err = marshalNull(&itemBuf)
+				if err != nil {
+					return errors.Wrap(err, "marshal field message-id failed")
+				}
 			}
 			if count > 1 {
-				err = marshalBinary(t.UserID, &itemBuf)
-				if err != nil {
-					return errors.Wrap(err, "marshal field user-id failed")
+				if t.UserID != nil {
+					err = marshalBinary(t.UserID, &itemBuf)
+					if err != nil {
+						return errors.Wrap(err, "marshal field user-id failed")
+					}
+				} else {
+					err = marshalNull(&itemBuf)
+					if err != nil {
+						return errors.Wrap(err, "marshal field user-id failed")
+					}
 				}
 				if count > 2 {
-					err = marshalAddressUnion(t.To, &itemBuf)
-					if err != nil {
-						return errors.Wrap(err, "marshal field to failed")
+					if t.To != nil {
+						err = marshalAddressUnion(t.To, &itemBuf)
+						if err != nil {
+							return errors.Wrap(err, "marshal field to failed")
+						}
+					} else {
+						err = marshalNull(&itemBuf)
+						if err != nil {
+							return errors.Wrap(err, "marshal field to failed")
+						}
 					}
 					if count > 3 {
-						err = marshalString(t.Subject, &itemBuf)
-						if err != nil {
-							return errors.Wrap(err, "marshal field subject failed")
+						if t.Subject != "" {
+							err = marshalString(t.Subject, &itemBuf)
+							if err != nil {
+								return errors.Wrap(err, "marshal field subject failed")
+							}
+						} else {
+							err = marshalNull(&itemBuf)
+							if err != nil {
+								return errors.Wrap(err, "marshal field subject failed")
+							}
 						}
 						if count > 4 {
-							err = marshalAddressUnion(t.ReplyTo, &itemBuf)
-							if err != nil {
-								return errors.Wrap(err, "marshal field reply-to failed")
+							if t.ReplyTo != nil {
+								err = marshalAddressUnion(t.ReplyTo, &itemBuf)
+								if err != nil {
+									return errors.Wrap(err, "marshal field reply-to failed")
+								}
+							} else {
+								err = marshalNull(&itemBuf)
+								if err != nil {
+									return errors.Wrap(err, "marshal field reply-to failed")
+								}
 							}
 							if count > 5 {
-								err = marshalMessageIDUnion(t.CorrelationID, &itemBuf)
-								if err != nil {
-									return errors.Wrap(err, "marshal field correlation-id failed")
+								if t.CorrelationID != nil {
+									err = marshalMessageIDUnion(t.CorrelationID, &itemBuf)
+									if err != nil {
+										return errors.Wrap(err, "marshal field correlation-id failed")
+									}
+								} else {
+									err = marshalNull(&itemBuf)
+									if err != nil {
+										return errors.Wrap(err, "marshal field correlation-id failed")
+									}
 								}
 								if count > 6 {
-									err = marshalSymbol(t.ContentType, &itemBuf)
-									if err != nil {
-										return errors.Wrap(err, "marshal field content-type failed")
+									if t.ContentType != "" {
+										err = marshalSymbol(t.ContentType, &itemBuf)
+										if err != nil {
+											return errors.Wrap(err, "marshal field content-type failed")
+										}
+									} else {
+										err = marshalNull(&itemBuf)
+										if err != nil {
+											return errors.Wrap(err, "marshal field content-type failed")
+										}
 									}
 									if count > 7 {
-										err = marshalSymbol(t.ContentEncoding, &itemBuf)
-										if err != nil {
-											return errors.Wrap(err, "marshal field content-encoding failed")
+										if t.ContentEncoding != "" {
+											err = marshalSymbol(t.ContentEncoding, &itemBuf)
+											if err != nil {
+												return errors.Wrap(err, "marshal field content-encoding failed")
+											}
+										} else {
+											err = marshalNull(&itemBuf)
+											if err != nil {
+												return errors.Wrap(err, "marshal field content-encoding failed")
+											}
 										}
 										if count > 8 {
-											err = marshalTimestamp(t.AbsoluteExpiryTime, &itemBuf)
-											if err != nil {
-												return errors.Wrap(err, "marshal field absolute-expiry-time failed")
+											if !t.AbsoluteExpiryTime.IsZero() {
+												err = marshalTimestamp(t.AbsoluteExpiryTime, &itemBuf)
+												if err != nil {
+													return errors.Wrap(err, "marshal field absolute-expiry-time failed")
+												}
+											} else {
+												err = marshalNull(&itemBuf)
+												if err != nil {
+													return errors.Wrap(err, "marshal field absolute-expiry-time failed")
+												}
 											}
 											if count > 9 {
-												err = marshalTimestamp(t.CreationTime, &itemBuf)
-												if err != nil {
-													return errors.Wrap(err, "marshal field creation-time failed")
+												if !t.CreationTime.IsZero() {
+													err = marshalTimestamp(t.CreationTime, &itemBuf)
+													if err != nil {
+														return errors.Wrap(err, "marshal field creation-time failed")
+													}
+												} else {
+													err = marshalNull(&itemBuf)
+													if err != nil {
+														return errors.Wrap(err, "marshal field creation-time failed")
+													}
 												}
 												if count > 10 {
-													err = marshalString(t.GroupID, &itemBuf)
-													if err != nil {
-														return errors.Wrap(err, "marshal field group-id failed")
+													if t.GroupID != "" {
+														err = marshalString(t.GroupID, &itemBuf)
+														if err != nil {
+															return errors.Wrap(err, "marshal field group-id failed")
+														}
+													} else {
+														err = marshalNull(&itemBuf)
+														if err != nil {
+															return errors.Wrap(err, "marshal field group-id failed")
+														}
 													}
 													if count > 11 {
-														err = t.GroupSequence.MarshalBuffer(&itemBuf)
-														if err != nil {
-															return errors.Wrap(err, "marshal field group-sequence failed")
+														if t.GroupSequence != 0 {
+															err = t.GroupSequence.MarshalBuffer(&itemBuf)
+															if err != nil {
+																return errors.Wrap(err, "marshal field group-sequence failed")
+															}
+														} else {
+															err = marshalNull(&itemBuf)
+															if err != nil {
+																return errors.Wrap(err, "marshal field group-sequence failed")
+															}
 														}
 														if count > 12 {
-															err = marshalString(t.ReplyToGroupID, &itemBuf)
-															if err != nil {
-																return errors.Wrap(err, "marshal field reply-to-group-id failed")
+															if t.ReplyToGroupID != "" {
+																err = marshalString(t.ReplyToGroupID, &itemBuf)
+																if err != nil {
+																	return errors.Wrap(err, "marshal field reply-to-group-id failed")
+																}
+															} else {
+																err = marshalNull(&itemBuf)
+																if err != nil {
+																	return errors.Wrap(err, "marshal field reply-to-group-id failed")
+																}
 															}
 
 														}
@@ -4282,6 +4794,7 @@ func (t *Received) MarshalBuffer(buf *bytes.Buffer) (err error) {
 			if err != nil {
 				return errors.Wrap(err, "marshal field section-number failed")
 			}
+
 			if count > 1 {
 				err = marshalUlong(t.SectionOffset, &itemBuf)
 				if err != nil {
@@ -4535,9 +5048,16 @@ func (t *Rejected) MarshalBuffer(buf *bytes.Buffer) (err error) {
 		itemBuf := bytes.Buffer{}
 
 		if count > 0 {
-			err = t.Error.MarshalBuffer(&itemBuf)
-			if err != nil {
-				return errors.Wrap(err, "marshal field error failed")
+			if t.Error != nil {
+				err = t.Error.MarshalBuffer(&itemBuf)
+				if err != nil {
+					return errors.Wrap(err, "marshal field error failed")
+				}
+			} else {
+				err = marshalNull(&itemBuf)
+				if err != nil {
+					return errors.Wrap(err, "marshal field error failed")
+				}
 			}
 
 		}
@@ -4783,19 +5303,40 @@ func (t *Modified) MarshalBuffer(buf *bytes.Buffer) (err error) {
 		itemBuf := bytes.Buffer{}
 
 		if count > 0 {
-			err = marshalBoolean(t.DeliveryFailed, &itemBuf)
-			if err != nil {
-				return errors.Wrap(err, "marshal field delivery-failed failed")
+			if t.DeliveryFailed != false {
+				err = marshalBoolean(t.DeliveryFailed, &itemBuf)
+				if err != nil {
+					return errors.Wrap(err, "marshal field delivery-failed failed")
+				}
+			} else {
+				err = marshalNull(&itemBuf)
+				if err != nil {
+					return errors.Wrap(err, "marshal field delivery-failed failed")
+				}
 			}
 			if count > 1 {
-				err = marshalBoolean(t.UndeliverableHere, &itemBuf)
-				if err != nil {
-					return errors.Wrap(err, "marshal field undeliverable-here failed")
+				if t.UndeliverableHere != false {
+					err = marshalBoolean(t.UndeliverableHere, &itemBuf)
+					if err != nil {
+						return errors.Wrap(err, "marshal field undeliverable-here failed")
+					}
+				} else {
+					err = marshalNull(&itemBuf)
+					if err != nil {
+						return errors.Wrap(err, "marshal field undeliverable-here failed")
+					}
 				}
 				if count > 2 {
-					err = t.MessageAnnotations.MarshalBuffer(&itemBuf)
-					if err != nil {
-						return errors.Wrap(err, "marshal field message-annotations failed")
+					if t.MessageAnnotations != nil {
+						err = t.MessageAnnotations.MarshalBuffer(&itemBuf)
+						if err != nil {
+							return errors.Wrap(err, "marshal field message-annotations failed")
+						}
+					} else {
+						err = marshalNull(&itemBuf)
+						if err != nil {
+							return errors.Wrap(err, "marshal field message-annotations failed")
+						}
 					}
 
 				}
@@ -4989,60 +5530,138 @@ func (t *Source) MarshalBuffer(buf *bytes.Buffer) (err error) {
 		itemBuf := bytes.Buffer{}
 
 		if count > 0 {
-			err = marshalAddressUnion(t.Address, &itemBuf)
-			if err != nil {
-				return errors.Wrap(err, "marshal field address failed")
+			if t.Address != nil {
+				err = marshalAddressUnion(t.Address, &itemBuf)
+				if err != nil {
+					return errors.Wrap(err, "marshal field address failed")
+				}
+			} else {
+				err = marshalNull(&itemBuf)
+				if err != nil {
+					return errors.Wrap(err, "marshal field address failed")
+				}
 			}
 			if count > 1 {
-				err = t.Durable.MarshalBuffer(&itemBuf)
-				if err != nil {
-					return errors.Wrap(err, "marshal field durable failed")
+				if t.Durable != 0 {
+					err = t.Durable.MarshalBuffer(&itemBuf)
+					if err != nil {
+						return errors.Wrap(err, "marshal field durable failed")
+					}
+				} else {
+					err = marshalNull(&itemBuf)
+					if err != nil {
+						return errors.Wrap(err, "marshal field durable failed")
+					}
 				}
 				if count > 2 {
-					err = t.ExpiryPolicy.MarshalBuffer(&itemBuf)
-					if err != nil {
-						return errors.Wrap(err, "marshal field expiry-policy failed")
+					if t.ExpiryPolicy != "" {
+						err = t.ExpiryPolicy.MarshalBuffer(&itemBuf)
+						if err != nil {
+							return errors.Wrap(err, "marshal field expiry-policy failed")
+						}
+					} else {
+						err = marshalNull(&itemBuf)
+						if err != nil {
+							return errors.Wrap(err, "marshal field expiry-policy failed")
+						}
 					}
 					if count > 3 {
-						err = t.Timeout.MarshalBuffer(&itemBuf)
-						if err != nil {
-							return errors.Wrap(err, "marshal field timeout failed")
+						if t.Timeout != 0 {
+							err = t.Timeout.MarshalBuffer(&itemBuf)
+							if err != nil {
+								return errors.Wrap(err, "marshal field timeout failed")
+							}
+						} else {
+							err = marshalNull(&itemBuf)
+							if err != nil {
+								return errors.Wrap(err, "marshal field timeout failed")
+							}
 						}
 						if count > 4 {
-							err = marshalBoolean(t.Dynamic, &itemBuf)
-							if err != nil {
-								return errors.Wrap(err, "marshal field dynamic failed")
+							if t.Dynamic != false {
+								err = marshalBoolean(t.Dynamic, &itemBuf)
+								if err != nil {
+									return errors.Wrap(err, "marshal field dynamic failed")
+								}
+							} else {
+								err = marshalNull(&itemBuf)
+								if err != nil {
+									return errors.Wrap(err, "marshal field dynamic failed")
+								}
 							}
 							if count > 5 {
-								err = t.DynamicNodeProperties.MarshalBuffer(&itemBuf)
-								if err != nil {
-									return errors.Wrap(err, "marshal field dynamic-node-properties failed")
+								if t.DynamicNodeProperties != nil {
+									err = t.DynamicNodeProperties.MarshalBuffer(&itemBuf)
+									if err != nil {
+										return errors.Wrap(err, "marshal field dynamic-node-properties failed")
+									}
+								} else {
+									err = marshalNull(&itemBuf)
+									if err != nil {
+										return errors.Wrap(err, "marshal field dynamic-node-properties failed")
+									}
 								}
 								if count > 6 {
-									err = marshalSymbol(t.DistributionMode, &itemBuf)
-									if err != nil {
-										return errors.Wrap(err, "marshal field distribution-mode failed")
+									if t.DistributionMode != "" {
+										err = marshalSymbol(t.DistributionMode, &itemBuf)
+										if err != nil {
+											return errors.Wrap(err, "marshal field distribution-mode failed")
+										}
+									} else {
+										err = marshalNull(&itemBuf)
+										if err != nil {
+											return errors.Wrap(err, "marshal field distribution-mode failed")
+										}
 									}
 									if count > 7 {
-										err = t.Filter.MarshalBuffer(&itemBuf)
-										if err != nil {
-											return errors.Wrap(err, "marshal field filter failed")
+										if t.Filter != nil {
+											err = t.Filter.MarshalBuffer(&itemBuf)
+											if err != nil {
+												return errors.Wrap(err, "marshal field filter failed")
+											}
+										} else {
+											err = marshalNull(&itemBuf)
+											if err != nil {
+												return errors.Wrap(err, "marshal field filter failed")
+											}
 										}
 										if count > 8 {
-											err = marshalOutcomeUnion(t.DefaultOutcome, &itemBuf)
-											if err != nil {
-												return errors.Wrap(err, "marshal field default-outcome failed")
+											if t.DefaultOutcome != nil {
+												err = marshalOutcomeUnion(t.DefaultOutcome, &itemBuf)
+												if err != nil {
+													return errors.Wrap(err, "marshal field default-outcome failed")
+												}
+											} else {
+												err = marshalNull(&itemBuf)
+												if err != nil {
+													return errors.Wrap(err, "marshal field default-outcome failed")
+												}
 											}
 											if count > 9 {
-												err = marshalSymbolArray(t.Outcomes, &itemBuf)
-												if err != nil {
-													return errors.Wrap(err, "marshal field outcomes failed")
-												}
-
-												if count > 10 {
-													err = marshalSymbolArray(t.Capabilities, &itemBuf)
+												if len(t.Outcomes) > 0 {
+													err = marshalSymbolArray(t.Outcomes, &itemBuf)
 													if err != nil {
-														return errors.Wrap(err, "marshal field capabilities failed")
+														return errors.Wrap(err, "marshal field outcomes failed")
+													}
+
+												} else {
+													err = marshalNull(&itemBuf)
+													if err != nil {
+														return errors.Wrap(err, "marshal field outcomes failed")
+													}
+												}
+												if count > 10 {
+													if len(t.Capabilities) > 0 {
+														err = marshalSymbolArray(t.Capabilities, &itemBuf)
+														if err != nil {
+															return errors.Wrap(err, "marshal field capabilities failed")
+														}
+
+													} else {
+														err = marshalNull(&itemBuf)
+														if err != nil {
+															return errors.Wrap(err, "marshal field capabilities failed")
+														}
 													}
 
 												}
@@ -5308,39 +5927,89 @@ func (t *Target) MarshalBuffer(buf *bytes.Buffer) (err error) {
 		itemBuf := bytes.Buffer{}
 
 		if count > 0 {
-			err = marshalAddressUnion(t.Address, &itemBuf)
-			if err != nil {
-				return errors.Wrap(err, "marshal field address failed")
+			if t.Address != nil {
+				err = marshalAddressUnion(t.Address, &itemBuf)
+				if err != nil {
+					return errors.Wrap(err, "marshal field address failed")
+				}
+			} else {
+				err = marshalNull(&itemBuf)
+				if err != nil {
+					return errors.Wrap(err, "marshal field address failed")
+				}
 			}
 			if count > 1 {
-				err = t.Durable.MarshalBuffer(&itemBuf)
-				if err != nil {
-					return errors.Wrap(err, "marshal field durable failed")
+				if t.Durable != 0 {
+					err = t.Durable.MarshalBuffer(&itemBuf)
+					if err != nil {
+						return errors.Wrap(err, "marshal field durable failed")
+					}
+				} else {
+					err = marshalNull(&itemBuf)
+					if err != nil {
+						return errors.Wrap(err, "marshal field durable failed")
+					}
 				}
 				if count > 2 {
-					err = t.ExpiryPolicy.MarshalBuffer(&itemBuf)
-					if err != nil {
-						return errors.Wrap(err, "marshal field expiry-policy failed")
+					if t.ExpiryPolicy != "" {
+						err = t.ExpiryPolicy.MarshalBuffer(&itemBuf)
+						if err != nil {
+							return errors.Wrap(err, "marshal field expiry-policy failed")
+						}
+					} else {
+						err = marshalNull(&itemBuf)
+						if err != nil {
+							return errors.Wrap(err, "marshal field expiry-policy failed")
+						}
 					}
 					if count > 3 {
-						err = t.Timeout.MarshalBuffer(&itemBuf)
-						if err != nil {
-							return errors.Wrap(err, "marshal field timeout failed")
+						if t.Timeout != 0 {
+							err = t.Timeout.MarshalBuffer(&itemBuf)
+							if err != nil {
+								return errors.Wrap(err, "marshal field timeout failed")
+							}
+						} else {
+							err = marshalNull(&itemBuf)
+							if err != nil {
+								return errors.Wrap(err, "marshal field timeout failed")
+							}
 						}
 						if count > 4 {
-							err = marshalBoolean(t.Dynamic, &itemBuf)
-							if err != nil {
-								return errors.Wrap(err, "marshal field dynamic failed")
+							if t.Dynamic != false {
+								err = marshalBoolean(t.Dynamic, &itemBuf)
+								if err != nil {
+									return errors.Wrap(err, "marshal field dynamic failed")
+								}
+							} else {
+								err = marshalNull(&itemBuf)
+								if err != nil {
+									return errors.Wrap(err, "marshal field dynamic failed")
+								}
 							}
 							if count > 5 {
-								err = t.DynamicNodeProperties.MarshalBuffer(&itemBuf)
-								if err != nil {
-									return errors.Wrap(err, "marshal field dynamic-node-properties failed")
+								if t.DynamicNodeProperties != nil {
+									err = t.DynamicNodeProperties.MarshalBuffer(&itemBuf)
+									if err != nil {
+										return errors.Wrap(err, "marshal field dynamic-node-properties failed")
+									}
+								} else {
+									err = marshalNull(&itemBuf)
+									if err != nil {
+										return errors.Wrap(err, "marshal field dynamic-node-properties failed")
+									}
 								}
 								if count > 6 {
-									err = marshalSymbolArray(t.Capabilities, &itemBuf)
-									if err != nil {
-										return errors.Wrap(err, "marshal field capabilities failed")
+									if len(t.Capabilities) > 0 {
+										err = marshalSymbolArray(t.Capabilities, &itemBuf)
+										if err != nil {
+											return errors.Wrap(err, "marshal field capabilities failed")
+										}
+
+									} else {
+										err = marshalNull(&itemBuf)
+										if err != nil {
+											return errors.Wrap(err, "marshal field capabilities failed")
+										}
 									}
 
 								}
@@ -6308,15 +6977,30 @@ func (t *SASLInit) MarshalBuffer(buf *bytes.Buffer) (err error) {
 			if err != nil {
 				return errors.Wrap(err, "marshal field mechanism failed")
 			}
+
 			if count > 1 {
-				err = marshalBinary(t.InitialResponse, &itemBuf)
-				if err != nil {
-					return errors.Wrap(err, "marshal field initial-response failed")
+				if t.InitialResponse != nil {
+					err = marshalBinary(t.InitialResponse, &itemBuf)
+					if err != nil {
+						return errors.Wrap(err, "marshal field initial-response failed")
+					}
+				} else {
+					err = marshalNull(&itemBuf)
+					if err != nil {
+						return errors.Wrap(err, "marshal field initial-response failed")
+					}
 				}
 				if count > 2 {
-					err = marshalString(t.Hostname, &itemBuf)
-					if err != nil {
-						return errors.Wrap(err, "marshal field hostname failed")
+					if t.Hostname != "" {
+						err = marshalString(t.Hostname, &itemBuf)
+						if err != nil {
+							return errors.Wrap(err, "marshal field hostname failed")
+						}
+					} else {
+						err = marshalNull(&itemBuf)
+						if err != nil {
+							return errors.Wrap(err, "marshal field hostname failed")
+						}
 					}
 
 				}
@@ -6745,10 +7429,18 @@ func (t *SASLOutcome) MarshalBuffer(buf *bytes.Buffer) (err error) {
 			if err != nil {
 				return errors.Wrap(err, "marshal field code failed")
 			}
+
 			if count > 1 {
-				err = marshalBinary(t.AdditionalData, &itemBuf)
-				if err != nil {
-					return errors.Wrap(err, "marshal field additional-data failed")
+				if t.AdditionalData != nil {
+					err = marshalBinary(t.AdditionalData, &itemBuf)
+					if err != nil {
+						return errors.Wrap(err, "marshal field additional-data failed")
+					}
+				} else {
+					err = marshalNull(&itemBuf)
+					if err != nil {
+						return errors.Wrap(err, "marshal field additional-data failed")
+					}
 				}
 
 			}

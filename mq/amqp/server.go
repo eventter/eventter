@@ -16,7 +16,7 @@ import (
 
 const (
 	defaultConnectTimeout = 10 * time.Second
-	defaultHeartbeat      = 10 * time.Second
+	defaultHeartbeat      = 60 * time.Second
 )
 
 type Server struct {
@@ -31,7 +31,7 @@ type Server struct {
 	// Require SASL authentication.
 	SASLRequired bool
 	// Heartbeat the server tries to negotiate with clients.
-	Heartbeat time.Duration
+	HeartbeatV0 time.Duration
 	// Will be transformed to map with strings as keys & `true` as values and sent to client as `capabilities`
 	// field in `connection.start` `server-properties`.
 	CapabilitiesV0 []string
@@ -68,10 +68,10 @@ func (s *Server) init() error {
 		m[mechanism] = true
 	}
 
-	if s.Heartbeat == 0 {
-		s.Heartbeat = defaultHeartbeat
-	} else if seconds := s.Heartbeat / time.Second; seconds > math.MaxUint16 {
-		return errors.Errorf("heartbeat %d out of bounds (%d)", seconds, math.MaxUint16)
+	if s.HeartbeatV0 == 0 {
+		s.HeartbeatV0 = defaultHeartbeat
+	} else if seconds := s.HeartbeatV0 / time.Second; seconds > math.MaxUint16 {
+		return errors.Errorf("heartbeat %d out of bounds (max %d seconds)", seconds, math.MaxUint16)
 	}
 
 	s.ctx, s.cancel = context.WithCancel(context.Background())
