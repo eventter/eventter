@@ -104,7 +104,7 @@ func (s *Server) taskConsumerGroup(ctx context.Context, namespaceName string, co
 		if len(ackImmediately) > 0 {
 			ack = ackImmediately[0]
 			ackImmediately = ackImmediately[1:]
-			goto COMMIT
+			goto Commit
 		}
 
 		select {
@@ -243,7 +243,7 @@ func (s *Server) taskConsumerGroup(ctx context.Context, namespaceName string, co
 							SegmentID:    offsetSegmentID,
 							CommitOffset: segment.Size_,
 						}
-						goto COMMIT
+						goto Commit
 					}
 				} else {
 					state = nil // !!! force re-read of state and possibly restart the task
@@ -251,7 +251,7 @@ func (s *Server) taskConsumerGroup(ctx context.Context, namespaceName string, co
 			}
 
 		case ack = <-group.Commits:
-			goto COMMIT
+			goto Commit
 
 		case <-ctx.Done():
 			return ctx.Err()
@@ -259,7 +259,7 @@ func (s *Server) taskConsumerGroup(ctx context.Context, namespaceName string, co
 
 		continue
 
-	COMMIT:
+	Commit:
 		if ack.CommitOffset > committedOffsets[ack.SegmentID] {
 			committedOffsets[ack.SegmentID] = ack.CommitOffset
 		}
@@ -272,7 +272,7 @@ func (s *Server) taskConsumerGroup(ctx context.Context, namespaceName string, co
 			return errors.Wrap(err, "marshal failed")
 		}
 
-	WRITE:
+	Write:
 		if err := segmentHandle.Write(buf); err == segments.ErrFull {
 			sha1Sum, size, err := segmentHandle.Sum(sha1.New(), segments.SumAll)
 			if err != nil {
@@ -316,7 +316,7 @@ func (s *Server) taskConsumerGroup(ctx context.Context, namespaceName string, co
 			if err != nil {
 				return errors.Wrap(err, "rotated segment open failed")
 			}
-			goto WRITE
+			goto Write
 
 		} else if err != nil {
 			return errors.Wrap(err, "segment write failed")

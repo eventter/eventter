@@ -8,6 +8,8 @@ import (
 
 	"eventter.io/mq/about"
 	"eventter.io/mq/amqp/v1"
+	"eventter.io/mq/emq"
+	"eventter.io/mq/structvalue"
 	"github.com/gogo/protobuf/types"
 	"github.com/pkg/errors"
 )
@@ -40,14 +42,20 @@ func (s *Server) ServeAMQPv1(ctx context.Context, transport *v1.Transport) (err 
 		if err != nil {
 			return errors.Wrap(err, "send open failed")
 		}
-		err = transport.Send(&v1.Close{Error: &v1.Error{Condition: "client timeout too short"}})
+		err = transport.Send(&v1.Close{Error: &v1.Error{
+			Condition:   string(v1.ResourceLimitExceededAMQPError),
+			Description: "client timeout too short",
+		}})
 		return errors.Wrap(err, "close failed")
 	} else if clientOpen.IdleTimeOut > 3600*1000 {
 		err = transport.Send(serverOpen)
 		if err != nil {
 			return errors.Wrap(err, "send open failed")
 		}
-		err = transport.Send(&v1.Close{Error: &v1.Error{Condition: "client timeout too long"}})
+		err = transport.Send(&v1.Close{Error: &v1.Error{
+			Condition:   string(v1.ResourceLimitExceededAMQPError),
+			Description: "client timeout too long",
+		}})
 		return errors.Wrap(err, "close failed")
 	} else {
 		// use client-proposed idle timeout
@@ -58,7 +66,7 @@ func (s *Server) ServeAMQPv1(ctx context.Context, transport *v1.Transport) (err 
 		}
 	}
 
-	heartbeat := time.Duration(clientOpen.IdleTimeOut) * time.Millisecond
+	heartbeat := time.Duration(clientOpen.IdleTimeOut) * time.Millisecond / 2
 	err = transport.SetReceiveTimeout(heartbeat * 2)
 	if err != nil {
 		return errors.Wrap(err, "set receive timeout failed")
@@ -102,7 +110,7 @@ func (s *Server) ServeAMQPv1(ctx context.Context, transport *v1.Transport) (err 
 	for {
 		select {
 		case <-s.closed:
-			return s.forceCloseAMQPv1(transport, errors.New("shutdown"))
+			return s.forceCloseAMQPv1(transport, string(v1.ConnectionForcedConnectionError), errors.New("shutdown"))
 
 		case <-heartbeats.C:
 			err = transport.Send(nil)
@@ -111,7 +119,7 @@ func (s *Server) ServeAMQPv1(ctx context.Context, transport *v1.Transport) (err 
 			}
 
 		case receiveErr := <-receiveErrors:
-			return s.forceCloseAMQPv1(transport, errors.Wrap(receiveErr, "receive failed"))
+			return s.forceCloseAMQPv1(transport, string(v1.FramingErrorConnectionError), errors.Wrap(receiveErr, "receive failed"))
 
 		case frame := <-frames:
 			switch frame := frame.(type) {
@@ -133,7 +141,16 @@ func (s *Server) ServeAMQPv1(ctx context.Context, transport *v1.Transport) (err 
 				if _, ok := sessions[frame.FrameMeta.Channel]; ok {
 					return s.forceCloseAMQPv1(
 						transport,
+						string(v1.IllegalStateAMQPError),
 						errors.Errorf("received begin on channel %d, but session already begun", frame.FrameMeta.Channel),
+					)
+				}
+				namespace, err := structvalue.String((*types.Struct)(frame.Properties), "namespace", emq.DefaultNamespace)
+				if err != nil {
+					return s.forceCloseAMQPv1(
+						transport,
+						string(v1.InvalidFieldAMQPError),
+						errors.Wrapf(err, "get namespace failed"),
 					)
 				}
 				session := &sessionAMQPv1{
@@ -141,13 +158,15 @@ func (s *Server) ServeAMQPv1(ctx context.Context, transport *v1.Transport) (err 
 					transport:            transport,
 					state:                sessionStateReady,
 					remoteChannel:        frame.FrameMeta.Channel,
-					remoteNextOutgoingID: frame.NextOutgoingID,
+					nextIncomingID:       frame.NextOutgoingID,
 					remoteIncomingWindow: frame.IncomingWindow,
 					remoteOutgoingWindow: frame.OutgoingWindow,
 					channel:              frame.FrameMeta.Channel, // just use the same channel as client
 					nextOutgoingID:       v1.TransferNumber(0),
 					incomingWindow:       math.MaxUint16,
 					outgoingWindow:       math.MaxUint16,
+					namespace:            namespace,
+					links:                make(map[v1.Handle]*linkAMQPv1),
 				}
 				sessions[session.remoteChannel] = session
 				err = transport.Send(&v1.Begin{
@@ -156,7 +175,7 @@ func (s *Server) ServeAMQPv1(ctx context.Context, transport *v1.Transport) (err 
 					NextOutgoingID: session.nextOutgoingID,
 					IncomingWindow: session.incomingWindow,
 					OutgoingWindow: session.outgoingWindow,
-					HandleMax:      math.MaxUint32,
+					HandleMax:      v1.HandleMax,
 				})
 				if err != nil {
 					return errors.Wrap(err, "send begin failed")
@@ -167,7 +186,9 @@ func (s *Server) ServeAMQPv1(ctx context.Context, transport *v1.Transport) (err 
 				if !ok {
 					return s.forceCloseAMQPv1(
 						transport,
-						errors.Errorf("received end on channel %d, but no session begun", frame.FrameMeta.Channel),
+						string(v1.IllegalStateAMQPError),
+						errors.Errorf("received end on channel %d, but no session begun",
+							frame.FrameMeta.Channel),
 					)
 				}
 
@@ -183,7 +204,10 @@ func (s *Server) ServeAMQPv1(ctx context.Context, transport *v1.Transport) (err 
 				err = session.Close()
 				var endError *v1.Error
 				if err != nil {
-					endError = &v1.Error{Condition: err.Error()}
+					endError = &v1.Error{
+						Condition:   string(v1.InternalErrorAMQPError),
+						Description: err.Error(),
+					}
 					if session.state == sessionStateClosing {
 						log.Printf("session close failed: %s", err)
 					}
@@ -202,17 +226,21 @@ func (s *Server) ServeAMQPv1(ctx context.Context, transport *v1.Transport) (err 
 				if !ok {
 					return s.forceCloseAMQPv1(
 						transport,
+						string(v1.IllegalStateAMQPError),
 						errors.Errorf("received attach on channel %d, but no session begun", meta.Channel),
 					)
 				}
 
 				if session.state != sessionStateClosing {
-					err = session.Handle(ctx, frame)
+					err = session.Process(ctx, frame)
 					if err != nil {
 						session.state = sessionStateClosing
 						err = transport.Send(&v1.End{
 							FrameMeta: v1.FrameMeta{Channel: session.channel},
-							Error:     &v1.Error{Condition: err.Error()},
+							Error: &v1.Error{
+								Condition:   string(v1.InternalErrorAMQPError),
+								Description: err.Error(),
+							},
 						})
 						if err != nil {
 							return errors.Wrap(err, "send end failed")
@@ -224,8 +252,11 @@ func (s *Server) ServeAMQPv1(ctx context.Context, transport *v1.Transport) (err 
 	}
 }
 
-func (s *Server) forceCloseAMQPv1(transport *v1.Transport, reason error) error {
-	err := transport.Send(&v1.Close{Error: &v1.Error{Condition: reason.Error()}})
+func (s *Server) forceCloseAMQPv1(transport *v1.Transport, condition string, description error) error {
+	err := transport.Send(&v1.Close{Error: &v1.Error{
+		Condition:   condition,
+		Description: description.Error(),
+	}})
 	return errors.Wrap(err, "force close failed")
 }
 
@@ -239,32 +270,94 @@ type sessionAMQPv1 struct {
 	transport            *v1.Transport
 	state                int
 	remoteChannel        uint16
-	remoteNextOutgoingID v1.TransferNumber
+	channel              uint16
+	nextIncomingID       v1.TransferNumber
+	incomingWindow       uint32
+	nextOutgoingID       v1.TransferNumber
+	outgoingWindow       uint32
 	remoteIncomingWindow uint32
 	remoteOutgoingWindow uint32
-	channel              uint16
-	nextOutgoingID       v1.TransferNumber
-	incomingWindow       uint32
-	outgoingWindow       uint32
+	namespace            string
+	links                map[v1.Handle]*linkAMQPv1
+}
+
+func (s *sessionAMQPv1) Send(frame v1.Frame) error {
+	meta := frame.GetFrameMeta()
+	meta.Channel = s.channel
+	return s.transport.Send(frame)
 }
 
 func (s *sessionAMQPv1) Close() error {
 	return nil
 }
 
-func (s *sessionAMQPv1) Handle(ctx context.Context, frame v1.Frame) error {
+func (s *sessionAMQPv1) Process(ctx context.Context, frame v1.Frame) (err error) {
+	var handle v1.Handle
+
 	switch frame := frame.(type) {
 	case *v1.Attach:
 		return s.Attach(ctx, frame)
 	case *v1.Detach:
 		return s.Detach(ctx, frame)
 	case *v1.Flow:
-		return s.Flow(ctx, frame)
+		link, ok := s.links[frame.Handle]
+		if !ok {
+			handle = frame.Handle
+			goto EndHandleNotFound
+		}
+		err = link.Flow(ctx, frame)
+		if err != nil {
+			goto EndErrantLink
+		}
+		return nil
 	case *v1.Disposition:
 		return s.Disposition(ctx, frame)
 	case *v1.Transfer:
-		return s.Transfer(ctx, frame)
+		link, ok := s.links[frame.Handle]
+		if !ok {
+			handle = frame.Handle
+			goto EndHandleNotFound
+		}
+		err = link.Transfer(ctx, frame)
+		if err != nil {
+			goto EndErrantLink
+		}
+		return nil
 	default:
 		return errors.Errorf("unexpected frame %T", frame)
 	}
+
+EndHandleNotFound:
+	s.state = sessionStateClosing
+	return s.Send(&v1.End{
+		Error: &v1.Error{
+			Condition:   string(v1.UnattachedHandleSessionError),
+			Description: errors.Errorf("link handle %v not found", handle).Error(),
+		},
+	})
+
+EndErrantLink:
+	s.state = sessionStateClosing
+	return s.Send(&v1.End{
+		Error: &v1.Error{
+			Condition:   string(v1.ErrantLinkSessionError),
+			Description: err.Error(),
+		},
+	})
+}
+
+type linkAMQPv1 struct {
+	session       *sessionAMQPv1
+	handle        v1.Handle
+	role          v1.Role
+	deliveryCount v1.SequenceNo
+	linkCredit    uint32
+	available     uint32
+	drain         bool
+	namespace     string
+	topic         string
+}
+
+func (l *linkAMQPv1) Close() error {
+	return nil
 }

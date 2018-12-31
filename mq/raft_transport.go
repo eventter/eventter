@@ -364,7 +364,7 @@ func (t *RaftRPCTransport) DoAppendEntries(stream RaftRPC_DoAppendEntriesServer)
 
 			if handleHeartbeat != nil {
 				handleHeartbeat(call)
-				goto RESPONSE
+				goto Response
 			}
 		}
 
@@ -374,7 +374,7 @@ func (t *RaftRPCTransport) DoAppendEntries(stream RaftRPC_DoAppendEntriesServer)
 		case t.ch <- call:
 		}
 
-	RESPONSE:
+	Response:
 		var responseOrError raft.RPCResponse
 		select {
 		case <-ctx.Done():

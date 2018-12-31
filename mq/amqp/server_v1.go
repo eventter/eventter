@@ -27,7 +27,7 @@ func (s *Server) initV1(transport *v1.Transport, deadline time.Time, conn net.Co
 	var token sasl.Token
 	var proto = [8]byte{'A', 'M', 'Q', 'P', protoID, v1.Major, v1.Minor, v1.Revision}
 
-START:
+Start:
 	switch proto[4] {
 	case protoPlain:
 		if token == nil && s.SASLRequired {
@@ -123,7 +123,7 @@ START:
 
 		if proto[0] == 'A' && proto[1] == 'M' && proto[2] == 'Q' && proto[3] == 'P' &&
 			proto[5] == v1.Major && proto[6] == v1.Minor && proto[7] == v1.Revision {
-			goto START
+			goto Start
 		} else {
 			proto = [8]byte{'A', 'M', 'Q', 'P', protoPlain, v1.Major, v1.Minor, v1.Revision}
 			if s.SASLRequired {

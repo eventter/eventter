@@ -18,8 +18,11 @@ const (
 )
 
 const (
-	RemoteChannelNull = math.MaxUint16
-	ChannelMax        = math.MaxUint16 - 1
+	RemoteChannelNull  = math.MaxUint16
+	ChannelMax         = math.MaxUint16 - 1
+	TransferNumberNull = math.MaxUint32
+	HandleNull         = math.MaxUint32
+	HandleMax          = math.MaxUint32 - 1
 )
 
 var (
@@ -701,7 +704,7 @@ func (t *Begin) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	count = 2 // next-outgoing-id is mandatory
 	count = 3 // incoming-window is mandatory
 	count = 4 // outgoing-window is mandatory
-	if t.HandleMax != 0 {
+	if t.HandleMax != HandleNull {
 		count = 5
 	}
 	if len(t.OfferedCapabilities) > 0 {
@@ -750,7 +753,7 @@ func (t *Begin) MarshalBuffer(buf *bytes.Buffer) (err error) {
 						}
 
 						if count > 4 {
-							if t.HandleMax != 0 {
+							if t.HandleMax != HandleNull {
 								err = t.HandleMax.MarshalBuffer(&itemBuf)
 								if err != nil {
 									return errors.Wrap(err, "marshal field handle-max failed")
@@ -908,16 +911,26 @@ func (t *Begin) UnmarshalBuffer(buf *bytes.Buffer) error {
 		if err != nil {
 			return errors.Wrap(err, "unmarshal field remote-channel failed")
 		}
-		err = unmarshalUshort(&t.RemoteChannel, constructor, itemBuf)
-		if err != nil {
-			return errors.Wrap(err, "unmarshal field remote-channel failed")
+		if constructor == NullEncoding {
+			t.RemoteChannel = RemoteChannelNull
+		} else {
+			err = unmarshalUshort(&t.RemoteChannel, constructor, itemBuf)
+			if err != nil {
+				return errors.Wrap(err, "unmarshal field remote-channel failed")
+			}
 		}
+
 		done = 1
 		if count > 1 {
-			err = t.NextOutgoingID.UnmarshalBuffer(itemBuf)
-			if err != nil {
-				return errors.Wrap(err, "unmarshal field next-outgoing-id failed")
+			if constructor == NullEncoding {
+				t.NextOutgoingID = TransferNumberNull
+			} else {
+				err = t.NextOutgoingID.UnmarshalBuffer(itemBuf)
+				if err != nil {
+					return errors.Wrap(err, "unmarshal field next-outgoing-id failed")
+				}
 			}
+
 			done = 2
 			if count > 2 {
 				constructor, err = itemBuf.ReadByte()
@@ -940,10 +953,15 @@ func (t *Begin) UnmarshalBuffer(buf *bytes.Buffer) error {
 					}
 					done = 4
 					if count > 4 {
-						err = t.HandleMax.UnmarshalBuffer(itemBuf)
-						if err != nil {
-							return errors.Wrap(err, "unmarshal field handle-max failed")
+						if constructor == NullEncoding {
+							t.HandleMax = HandleNull
+						} else {
+							err = t.HandleMax.UnmarshalBuffer(itemBuf)
+							if err != nil {
+								return errors.Wrap(err, "unmarshal field handle-max failed")
+							}
 						}
+
 						done = 5
 						if count > 5 {
 							constructor, err = itemBuf.ReadByte()
@@ -1365,10 +1383,15 @@ func (t *Attach) UnmarshalBuffer(buf *bytes.Buffer) error {
 		}
 		done = 1
 		if count > 1 {
-			err = t.Handle.UnmarshalBuffer(itemBuf)
-			if err != nil {
-				return errors.Wrap(err, "unmarshal field handle failed")
+			if constructor == NullEncoding {
+				t.Handle = HandleNull
+			} else {
+				err = t.Handle.UnmarshalBuffer(itemBuf)
+				if err != nil {
+					return errors.Wrap(err, "unmarshal field handle failed")
+				}
 			}
+
 			done = 2
 			if count > 2 {
 				err = t.Role.UnmarshalBuffer(itemBuf)
@@ -1556,7 +1579,7 @@ func (t *Flow) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	count = 2 // incoming-window is mandatory
 	count = 3 // next-outgoing-id is mandatory
 	count = 4 // outgoing-window is mandatory
-	if t.Handle != 0 {
+	if t.Handle != HandleNull {
 		count = 5
 	}
 	if t.DeliveryCount != 0 {
@@ -1584,7 +1607,7 @@ func (t *Flow) MarshalBuffer(buf *bytes.Buffer) (err error) {
 		itemBuf := bytes.Buffer{}
 
 		if count > 0 {
-			if t.NextIncomingID != 0 {
+			if t.NextIncomingID != TransferNumberNull {
 				err = t.NextIncomingID.MarshalBuffer(&itemBuf)
 				if err != nil {
 					return errors.Wrap(err, "marshal field next-incoming-id failed")
@@ -1614,7 +1637,7 @@ func (t *Flow) MarshalBuffer(buf *bytes.Buffer) (err error) {
 						}
 
 						if count > 4 {
-							if t.Handle != 0 {
+							if t.Handle != HandleNull {
 								err = t.Handle.MarshalBuffer(&itemBuf)
 								if err != nil {
 									return errors.Wrap(err, "marshal field handle failed")
@@ -1805,10 +1828,15 @@ func (t *Flow) UnmarshalBuffer(buf *bytes.Buffer) error {
 
 	var done int = 0
 	if count > 0 {
-		err = t.NextIncomingID.UnmarshalBuffer(itemBuf)
-		if err != nil {
-			return errors.Wrap(err, "unmarshal field next-incoming-id failed")
+		if constructor == NullEncoding {
+			t.NextIncomingID = TransferNumberNull
+		} else {
+			err = t.NextIncomingID.UnmarshalBuffer(itemBuf)
+			if err != nil {
+				return errors.Wrap(err, "unmarshal field next-incoming-id failed")
+			}
 		}
+
 		done = 1
 		if count > 1 {
 			constructor, err = itemBuf.ReadByte()
@@ -1821,10 +1849,15 @@ func (t *Flow) UnmarshalBuffer(buf *bytes.Buffer) error {
 			}
 			done = 2
 			if count > 2 {
-				err = t.NextOutgoingID.UnmarshalBuffer(itemBuf)
-				if err != nil {
-					return errors.Wrap(err, "unmarshal field next-outgoing-id failed")
+				if constructor == NullEncoding {
+					t.NextOutgoingID = TransferNumberNull
+				} else {
+					err = t.NextOutgoingID.UnmarshalBuffer(itemBuf)
+					if err != nil {
+						return errors.Wrap(err, "unmarshal field next-outgoing-id failed")
+					}
 				}
+
 				done = 3
 				if count > 3 {
 					constructor, err = itemBuf.ReadByte()
@@ -1837,10 +1870,15 @@ func (t *Flow) UnmarshalBuffer(buf *bytes.Buffer) error {
 					}
 					done = 4
 					if count > 4 {
-						err = t.Handle.UnmarshalBuffer(itemBuf)
-						if err != nil {
-							return errors.Wrap(err, "unmarshal field handle failed")
+						if constructor == NullEncoding {
+							t.Handle = HandleNull
+						} else {
+							err = t.Handle.UnmarshalBuffer(itemBuf)
+							if err != nil {
+								return errors.Wrap(err, "unmarshal field handle failed")
+							}
 						}
+
 						done = 5
 						if count > 5 {
 							err = t.DeliveryCount.UnmarshalBuffer(itemBuf)
@@ -2242,10 +2280,15 @@ func (t *Transfer) UnmarshalBuffer(buf *bytes.Buffer) error {
 
 	var done int = 0
 	if count > 0 {
-		err = t.Handle.UnmarshalBuffer(itemBuf)
-		if err != nil {
-			return errors.Wrap(err, "unmarshal field handle failed")
+		if constructor == NullEncoding {
+			t.Handle = HandleNull
+		} else {
+			err = t.Handle.UnmarshalBuffer(itemBuf)
+			if err != nil {
+				return errors.Wrap(err, "unmarshal field handle failed")
+			}
 		}
+
 		done = 1
 		if count > 1 {
 			err = t.DeliveryID.UnmarshalBuffer(itemBuf)
@@ -2820,10 +2863,15 @@ func (t *Detach) UnmarshalBuffer(buf *bytes.Buffer) error {
 
 	var done int = 0
 	if count > 0 {
-		err = t.Handle.UnmarshalBuffer(itemBuf)
-		if err != nil {
-			return errors.Wrap(err, "unmarshal field handle failed")
+		if constructor == NullEncoding {
+			t.Handle = HandleNull
+		} else {
+			err = t.Handle.UnmarshalBuffer(itemBuf)
+			if err != nil {
+				return errors.Wrap(err, "unmarshal field handle failed")
+			}
 		}
+
 		done = 1
 		if count > 1 {
 			constructor, err = itemBuf.ReadByte()

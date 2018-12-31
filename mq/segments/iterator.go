@@ -41,7 +41,7 @@ func (i *Iterator) Next() (data []byte, offset int64, commitOffset int64, err er
 		}
 	}()
 
-NEXT:
+Next:
 	messageOffset := i.offset
 
 	buf, err := i.reader.Peek(binary.MaxVarintLen64)
@@ -51,7 +51,7 @@ NEXT:
 			if i.wait {
 				err = i.nextWait()
 				if err == nil {
-					goto NEXT
+					goto Next
 				}
 			}
 

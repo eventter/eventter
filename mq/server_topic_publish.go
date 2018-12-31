@@ -49,7 +49,7 @@ func (s *Server) Publish(ctx context.Context, request *emq.PublishRequest) (*emq
 			n %= uint32(len(openSegments))
 			segment := openSegments[n]
 			forwardNodeID = segment.Nodes.PrimaryNodeID
-			goto FORWARD
+			goto Forward
 
 		} else {
 			response, err := s.SegmentOpen(ctx, &SegmentOpenRequest{
@@ -63,7 +63,7 @@ func (s *Server) Publish(ctx context.Context, request *emq.PublishRequest) (*emq
 
 			if response.PrimaryNodeID != s.nodeID {
 				forwardNodeID = response.PrimaryNodeID
-				goto FORWARD
+				goto Forward
 			}
 
 			localSegmentID = response.SegmentID
@@ -109,7 +109,7 @@ func (s *Server) Publish(ctx context.Context, request *emq.PublishRequest) (*emq
 			return nil, errors.Wrap(err, "marshal failed")
 		}
 
-	WRITE:
+	Write:
 		if err := segmentHandle.Write(buf); err == segments.ErrFull {
 			sha1Sum, size, err := segmentHandle.Sum(sha1.New(), segments.SumAll)
 			if err != nil {
@@ -127,7 +127,7 @@ func (s *Server) Publish(ctx context.Context, request *emq.PublishRequest) (*emq
 
 			if response.PrimaryNodeID != s.nodeID {
 				forwardNodeID = response.PrimaryNodeID
-				goto FORWARD
+				goto Forward
 			}
 
 			s.segmentDir.Release(segmentHandle)
@@ -137,7 +137,7 @@ func (s *Server) Publish(ctx context.Context, request *emq.PublishRequest) (*emq
 			if err != nil {
 				return nil, errors.Wrap(err, "rotated segment open failed")
 			}
-			goto WRITE
+			goto Write
 
 		} else if err != nil {
 			return nil, errors.Wrap(err, "segment write failed")
@@ -164,7 +164,7 @@ func (s *Server) Publish(ctx context.Context, request *emq.PublishRequest) (*emq
 		}, nil
 	}
 
-FORWARD:
+Forward:
 	{
 		if request.DoNotForward {
 			return nil, errWontForward

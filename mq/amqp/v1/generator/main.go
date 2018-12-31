@@ -408,6 +408,12 @@ func (f *Field) GoNonZeroCheck(expr string) (string, error) {
 		return "", errors.Errorf("field %s (of type %s): did not find type %s", f.Name, f.Parent.Name, f.TypeName)
 	}
 
+	if t.Name == "transfer-number" {
+		return expr + " != TransferNumberNull", nil
+	} else if t.Name == "handle" {
+		return expr + " != HandleNull", nil
+	}
+
 	var err error
 	if t.Class == "restricted" {
 		t, err = t.PrimitiveType()
@@ -607,6 +613,9 @@ const (
 const (
 	RemoteChannelNull = math.MaxUint16
 	ChannelMax = math.MaxUint16 - 1
+	TransferNumberNull = math.MaxUint32
+	HandleNull = math.MaxUint32
+	HandleMax = math.MaxUint32 - 1
 )
 
 var (
@@ -907,15 +916,31 @@ type {{ $name | convert }} interface {
 							}
 							t.{{ $field.Name | convert }} = ({{ $field.GoType }})(map{{ $index }})
 						{{- else if eq $fieldClass "primitive" -}}
+							{{- if and (eq $type.Name "begin") (eq $field.Name "remote-channel") -}}
+								if constructor == NullEncoding {
+									t.{{ $field.Name | convert }} = RemoteChannelNull
+								} else {
+							{{ end -}}
 							err = unmarshal{{ $field.TypeName | convert }}(&t.{{ $field.Name | convert }}, constructor, itemBuf)
 							if err != nil {
 								return errors.Wrap(err, "unmarshal field {{ $field.Name }} failed")
 							}
+							{{- if and (eq $type.Name "begin") (eq $field.Name "remote-channel") -}}
+								}
+							{{ end -}}
 						{{- else if eq $fieldClass "restricted" -}}
+							{{- if or (eq $field.TypeName "transfer-number") (eq $field.TypeName "handle") -}}
+								if constructor == NullEncoding {
+									t.{{ $field.Name | convert }} = {{ $field.TypeName | convert }}Null
+								} else {
+							{{ end -}}
 							err = t.{{ $field.Name | convert }}.UnmarshalBuffer(itemBuf)
 							if err != nil {
 								return errors.Wrap(err, "unmarshal field {{ $field.Name }} failed")
 							}
+							{{- if or (eq $field.TypeName "transfer-number") (eq $field.TypeName "handle") -}}
+								}
+							{{ end -}}
 						{{- else if eq $fieldClass "composite" -}}
 							t.{{ $field.Name | convert }} = &{{ $field.CompositeTypeName }}{}
 							err = t.{{ $field.Name | convert }}.UnmarshalBuffer(itemBuf)

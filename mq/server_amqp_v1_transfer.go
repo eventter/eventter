@@ -7,6 +7,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (s *sessionAMQPv1) Transfer(ctx context.Context, frame *v1.Transfer) error {
+func (l *linkAMQPv1) Transfer(ctx context.Context, frame *v1.Transfer) error {
 	return errors.New("transfer not implemented")
 }
