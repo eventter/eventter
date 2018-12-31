@@ -108,20 +108,39 @@ func (s *Server) txSegmentOpen(state *ClusterState, primaryNodeID uint64, owner 
 
 	// b) find first available shard in generation
 	shard := uint32(1)
-	if uint32(len(generationSegments)) >= shards {
+	if shards > 0 && uint32(len(generationSegments)) >= shards {
+		// whole previous generation is assigned => start a new one
 		generation++
 	} else {
-		for i := uint32(1); i <= shards; i++ {
-			found := false
-			for _, segment := range generationSegments {
-				if segment.Shard == i {
-					found = true
+		nodeFound := false
+		for _, segment := range generationSegments {
+			if segment.Nodes.PrimaryNodeID == primaryNodeID {
+				nodeFound = true
+				break
+			}
+			for _, nodeID := range segment.Nodes.DoneNodeIDs {
+				if nodeID == primaryNodeID {
+					nodeFound = true
 					break
 				}
 			}
-			if !found {
-				shard = i
-				break
+		}
+		if nodeFound {
+			// each node must have at most one node in each generation => start a new one
+			generation++
+		} else {
+			for i := uint32(1); i <= shards; i++ {
+				found := false
+				for _, segment := range generationSegments {
+					if segment.Shard == i {
+						found = true
+						break
+					}
+				}
+				if !found {
+					shard = i
+					break
+				}
 			}
 		}
 	}
