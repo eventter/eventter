@@ -11,7 +11,7 @@ import (
 )
 
 func createTopicCmd() *cobra.Command {
-	request := &emq.CreateTopicRequest{}
+	request := &emq.TopicCreateRequest{}
 
 	cmd := &cobra.Command{
 		Use:     "create-topic <name>",

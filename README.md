@@ -3,7 +3,7 @@
 [![GitLab Build Status](https://img.shields.io/gitlab/pipeline/eventter/eventter.svg)](https://gitlab.com/eventter/eventter/pipelines)
 [![Docker Image on Docker Hub](https://img.shields.io/docker/pulls/eventter/mq.svg)](https://hub.docker.com/r/eventter/mq/)
 
-> Distributed message queue & streaming server
+> Distributed message queue & stream search server
 
 ## Overview
 
@@ -11,6 +11,8 @@
 - [Documentation](https://eventter.io/docs/)
 - [Getting Started](https://eventter.io/docs/getting-started/)
 - [Issues](https://github.com/eventter/eventter)
+
+**Status: Work in progress**. Things might change a lot and quite often.
 
 ## Contributing
 

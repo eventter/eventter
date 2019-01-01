@@ -7,7 +7,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (s *Server) Nack(ctx context.Context, request *emq.NackRequest) (*emq.NackResponse, error) {
+func (s *Server) Nack(ctx context.Context, request *emq.MessageNackRequest) (*emq.MessageNackResponse, error) {
 	if request.NodeID != s.nodeID {
 		if request.DoNotForward {
 			return nil, errWontForward
@@ -38,5 +38,5 @@ func (s *Server) Nack(ctx context.Context, request *emq.NackRequest) (*emq.NackR
 		return nil, errors.Wrap(err, "nack failed")
 	}
 
-	return &emq.NackResponse{OK: true}, nil
+	return &emq.MessageNackResponse{OK: true}, nil
 }

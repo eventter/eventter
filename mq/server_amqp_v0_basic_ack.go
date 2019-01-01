@@ -13,7 +13,7 @@ func (s *Server) handleAMQPv0BasicAck(ctx context.Context, transport *v0.Transpo
 		i := 0
 		n := 0
 		for ; i < len(ch.inflight) && ch.inflight[i].deliveryTag <= frame.DeliveryTag; i++ {
-			_, err := s.Ack(ctx, &emq.AckRequest{
+			_, err := s.Ack(ctx, &emq.MessageAckRequest{
 				NodeID:         ch.inflight[i].nodeID,
 				SubscriptionID: ch.inflight[i].subscriptionID,
 				SeqNo:          ch.inflight[i].seqNo,
@@ -40,7 +40,7 @@ func (s *Server) handleAMQPv0BasicAck(ctx context.Context, transport *v0.Transpo
 			return s.makeChannelClose(ch, v0.PreconditionFailed, errors.Errorf("delivery tag %d doesn't exist", frame.DeliveryTag))
 		}
 
-		_, err := s.Ack(ctx, &emq.AckRequest{
+		_, err := s.Ack(ctx, &emq.MessageAckRequest{
 			NodeID:         ch.inflight[i].nodeID,
 			SubscriptionID: ch.inflight[i].subscriptionID,
 			SeqNo:          ch.inflight[i].seqNo,

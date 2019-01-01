@@ -13,7 +13,7 @@ import (
 )
 
 func publishCmd() *cobra.Command {
-	request := &emq.PublishRequest{
+	request := &emq.TopicPublishRequest{
 		Message: &emq.Message{},
 	}
 

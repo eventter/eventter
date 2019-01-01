@@ -11,7 +11,7 @@ import (
 )
 
 func listConsumerGroupsCmd() *cobra.Command {
-	request := &emq.ListConsumerGroupsRequest{}
+	request := &emq.ConsumerGroupListRequest{}
 
 	cmd := &cobra.Command{
 		Use:     "list-consumer-groups [name]",

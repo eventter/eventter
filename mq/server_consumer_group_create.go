@@ -9,7 +9,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (s *Server) CreateConsumerGroup(ctx context.Context, request *emq.CreateConsumerGroupRequest) (*emq.CreateConsumerGroupResponse, error) {
+func (s *Server) CreateConsumerGroup(ctx context.Context, request *emq.ConsumerGroupCreateRequest) (*emq.ConsumerGroupCreateResponse, error) {
 	if s.raftNode.State() != raft.Leader {
 		if request.LeaderOnly {
 			return nil, errNotALeader
@@ -142,7 +142,7 @@ func (s *Server) CreateConsumerGroup(ctx context.Context, request *emq.CreateCon
 		index = newIndex
 	}
 
-	return &emq.CreateConsumerGroupResponse{
+	return &emq.ConsumerGroupCreateResponse{
 		OK:    true,
 		Index: index,
 	}, nil

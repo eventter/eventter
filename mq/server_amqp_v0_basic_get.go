@@ -19,7 +19,7 @@ func (s *Server) handleAMQPv0BasicGet(ctx context.Context, transport *v0.Transpo
 		return s.makeChannelClose(ch, v0.NotFound, errors.Errorf("queue %q not found", frame.Queue))
 	}
 
-	request := &emq.SubscribeRequest{
+	request := &emq.ConsumerGroupSubscribeRequest{
 		ConsumerGroup: emq.NamespaceName{
 			Namespace: namespaceName,
 			Name:      frame.Queue,

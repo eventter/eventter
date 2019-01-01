@@ -40,7 +40,7 @@ func (e *RequestValidationError) Error() string {
 	return strings.TrimRight(s, "\n")
 }
 
-func (r *CreateNamespaceRequest) Validate() error {
+func (r *NamespaceCreateRequest) Validate() error {
 	var errs []error
 
 	if r.Namespace == "" {
@@ -60,7 +60,7 @@ func (r *CreateNamespaceRequest) Validate() error {
 	return nil
 }
 
-func (r *DeleteNamespaceRequest) Validate() error {
+func (r *NamespaceDeleteRequest) Validate() error {
 	var errs []error
 
 	if r.Namespace == "" {
@@ -82,7 +82,7 @@ func (r *DeleteNamespaceRequest) Validate() error {
 	return nil
 }
 
-func (r *CreateTopicRequest) Validate() error {
+func (r *TopicCreateRequest) Validate() error {
 	var errs []error
 
 	if r.Topic.Name.Namespace == "" {
@@ -122,7 +122,7 @@ func (r *CreateTopicRequest) Validate() error {
 	return nil
 }
 
-func (r *ListTopicsRequest) Validate() error {
+func (r *TopicListRequest) Validate() error {
 	var errs []error
 
 	if r.Topic.Namespace == "" {
@@ -152,7 +152,7 @@ func (r *ListTopicsRequest) Validate() error {
 	return nil
 }
 
-func (r *DeleteTopicRequest) Validate() error {
+func (r *TopicDeleteRequest) Validate() error {
 	var errs []error
 
 	if r.Topic.Namespace == "" {
@@ -182,7 +182,7 @@ func (r *DeleteTopicRequest) Validate() error {
 	return nil
 }
 
-func (r *CreateConsumerGroupRequest) Validate() error {
+func (r *ConsumerGroupCreateRequest) Validate() error {
 	var errs []error
 
 	if r.ConsumerGroup.Name.Namespace == "" {
@@ -220,7 +220,7 @@ func (r *CreateConsumerGroupRequest) Validate() error {
 	return nil
 }
 
-func (r *ListConsumerGroupsRequest) Validate() error {
+func (r *ConsumerGroupListRequest) Validate() error {
 	var errs []error
 
 	if r.ConsumerGroup.Namespace == "" {
@@ -250,7 +250,7 @@ func (r *ListConsumerGroupsRequest) Validate() error {
 	return nil
 }
 
-func (r *DeleteConsumerGroupRequest) Validate() error {
+func (r *ConsumerGroupDeleteRequest) Validate() error {
 	var errs []error
 
 	if r.ConsumerGroup.Namespace == "" {
@@ -280,7 +280,7 @@ func (r *DeleteConsumerGroupRequest) Validate() error {
 	return nil
 }
 
-func (r *PublishRequest) Validate() error {
+func (r *TopicPublishRequest) Validate() error {
 	var errs []error
 
 	if r.Topic.Namespace == "" {
@@ -310,7 +310,7 @@ func (r *PublishRequest) Validate() error {
 	return nil
 }
 
-func (r *SubscribeRequest) Validate() error {
+func (r *ConsumerGroupSubscribeRequest) Validate() error {
 	var errs []error
 
 	if r.ConsumerGroup.Namespace == "" {

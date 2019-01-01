@@ -15,7 +15,7 @@ func (s *Server) handleAMQPv0QueueDelete(ctx context.Context, transport *v0.Tran
 		return s.makeChannelClose(ch, v0.NotFound, errors.Errorf("vhost %q not found", namespaceName))
 	}
 
-	request := &emq.DeleteConsumerGroupRequest{
+	request := &emq.ConsumerGroupDeleteRequest{
 		ConsumerGroup: emq.NamespaceName{
 			Namespace: namespaceName,
 			Name:      frame.Queue,

@@ -39,7 +39,7 @@ func (s *Server) handleAMQPv0BasicConsume(ctx context.Context, transport *v0.Tra
 		return s.makeChannelClose(ch, v0.PreconditionFailed, errors.Errorf("consumer tag %s already registered", frame.ConsumerTag))
 	}
 
-	request := &emq.SubscribeRequest{
+	request := &emq.ConsumerGroupSubscribeRequest{
 		ConsumerGroup: emq.NamespaceName{
 			Namespace: namespaceName,
 			Name:      frame.Queue,
@@ -68,7 +68,7 @@ func (s *Server) handleAMQPv0BasicConsume(ctx context.Context, transport *v0.Tra
 	})
 }
 
-func (s *Server) handleAMQPv0ChannelDelivery(ctx context.Context, transport *v0.Transport, namespaceName string, ch *serverAMQPv0Channel, consumerTag string, response *emq.SubscribeResponse) error {
+func (s *Server) handleAMQPv0ChannelDelivery(ctx context.Context, transport *v0.Transport, namespaceName string, ch *serverAMQPv0Channel, consumerTag string, response *emq.ConsumerGroupSubscribeResponse) error {
 	if _, ok := ch.consumers[consumerTag]; !ok {
 		// ignore deliveries for unknown consumer tags => consumer, hence subscription, was closed, therefore messages
 		// will be released and do not need need to be (n)acked

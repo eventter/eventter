@@ -22,7 +22,7 @@ func TestServer_ListTopics(t *testing.T) {
 	for i := 0; i < 5; i++ {
 		topicName := fmt.Sprintf("test-list-topic-%d", i)
 
-		response, err := ts.Server.CreateTopic(ctx, &emq.CreateTopicRequest{
+		response, err := ts.Server.CreateTopic(ctx, &emq.TopicCreateRequest{
 			Topic: emq.Topic{
 				Name: emq.NamespaceName{
 					Namespace: "default",
@@ -39,7 +39,7 @@ func TestServer_ListTopics(t *testing.T) {
 	}
 
 	{
-		response, err := ts.Server.ListTopics(ctx, &emq.ListTopicsRequest{
+		response, err := ts.Server.ListTopics(ctx, &emq.TopicListRequest{
 			Topic: emq.NamespaceName{
 				Namespace: "default",
 			},

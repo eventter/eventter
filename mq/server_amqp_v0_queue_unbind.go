@@ -69,7 +69,7 @@ func (s *Server) handleAMQPv0QueueUnbind(ctx context.Context, transport *v0.Tran
 		panic("unhandled exchange type")
 	}
 
-	request := &emq.CreateConsumerGroupRequest{
+	request := &emq.ConsumerGroupCreateRequest{
 		ConsumerGroup: emq.ConsumerGroup{
 			Name: emq.NamespaceName{
 				Namespace: namespaceName,

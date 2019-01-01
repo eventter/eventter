@@ -127,7 +127,7 @@ func newTestServer(nodeID uint64) (ret *testServer, err error) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		_, err = ts.Server.CreateNamespace(ctx, &emq.CreateNamespaceRequest{Namespace: emq.DefaultNamespace})
+		_, err = ts.Server.CreateNamespace(ctx, &emq.NamespaceCreateRequest{Namespace: emq.DefaultNamespace})
 		if err != nil {
 			return nil, errors.Wrap(err, "create default namespace failed")
 		}

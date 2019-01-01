@@ -16,7 +16,7 @@ import (
 )
 
 func subscribeCmd() *cobra.Command {
-	request := &emq.SubscribeRequest{
+	request := &emq.ConsumerGroupSubscribeRequest{
 		AutoAck: true,
 	}
 

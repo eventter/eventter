@@ -19,7 +19,7 @@ func (s *Server) handleAMQPv0ExchangeDelete(ctx context.Context, transport *v0.T
 		return s.makeChannelClose(ch, v0.NotFound, errors.Errorf("vhost %q not found", namespaceName))
 	}
 
-	request := &emq.DeleteTopicRequest{
+	request := &emq.TopicDeleteRequest{
 		Topic: emq.NamespaceName{
 			Namespace: namespaceName,
 			Name:      frame.Exchange,

@@ -7,7 +7,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (s *Server) Ack(ctx context.Context, request *emq.AckRequest) (*emq.AckResponse, error) {
+func (s *Server) Ack(ctx context.Context, request *emq.MessageAckRequest) (*emq.MessageAckResponse, error) {
 	if request.NodeID != s.nodeID {
 		if request.DoNotForward {
 			return nil, errWontForward
@@ -38,5 +38,5 @@ func (s *Server) Ack(ctx context.Context, request *emq.AckRequest) (*emq.AckResp
 		return nil, errors.Wrap(err, "ack failed")
 	}
 
-	return &emq.AckResponse{OK: true}, nil
+	return &emq.MessageAckResponse{OK: true}, nil
 }

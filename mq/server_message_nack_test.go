@@ -19,7 +19,7 @@ func TestServer_Nack(t *testing.T) {
 	defer cancel()
 
 	{
-		response, err := ts.Server.CreateTopic(ctx, &emq.CreateTopicRequest{
+		response, err := ts.Server.CreateTopic(ctx, &emq.TopicCreateRequest{
 			Topic: emq.Topic{
 				Name: emq.NamespaceName{
 					Namespace: "default",
@@ -34,7 +34,7 @@ func TestServer_Nack(t *testing.T) {
 	}
 
 	{
-		response, err := ts.Server.CreateConsumerGroup(ctx, &emq.CreateConsumerGroupRequest{
+		response, err := ts.Server.CreateConsumerGroup(ctx, &emq.ConsumerGroupCreateRequest{
 			ConsumerGroup: emq.ConsumerGroup{
 				Name: emq.NamespaceName{
 					Namespace: "default",
@@ -58,7 +58,7 @@ func TestServer_Nack(t *testing.T) {
 	}
 
 	{
-		response, err := ts.Server.Publish(ctx, &emq.PublishRequest{
+		response, err := ts.Server.Publish(ctx, &emq.TopicPublishRequest{
 			Topic: emq.NamespaceName{
 				Namespace: "default",
 				Name:      "test-nack-topic",
@@ -80,7 +80,7 @@ func TestServer_Nack(t *testing.T) {
 		go func() {
 			defer stream.Close()
 
-			err := ts.Server.Subscribe(&emq.SubscribeRequest{
+			err := ts.Server.Subscribe(&emq.ConsumerGroupSubscribeRequest{
 				ConsumerGroup: emq.NamespaceName{
 					Namespace: "default",
 					Name:      "test-nack-consumer-group",
@@ -95,7 +95,7 @@ func TestServer_Nack(t *testing.T) {
 		assert.True(ok)
 		assert.Equal("hello, world", string(delivery.Response.Message.Data))
 
-		response, err := ts.Server.Nack(ctx, &emq.NackRequest{
+		response, err := ts.Server.Nack(ctx, &emq.MessageNackRequest{
 			NodeID:         delivery.Response.NodeID,
 			SubscriptionID: delivery.Response.SubscriptionID,
 			SeqNo:          delivery.Response.SeqNo,

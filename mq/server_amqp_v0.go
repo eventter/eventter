@@ -332,7 +332,7 @@ func (s *Server) handleAMQPv0ChannelMethod(ctx context.Context, transport *v0.Tr
 	}
 }
 
-func (s *Server) convertAMQPv0ContentHeader(ch *serverAMQPv0Channel, response *emq.SubscribeResponse) *v0.ContentHeaderFrame {
+func (s *Server) convertAMQPv0ContentHeader(ch *serverAMQPv0Channel, response *emq.ConsumerGroupSubscribeResponse) *v0.ContentHeaderFrame {
 	contentHeader := &v0.ContentHeaderFrame{
 		FrameMeta: v0.FrameMeta{Channel: ch.id},
 		ClassID:   v0.BasicClass,

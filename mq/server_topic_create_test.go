@@ -21,7 +21,7 @@ func TestServer_CreateTopic(t *testing.T) {
 
 	for _, exchangeType := range []string{emq.ExchangeTypeDirect, emq.ExchangeTypeFanout, emq.ExchangeTypeTopic, emq.ExchangeTypeHeaders} {
 		topicName := fmt.Sprintf("test-create-topic-%s", exchangeType)
-		response, err := ts.Server.CreateTopic(ctx, &emq.CreateTopicRequest{
+		response, err := ts.Server.CreateTopic(ctx, &emq.TopicCreateRequest{
 			Topic: emq.Topic{
 				Name: emq.NamespaceName{
 					Namespace: "default",

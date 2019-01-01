@@ -11,7 +11,7 @@ import (
 )
 
 func deleteNamespaceCmd() *cobra.Command {
-	request := &emq.DeleteNamespaceRequest{}
+	request := &emq.NamespaceDeleteRequest{}
 
 	cmd := &cobra.Command{
 		Use:   "delete-namespace <name>",

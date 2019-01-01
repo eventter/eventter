@@ -22,7 +22,7 @@ func TestServer_ListConsumerGroups(t *testing.T) {
 	for i := 0; i < 5; i++ {
 		cgName := fmt.Sprintf("test-list-consumer-group-%d", i)
 
-		response, err := ts.Server.CreateConsumerGroup(ctx, &emq.CreateConsumerGroupRequest{
+		response, err := ts.Server.CreateConsumerGroup(ctx, &emq.ConsumerGroupCreateRequest{
 			ConsumerGroup: emq.ConsumerGroup{
 				Name: emq.NamespaceName{
 					Namespace: "default",
@@ -36,7 +36,7 @@ func TestServer_ListConsumerGroups(t *testing.T) {
 	}
 
 	{
-		response, err := ts.Server.ListConsumerGroups(ctx, &emq.ListConsumerGroupsRequest{
+		response, err := ts.Server.ListConsumerGroups(ctx, &emq.ConsumerGroupListRequest{
 			ConsumerGroup: emq.NamespaceName{
 				Namespace: "default",
 			},

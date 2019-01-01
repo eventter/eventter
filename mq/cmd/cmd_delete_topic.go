@@ -11,7 +11,7 @@ import (
 )
 
 func deleteTopicCmd() *cobra.Command {
-	request := &emq.DeleteTopicRequest{}
+	request := &emq.TopicDeleteRequest{}
 
 	cmd := &cobra.Command{
 		Use:   "delete-topic <name>",

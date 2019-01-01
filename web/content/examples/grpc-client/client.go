@@ -22,7 +22,7 @@ func client() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	response, err := client.CreateNamespace(ctx, &emq.CreateNamespaceRequest{
+	response, err := client.CreateNamespace(ctx, &emq.NamespaceCreateRequest{
 		Namespace: "foo",
 	})
 	if err != nil {

@@ -8,7 +8,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (s *Server) DeleteTopic(ctx context.Context, request *emq.DeleteTopicRequest) (*emq.DeleteTopicResponse, error) {
+func (s *Server) DeleteTopic(ctx context.Context, request *emq.TopicDeleteRequest) (*emq.TopicDeleteResponse, error) {
 	if s.raftNode.State() != raft.Leader {
 		if request.LeaderOnly {
 			return nil, errNotALeader
@@ -62,7 +62,7 @@ func (s *Server) DeleteTopic(ctx context.Context, request *emq.DeleteTopicReques
 		return nil, err
 	}
 
-	return &emq.DeleteTopicResponse{
+	return &emq.TopicDeleteResponse{
 		OK:    true,
 		Index: index,
 	}, nil

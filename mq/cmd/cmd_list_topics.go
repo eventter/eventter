@@ -11,7 +11,7 @@ import (
 )
 
 func listTopicsCmd() *cobra.Command {
-	request := &emq.ListTopicsRequest{}
+	request := &emq.TopicListRequest{}
 
 	cmd := &cobra.Command{
 		Use:     "list-topics [name]",

@@ -8,7 +8,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (s *Server) CreateTopic(ctx context.Context, request *emq.CreateTopicRequest) (*emq.CreateTopicResponse, error) {
+func (s *Server) CreateTopic(ctx context.Context, request *emq.TopicCreateRequest) (*emq.TopicCreateResponse, error) {
 	if s.raftNode.State() != raft.Leader {
 		if request.LeaderOnly {
 			return nil, errNotALeader
@@ -77,7 +77,7 @@ func (s *Server) CreateTopic(ctx context.Context, request *emq.CreateTopicReques
 		return nil, err
 	}
 
-	return &emq.CreateTopicResponse{
+	return &emq.TopicCreateResponse{
 		OK:    true,
 		Index: index,
 	}, nil

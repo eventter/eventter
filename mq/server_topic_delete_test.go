@@ -19,7 +19,7 @@ func TestServer_DeleteTopic(t *testing.T) {
 	defer cancel()
 
 	{
-		response, err := ts.Server.DeleteTopic(ctx, &emq.DeleteTopicRequest{
+		response, err := ts.Server.DeleteTopic(ctx, &emq.TopicDeleteRequest{
 			Topic: emq.NamespaceName{
 				Namespace: "default",
 				Name:      "test-delete-topic",
@@ -30,7 +30,7 @@ func TestServer_DeleteTopic(t *testing.T) {
 	}
 
 	{
-		response, err := ts.Server.CreateTopic(ctx, &emq.CreateTopicRequest{
+		response, err := ts.Server.CreateTopic(ctx, &emq.TopicCreateRequest{
 			Topic: emq.Topic{
 				Name: emq.NamespaceName{
 					Namespace: "default",
@@ -51,7 +51,7 @@ func TestServer_DeleteTopic(t *testing.T) {
 	}
 
 	{
-		response, err := ts.Server.DeleteTopic(ctx, &emq.DeleteTopicRequest{
+		response, err := ts.Server.DeleteTopic(ctx, &emq.TopicDeleteRequest{
 			Topic: emq.NamespaceName{
 				Namespace: "default",
 				Name:      "test-delete-topic",

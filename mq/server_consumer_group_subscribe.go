@@ -8,7 +8,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (s *Server) Subscribe(request *emq.SubscribeRequest, stream emq.EventterMQ_SubscribeServer) error {
+func (s *Server) Subscribe(request *emq.ConsumerGroupSubscribeRequest, stream emq.EventterMQ_SubscribeServer) error {
 	if err := request.Validate(); err != nil {
 		return err
 	}
@@ -133,7 +133,7 @@ func (s *Server) Subscribe(request *emq.SubscribeRequest, stream emq.EventterMQ_
 			return errors.Wrap(err, "next failed")
 		}
 
-		response := &emq.SubscribeResponse{
+		response := &emq.ConsumerGroupSubscribeResponse{
 			Topic:   message.Topic,
 			Message: message.Message,
 		}

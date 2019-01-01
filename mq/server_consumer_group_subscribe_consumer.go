@@ -19,7 +19,7 @@ type subscribeConsumer struct {
 type subscribeDelivery struct {
 	Channel     uint16
 	ConsumerTag string
-	Response    *emq.SubscribeResponse
+	Response    *emq.ConsumerGroupSubscribeResponse
 }
 
 func newSubscribeConsumer(ctx context.Context, channel uint16, consumerTag string, deliveries chan subscribeDelivery) *subscribeConsumer {
@@ -42,7 +42,7 @@ func newSubscribeConsumer(ctx context.Context, channel uint16, consumerTag strin
 	}
 }
 
-func (s *subscribeConsumer) Send(response *emq.SubscribeResponse) error {
+func (s *subscribeConsumer) Send(response *emq.ConsumerGroupSubscribeResponse) error {
 	s.C <- subscribeDelivery{
 		Channel:     s.channel,
 		ConsumerTag: s.consumerTag,

@@ -19,7 +19,7 @@ func TestServer_DeleteConsumerGroup(t *testing.T) {
 	defer cancel()
 
 	{
-		response, err := ts.Server.CreateConsumerGroup(ctx, &emq.CreateConsumerGroupRequest{
+		response, err := ts.Server.CreateConsumerGroup(ctx, &emq.ConsumerGroupCreateRequest{
 			ConsumerGroup: emq.ConsumerGroup{
 				Name: emq.NamespaceName{
 					Namespace: "default",
@@ -37,7 +37,7 @@ func TestServer_DeleteConsumerGroup(t *testing.T) {
 	}
 
 	{
-		response, err := ts.Server.DeleteConsumerGroup(ctx, &emq.DeleteConsumerGroupRequest{
+		response, err := ts.Server.DeleteConsumerGroup(ctx, &emq.ConsumerGroupDeleteRequest{
 			ConsumerGroup: emq.NamespaceName{
 				Namespace: "default",
 				Name:      "test-delete-consumer-group",

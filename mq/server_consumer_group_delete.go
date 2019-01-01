@@ -8,7 +8,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (s *Server) DeleteConsumerGroup(ctx context.Context, request *emq.DeleteConsumerGroupRequest) (*emq.DeleteConsumerGroupResponse, error) {
+func (s *Server) DeleteConsumerGroup(ctx context.Context, request *emq.ConsumerGroupDeleteRequest) (*emq.ConsumerGroupDeleteResponse, error) {
 	if s.raftNode.State() != raft.Leader {
 		if request.LeaderOnly {
 			return nil, errNotALeader
@@ -71,7 +71,7 @@ func (s *Server) DeleteConsumerGroup(ctx context.Context, request *emq.DeleteCon
 		}
 	}
 
-	return &emq.DeleteConsumerGroupResponse{
+	return &emq.ConsumerGroupDeleteResponse{
 		OK:    true,
 		Index: index,
 	}, nil

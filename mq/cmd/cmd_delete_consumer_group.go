@@ -11,7 +11,7 @@ import (
 )
 
 func deleteConsumerGroupCmd() *cobra.Command {
-	request := &emq.DeleteConsumerGroupRequest{}
+	request := &emq.ConsumerGroupDeleteRequest{}
 
 	cmd := &cobra.Command{
 		Use:   "delete-consumer-group <name>",

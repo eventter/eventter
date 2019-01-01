@@ -29,7 +29,7 @@ func (s *Server) handleAMQPv0QueueDeclare(ctx context.Context, transport *v0.Tra
 
 	defaultTopic, _ := namespace.FindTopic(defaultExchangeTopicName)
 	if defaultTopic == nil {
-		_, err := s.CreateTopic(ctx, &emq.CreateTopicRequest{
+		_, err := s.CreateTopic(ctx, &emq.TopicCreateRequest{
 			Topic: emq.Topic{
 				Name: emq.NamespaceName{
 					Namespace: namespaceName,
@@ -59,7 +59,7 @@ func (s *Server) handleAMQPv0QueueDeclare(ctx context.Context, transport *v0.Tra
 		frame.Queue = "amq-" + generated
 	}
 
-	request := &emq.CreateConsumerGroupRequest{
+	request := &emq.ConsumerGroupCreateRequest{
 		ConsumerGroup: emq.ConsumerGroup{
 			Name: emq.NamespaceName{
 				Namespace: namespaceName,

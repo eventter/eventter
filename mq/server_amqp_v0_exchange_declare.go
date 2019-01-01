@@ -36,7 +36,7 @@ func (s *Server) handleAMQPv0ExchangeDeclare(ctx context.Context, transport *v0.
 		return s.makeConnectionClose(v0.SyntaxError, errors.Wrap(err, "retention field failed"))
 	}
 
-	request := &emq.CreateTopicRequest{
+	request := &emq.TopicCreateRequest{
 		Topic: emq.Topic{
 			Name: emq.NamespaceName{
 				Namespace: namespaceName,

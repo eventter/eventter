@@ -22,7 +22,7 @@ func (s *Server) handleAMQPv0BasicReject(ctx context.Context, transport *v0.Tran
 	}
 
 	if frame.Requeue {
-		_, err := s.Nack(ctx, &emq.NackRequest{
+		_, err := s.Nack(ctx, &emq.MessageNackRequest{
 			NodeID:         ch.inflight[i].nodeID,
 			SubscriptionID: ch.inflight[i].subscriptionID,
 			SeqNo:          ch.inflight[i].seqNo,
@@ -32,7 +32,7 @@ func (s *Server) handleAMQPv0BasicReject(ctx context.Context, transport *v0.Tran
 		}
 
 	} else {
-		_, err := s.Ack(ctx, &emq.AckRequest{
+		_, err := s.Ack(ctx, &emq.MessageAckRequest{
 			NodeID:         ch.inflight[i].nodeID,
 			SubscriptionID: ch.inflight[i].subscriptionID,
 			SeqNo:          ch.inflight[i].seqNo,

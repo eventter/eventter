@@ -11,7 +11,7 @@ import (
 )
 
 func createNamespaceCmd() *cobra.Command {
-	request := &emq.CreateNamespaceRequest{}
+	request := &emq.NamespaceCreateRequest{}
 
 	cmd := &cobra.Command{
 		Use:     "create-namespace <name>",

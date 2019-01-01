@@ -8,7 +8,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (s *Server) ListTopics(ctx context.Context, request *emq.ListTopicsRequest) (*emq.ListTopicsResponse, error) {
+func (s *Server) ListTopics(ctx context.Context, request *emq.TopicListRequest) (*emq.TopicListResponse, error) {
 	if s.raftNode.State() != raft.Leader {
 		if request.LeaderOnly {
 			return nil, errNotALeader
@@ -53,7 +53,7 @@ func (s *Server) ListTopics(ctx context.Context, request *emq.ListTopicsRequest)
 		})
 	}
 
-	return &emq.ListTopicsResponse{
+	return &emq.TopicListResponse{
 		OK:     true,
 		Index:  state.Index,
 		Topics: topics,

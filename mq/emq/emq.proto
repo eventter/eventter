@@ -10,24 +10,24 @@ import "google/protobuf/timestamp.proto";
 
 option go_package = "emq";
 
-message CreateNamespaceRequest {
+message NamespaceCreateRequest {
     // If true and node is not a leader, request will fail.
     bool leader_only = 99;
     string namespace = 1;
 }
 
-message CreateNamespaceResponse {
+message NamespaceCreateResponse {
     bool ok = 1 [(gogoproto.customname) = "OK"];
     uint64 index = 2;
 }
 
-message DeleteNamespaceRequest {
+message NamespaceDeleteRequest {
     // If true and node is not a leader, request will fail.
     bool leader_only = 99;
     string namespace = 1;
 }
 
-message DeleteNamespaceResponse {
+message NamespaceDeleteResponse {
     bool ok = 1 [(gogoproto.customname) = "OK"];
     uint64 index = 2;
 }
@@ -37,13 +37,13 @@ message NamespaceName {
     string name = 2;
 }
 
-message CreateTopicRequest {
+message TopicCreateRequest {
     // If true and node is not a leader, request will fail.
     bool leader_only = 99;
     Topic topic = 1 [(gogoproto.nullable) = false];
 }
 
-message CreateTopicResponse {
+message TopicCreateResponse {
     bool ok = 1 [(gogoproto.customname) = "OK"];
     uint64 index = 2;
 }
@@ -62,19 +62,19 @@ message Topic {
     string default_exchange_type = 5;
 }
 
-message ListTopicsRequest {
+message TopicListRequest {
     // If true and node is not a leader, request will fail.
     bool leader_only = 99;
     NamespaceName topic = 1 [(gogoproto.nullable) = false];
 }
 
-message ListTopicsResponse {
+message TopicListResponse {
     bool ok = 1 [(gogoproto.customname) = "OK"];
     uint64 index = 2;
     repeated Topic topics = 3;
 }
 
-message DeleteTopicRequest {
+message TopicDeleteRequest {
     // If true and node is not a leader, request will fail.
     bool leader_only = 99;
     NamespaceName topic = 1 [(gogoproto.nullable) = false];
@@ -82,18 +82,29 @@ message DeleteTopicRequest {
     bool if_unused = 2;
 }
 
-message DeleteTopicResponse {
+message TopicDeleteResponse {
     bool ok = 1 [(gogoproto.customname) = "OK"];
     uint64 index = 2;
 }
 
-message CreateConsumerGroupRequest {
+message TopicPublishRequest {
+    // If true and node cannot write message to segment, request will fail.
+    bool do_not_forward = 99;
+    NamespaceName topic = 1 [(gogoproto.nullable) = false];
+    Message message = 2;
+}
+
+message TopicPublishResponse {
+    bool ok = 1 [(gogoproto.customname) = "OK"];
+}
+
+message ConsumerGroupCreateRequest {
     // If true and node is not a leader, request will fail.
     bool leader_only = 99;
     ConsumerGroup consumer_group = 1 [(gogoproto.nullable) = false];
 }
 
-message CreateConsumerGroupResponse {
+message ConsumerGroupCreateResponse {
     bool ok = 1 [(gogoproto.customname) = "OK"];
     uint64 index = 2;
 }
@@ -117,25 +128,25 @@ message ConsumerGroup {
     google.protobuf.Timestamp since = 4 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
 }
 
-message ListConsumerGroupsRequest {
+message ConsumerGroupListRequest {
     // If true and node is not a leader, request will fail.
     bool leader_only = 99;
     NamespaceName consumer_group = 1 [(gogoproto.nullable) = false];
 }
 
-message ListConsumerGroupsResponse {
+message ConsumerGroupListResponse {
     bool ok = 1 [(gogoproto.customname) = "OK"];
     uint64 index = 2;
     repeated ConsumerGroup consumer_groups = 3;
 }
 
-message DeleteConsumerGroupRequest {
+message ConsumerGroupDeleteRequest {
     // If true and node is not a leader, request will fail.
     bool leader_only = 99;
     NamespaceName consumer_group = 1 [(gogoproto.nullable) = false];
 }
 
-message DeleteConsumerGroupResponse {
+message ConsumerGroupDeleteResponse {
     bool ok = 1 [(gogoproto.customname) = "OK"];
     uint64 index = 2;
 }
@@ -161,18 +172,7 @@ message Message {
     bytes data = 4;
 }
 
-message PublishRequest {
-    // If true and node cannot write message to segment, request will fail.
-    bool do_not_forward = 99;
-    NamespaceName topic = 1 [(gogoproto.nullable) = false];
-    Message message = 2;
-}
-
-message PublishResponse {
-    bool ok = 1 [(gogoproto.customname) = "OK"];
-}
-
-message SubscribeRequest {
+message ConsumerGroupSubscribeRequest {
     // If true and node does not manage consumer group, request will fail.
     bool do_not_forward = 99;
     NamespaceName consumer_group = 1 [(gogoproto.nullable) = false];
@@ -186,7 +186,7 @@ message SubscribeRequest {
     uint64 max_messages = 5;
 }
 
-message SubscribeResponse {
+message ConsumerGroupSubscribeResponse {
     NamespaceName topic = 1 [(gogoproto.nullable) = false];
     Message message = 2;
     uint64 node_id = 3 [(gogoproto.customname) = "NodeID"];
@@ -194,7 +194,7 @@ message SubscribeResponse {
     uint64 seq_no = 5;
 }
 
-message AckRequest {
+message MessageAckRequest {
     // If true and node does not manage consumer group, request will fail.
     bool do_not_forward = 99;
     uint64 node_id = 1 [(gogoproto.customname) = "NodeID"];
@@ -202,11 +202,11 @@ message AckRequest {
     uint64 seq_no = 3;
 }
 
-message AckResponse {
+message MessageAckResponse {
     bool ok = 1 [(gogoproto.customname) = "OK"];
 }
 
-message NackRequest {
+message MessageNackRequest {
     // If true and node does not manage consumer group, request will fail.
     bool do_not_forward = 99;
     uint64 node_id = 1 [(gogoproto.customname) = "NodeID"];
@@ -214,80 +214,80 @@ message NackRequest {
     uint64 seq_no = 3;
 }
 
-message NackResponse {
+message MessageNackResponse {
     bool ok = 1 [(gogoproto.customname) = "OK"];
 }
 
 service EventterMQ {
 
-    rpc CreateNamespace(CreateNamespaceRequest) returns (CreateNamespaceResponse) {
+    rpc CreateNamespace (NamespaceCreateRequest) returns (NamespaceCreateResponse) {
         option (google.api.http) = {
             put: "/{namespace}"
         };
     };
 
-    rpc DeleteNamespace(DeleteNamespaceRequest) returns (DeleteNamespaceResponse) {
+    rpc DeleteNamespace (NamespaceDeleteRequest) returns (NamespaceDeleteResponse) {
         option (google.api.http) = {
             put: "/{namespace}"
         };
     };
 
-    rpc CreateTopic (CreateTopicRequest) returns (CreateTopicResponse) {
+    rpc CreateTopic (TopicCreateRequest) returns (TopicCreateResponse) {
         option (google.api.http) = {
             put: "/{topic.namespace}/topics/{topic.name}"
         };
     }
 
-    rpc ListTopics (ListTopicsRequest) returns (ListTopicsResponse) {
+    rpc ListTopics (TopicListRequest) returns (TopicListResponse) {
         option (google.api.http) = {
             get: "/{topic.namespace}/topics"
         };
     }
 
-    rpc DeleteTopic (DeleteTopicRequest) returns (DeleteTopicResponse) {
+    rpc DeleteTopic (TopicDeleteRequest) returns (TopicDeleteResponse) {
         option (google.api.http) = {
             delete: "/{topic.namespace}/topics/{topic.name}"
         };
     }
 
-    rpc CreateConsumerGroup (CreateConsumerGroupRequest) returns (CreateConsumerGroupResponse) {
-        option (google.api.http) = {
-            put: "/{consumer_group.namespace}/cgs/{consumer_group.name}"
-        };
-    }
-
-    rpc ListConsumerGroups (ListConsumerGroupsRequest) returns (ListConsumerGroupsResponse) {
-        option (google.api.http) = {
-            get: "/{consumer_group.namespace}/cgs"
-        };
-    }
-
-    rpc DeleteConsumerGroup (DeleteConsumerGroupRequest) returns (DeleteConsumerGroupResponse) {
-        option (google.api.http) = {
-            delete: "/{consumer_group.namespace}/cgs/{consumer_group.name}"
-        };
-    }
-
-    rpc Publish (PublishRequest) returns (PublishResponse) {
+    rpc Publish (TopicPublishRequest) returns (TopicPublishResponse) {
         option (google.api.http) = {
             post: "/{topic.namespace}/topics/{topic.name}"
             body: "message"
         };
     }
 
-    rpc Subscribe (SubscribeRequest) returns (stream SubscribeResponse) {
+    rpc CreateConsumerGroup (ConsumerGroupCreateRequest) returns (ConsumerGroupCreateResponse) {
+        option (google.api.http) = {
+            put: "/{consumer_group.namespace}/cgs/{consumer_group.name}"
+        };
+    }
+
+    rpc ListConsumerGroups (ConsumerGroupListRequest) returns (ConsumerGroupListResponse) {
+        option (google.api.http) = {
+            get: "/{consumer_group.namespace}/cgs"
+        };
+    }
+
+    rpc DeleteConsumerGroup (ConsumerGroupDeleteRequest) returns (ConsumerGroupDeleteResponse) {
+        option (google.api.http) = {
+            delete: "/{consumer_group.namespace}/cgs/{consumer_group.name}"
+        };
+    }
+
+    rpc Subscribe (ConsumerGroupSubscribeRequest) returns (stream ConsumerGroupSubscribeResponse) {
         option (google.api.http) = {
             post: "/{consumer_group.namespace}/cgs/{consumer_group.name}"
         };
     }
 
-    rpc Ack (AckRequest) returns (AckResponse) {
+    rpc Ack (MessageAckRequest) returns (MessageAckResponse) {
         option (google.api.http) = {
             post: "/_ack"
         };
     }
 
-    rpc Nack (NackRequest) returns (NackResponse) {
+    rpc Nack (MessageNackRequest) returns (MessageNackResponse) {
         option (google.api.http) = {
             post: "/_nack"
         };

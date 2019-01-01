@@ -13,7 +13,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (s *Server) Publish(ctx context.Context, request *emq.PublishRequest) (*emq.PublishResponse, error) {
+func (s *Server) Publish(ctx context.Context, request *emq.TopicPublishRequest) (*emq.TopicPublishResponse, error) {
 	if err := request.Validate(); err != nil {
 		return nil, errors.Wrap(err, "validation failed")
 	}
@@ -159,7 +159,7 @@ func (s *Server) Publish(ctx context.Context, request *emq.PublishRequest) (*emq
 			}
 		}
 
-		return &emq.PublishResponse{
+		return &emq.TopicPublishResponse{
 			OK: true,
 		}, nil
 	}

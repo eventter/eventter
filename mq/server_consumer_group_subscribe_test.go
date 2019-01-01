@@ -19,7 +19,7 @@ func TestServer_Subscribe(t *testing.T) {
 	defer cancel()
 
 	{
-		response, err := ts.Server.CreateTopic(ctx, &emq.CreateTopicRequest{
+		response, err := ts.Server.CreateTopic(ctx, &emq.TopicCreateRequest{
 			Topic: emq.Topic{
 				Name: emq.NamespaceName{
 					Namespace: "default",
@@ -34,7 +34,7 @@ func TestServer_Subscribe(t *testing.T) {
 	}
 
 	{
-		response, err := ts.Server.CreateConsumerGroup(ctx, &emq.CreateConsumerGroupRequest{
+		response, err := ts.Server.CreateConsumerGroup(ctx, &emq.ConsumerGroupCreateRequest{
 			ConsumerGroup: emq.ConsumerGroup{
 				Name: emq.NamespaceName{
 					Namespace: "default",
@@ -53,7 +53,7 @@ func TestServer_Subscribe(t *testing.T) {
 	}
 
 	{
-		response, err := ts.Server.Publish(ctx, &emq.PublishRequest{
+		response, err := ts.Server.Publish(ctx, &emq.TopicPublishRequest{
 			Topic: emq.NamespaceName{
 				Namespace: "default",
 				Name:      "test-subscribe-topic",
@@ -73,7 +73,7 @@ func TestServer_Subscribe(t *testing.T) {
 		go func() {
 			defer stream.Close()
 
-			err := ts.Server.Subscribe(&emq.SubscribeRequest{
+			err := ts.Server.Subscribe(&emq.ConsumerGroupSubscribeRequest{
 				ConsumerGroup: emq.NamespaceName{
 					Namespace: "default",
 					Name:      "test-subscribe-consumer-group",

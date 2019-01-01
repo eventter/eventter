@@ -8,7 +8,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (s *Server) DeleteNamespace(ctx context.Context, request *emq.DeleteNamespaceRequest) (*emq.DeleteNamespaceResponse, error) {
+func (s *Server) DeleteNamespace(ctx context.Context, request *emq.NamespaceDeleteRequest) (*emq.NamespaceDeleteResponse, error) {
 	if s.raftNode.State() != raft.Leader {
 		if request.LeaderOnly {
 			return nil, errNotALeader
@@ -49,7 +49,7 @@ func (s *Server) DeleteNamespace(ctx context.Context, request *emq.DeleteNamespa
 		return nil, errors.Wrap(err, "apply failed")
 	}
 
-	return &emq.DeleteNamespaceResponse{
+	return &emq.NamespaceDeleteResponse{
 		OK:    true,
 		Index: index,
 	}, nil

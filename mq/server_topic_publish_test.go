@@ -19,7 +19,7 @@ func TestServer_Publish(t *testing.T) {
 	defer cancel()
 
 	{
-		response, err := ts.Server.CreateTopic(ctx, &emq.CreateTopicRequest{
+		response, err := ts.Server.CreateTopic(ctx, &emq.TopicCreateRequest{
 			Topic: emq.Topic{
 				Name: emq.NamespaceName{
 					Namespace: "default",
@@ -39,7 +39,7 @@ func TestServer_Publish(t *testing.T) {
 	}
 
 	{
-		response, err := ts.Server.Publish(ctx, &emq.PublishRequest{
+		response, err := ts.Server.Publish(ctx, &emq.TopicPublishRequest{
 			Topic: emq.NamespaceName{
 				Namespace: "default",
 				Name:      "test-publish",

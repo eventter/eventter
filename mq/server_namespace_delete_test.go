@@ -19,7 +19,7 @@ func TestServer_DeleteNamespace(t *testing.T) {
 	defer cancel()
 
 	{
-		response, err := ts.Server.CreateNamespace(ctx, &emq.CreateNamespaceRequest{Namespace: "test-delete-namespace"})
+		response, err := ts.Server.CreateNamespace(ctx, &emq.NamespaceCreateRequest{Namespace: "test-delete-namespace"})
 		assert.NoError(err)
 		assert.True(response.OK)
 
@@ -28,7 +28,7 @@ func TestServer_DeleteNamespace(t *testing.T) {
 	}
 
 	{
-		response, err := ts.Server.DeleteNamespace(ctx, &emq.DeleteNamespaceRequest{Namespace: "test-delete-namespace"})
+		response, err := ts.Server.DeleteNamespace(ctx, &emq.NamespaceDeleteRequest{Namespace: "test-delete-namespace"})
 		assert.NoError(err)
 		assert.True(response.OK)
 	}
@@ -45,7 +45,7 @@ func TestServer_DeleteNamespace_ShouldFailIfNamespaceDoesntExit(t *testing.T) {
 	defer cancel()
 
 	{
-		response, err := ts.Server.DeleteNamespace(ctx, &emq.DeleteNamespaceRequest{Namespace: "does-not-exit"})
+		response, err := ts.Server.DeleteNamespace(ctx, &emq.NamespaceDeleteRequest{Namespace: "does-not-exit"})
 		assert.Error(err)
 		assert.Nil(response)
 	}
@@ -62,7 +62,7 @@ func TestServer_DeleteNamespace_ShouldFailIfTryingToDeleteDefaultNamespace(t *te
 	defer cancel()
 
 	{
-		response, err := ts.Server.DeleteNamespace(ctx, &emq.DeleteNamespaceRequest{Namespace: emq.DefaultNamespace})
+		response, err := ts.Server.DeleteNamespace(ctx, &emq.NamespaceDeleteRequest{Namespace: emq.DefaultNamespace})
 		assert.Error(err)
 		assert.Nil(response)
 	}

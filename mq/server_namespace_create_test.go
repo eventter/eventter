@@ -19,7 +19,7 @@ func TestServer_CreateNamespace(t *testing.T) {
 	defer cancel()
 
 	{
-		response, err := ts.Server.CreateNamespace(ctx, &emq.CreateNamespaceRequest{Namespace: "test-create-namespace"})
+		response, err := ts.Server.CreateNamespace(ctx, &emq.NamespaceCreateRequest{Namespace: "test-create-namespace"})
 		assert.NoError(err)
 		assert.True(response.OK)
 
@@ -28,7 +28,7 @@ func TestServer_CreateNamespace(t *testing.T) {
 	}
 
 	{
-		response, err := ts.Server.CreateNamespace(ctx, &emq.CreateNamespaceRequest{Namespace: "test-create-namespace"})
+		response, err := ts.Server.CreateNamespace(ctx, &emq.NamespaceCreateRequest{Namespace: "test-create-namespace"})
 		assert.NoError(err)
 		assert.True(response.OK)
 	}

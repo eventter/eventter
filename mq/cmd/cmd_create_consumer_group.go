@@ -13,7 +13,7 @@ import (
 )
 
 func createConsumerGroupCmd() *cobra.Command {
-	request := &emq.CreateConsumerGroupRequest{}
+	request := &emq.ConsumerGroupCreateRequest{}
 	var fanoutBindings, directBindings, topicBindings []string
 	var since time.Duration
 
