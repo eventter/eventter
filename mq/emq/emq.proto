@@ -169,6 +169,10 @@ message Message {
         string type = 10;
         string user_id = 11 [(gogoproto.customname) = "UserID"];
         string app_id = 12 [(gogoproto.customname) = "AppID"];
+        string to = 13;
+        string group_id = 14 [(gogoproto.customname) = "GroupID"];
+        uint32 group_sequence = 15;
+        string reply_to_group_id = 16 [(gogoproto.customname) = "ReplyToGroupID"];
     }
     google.protobuf.Struct headers = 3;
     bytes data = 4;

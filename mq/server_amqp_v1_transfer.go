@@ -104,7 +104,7 @@ func (l *linkAMQPv1) Transfer(ctx context.Context, frame *v1.Transfer) (err erro
 			if section.To != nil {
 				switch address := section.To.(type) {
 				case v1.AddressString:
-					//properties.To = string(address) // TODO
+					properties.To = string(address)
 				default:
 					detachCondition = v1.DecodeErrorAMQPError
 					err = errors.Errorf("unhandled to type %T", address)
@@ -145,9 +145,9 @@ func (l *linkAMQPv1) Transfer(ctx context.Context, frame *v1.Transfer) (err erro
 			if !section.CreationTime.IsZero() {
 				properties.Timestamp = section.CreationTime
 			}
-			//properties.GroupID = section.GroupID // TODO
-			//properties.GroupSequence = section.GroupSequence // TODO
-			//properties.ReplyToGroupID = section.ReplyToGroupID // TODO
+			properties.GroupID = section.GroupID
+			properties.GroupSequence = uint32(section.GroupSequence)
+			properties.ReplyToGroupID = section.ReplyToGroupID
 
 		case *v1.ApplicationProperties:
 			request.Message.Headers = (*types.Struct)(section)
