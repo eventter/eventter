@@ -34,18 +34,16 @@ func (s *Server) ListTopics(ctx context.Context, request *emq.TopicListRequest) 
 
 	state := s.clusterState.Current()
 
-	namespace, _ := state.FindNamespace(request.Topic.Namespace)
+	namespace, _ := state.FindNamespace(request.Namespace)
 	if namespace == nil {
-		return nil, errors.Errorf(namespaceNotFoundErrorFormat, request.Topic.Namespace)
+		return nil, errors.Errorf(namespaceNotFoundErrorFormat, request.Namespace)
 	}
 
 	var topics []*emq.Topic
-	for _, t := range namespace.ListTopics(request.Topic.Namespace, request.Topic.Name) {
+	for _, t := range namespace.ListTopics(request.Namespace, request.Name) {
 		topics = append(topics, &emq.Topic{
-			Name: emq.NamespaceName{
-				Namespace: request.Topic.Namespace,
-				Name:      t.Name,
-			},
+			Namespace:           namespace.Name,
+			Name:                t.Name,
 			DefaultExchangeType: t.DefaultExchangeType,
 			Shards:              t.Shards,
 			ReplicationFactor:   t.ReplicationFactor,

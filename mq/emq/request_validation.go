@@ -85,23 +85,23 @@ func (r *NamespaceDeleteRequest) Validate() error {
 func (r *TopicCreateRequest) Validate() error {
 	var errs []error
 
-	if r.Topic.Name.Namespace == "" {
+	if r.Topic.Namespace == "" {
 		errs = append(errs, errors.Errorf(blankErrorFormat, "namespace"))
-	} else if !nameRegex.MatchString(r.Topic.Name.Namespace) {
+	} else if !nameRegex.MatchString(r.Topic.Namespace) {
 		errs = append(errs, errors.Errorf(nameInvalidErrorFormat, "namespace"))
-	} else if reservedNameRegex.MatchString(r.Topic.Name.Namespace) {
+	} else if reservedNameRegex.MatchString(r.Topic.Namespace) {
 		errs = append(errs, errors.Errorf(reservedNameErrorFormat, "namespace"))
-	} else if len(r.Topic.Name.Namespace) > nameMaxLength {
+	} else if len(r.Topic.Namespace) > nameMaxLength {
 		errs = append(errs, errors.Errorf(stringLengthErrorFormat, "namespace", nameMaxLength))
 	}
 
-	if r.Topic.Name.Name == "" {
+	if r.Topic.Name == "" {
 		errs = append(errs, errors.Errorf(blankErrorFormat, "topic name"))
-	} else if !nameRegex.MatchString(r.Topic.Name.Name) {
+	} else if !nameRegex.MatchString(r.Topic.Name) {
 		errs = append(errs, errors.Errorf(nameInvalidErrorFormat, "topic name"))
-	} else if reservedNameRegex.MatchString(r.Topic.Name.Name) {
+	} else if reservedNameRegex.MatchString(r.Topic.Name) {
 		errs = append(errs, errors.Errorf(reservedNameErrorFormat, "topic name"))
-	} else if len(r.Topic.Name.Name) > nameMaxLength {
+	} else if len(r.Topic.Name) > nameMaxLength {
 		errs = append(errs, errors.Errorf(stringLengthErrorFormat, "topic name", nameMaxLength))
 	}
 
@@ -125,22 +125,22 @@ func (r *TopicCreateRequest) Validate() error {
 func (r *TopicListRequest) Validate() error {
 	var errs []error
 
-	if r.Topic.Namespace == "" {
+	if r.Namespace == "" {
 		errs = append(errs, errors.Errorf(blankErrorFormat, "namespace"))
-	} else if !nameRegex.MatchString(r.Topic.Namespace) {
+	} else if !nameRegex.MatchString(r.Namespace) {
 		errs = append(errs, errors.Errorf(nameInvalidErrorFormat, "namespace"))
-	} else if reservedNameRegex.MatchString(r.Topic.Namespace) {
+	} else if reservedNameRegex.MatchString(r.Namespace) {
 		errs = append(errs, errors.Errorf(reservedNameErrorFormat, "namespace"))
-	} else if len(r.Topic.Namespace) > nameMaxLength {
+	} else if len(r.Namespace) > nameMaxLength {
 		errs = append(errs, errors.Errorf(stringLengthErrorFormat, "namespace", nameMaxLength))
 	}
 
-	if r.Topic.Name != "" {
-		if !nameRegex.MatchString(r.Topic.Name) {
+	if r.Name != "" {
+		if !nameRegex.MatchString(r.Name) {
 			errs = append(errs, errors.Errorf(nameInvalidErrorFormat, "topic name"))
-		} else if reservedNameRegex.MatchString(r.Topic.Name) {
+		} else if reservedNameRegex.MatchString(r.Name) {
 			errs = append(errs, errors.Errorf(reservedNameErrorFormat, "topic name"))
-		} else if len(r.Topic.Name) > nameMaxLength {
+		} else if len(r.Name) > nameMaxLength {
 			errs = append(errs, errors.Errorf(stringLengthErrorFormat, "topic name", nameMaxLength))
 		}
 	}
@@ -155,23 +155,23 @@ func (r *TopicListRequest) Validate() error {
 func (r *TopicDeleteRequest) Validate() error {
 	var errs []error
 
-	if r.Topic.Namespace == "" {
+	if r.Namespace == "" {
 		errs = append(errs, errors.Errorf(blankErrorFormat, "namespace"))
-	} else if !nameRegex.MatchString(r.Topic.Namespace) {
+	} else if !nameRegex.MatchString(r.Namespace) {
 		errs = append(errs, errors.Errorf(nameInvalidErrorFormat, "namespace"))
-	} else if reservedNameRegex.MatchString(r.Topic.Namespace) {
+	} else if reservedNameRegex.MatchString(r.Namespace) {
 		errs = append(errs, errors.Errorf(reservedNameErrorFormat, "namespace"))
-	} else if len(r.Topic.Namespace) > nameMaxLength {
+	} else if len(r.Namespace) > nameMaxLength {
 		errs = append(errs, errors.Errorf(stringLengthErrorFormat, "namespace", nameMaxLength))
 	}
 
-	if r.Topic.Name == "" {
+	if r.Name == "" {
 		errs = append(errs, errors.Errorf(blankErrorFormat, "topic name"))
-	} else if !nameRegex.MatchString(r.Topic.Name) {
+	} else if !nameRegex.MatchString(r.Name) {
 		errs = append(errs, errors.Errorf(nameInvalidErrorFormat, "topic name"))
-	} else if reservedNameRegex.MatchString(r.Topic.Name) {
+	} else if reservedNameRegex.MatchString(r.Name) {
 		errs = append(errs, errors.Errorf(reservedNameErrorFormat, "topic name"))
-	} else if len(r.Topic.Name) > nameMaxLength {
+	} else if len(r.Name) > nameMaxLength {
 		errs = append(errs, errors.Errorf(stringLengthErrorFormat, "topic name", nameMaxLength))
 	}
 
@@ -185,23 +185,23 @@ func (r *TopicDeleteRequest) Validate() error {
 func (r *ConsumerGroupCreateRequest) Validate() error {
 	var errs []error
 
-	if r.ConsumerGroup.Name.Namespace == "" {
+	if r.ConsumerGroup.Namespace == "" {
 		errs = append(errs, errors.Errorf(blankErrorFormat, "namespace"))
-	} else if !nameRegex.MatchString(r.ConsumerGroup.Name.Namespace) {
+	} else if !nameRegex.MatchString(r.ConsumerGroup.Namespace) {
 		errs = append(errs, errors.Errorf(nameInvalidErrorFormat, "namespace"))
-	} else if reservedNameRegex.MatchString(r.ConsumerGroup.Name.Namespace) {
+	} else if reservedNameRegex.MatchString(r.ConsumerGroup.Namespace) {
 		errs = append(errs, errors.Errorf(reservedNameErrorFormat, "namespace"))
-	} else if len(r.ConsumerGroup.Name.Namespace) > nameMaxLength {
+	} else if len(r.ConsumerGroup.Namespace) > nameMaxLength {
 		errs = append(errs, errors.Errorf(stringLengthErrorFormat, "namespace", nameMaxLength))
 	}
 
-	if r.ConsumerGroup.Name.Name == "" {
+	if r.ConsumerGroup.Name == "" {
 		errs = append(errs, errors.Errorf(blankErrorFormat, "consumer group name"))
-	} else if !nameRegex.MatchString(r.ConsumerGroup.Name.Name) {
+	} else if !nameRegex.MatchString(r.ConsumerGroup.Name) {
 		errs = append(errs, errors.Errorf(nameInvalidErrorFormat, "consumer group name"))
-	} else if reservedNameRegex.MatchString(r.ConsumerGroup.Name.Name) {
+	} else if reservedNameRegex.MatchString(r.ConsumerGroup.Name) {
 		errs = append(errs, errors.Errorf(reservedNameErrorFormat, "consumer group name"))
-	} else if len(r.ConsumerGroup.Name.Name) > nameMaxLength {
+	} else if len(r.ConsumerGroup.Name) > nameMaxLength {
 		errs = append(errs, errors.Errorf(stringLengthErrorFormat, "consumer group name", nameMaxLength))
 	}
 
@@ -223,22 +223,22 @@ func (r *ConsumerGroupCreateRequest) Validate() error {
 func (r *ConsumerGroupListRequest) Validate() error {
 	var errs []error
 
-	if r.ConsumerGroup.Namespace == "" {
+	if r.Namespace == "" {
 		errs = append(errs, errors.Errorf(blankErrorFormat, "namespace"))
-	} else if !nameRegex.MatchString(r.ConsumerGroup.Namespace) {
+	} else if !nameRegex.MatchString(r.Namespace) {
 		errs = append(errs, errors.Errorf(nameInvalidErrorFormat, "namespace"))
-	} else if reservedNameRegex.MatchString(r.ConsumerGroup.Namespace) {
+	} else if reservedNameRegex.MatchString(r.Namespace) {
 		errs = append(errs, errors.Errorf(reservedNameErrorFormat, "namespace"))
-	} else if len(r.ConsumerGroup.Namespace) > nameMaxLength {
+	} else if len(r.Namespace) > nameMaxLength {
 		errs = append(errs, errors.Errorf(stringLengthErrorFormat, "namespace", nameMaxLength))
 	}
 
-	if r.ConsumerGroup.Name != "" {
-		if !nameRegex.MatchString(r.ConsumerGroup.Name) {
+	if r.Name != "" {
+		if !nameRegex.MatchString(r.Name) {
 			errs = append(errs, errors.Errorf(nameInvalidErrorFormat, "consumer group name"))
-		} else if reservedNameRegex.MatchString(r.ConsumerGroup.Name) {
+		} else if reservedNameRegex.MatchString(r.Name) {
 			errs = append(errs, errors.Errorf(reservedNameErrorFormat, "consumer group name"))
-		} else if len(r.ConsumerGroup.Name) > nameMaxLength {
+		} else if len(r.Name) > nameMaxLength {
 			errs = append(errs, errors.Errorf(stringLengthErrorFormat, "consumer group name", nameMaxLength))
 		}
 	}
@@ -253,23 +253,23 @@ func (r *ConsumerGroupListRequest) Validate() error {
 func (r *ConsumerGroupDeleteRequest) Validate() error {
 	var errs []error
 
-	if r.ConsumerGroup.Namespace == "" {
+	if r.Namespace == "" {
 		errs = append(errs, errors.Errorf(blankErrorFormat, "namespace"))
-	} else if !nameRegex.MatchString(r.ConsumerGroup.Namespace) {
+	} else if !nameRegex.MatchString(r.Namespace) {
 		errs = append(errs, errors.Errorf(nameInvalidErrorFormat, "namespace"))
-	} else if reservedNameRegex.MatchString(r.ConsumerGroup.Namespace) {
+	} else if reservedNameRegex.MatchString(r.Namespace) {
 		errs = append(errs, errors.Errorf(reservedNameErrorFormat, "namespace"))
-	} else if len(r.ConsumerGroup.Namespace) > nameMaxLength {
+	} else if len(r.Namespace) > nameMaxLength {
 		errs = append(errs, errors.Errorf(stringLengthErrorFormat, "namespace", nameMaxLength))
 	}
 
-	if r.ConsumerGroup.Name == "" {
+	if r.Name == "" {
 		errs = append(errs, errors.Errorf(blankErrorFormat, "consumer group name"))
-	} else if !nameRegex.MatchString(r.ConsumerGroup.Name) {
+	} else if !nameRegex.MatchString(r.Name) {
 		errs = append(errs, errors.Errorf(nameInvalidErrorFormat, "consumer group name"))
-	} else if reservedNameRegex.MatchString(r.ConsumerGroup.Name) {
+	} else if reservedNameRegex.MatchString(r.Name) {
 		errs = append(errs, errors.Errorf(reservedNameErrorFormat, "consumer group name"))
-	} else if len(r.ConsumerGroup.Name) > nameMaxLength {
+	} else if len(r.Name) > nameMaxLength {
 		errs = append(errs, errors.Errorf(stringLengthErrorFormat, "consumer group name", nameMaxLength))
 	}
 
@@ -283,23 +283,23 @@ func (r *ConsumerGroupDeleteRequest) Validate() error {
 func (r *TopicPublishRequest) Validate() error {
 	var errs []error
 
-	if r.Topic.Namespace == "" {
+	if r.Namespace == "" {
 		errs = append(errs, errors.Errorf(blankErrorFormat, "namespace"))
-	} else if !nameRegex.MatchString(r.Topic.Namespace) {
+	} else if !nameRegex.MatchString(r.Namespace) {
 		errs = append(errs, errors.Errorf(nameInvalidErrorFormat, "namespace"))
-	} else if reservedNameRegex.MatchString(r.Topic.Namespace) {
+	} else if reservedNameRegex.MatchString(r.Namespace) {
 		errs = append(errs, errors.Errorf(reservedNameErrorFormat, "namespace"))
-	} else if len(r.Topic.Namespace) > nameMaxLength {
+	} else if len(r.Namespace) > nameMaxLength {
 		errs = append(errs, errors.Errorf(stringLengthErrorFormat, "namespace", nameMaxLength))
 	}
 
-	if r.Topic.Name == "" {
+	if r.Name == "" {
 		errs = append(errs, errors.Errorf(blankErrorFormat, "topic name"))
-	} else if !nameRegex.MatchString(r.Topic.Name) {
+	} else if !nameRegex.MatchString(r.Name) {
 		errs = append(errs, errors.Errorf(nameInvalidErrorFormat, "topic name"))
-	} else if reservedNameRegex.MatchString(r.Topic.Name) {
+	} else if reservedNameRegex.MatchString(r.Name) {
 		errs = append(errs, errors.Errorf(reservedNameErrorFormat, "topic name"))
-	} else if len(r.Topic.Name) > nameMaxLength {
+	} else if len(r.Name) > nameMaxLength {
 		errs = append(errs, errors.Errorf(stringLengthErrorFormat, "topic name", nameMaxLength))
 	}
 
@@ -313,23 +313,23 @@ func (r *TopicPublishRequest) Validate() error {
 func (r *ConsumerGroupSubscribeRequest) Validate() error {
 	var errs []error
 
-	if r.ConsumerGroup.Namespace == "" {
+	if r.Namespace == "" {
 		errs = append(errs, errors.Errorf(blankErrorFormat, "namespace"))
-	} else if !nameRegex.MatchString(r.ConsumerGroup.Namespace) {
+	} else if !nameRegex.MatchString(r.Namespace) {
 		errs = append(errs, errors.Errorf(nameInvalidErrorFormat, "namespace"))
-	} else if reservedNameRegex.MatchString(r.ConsumerGroup.Namespace) {
+	} else if reservedNameRegex.MatchString(r.Namespace) {
 		errs = append(errs, errors.Errorf(reservedNameErrorFormat, "namespace"))
-	} else if len(r.ConsumerGroup.Namespace) > nameMaxLength {
+	} else if len(r.Namespace) > nameMaxLength {
 		errs = append(errs, errors.Errorf(stringLengthErrorFormat, "namespace", nameMaxLength))
 	}
 
-	if r.ConsumerGroup.Name == "" {
+	if r.Name == "" {
 		errs = append(errs, errors.Errorf(blankErrorFormat, "consumer group name"))
-	} else if !nameRegex.MatchString(r.ConsumerGroup.Name) {
+	} else if !nameRegex.MatchString(r.Name) {
 		errs = append(errs, errors.Errorf(nameInvalidErrorFormat, "consumer group name"))
-	} else if reservedNameRegex.MatchString(r.ConsumerGroup.Name) {
+	} else if reservedNameRegex.MatchString(r.Name) {
 		errs = append(errs, errors.Errorf(reservedNameErrorFormat, "consumer group name"))
-	} else if len(r.ConsumerGroup.Name) > nameMaxLength {
+	} else if len(r.Name) > nameMaxLength {
 		errs = append(errs, errors.Errorf(stringLengthErrorFormat, "consumer group name", nameMaxLength))
 	}
 

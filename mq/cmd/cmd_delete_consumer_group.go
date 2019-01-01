@@ -30,7 +30,7 @@ func deleteConsumerGroupCmd() *cobra.Command {
 			}
 			defer c.Close()
 
-			request.ConsumerGroup.Name = args[0]
+			request.Name = args[0]
 			response, err := c.DeleteConsumerGroup(ctx, request)
 			if err != nil {
 				return err
@@ -42,7 +42,7 @@ func deleteConsumerGroupCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&request.ConsumerGroup.Namespace, "namespace", "n", emq.DefaultNamespace, "Consumer group namespace.")
+	cmd.Flags().StringVarP(&request.Namespace, "namespace", "n", emq.DefaultNamespace, "Consumer group namespace.")
 
 	return cmd
 }

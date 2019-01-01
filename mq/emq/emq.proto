@@ -49,23 +49,25 @@ message TopicCreateResponse {
 }
 
 message Topic {
-    NamespaceName name = 1 [(gogoproto.nullable) = false];
+    string namespace = 1;
+    string name = 2;
     // Shards limit max number of open segments at the time. Messages are ordered within the shard (segment), however,
     // ordering across shards is not guaranteed. Therefore, for strict ordering (and lower throughput) set shard to 1.
-    uint32 shards = 2;
+    uint32 shards = 3;
     // Number of copies of data throughout the cluster. Not specified / zero means that the server will choose sensible defaults.
-    uint32 replication_factor = 3;
+    uint32 replication_factor = 4;
     // If retention is specified, segments will be deleted after they fall off retention period. Zero retention means
     // that segments WON'T be automatically deleted. For segments to be deleted ASAP, use very low retention, i.e. 1 nanosecond.
-    google.protobuf.Duration retention = 4 [(gogoproto.nullable) = false, (gogoproto.stdduration) = true];
+    google.protobuf.Duration retention = 5 [(gogoproto.nullable) = false, (gogoproto.stdduration) = true];
     // Default exchange type for AMQP bindings.
-    string default_exchange_type = 5;
+    string default_exchange_type = 6;
 }
 
 message TopicListRequest {
     // If true and node is not a leader, request will fail.
     bool leader_only = 99;
-    NamespaceName topic = 1 [(gogoproto.nullable) = false];
+    string namespace = 1;
+    string name = 2;
 }
 
 message TopicListResponse {
@@ -77,9 +79,10 @@ message TopicListResponse {
 message TopicDeleteRequest {
     // If true and node is not a leader, request will fail.
     bool leader_only = 99;
-    NamespaceName topic = 1 [(gogoproto.nullable) = false];
+    string namespace = 1;
+    string name = 2;
     // If true, topic be deleted only if there are no consumer groups using it.
-    bool if_unused = 2;
+    bool if_unused = 3;
 }
 
 message TopicDeleteResponse {
@@ -90,8 +93,9 @@ message TopicDeleteResponse {
 message TopicPublishRequest {
     // If true and node cannot write message to segment, request will fail.
     bool do_not_forward = 99;
-    NamespaceName topic = 1 [(gogoproto.nullable) = false];
-    Message message = 2;
+    string namespace = 1;
+    string name = 2;
+    Message message = 3;
 }
 
 message TopicPublishResponse {
@@ -110,9 +114,10 @@ message ConsumerGroupCreateResponse {
 }
 
 message ConsumerGroup {
-    NamespaceName name = 1 [(gogoproto.nullable) = false];
-    // Bindings in conjunction with topic's `type` determine if message will be visible to consumer group.
-    repeated Binding bindings = 2;
+    string namespace = 1;
+    string name = 2;
+    // Bindings determine what messages will be visible to consumer group.
+    repeated Binding bindings = 3;
     message Binding {
         string topic_name = 1;
         string exchange_type = 2;
@@ -123,15 +128,16 @@ message ConsumerGroup {
         }
     }
     // Max count of in-flight messages across all consumers. Not specified / zero means that the server will choose sensible defaults.
-    uint32 size = 3;
+    uint32 size = 4;
     // Time from which to consider messages eligible to be consumed by this consumer group.
-    google.protobuf.Timestamp since = 4 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
+    google.protobuf.Timestamp since = 5 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
 }
 
 message ConsumerGroupListRequest {
     // If true and node is not a leader, request will fail.
     bool leader_only = 99;
-    NamespaceName consumer_group = 1 [(gogoproto.nullable) = false];
+    string namespace = 1;
+    string name = 2;
 }
 
 message ConsumerGroupListResponse {
@@ -143,7 +149,8 @@ message ConsumerGroupListResponse {
 message ConsumerGroupDeleteRequest {
     // If true and node is not a leader, request will fail.
     bool leader_only = 99;
-    NamespaceName consumer_group = 1 [(gogoproto.nullable) = false];
+    string namespace = 1;
+    string name = 2;
 }
 
 message ConsumerGroupDeleteResponse {
@@ -175,23 +182,25 @@ message Message {
 message ConsumerGroupSubscribeRequest {
     // If true and node does not manage consumer group, request will fail.
     bool do_not_forward = 99;
-    NamespaceName consumer_group = 1 [(gogoproto.nullable) = false];
+    string namespace = 1;
+    string name = 2;
     // Max number of messages in-flight. Zero means there is no limit.
-    uint32 size = 2;
+    uint32 size = 3;
     // If true, messages will be acked immediately after being sent.
-    bool auto_ack = 3;
+    bool auto_ack = 4;
     // If true, response stream will be closed as soon as there are no waiting messages (either to be consumed, or acked).
-    bool do_not_block = 4;
+    bool do_not_block = 5;
     // If not zero, response stream will be closed as soon as there are no
-    uint64 max_messages = 5;
+    uint64 max_messages = 6;
 }
 
 message ConsumerGroupSubscribeResponse {
-    NamespaceName topic = 1 [(gogoproto.nullable) = false];
-    Message message = 2;
-    uint64 node_id = 3 [(gogoproto.customname) = "NodeID"];
-    uint64 subscription_id = 4 [(gogoproto.customname) = "SubscriptionID"];
-    uint64 seq_no = 5;
+    uint64 node_id = 1 [(gogoproto.customname) = "NodeID"];
+    uint64 subscription_id = 2 [(gogoproto.customname) = "SubscriptionID"];
+    uint64 seq_no = 3;
+    string topic_namespace = 4;
+    string topic_name = 5;
+    Message message = 6;
 }
 
 message MessageAckRequest {
@@ -240,19 +249,19 @@ service EventterMQ {
 
     rpc ListTopics (TopicListRequest) returns (TopicListResponse) {
         option (google.api.http) = {
-            get: "/{topic.namespace}/topics"
+            get: "/{namespace}/topics"
         };
     }
 
     rpc DeleteTopic (TopicDeleteRequest) returns (TopicDeleteResponse) {
         option (google.api.http) = {
-            delete: "/{topic.namespace}/topics/{topic.name}"
+            delete: "/{namespace}/topics/{name}"
         };
     }
 
     rpc Publish (TopicPublishRequest) returns (TopicPublishResponse) {
         option (google.api.http) = {
-            post: "/{topic.namespace}/topics/{topic.name}"
+            post: "/{namespace}/topics/{name}"
             body: "message"
         };
     }
@@ -265,13 +274,13 @@ service EventterMQ {
 
     rpc ListConsumerGroups (ConsumerGroupListRequest) returns (ConsumerGroupListResponse) {
         option (google.api.http) = {
-            get: "/{consumer_group.namespace}/cgs"
+            get: "/{namespace}/cgs"
         };
     }
 
     rpc DeleteConsumerGroup (ConsumerGroupDeleteRequest) returns (ConsumerGroupDeleteResponse) {
         option (google.api.http) = {
-            delete: "/{consumer_group.namespace}/cgs/{consumer_group.name}"
+            delete: "/{namespace}/cgs/{name}"
         };
     }
 

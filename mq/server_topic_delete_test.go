@@ -20,10 +20,8 @@ func TestServer_DeleteTopic(t *testing.T) {
 
 	{
 		response, err := ts.Server.DeleteTopic(ctx, &emq.TopicDeleteRequest{
-			Topic: emq.NamespaceName{
-				Namespace: "default",
-				Name:      "test-delete-topic",
-			},
+			Namespace: "default",
+			Name:      "test-delete-topic",
 		})
 		assert.Error(err)
 		assert.Nil(response)
@@ -32,10 +30,8 @@ func TestServer_DeleteTopic(t *testing.T) {
 	{
 		response, err := ts.Server.CreateTopic(ctx, &emq.TopicCreateRequest{
 			Topic: emq.Topic{
-				Name: emq.NamespaceName{
-					Namespace: "default",
-					Name:      "test-delete-topic",
-				},
+				Namespace:           "default",
+				Name:                "test-delete-topic",
 				DefaultExchangeType: emq.ExchangeTypeFanout,
 				Shards:              1,
 				ReplicationFactor:   1,
@@ -52,10 +48,8 @@ func TestServer_DeleteTopic(t *testing.T) {
 
 	{
 		response, err := ts.Server.DeleteTopic(ctx, &emq.TopicDeleteRequest{
-			Topic: emq.NamespaceName{
-				Namespace: "default",
-				Name:      "test-delete-topic",
-			},
+			Namespace: "default",
+			Name:      "test-delete-topic",
 		})
 		assert.NoError(err)
 		assert.True(response.OK)

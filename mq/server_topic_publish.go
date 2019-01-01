@@ -20,14 +20,14 @@ func (s *Server) Publish(ctx context.Context, request *emq.TopicPublishRequest) 
 
 	state := s.clusterState.Current()
 
-	namespace, _ := state.FindNamespace(request.Topic.Namespace)
+	namespace, _ := state.FindNamespace(request.Namespace)
 	if namespace == nil {
-		return nil, errors.Errorf(namespaceNotFoundErrorFormat, request.Topic.Namespace)
+		return nil, errors.Errorf(namespaceNotFoundErrorFormat, request.Namespace)
 	}
 
-	topic, _ := namespace.FindTopic(request.Topic.Name)
+	topic, _ := namespace.FindTopic(request.Name)
 	if topic == nil {
-		return nil, errors.Errorf(notFoundErrorFormat, entityTopic, request.Topic.Namespace, request.Topic.Name)
+		return nil, errors.Errorf(notFoundErrorFormat, entityTopic, request.Namespace, request.Name)
 	}
 
 	var (
@@ -35,7 +35,7 @@ func (s *Server) Publish(ctx context.Context, request *emq.TopicPublishRequest) 
 		forwardNodeID  uint64
 	)
 
-	openSegments := state.FindOpenSegmentsFor(ClusterSegment_TOPIC, request.Topic.Namespace, request.Topic.Name)
+	openSegments := state.FindOpenSegmentsFor(ClusterSegment_TOPIC, request.Namespace, request.Name)
 	for _, openSegment := range openSegments {
 		if openSegment.Nodes.PrimaryNodeID == s.nodeID {
 			localSegmentID = openSegment.ID
@@ -54,8 +54,11 @@ func (s *Server) Publish(ctx context.Context, request *emq.TopicPublishRequest) 
 		} else {
 			response, err := s.SegmentOpen(ctx, &SegmentOpenRequest{
 				NodeID: s.nodeID,
-				Owner:  request.Topic,
-				Type:   ClusterSegment_TOPIC,
+				Owner: emq.NamespaceName{
+					Namespace: request.Namespace,
+					Name:      request.Name,
+				},
+				Type: ClusterSegment_TOPIC,
 			})
 			if err != nil {
 				return nil, errors.Wrap(err, "segment open failed")

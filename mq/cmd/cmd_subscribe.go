@@ -38,7 +38,7 @@ func subscribeCmd() *cobra.Command {
 			}
 			defer c.Close()
 
-			request.ConsumerGroup.Name = args[0]
+			request.Name = args[0]
 			stream, err := c.Subscribe(ctx, request, grpc.MaxCallRecvMsgSize(math.MaxUint32))
 			if err != nil {
 				return errors.Wrap(err, "subscribe failed")
@@ -68,7 +68,7 @@ func subscribeCmd() *cobra.Command {
 	buf := make([]byte, 16)
 	rand.Read(buf)
 
-	cmd.Flags().StringVarP(&request.ConsumerGroup.Namespace, "namespace", "n", emq.DefaultNamespace, "Consumer group namespace.")
+	cmd.Flags().StringVarP(&request.Namespace, "namespace", "n", emq.DefaultNamespace, "Consumer group namespace.")
 	cmd.Flags().Uint32VarP(&request.Size_, "size", "s", 0, "Max number of messages in-flight. Zero means there is no limit.")
 	cmd.Flags().BoolVar(&request.DoNotBlock, "do-not-block", false, "Do not block if there are no messages to be consumed.")
 	cmd.Flags().Uint64VarP(&request.MaxMessages, "max-messages", "m", 0, "Max number of messages to be consumed. After this number of messages was consumed (i.e. received and (n)acked), stream will be closed.")

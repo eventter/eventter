@@ -32,7 +32,7 @@ func listTopicsCmd() *cobra.Command {
 			defer c.Close()
 
 			if len(args) > 1 {
-				request.Topic.Name = args[0]
+				request.Name = args[0]
 			}
 			response, err := c.ListTopics(ctx, request)
 			if err != nil {
@@ -45,7 +45,7 @@ func listTopicsCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&request.Topic.Namespace, "namespace", "n", emq.DefaultNamespace, "Topics namespace.")
+	cmd.Flags().StringVarP(&request.Namespace, "namespace", "n", emq.DefaultNamespace, "Topics namespace.")
 
 	return cmd
 }

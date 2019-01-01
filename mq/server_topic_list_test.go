@@ -24,10 +24,8 @@ func TestServer_ListTopics(t *testing.T) {
 
 		response, err := ts.Server.CreateTopic(ctx, &emq.TopicCreateRequest{
 			Topic: emq.Topic{
-				Name: emq.NamespaceName{
-					Namespace: "default",
-					Name:      topicName,
-				},
+				Namespace:           "default",
+				Name:                topicName,
 				DefaultExchangeType: emq.ExchangeTypeFanout,
 				Shards:              1,
 				ReplicationFactor:   1,
@@ -40,9 +38,7 @@ func TestServer_ListTopics(t *testing.T) {
 
 	{
 		response, err := ts.Server.ListTopics(ctx, &emq.TopicListRequest{
-			Topic: emq.NamespaceName{
-				Namespace: "default",
-			},
+			Namespace: "default",
 		})
 		assert.NoError(err)
 		assert.NotNil(response)

@@ -30,7 +30,7 @@ func deleteTopicCmd() *cobra.Command {
 			}
 			defer c.Close()
 
-			request.Topic.Name = args[0]
+			request.Name = args[0]
 			response, err := c.DeleteTopic(ctx, request)
 			if err != nil {
 				return err
@@ -42,7 +42,7 @@ func deleteTopicCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&request.Topic.Namespace, "namespace", "n", emq.DefaultNamespace, "Topic namespace.")
+	cmd.Flags().StringVarP(&request.Namespace, "namespace", "n", emq.DefaultNamespace, "Topic namespace.")
 	cmd.Flags().BoolVar(&request.IfUnused, "if-unused", false, "If unused.")
 
 	return cmd

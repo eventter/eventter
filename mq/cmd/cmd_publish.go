@@ -36,7 +36,7 @@ func publishCmd() *cobra.Command {
 				return err
 			}
 
-			request.Topic.Name = args[0]
+			request.Name = args[0]
 			args = args[1:]
 
 			zeroProperties := emq.Message_Properties{}
@@ -71,7 +71,7 @@ func publishCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&request.Topic.Namespace, "namespace", "n", emq.DefaultNamespace, "Topic namespace.")
+	cmd.Flags().StringVarP(&request.Namespace, "namespace", "n", emq.DefaultNamespace, "Topic namespace.")
 	cmd.Flags().StringVarP(&request.Message.RoutingKey, "routing-key", "k", "", "Routing key.")
 	cmd.Flags().StringVar(&properties.ContentType, "content-type", "", "Content type.")
 	cmd.Flags().StringVar(&properties.ContentEncoding, "content-encoding", "", "Content encoding.")

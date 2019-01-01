@@ -21,10 +21,8 @@ func TestServer_Subscribe(t *testing.T) {
 	{
 		response, err := ts.Server.CreateTopic(ctx, &emq.TopicCreateRequest{
 			Topic: emq.Topic{
-				Name: emq.NamespaceName{
-					Namespace: "default",
-					Name:      "test-subscribe-topic",
-				},
+				Namespace:           "default",
+				Name:                "test-subscribe-topic",
 				DefaultExchangeType: emq.ExchangeTypeFanout,
 			},
 		})
@@ -36,10 +34,8 @@ func TestServer_Subscribe(t *testing.T) {
 	{
 		response, err := ts.Server.CreateConsumerGroup(ctx, &emq.ConsumerGroupCreateRequest{
 			ConsumerGroup: emq.ConsumerGroup{
-				Name: emq.NamespaceName{
-					Namespace: "default",
-					Name:      "test-subscribe-consumer-group",
-				},
+				Namespace: "default",
+				Name:      "test-subscribe-consumer-group",
 				Bindings: []*emq.ConsumerGroup_Binding{
 					{TopicName: "test-subscribe-topic", ExchangeType: emq.ExchangeTypeFanout},
 				},
@@ -54,10 +50,8 @@ func TestServer_Subscribe(t *testing.T) {
 
 	{
 		response, err := ts.Server.Publish(ctx, &emq.TopicPublishRequest{
-			Topic: emq.NamespaceName{
-				Namespace: "default",
-				Name:      "test-subscribe-topic",
-			},
+			Namespace: "default",
+			Name:      "test-subscribe-topic",
 			Message: &emq.Message{
 				Data: []byte("hello, world"),
 			},
@@ -74,10 +68,8 @@ func TestServer_Subscribe(t *testing.T) {
 			defer stream.Close()
 
 			err := ts.Server.Subscribe(&emq.ConsumerGroupSubscribeRequest{
-				ConsumerGroup: emq.NamespaceName{
-					Namespace: "default",
-					Name:      "test-subscribe-consumer-group",
-				},
+				Namespace: "default",
+				Name:      "test-subscribe-consumer-group",
 			}, stream)
 			assert.NoError(err)
 		}()
@@ -85,8 +77,8 @@ func TestServer_Subscribe(t *testing.T) {
 		delivery := <-stream.C
 		response := delivery.Response
 		assert.NotNil(response)
-		assert.Equal("default", response.Topic.Namespace)
-		assert.Equal("test-subscribe-topic", response.Topic.Name)
+		assert.Equal("default", response.TopicNamespace)
+		assert.Equal("test-subscribe-topic", response.TopicName)
 		assert.NotNil(response.Message)
 		assert.Equal([]byte("hello, world"), response.Message.Data)
 		assert.Equal(ts.Server.nodeID, response.NodeID)

@@ -20,10 +20,9 @@ func (s *Server) handleAMQPv0BasicGet(ctx context.Context, transport *v0.Transpo
 	}
 
 	request := &emq.ConsumerGroupSubscribeRequest{
-		ConsumerGroup: emq.NamespaceName{
-			Namespace: namespaceName,
-			Name:      frame.Queue,
-		},
+		Namespace: namespaceName,
+		Name:      frame.Queue,
+
 		Size_:       1,
 		AutoAck:     frame.NoAck,
 		DoNotBlock:  true,
@@ -52,7 +51,7 @@ func (s *Server) handleAMQPv0BasicGet(ctx context.Context, transport *v0.Transpo
 	err := transport.Send(&v0.BasicGetOk{
 		FrameMeta:   v0.FrameMeta{Channel: ch.id},
 		DeliveryTag: ch.deliveryTag,
-		Exchange:    delivery.Response.Topic.Name,
+		Exchange:    delivery.Response.TopicName,
 		RoutingKey:  delivery.Response.Message.RoutingKey,
 	})
 	if err != nil {

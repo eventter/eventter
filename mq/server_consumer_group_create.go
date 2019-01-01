@@ -40,17 +40,17 @@ func (s *Server) CreateConsumerGroup(ctx context.Context, request *emq.ConsumerG
 
 	state := s.clusterState.Current()
 
-	namespace, _ := state.FindNamespace(request.ConsumerGroup.Name.Namespace)
+	namespace, _ := state.FindNamespace(request.ConsumerGroup.Namespace)
 	if namespace == nil {
-		return nil, errors.Errorf(namespaceNotFoundErrorFormat, request.ConsumerGroup.Name.Namespace)
+		return nil, errors.Errorf(namespaceNotFoundErrorFormat, request.ConsumerGroup.Namespace)
 	}
 
-	cg, _ := namespace.FindConsumerGroup(request.ConsumerGroup.Name.Name)
+	cg, _ := namespace.FindConsumerGroup(request.ConsumerGroup.Name)
 
 	cmd := &ClusterCommandConsumerGroupCreate{
-		Namespace: request.ConsumerGroup.Name.Namespace,
+		Namespace: request.ConsumerGroup.Namespace,
 		ConsumerGroup: &ClusterConsumerGroup{
-			Name:  request.ConsumerGroup.Name.Name,
+			Name:  request.ConsumerGroup.Name,
 			Size_: request.ConsumerGroup.Size_,
 			Since: request.ConsumerGroup.Since,
 		},
@@ -65,9 +65,9 @@ func (s *Server) CreateConsumerGroup(ctx context.Context, request *emq.ConsumerG
 	}
 
 	for _, clientBinding := range request.ConsumerGroup.Bindings {
-		topic := state.GetTopic(request.ConsumerGroup.Name.Namespace, clientBinding.TopicName)
+		topic := state.GetTopic(request.ConsumerGroup.Namespace, clientBinding.TopicName)
 		if topic == nil {
-			return nil, errors.Errorf(notFoundErrorFormat, entityTopic, request.ConsumerGroup.Name.Namespace, clientBinding.TopicName)
+			return nil, errors.Errorf(notFoundErrorFormat, entityTopic, request.ConsumerGroup.Namespace, clientBinding.TopicName)
 		}
 
 		clusterBinding := &ClusterConsumerGroup_Binding{
@@ -87,7 +87,7 @@ func (s *Server) CreateConsumerGroup(ctx context.Context, request *emq.ConsumerG
 				return nil, errors.Errorf(
 					"trying to bind to %s %s/%s of type %s, but no routing key set",
 					entityTopic,
-					request.ConsumerGroup.Name.Namespace,
+					request.ConsumerGroup.Namespace,
 					clientBinding.TopicName,
 					clusterBinding.ExchangeType,
 				)
@@ -106,7 +106,7 @@ func (s *Server) CreateConsumerGroup(ctx context.Context, request *emq.ConsumerG
 				return nil, errors.Errorf(
 					"trying to bind to %s %s/%s of type %s, but no headers set",
 					entityTopic,
-					request.ConsumerGroup.Name.Namespace,
+					request.ConsumerGroup.Namespace,
 					clientBinding.TopicName,
 					clusterBinding.ExchangeType,
 				)
@@ -135,8 +135,8 @@ func (s *Server) CreateConsumerGroup(ctx context.Context, request *emq.ConsumerG
 
 	// !!! reload state after barrier
 	state = s.clusterState.Current()
-	namespace, _ = state.FindNamespace(request.ConsumerGroup.Name.Namespace)
-	consumerGroup, _ := namespace.FindConsumerGroup(request.ConsumerGroup.Name.Name)
+	namespace, _ = state.FindNamespace(request.ConsumerGroup.Namespace)
+	consumerGroup, _ := namespace.FindConsumerGroup(request.ConsumerGroup.Name)
 
 	if newIndex := s.reconciler.ReconcileConsumerGroup(state, namespace, consumerGroup); newIndex > 0 {
 		index = newIndex

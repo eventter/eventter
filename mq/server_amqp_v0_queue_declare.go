@@ -31,10 +31,9 @@ func (s *Server) handleAMQPv0QueueDeclare(ctx context.Context, transport *v0.Tra
 	if defaultTopic == nil {
 		_, err := s.CreateTopic(ctx, &emq.TopicCreateRequest{
 			Topic: emq.Topic{
-				Name: emq.NamespaceName{
-					Namespace: namespaceName,
-					Name:      defaultExchangeTopicName,
-				},
+				Namespace: namespaceName,
+				Name:      defaultExchangeTopicName,
+
 				DefaultExchangeType: emq.ExchangeTypeDirect,
 				Shards:              1,
 				ReplicationFactor:   defaultReplicationFactor,
@@ -61,11 +60,9 @@ func (s *Server) handleAMQPv0QueueDeclare(ctx context.Context, transport *v0.Tra
 
 	request := &emq.ConsumerGroupCreateRequest{
 		ConsumerGroup: emq.ConsumerGroup{
-			Name: emq.NamespaceName{
-				Namespace: namespaceName,
-				Name:      frame.Queue,
-			},
-			Size_: size,
+			Namespace: namespaceName,
+			Name:      frame.Queue,
+			Size_:     size,
 			Bindings: []*emq.ConsumerGroup_Binding{
 				{
 					TopicName:    defaultExchangeTopicName,
@@ -76,7 +73,7 @@ func (s *Server) handleAMQPv0QueueDeclare(ctx context.Context, transport *v0.Tra
 		},
 	}
 
-	cg, _ := namespace.FindConsumerGroup(request.ConsumerGroup.Name.Name)
+	cg, _ := namespace.FindConsumerGroup(request.ConsumerGroup.Name)
 
 	if cg != nil {
 		for _, clusterBinding := range cg.Bindings {
@@ -86,7 +83,7 @@ func (s *Server) handleAMQPv0QueueDeclare(ctx context.Context, transport *v0.Tra
 
 	if frame.Passive {
 		if cg == nil {
-			return s.makeChannelClose(ch, v0.NotFound, errors.Errorf("queue %q not found", request.ConsumerGroup.Name.Name))
+			return s.makeChannelClose(ch, v0.NotFound, errors.Errorf("queue %q not found", request.ConsumerGroup.Name))
 		}
 	} else {
 		_, err = s.CreateConsumerGroup(ctx, request)
@@ -95,7 +92,10 @@ func (s *Server) handleAMQPv0QueueDeclare(ctx context.Context, transport *v0.Tra
 		}
 
 		_, err = s.ConsumerGroupWait(ctx, &ConsumerGroupWaitRequest{
-			ConsumerGroup: request.ConsumerGroup.Name,
+			ConsumerGroup: emq.NamespaceName{
+				Namespace: request.ConsumerGroup.Namespace,
+				Name:      request.ConsumerGroup.Name,
+			},
 		})
 		if err != nil {
 			return errors.Wrap(err, "wait failed")
@@ -108,6 +108,6 @@ func (s *Server) handleAMQPv0QueueDeclare(ctx context.Context, transport *v0.Tra
 
 	return transport.Send(&v0.QueueDeclareOk{
 		FrameMeta: v0.FrameMeta{Channel: ch.id},
-		Queue:     request.ConsumerGroup.Name.Name,
+		Queue:     request.ConsumerGroup.Name,
 	})
 }

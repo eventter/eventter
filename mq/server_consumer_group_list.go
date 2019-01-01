@@ -34,14 +34,14 @@ func (s *Server) ListConsumerGroups(ctx context.Context, request *emq.ConsumerGr
 
 	state := s.clusterState.Current()
 
-	namespace, _ := state.FindNamespace(request.ConsumerGroup.Namespace)
+	namespace, _ := state.FindNamespace(request.Namespace)
 	if namespace == nil {
-		return nil, errors.Errorf(namespaceNotFoundErrorFormat, request.ConsumerGroup.Namespace)
+		return nil, errors.Errorf(namespaceNotFoundErrorFormat, request.Namespace)
 	}
 
 	var consumerGroups []*emq.ConsumerGroup
 
-	for _, cg := range namespace.ListConsumerGroups(request.ConsumerGroup.Namespace, request.ConsumerGroup.Name) {
+	for _, cg := range namespace.ListConsumerGroups(request.Namespace, request.Name) {
 		var clientBindings []*emq.ConsumerGroup_Binding
 
 		for _, binding := range cg.Bindings {
@@ -49,13 +49,11 @@ func (s *Server) ListConsumerGroups(ctx context.Context, request *emq.ConsumerGr
 		}
 
 		consumerGroups = append(consumerGroups, &emq.ConsumerGroup{
-			Name: emq.NamespaceName{
-				Namespace: request.ConsumerGroup.Namespace,
-				Name:      cg.Name,
-			},
-			Bindings: clientBindings,
-			Size_:    cg.Size_,
-			Since:    cg.Since,
+			Namespace: namespace.Name,
+			Name:      cg.Name,
+			Bindings:  clientBindings,
+			Size_:     cg.Size_,
+			Since:     cg.Since,
 		})
 	}
 

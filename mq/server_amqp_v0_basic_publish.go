@@ -135,10 +135,8 @@ func (s *Server) handleAMQPv0ChannelContentBody(ctx context.Context, transport *
 	}
 
 	_, err := s.Publish(ctx, &emq.TopicPublishRequest{
-		Topic: emq.NamespaceName{
-			Namespace: namespaceName,
-			Name:      ch.publishExchange,
-		},
+		Namespace: namespaceName,
+		Name:      ch.publishExchange,
 		Message: &emq.Message{
 			RoutingKey: ch.publishRoutingKey,
 			Properties: ch.publishProperties,

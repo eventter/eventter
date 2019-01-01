@@ -15,25 +15,25 @@ func (s *Server) Subscribe(request *emq.ConsumerGroupSubscribeRequest, stream em
 
 	state := s.clusterState.Current()
 
-	namespace, _ := state.FindNamespace(request.ConsumerGroup.Namespace)
+	namespace, _ := state.FindNamespace(request.Namespace)
 	if namespace == nil {
-		return errors.Errorf(namespaceNotFoundErrorFormat, request.ConsumerGroup.Namespace)
+		return errors.Errorf(namespaceNotFoundErrorFormat, request.Namespace)
 	}
 
-	consumerGroup, _ := namespace.FindConsumerGroup(request.ConsumerGroup.Name)
+	consumerGroup, _ := namespace.FindConsumerGroup(request.Name)
 	if consumerGroup == nil {
 		return errors.Errorf(
 			notFoundErrorFormat,
 			entityConsumerGroup,
-			request.ConsumerGroup.Namespace,
-			request.ConsumerGroup.Name,
+			request.Namespace,
+			request.Name,
 		)
 	}
 
 	offsetSegments := state.FindOpenSegmentsFor(
 		ClusterSegment_CONSUMER_GROUP_OFFSET_COMMITS,
-		request.ConsumerGroup.Namespace,
-		request.ConsumerGroup.Name,
+		request.Namespace,
+		request.Name,
 	)
 
 	if len(offsetSegments) == 0 {
@@ -86,7 +86,7 @@ func (s *Server) Subscribe(request *emq.ConsumerGroupSubscribeRequest, stream em
 		return nil
 	}
 
-	mapKey := s.makeConsumerGroupMapKey(request.ConsumerGroup.Namespace, request.ConsumerGroup.Name)
+	mapKey := s.makeConsumerGroupMapKey(request.Namespace, request.Name)
 	s.groupMutex.Lock()
 	group, ok := s.groups[mapKey]
 	s.groupMutex.Unlock()
@@ -94,8 +94,8 @@ func (s *Server) Subscribe(request *emq.ConsumerGroupSubscribeRequest, stream em
 	if !ok {
 		return errors.Errorf(
 			"consumer group %s/%s is not running",
-			request.ConsumerGroup.Namespace,
-			request.ConsumerGroup.Name,
+			request.Namespace,
+			request.Name,
 		)
 	}
 
@@ -134,8 +134,9 @@ func (s *Server) Subscribe(request *emq.ConsumerGroupSubscribeRequest, stream em
 		}
 
 		response := &emq.ConsumerGroupSubscribeResponse{
-			Topic:   message.Topic,
-			Message: message.Message,
+			TopicNamespace: message.Topic.Namespace,
+			TopicName:      message.Topic.Name,
+			Message:        message.Message,
 		}
 		if !request.AutoAck {
 			response.NodeID = s.nodeID

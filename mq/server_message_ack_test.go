@@ -21,10 +21,8 @@ func TestServer_Ack(t *testing.T) {
 	{
 		response, err := ts.Server.CreateTopic(ctx, &emq.TopicCreateRequest{
 			Topic: emq.Topic{
-				Name: emq.NamespaceName{
-					Namespace: "default",
-					Name:      "test-ack-topic",
-				},
+				Namespace:           "default",
+				Name:                "test-ack-topic",
 				DefaultExchangeType: emq.ExchangeTypeFanout,
 			},
 		})
@@ -36,10 +34,8 @@ func TestServer_Ack(t *testing.T) {
 	{
 		response, err := ts.Server.CreateConsumerGroup(ctx, &emq.ConsumerGroupCreateRequest{
 			ConsumerGroup: emq.ConsumerGroup{
-				Name: emq.NamespaceName{
-					Namespace: "default",
-					Name:      "test-ack-consumer-group",
-				},
+				Namespace: "default",
+				Name:      "test-ack-consumer-group",
 				Bindings: []*emq.ConsumerGroup_Binding{
 					{TopicName: "test-ack-topic", ExchangeType: emq.ExchangeTypeFanout},
 				},
@@ -59,10 +55,8 @@ func TestServer_Ack(t *testing.T) {
 
 	{
 		response, err := ts.Server.Publish(ctx, &emq.TopicPublishRequest{
-			Topic: emq.NamespaceName{
-				Namespace: "default",
-				Name:      "test-ack-topic",
-			},
+			Namespace: "default",
+			Name:      "test-ack-topic",
 			Message: &emq.Message{
 				Data: []byte("hello, world"),
 			},
@@ -81,10 +75,8 @@ func TestServer_Ack(t *testing.T) {
 			defer stream.Close()
 
 			err := ts.Server.Subscribe(&emq.ConsumerGroupSubscribeRequest{
-				ConsumerGroup: emq.NamespaceName{
-					Namespace: "default",
-					Name:      "test-ack-consumer-group",
-				},
+				Namespace:  "default",
+				Name:       "test-ack-consumer-group",
 				Size_:      1,
 				DoNotBlock: true,
 			}, stream)

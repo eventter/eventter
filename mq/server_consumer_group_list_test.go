@@ -24,10 +24,8 @@ func TestServer_ListConsumerGroups(t *testing.T) {
 
 		response, err := ts.Server.CreateConsumerGroup(ctx, &emq.ConsumerGroupCreateRequest{
 			ConsumerGroup: emq.ConsumerGroup{
-				Name: emq.NamespaceName{
-					Namespace: "default",
-					Name:      cgName,
-				},
+				Namespace: "default",
+				Name:      cgName,
 			},
 		})
 		assert.NoError(err)
@@ -37,9 +35,7 @@ func TestServer_ListConsumerGroups(t *testing.T) {
 
 	{
 		response, err := ts.Server.ListConsumerGroups(ctx, &emq.ConsumerGroupListRequest{
-			ConsumerGroup: emq.NamespaceName{
-				Namespace: "default",
-			},
+			Namespace: "default",
 		})
 		assert.NoError(err)
 		assert.NotNil(response)

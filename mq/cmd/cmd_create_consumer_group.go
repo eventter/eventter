@@ -62,7 +62,7 @@ func createConsumerGroupCmd() *cobra.Command {
 				}
 			}
 
-			request.ConsumerGroup.Name.Name = args[0]
+			request.ConsumerGroup.Name = args[0]
 
 			response, err := c.CreateConsumerGroup(ctx, request)
 			if err != nil {
@@ -75,7 +75,7 @@ func createConsumerGroupCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&request.ConsumerGroup.Name.Namespace, "namespace", "n", emq.DefaultNamespace, "Consumer group namespace.")
+	cmd.Flags().StringVarP(&request.ConsumerGroup.Namespace, "namespace", "n", emq.DefaultNamespace, "Consumer group namespace.")
 	cmd.Flags().StringSliceVarP(&fanoutBindings, "bind", "b", nil, "Fanout bindings in form of <topic>.")
 	cmd.Flags().StringSliceVarP(&directBindings, "bind-direct", "d", nil, "Direct bindings in form of <topic>:<routing key>.")
 	cmd.Flags().StringSliceVarP(&topicBindings, "bind-topic", "t", nil, "Topic bindings in form of <topic>:<routing key>.")

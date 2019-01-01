@@ -20,10 +20,9 @@ func (s *Server) handleAMQPv0ExchangeDelete(ctx context.Context, transport *v0.T
 	}
 
 	request := &emq.TopicDeleteRequest{
-		Topic: emq.NamespaceName{
-			Namespace: namespaceName,
-			Name:      frame.Exchange,
-		},
+		Namespace: namespaceName,
+		Name:      frame.Exchange,
+
 		IfUnused: frame.IfUnused,
 	}
 

@@ -39,24 +39,24 @@ func (s *Server) DeleteTopic(ctx context.Context, request *emq.TopicDeleteReques
 
 	state := s.clusterState.Current()
 
-	namespace, _ := state.FindNamespace(request.Topic.Namespace)
+	namespace, _ := state.FindNamespace(request.Namespace)
 	if namespace == nil {
-		return nil, errors.Errorf(namespaceNotFoundErrorFormat, request.Topic.Namespace)
+		return nil, errors.Errorf(namespaceNotFoundErrorFormat, request.Namespace)
 	}
 
-	if topic, _ := namespace.FindTopic(request.Topic.Name); topic == nil {
-		return nil, errors.Errorf(notFoundErrorFormat, entityTopic, request.Topic.Namespace, request.Topic.Name)
+	if topic, _ := namespace.FindTopic(request.Name); topic == nil {
+		return nil, errors.Errorf(notFoundErrorFormat, entityTopic, request.Namespace, request.Name)
 	}
 
 	if request.IfUnused {
-		if namespace.AnyConsumerGroupReferencesTopic(request.Topic.Name) {
-			return nil, errors.Errorf("topic %s/%s is referenced by some consumer group(s)", request.Topic.Namespace, request.Topic.Name)
+		if namespace.AnyConsumerGroupReferencesTopic(request.Name) {
+			return nil, errors.Errorf("topic %s/%s is referenced by some consumer group(s)", request.Namespace, request.Name)
 		}
 	}
 
 	index, err := s.Apply(&ClusterCommandTopicDelete{
-		Namespace: request.Topic.Namespace,
-		Name:      request.Topic.Name,
+		Namespace: request.Namespace,
+		Name:      request.Name,
 	})
 	if err != nil {
 		return nil, err

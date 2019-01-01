@@ -32,7 +32,7 @@ func listConsumerGroupsCmd() *cobra.Command {
 			defer c.Close()
 
 			if len(args) > 0 {
-				request.ConsumerGroup.Name = args[0]
+				request.Name = args[0]
 			}
 			response, err := c.ListConsumerGroups(ctx, request)
 			if err != nil {
@@ -45,7 +45,7 @@ func listConsumerGroupsCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&request.ConsumerGroup.Namespace, "namespace", "n", emq.DefaultNamespace, "Consumer groups namespace.")
+	cmd.Flags().StringVarP(&request.Namespace, "namespace", "n", emq.DefaultNamespace, "Consumer groups namespace.")
 
 	return cmd
 }

@@ -40,12 +40,10 @@ func (s *Server) handleAMQPv0BasicConsume(ctx context.Context, transport *v0.Tra
 	}
 
 	request := &emq.ConsumerGroupSubscribeRequest{
-		ConsumerGroup: emq.NamespaceName{
-			Namespace: namespaceName,
-			Name:      frame.Queue,
-		},
-		Size_:   ch.prefetchCount,
-		AutoAck: frame.NoAck,
+		Namespace: namespaceName,
+		Name:      frame.Queue,
+		Size_:     ch.prefetchCount,
+		AutoAck:   frame.NoAck,
 	}
 	stream := newSubscribeConsumer(ctx, ch.id, frame.ConsumerTag, ch.deliveries)
 
@@ -81,7 +79,7 @@ func (s *Server) handleAMQPv0ChannelDelivery(ctx context.Context, transport *v0.
 		FrameMeta:   v0.FrameMeta{Channel: ch.id},
 		ConsumerTag: consumerTag,
 		DeliveryTag: ch.deliveryTag,
-		Exchange:    response.Topic.Name,
+		Exchange:    response.TopicName,
 		RoutingKey:  response.Message.RoutingKey,
 	})
 	if err != nil {

@@ -39,18 +39,18 @@ func (s *Server) DeleteConsumerGroup(ctx context.Context, request *emq.ConsumerG
 
 	state := s.clusterState.Current()
 
-	namespace, _ := state.FindNamespace(request.ConsumerGroup.Namespace)
+	namespace, _ := state.FindNamespace(request.Namespace)
 	if namespace == nil {
-		return nil, errors.Errorf(namespaceNotFoundErrorFormat, request.ConsumerGroup.Namespace)
+		return nil, errors.Errorf(namespaceNotFoundErrorFormat, request.Namespace)
 	}
 
-	if consumerGroup, _ := namespace.FindConsumerGroup(request.ConsumerGroup.Name); consumerGroup == nil {
-		return nil, errors.Errorf(notFoundErrorFormat, entityConsumerGroup, request.ConsumerGroup.Namespace, request.ConsumerGroup.Name)
+	if consumerGroup, _ := namespace.FindConsumerGroup(request.Name); consumerGroup == nil {
+		return nil, errors.Errorf(notFoundErrorFormat, entityConsumerGroup, request.Namespace, request.Name)
 	}
 
 	index, err := s.Apply(&ClusterCommandConsumerGroupDelete{
-		Namespace: request.ConsumerGroup.Namespace,
-		Name:      request.ConsumerGroup.Name,
+		Namespace: request.Namespace,
+		Name:      request.Name,
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "consumer group delete failed")
@@ -58,8 +58,8 @@ func (s *Server) DeleteConsumerGroup(ctx context.Context, request *emq.ConsumerG
 
 	segments := state.FindOpenSegmentsFor(
 		ClusterSegment_CONSUMER_GROUP_OFFSET_COMMITS,
-		request.ConsumerGroup.Namespace,
-		request.ConsumerGroup.Name,
+		request.Namespace,
+		request.Name,
 	)
 	for _, segment := range segments {
 		index, err = s.Apply(&ClusterCommandSegmentDelete{

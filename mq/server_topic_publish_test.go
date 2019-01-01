@@ -21,10 +21,8 @@ func TestServer_Publish(t *testing.T) {
 	{
 		response, err := ts.Server.CreateTopic(ctx, &emq.TopicCreateRequest{
 			Topic: emq.Topic{
-				Name: emq.NamespaceName{
-					Namespace: "default",
-					Name:      "test-publish",
-				},
+				Namespace:           "default",
+				Name:                "test-publish",
 				DefaultExchangeType: emq.ExchangeTypeFanout,
 				Shards:              1,
 				ReplicationFactor:   1,
@@ -40,10 +38,8 @@ func TestServer_Publish(t *testing.T) {
 
 	{
 		response, err := ts.Server.Publish(ctx, &emq.TopicPublishRequest{
-			Topic: emq.NamespaceName{
-				Namespace: "default",
-				Name:      "test-publish",
-			},
+			Namespace: "default",
+			Name:      "test-publish",
 			Message: &emq.Message{
 				Data: []byte("hello, world"),
 			},

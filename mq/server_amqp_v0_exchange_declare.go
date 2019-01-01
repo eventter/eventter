@@ -38,10 +38,8 @@ func (s *Server) handleAMQPv0ExchangeDeclare(ctx context.Context, transport *v0.
 
 	request := &emq.TopicCreateRequest{
 		Topic: emq.Topic{
-			Name: emq.NamespaceName{
-				Namespace: namespaceName,
-				Name:      frame.Exchange,
-			},
+			Namespace:           namespaceName,
+			Name:                frame.Exchange,
 			DefaultExchangeType: frame.Type,
 			Shards:              shards,
 			ReplicationFactor:   replicationFactor,
@@ -50,15 +48,15 @@ func (s *Server) handleAMQPv0ExchangeDeclare(ctx context.Context, transport *v0.
 	}
 
 	state := s.clusterState.Current()
-	namespace, _ := state.FindNamespace(request.Topic.Name.Namespace)
+	namespace, _ := state.FindNamespace(request.Topic.Namespace)
 	if namespace == nil {
-		return s.makeChannelClose(ch, v0.NotFound, errors.Errorf("vhost %q not found", request.Topic.Name.Namespace))
+		return s.makeChannelClose(ch, v0.NotFound, errors.Errorf("vhost %q not found", request.Topic.Namespace))
 	}
 
 	if frame.Passive {
-		topic, _ := namespace.FindTopic(request.Topic.Name.Name)
+		topic, _ := namespace.FindTopic(request.Topic.Name)
 		if topic == nil {
-			return s.makeChannelClose(ch, v0.NotFound, errors.Errorf("exchange %q not found", request.Topic.Name.Name))
+			return s.makeChannelClose(ch, v0.NotFound, errors.Errorf("exchange %q not found", request.Topic.Name))
 		}
 
 	} else {

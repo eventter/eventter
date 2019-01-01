@@ -16,10 +16,8 @@ func (s *Server) handleAMQPv0QueueDelete(ctx context.Context, transport *v0.Tran
 	}
 
 	request := &emq.ConsumerGroupDeleteRequest{
-		ConsumerGroup: emq.NamespaceName{
-			Namespace: namespaceName,
-			Name:      frame.Queue,
-		},
+		Namespace: namespaceName,
+		Name:      frame.Queue,
 	}
 
 	_, err := s.DeleteConsumerGroup(ctx, request)

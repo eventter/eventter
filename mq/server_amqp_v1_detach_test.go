@@ -22,10 +22,9 @@ func TestServer_ServeAMQPv1_Detach(t *testing.T) {
 	{
 		_, err := ts.CreateTopic(ctx, &emq.TopicCreateRequest{
 			Topic: emq.Topic{
-				Name: emq.NamespaceName{
-					Namespace: "default",
-					Name:      "my-topic",
-				},
+				Namespace: "default",
+				Name:      "my-topic",
+
 				DefaultExchangeType: emq.ExchangeTypeFanout,
 			},
 		})

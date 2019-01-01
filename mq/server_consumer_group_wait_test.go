@@ -22,10 +22,8 @@ func TestServer_ConsumerGroupWait(t *testing.T) {
 	{
 		response, err := ts.Server.CreateConsumerGroup(ctx, &emq.ConsumerGroupCreateRequest{
 			ConsumerGroup: emq.ConsumerGroup{
-				Name: emq.NamespaceName{
-					Namespace: "default",
-					Name:      "test-subscribe-consumer-group",
-				},
+				Namespace: "default",
+				Name:      "test-subscribe-consumer-group",
 			},
 		})
 		assert.NoError(err)

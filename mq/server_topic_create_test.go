@@ -23,10 +23,8 @@ func TestServer_CreateTopic(t *testing.T) {
 		topicName := fmt.Sprintf("test-create-topic-%s", exchangeType)
 		response, err := ts.Server.CreateTopic(ctx, &emq.TopicCreateRequest{
 			Topic: emq.Topic{
-				Name: emq.NamespaceName{
-					Namespace: "default",
-					Name:      topicName,
-				},
+				Namespace:           "default",
+				Name:                topicName,
 				DefaultExchangeType: exchangeType,
 				Shards:              1,
 				ReplicationFactor:   1,

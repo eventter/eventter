@@ -71,11 +71,9 @@ func (s *Server) handleAMQPv0QueueUnbind(ctx context.Context, transport *v0.Tran
 
 	request := &emq.ConsumerGroupCreateRequest{
 		ConsumerGroup: emq.ConsumerGroup{
-			Name: emq.NamespaceName{
-				Namespace: namespaceName,
-				Name:      frame.Queue,
-			},
-			Size_: cg.Size_,
+			Namespace: namespaceName,
+			Name:      frame.Queue,
+			Size_:     cg.Size_,
 		},
 	}
 
