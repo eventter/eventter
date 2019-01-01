@@ -102,16 +102,14 @@ func (s *sessionAMQPv1) attachTopic(ctx context.Context, frame *v1.Attach) (err 
 	}
 
 	link = &linkAMQPv1{
-		state:              linkStateReady,
-		session:            s,
-		handle:             frame.Handle,
-		role:               !frame.Role,
-		senderSettleMode:   frame.SndSettleMode,
-		receiverSettleMode: frame.RcvSettleMode,
-		deliveryCount:      frame.InitialDeliveryCount,
-		linkCredit:         math.MaxUint16,
-		namespace:          namespaceName,
-		topic:              topicName,
+		state:         linkStateReady,
+		session:       s,
+		handle:        frame.Handle,
+		role:          !frame.Role,
+		deliveryCount: frame.InitialDeliveryCount,
+		linkCredit:    math.MaxUint16,
+		namespace:     namespaceName,
+		topic:         topicName,
 	}
 	link.initialLinkCredit = link.linkCredit
 

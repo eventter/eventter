@@ -353,7 +353,8 @@ func unmarshalMap(dst **types.Struct, constructor byte, buf *bytes.Buffer) error
 	var size int
 	switch constructor {
 	case NullEncoding:
-		size = 0
+		*dst = nil
+		return nil
 	case Map8Encoding:
 		v, err := buf.ReadByte()
 		if err != nil {
@@ -401,9 +402,10 @@ func unmarshalMap(dst **types.Struct, constructor byte, buf *bytes.Buffer) error
 		return errors.Errorf("unmarshal map failed: must have even number of elements, got %d", count)
 	}
 
-	*dst = &types.Struct{Fields: make(map[string]*types.Value)}
+	m := &types.Struct{Fields: make(map[string]*types.Value)}
+	*dst = m
 	for i := 0; i < count/2; i++ {
-		var key types.Value
+		var key *types.Value
 		err := unmarshalValue(&key, itemBuf)
 		if err != nil {
 			return errors.Wrapf(err, "unmarshal map item %d failed", i)
@@ -414,25 +416,26 @@ func unmarshalMap(dst **types.Struct, constructor byte, buf *bytes.Buffer) error
 			return errors.Errorf("unmarshal map item %d failed: non-string key %T", i, key.Kind)
 		}
 
-		var value types.Value
+		var value *types.Value
 		err = unmarshalValue(&value, itemBuf)
 		if err != nil {
 			return errors.Wrapf(err, "unmarshal map item %d (key %s) failed", i, keyString.StringValue)
 		}
 
-		(*dst).Fields[keyString.StringValue] = &value
+		m.Fields[keyString.StringValue] = value
 	}
 
 	return nil
 }
 
 func unmarshalList(dst **types.ListValue, constructor byte, buf *bytes.Buffer) error {
+	list := &types.ListValue{}
+	*dst = list
+
 	var size int
 	switch constructor {
-	case NullEncoding:
-		size = 0
 	case List0Encoding:
-		size = 0
+		return nil
 	case List8Encoding:
 		v, err := buf.ReadByte()
 		if err != nil {
@@ -448,19 +451,13 @@ func unmarshalList(dst **types.ListValue, constructor byte, buf *bytes.Buffer) e
 		return errors.Errorf("unmarshal list failed: unexpected constructor 0x%02x", constructor)
 	}
 
-	if size == 0 {
-		*dst = &types.ListValue{Values: make([]*types.Value, 0)}
-		return nil
+	if buf.Len() < size {
+		return errors.New("unmarshal list failed: buffer underflow")
 	}
 
 	itemBuf := bytes.NewBuffer(buf.Next(size))
-
 	var count int
 	switch constructor {
-	case NullEncoding:
-		count = 0
-	case List0Encoding:
-		count = 0
 	case List8Encoding:
 		v, err := itemBuf.ReadByte()
 		if err != nil {
@@ -476,14 +473,13 @@ func unmarshalList(dst **types.ListValue, constructor byte, buf *bytes.Buffer) e
 		return errors.Errorf("unmarshal list failed: unexpected constructor 0x%02x", constructor)
 	}
 
-	*dst = &types.ListValue{}
 	for i := 0; i < count; i++ {
-		var value types.Value
+		var value *types.Value
 		err := unmarshalValue(&value, itemBuf)
 		if err != nil {
 			return errors.Wrapf(err, "unmarshal list item %d failed", i)
 		}
-		(*dst).Values = append((*dst).Values, &value)
+		list.Values = append(list.Values, value)
 	}
 
 	return nil
@@ -529,20 +525,21 @@ func unmarshalArray(dst **types.ListValue, constructor byte, buf *bytes.Buffer) 
 		return errors.Wrap(err, "unmarshal array failed")
 	}
 
-	*dst = &types.ListValue{}
+	list := &types.ListValue{}
+	*dst = list
 	for i := 0; i < count; i++ {
-		var value types.Value
+		var value *types.Value
 		err := unmarshalValueWithConstructor(&value, valueConstructor, itemBuf)
 		if err != nil {
 			return errors.Wrapf(err, "unmarshal array item %d failed", i)
 		}
-		(*dst).Values = append((*dst).Values, &value)
+		list.Values = append(list.Values, value)
 	}
 
 	return nil
 }
 
-func unmarshalValue(dst *types.Value, buf *bytes.Buffer) error {
+func unmarshalValue(dst **types.Value, buf *bytes.Buffer) error {
 	constructor, err := buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
@@ -550,12 +547,10 @@ func unmarshalValue(dst *types.Value, buf *bytes.Buffer) error {
 	return unmarshalValueWithConstructor(dst, constructor, buf)
 }
 
-func unmarshalValueWithConstructor(dst *types.Value, constructor byte, buf *bytes.Buffer) error {
-	*dst = types.Value{}
-
+func unmarshalValueWithConstructor(dst **types.Value, constructor byte, buf *bytes.Buffer) error {
 	switch constructor {
 	case NullEncoding:
-		dst.Kind = &types.Value_NullValue{}
+		*dst = &types.Value{Kind: &types.Value_NullValue{}}
 	case BooleanEncoding:
 		fallthrough
 	case BooleanFalseEncoding:
@@ -566,35 +561,35 @@ func unmarshalValueWithConstructor(dst *types.Value, constructor byte, buf *byte
 		if err != nil {
 			return errors.Wrap(err, "unmarshal value failed")
 		}
-		dst.Kind = &types.Value_BoolValue{BoolValue: v}
+		*dst = &types.Value{Kind: &types.Value_BoolValue{BoolValue: v}}
 	case UbyteEncoding:
 		var v uint8
 		err := unmarshalUbyte(&v, constructor, buf)
 		if err != nil {
 			return errors.Wrap(err, "unmarshal value failed")
 		}
-		dst.Kind = &types.Value_NumberValue{NumberValue: float64(v)}
+		*dst = &types.Value{Kind: &types.Value_NumberValue{NumberValue: float64(v)}}
 	case ByteEncoding:
 		var v int8
 		err := unmarshalByte(&v, constructor, buf)
 		if err != nil {
 			return errors.Wrap(err, "unmarshal value failed")
 		}
-		dst.Kind = &types.Value_NumberValue{NumberValue: float64(v)}
+		*dst = &types.Value{Kind: &types.Value_NumberValue{NumberValue: float64(v)}}
 	case UshortEncoding:
 		var v uint16
 		err := unmarshalUshort(&v, constructor, buf)
 		if err != nil {
 			return errors.Wrap(err, "unmarshal value failed")
 		}
-		dst.Kind = &types.Value_NumberValue{NumberValue: float64(v)}
+		*dst = &types.Value{Kind: &types.Value_NumberValue{NumberValue: float64(v)}}
 	case ShortEncoding:
 		var v int16
 		err := unmarshalShort(&v, constructor, buf)
 		if err != nil {
 			return errors.Wrap(err, "unmarshal value failed")
 		}
-		dst.Kind = &types.Value_NumberValue{NumberValue: float64(v)}
+		*dst = &types.Value{Kind: &types.Value_NumberValue{NumberValue: float64(v)}}
 	case Uint0Encoding:
 		fallthrough
 	case UintSmalluintEncoding:
@@ -605,7 +600,7 @@ func unmarshalValueWithConstructor(dst *types.Value, constructor byte, buf *byte
 		if err != nil {
 			return errors.Wrap(err, "unmarshal value failed")
 		}
-		dst.Kind = &types.Value_NumberValue{NumberValue: float64(v)}
+		*dst = &types.Value{Kind: &types.Value_NumberValue{NumberValue: float64(v)}}
 	case IntSmallintEncoding:
 		fallthrough
 	case IntEncoding:
@@ -614,7 +609,7 @@ func unmarshalValueWithConstructor(dst *types.Value, constructor byte, buf *byte
 		if err != nil {
 			return errors.Wrap(err, "unmarshal value failed")
 		}
-		dst.Kind = &types.Value_NumberValue{NumberValue: float64(v)}
+		*dst = &types.Value{Kind: &types.Value_NumberValue{NumberValue: float64(v)}}
 	case Ulong0Encoding:
 		fallthrough
 	case UlongSmallulongEncoding:
@@ -625,7 +620,7 @@ func unmarshalValueWithConstructor(dst *types.Value, constructor byte, buf *byte
 		if err != nil {
 			return errors.Wrap(err, "unmarshal value failed")
 		}
-		dst.Kind = &types.Value_NumberValue{NumberValue: float64(v)}
+		*dst = &types.Value{Kind: &types.Value_NumberValue{NumberValue: float64(v)}}
 	case LongSmalllongEncoding:
 		fallthrough
 	case LongEncoding:
@@ -634,21 +629,21 @@ func unmarshalValueWithConstructor(dst *types.Value, constructor byte, buf *byte
 		if err != nil {
 			return errors.Wrap(err, "unmarshal value failed")
 		}
-		dst.Kind = &types.Value_NumberValue{NumberValue: float64(v)}
+		*dst = &types.Value{Kind: &types.Value_NumberValue{NumberValue: float64(v)}}
 	case FloatIeee754Encoding:
 		var v float32
 		err := unmarshalFloat(&v, constructor, buf)
 		if err != nil {
 			return errors.Wrap(err, "unmarshal value failed")
 		}
-		dst.Kind = &types.Value_NumberValue{NumberValue: float64(v)}
+		*dst = &types.Value{Kind: &types.Value_NumberValue{NumberValue: float64(v)}}
 	case DoubleIeee754Encoding:
 		var v float64
 		err := unmarshalDouble(&v, constructor, buf)
 		if err != nil {
 			return errors.Wrap(err, "unmarshal value failed")
 		}
-		dst.Kind = &types.Value_NumberValue{NumberValue: float64(v)}
+		*dst = &types.Value{Kind: &types.Value_NumberValue{NumberValue: float64(v)}}
 	case Decimal32Ieee754Encoding:
 		fallthrough
 	case Decimal64Ieee754Encoding:
@@ -661,7 +656,7 @@ func unmarshalValueWithConstructor(dst *types.Value, constructor byte, buf *byte
 		if err != nil {
 			return errors.Wrap(err, "unmarshal value failed")
 		}
-		dst.Kind = &types.Value_NumberValue{NumberValue: float64(v)}
+		*dst = &types.Value{Kind: &types.Value_NumberValue{NumberValue: float64(v)}}
 	case TimestampMs64Encoding:
 		var v time.Time
 		err := unmarshalTimestamp(&v, constructor, buf)
@@ -669,14 +664,14 @@ func unmarshalValueWithConstructor(dst *types.Value, constructor byte, buf *byte
 			return errors.Wrap(err, "unmarshal value failed")
 		}
 		// serialized as ISO 8601 string to milliseconds
-		dst.Kind = &types.Value_StringValue{StringValue: v.Format("2006-01-02T15:04:05.999Z07:00")}
+		*dst = &types.Value{Kind: &types.Value_StringValue{StringValue: v.Format("2006-01-02T15:04:05.999Z07:00")}}
 	case UUIDEncoding:
 		var v UUID
 		err := unmarshalUUID(&v, constructor, buf)
 		if err != nil {
 			return errors.Wrap(err, "unmarshal value failed")
 		}
-		dst.Kind = &types.Value_StringValue{StringValue: v.String()}
+		*dst = &types.Value{Kind: &types.Value_StringValue{StringValue: v.String()}}
 	case BinaryVbin8Encoding:
 		fallthrough
 	case BinaryVbin32Encoding:
@@ -685,7 +680,7 @@ func unmarshalValueWithConstructor(dst *types.Value, constructor byte, buf *byte
 		if err != nil {
 			return errors.Wrap(err, "unmarshal value failed")
 		}
-		dst.Kind = &types.Value_StringValue{StringValue: base64.StdEncoding.EncodeToString(v)}
+		*dst = &types.Value{Kind: &types.Value_StringValue{StringValue: base64.StdEncoding.EncodeToString(v)}}
 	case StringStr8Utf8Encoding:
 		fallthrough
 	case StringStr32Utf8Encoding:
@@ -694,7 +689,7 @@ func unmarshalValueWithConstructor(dst *types.Value, constructor byte, buf *byte
 		if err != nil {
 			return errors.Wrap(err, "unmarshal value failed")
 		}
-		dst.Kind = &types.Value_StringValue{StringValue: v}
+		*dst = &types.Value{Kind: &types.Value_StringValue{StringValue: v}}
 	case SymbolSym8Encoding:
 		fallthrough
 	case SymbolSym32Encoding:
@@ -703,17 +698,18 @@ func unmarshalValueWithConstructor(dst *types.Value, constructor byte, buf *byte
 		if err != nil {
 			return errors.Wrap(err, "unmarshal value failed")
 		}
-		dst.Kind = &types.Value_StringValue{StringValue: v}
+		*dst = &types.Value{Kind: &types.Value_StringValue{StringValue: v}}
 	case List0Encoding:
 		fallthrough
 	case List8Encoding:
+		fallthrough
 	case List32Encoding:
 		var v *types.ListValue
 		err := unmarshalList(&v, constructor, buf)
 		if err != nil {
 			return errors.Wrap(err, "unmarshal value failed")
 		}
-		dst.Kind = &types.Value_ListValue{ListValue: v}
+		*dst = &types.Value{Kind: &types.Value_ListValue{ListValue: v}}
 	case Map8Encoding:
 		fallthrough
 	case Map32Encoding:
@@ -722,7 +718,7 @@ func unmarshalValueWithConstructor(dst *types.Value, constructor byte, buf *byte
 		if err != nil {
 			return errors.Wrap(err, "unmarshal value failed")
 		}
-		dst.Kind = &types.Value_StructValue{StructValue: v}
+		*dst = &types.Value{Kind: &types.Value_StructValue{StructValue: v}}
 	case Array8Encoding:
 		fallthrough
 	case Array32Encoding:
@@ -731,7 +727,7 @@ func unmarshalValueWithConstructor(dst *types.Value, constructor byte, buf *byte
 		if err != nil {
 			return errors.Wrap(err, "unmarshal value failed")
 		}
-		dst.Kind = &types.Value_ListValue{ListValue: v}
+		*dst = &types.Value{Kind: &types.Value_ListValue{ListValue: v}}
 	default:
 		return errors.Errorf("unmarshal value failed: unexpected constructor 0x%02x", constructor)
 	}
@@ -896,6 +892,8 @@ func unmarshalMessageIDUnion(dst *MessageID, buf *bytes.Buffer) error {
 	}
 
 	switch constructor {
+	case NullEncoding:
+		*dst = nil
 	case BinaryVbin8Encoding:
 		fallthrough
 	case BinaryVbin32Encoding:
@@ -945,6 +943,8 @@ func unmarshalAddressUnion(dst *Address, buf *bytes.Buffer) error {
 	}
 
 	switch constructor {
+	case NullEncoding:
+		*dst = nil
 	case StringStr8Utf8Encoding:
 		fallthrough
 	case StringStr32Utf8Encoding:
@@ -1025,4 +1025,60 @@ func unmarshalErrorCondition(dst *ErrorCondition, constructor byte, buf *bytes.B
 	}
 
 	return nil
+}
+
+func UnmarshalSection(dst *Section, buf *bytes.Buffer) error {
+	descriptorBuf := bytes.NewBuffer(buf.Bytes())
+
+	constructor, err := descriptorBuf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "unmarshal section failed")
+	}
+
+	if constructor != DescriptorEncoding {
+		return errors.Errorf("unmarshal section failed: unexpected constructor 0x%02x", constructor)
+	}
+	constructor, err = descriptorBuf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "unmarshal section failed")
+	}
+	var descriptor uint64
+	err = unmarshalUlong(&descriptor, constructor, descriptorBuf)
+	if err != nil {
+		return errors.Wrap(err, "unmarshal section failed")
+	}
+
+	switch descriptor {
+	case HeaderDescriptor:
+		*dst = &Header{}
+	case DeliveryAnnotationsDescriptor:
+		*dst = &DeliveryAnnotations{}
+	case MessageAnnotationsDescriptor:
+		*dst = &MessageAnnotations{}
+	case PropertiesDescriptor:
+		*dst = &Properties{}
+	case ApplicationPropertiesDescriptor:
+		*dst = &ApplicationProperties{}
+	case DataDescriptor:
+		buf.Next(buf.Len() - descriptorBuf.Len()) // skip descriptor
+		var data []byte
+		constructor, err = buf.ReadByte()
+		if err != nil {
+			return errors.Wrap(err, "unmarshal section failed")
+		}
+		err = unmarshalBinary(&data, constructor, buf)
+		*dst = Data(data)
+		return nil
+	case FooterDescriptor:
+		*dst = &Footer{}
+	default:
+		return errors.Errorf("unmarshal section failed: unhandled descriptor 0x%08x:0x%08x", descriptor>>32, descriptor&0xffffffff)
+	}
+
+	unmarshaler, ok := (*dst).(BufferUnmarshaler)
+	if !ok {
+		return errors.Errorf("unmarshal section failed: %T is not unmarshaler", *dst)
+	}
+
+	return errors.Wrap(unmarshaler.UnmarshalBuffer(buf), "unmarshal section failed")
 }

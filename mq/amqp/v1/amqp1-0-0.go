@@ -277,7 +277,6 @@ func (t *Open) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	if t == nil {
 		return errors.New("<nil> receiver")
 	}
-
 	buf.WriteByte(DescriptorEncoding)
 	err = marshalUlong(OpenDescriptor, buf)
 	if err != nil {
@@ -471,7 +470,7 @@ func (t *Open) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *Open) UnmarshalBuffer(buf *bytes.Buffer) error {
+func (t *Open) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
 	if t == nil {
 		return errors.New("<nil> receiver")
 	}
@@ -487,7 +486,8 @@ func (t *Open) UnmarshalBuffer(buf *bytes.Buffer) error {
 	t.DesiredCapabilities = nil
 	t.Properties = nil
 
-	constructor, err := buf.ReadByte()
+	var constructor byte
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
 	}
@@ -508,6 +508,7 @@ func (t *Open) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if descriptor != OpenDescriptor {
 		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
 	}
+
 	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
@@ -703,7 +704,6 @@ func (t *Begin) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	if t == nil {
 		return errors.New("<nil> receiver")
 	}
-
 	buf.WriteByte(DescriptorEncoding)
 	err = marshalUlong(BeginDescriptor, buf)
 	if err != nil {
@@ -845,7 +845,7 @@ func (t *Begin) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *Begin) UnmarshalBuffer(buf *bytes.Buffer) error {
+func (t *Begin) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
 	if t == nil {
 		return errors.New("<nil> receiver")
 	}
@@ -859,7 +859,8 @@ func (t *Begin) UnmarshalBuffer(buf *bytes.Buffer) error {
 	t.DesiredCapabilities = nil
 	t.Properties = nil
 
-	constructor, err := buf.ReadByte()
+	var constructor byte
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
 	}
@@ -880,6 +881,7 @@ func (t *Begin) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if descriptor != BeginDescriptor {
 		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
 	}
+
 	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
@@ -1060,7 +1062,6 @@ func (t *Attach) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	if t == nil {
 		return errors.New("<nil> receiver")
 	}
-
 	buf.WriteByte(DescriptorEncoding)
 	err = marshalUlong(AttachDescriptor, buf)
 	if err != nil {
@@ -1300,7 +1301,7 @@ func (t *Attach) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *Attach) UnmarshalBuffer(buf *bytes.Buffer) error {
+func (t *Attach) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
 	if t == nil {
 		return errors.New("<nil> receiver")
 	}
@@ -1320,7 +1321,8 @@ func (t *Attach) UnmarshalBuffer(buf *bytes.Buffer) error {
 	t.DesiredCapabilities = nil
 	t.Properties = nil
 
-	constructor, err := buf.ReadByte()
+	var constructor byte
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
 	}
@@ -1341,6 +1343,7 @@ func (t *Attach) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if descriptor != AttachDescriptor {
 		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
 	}
+
 	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
@@ -1561,7 +1564,6 @@ func (t *Flow) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	if t == nil {
 		return errors.New("<nil> receiver")
 	}
-
 	buf.WriteByte(DescriptorEncoding)
 	err = marshalUlong(FlowDescriptor, buf)
 	if err != nil {
@@ -1749,7 +1751,7 @@ func (t *Flow) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *Flow) UnmarshalBuffer(buf *bytes.Buffer) error {
+func (t *Flow) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
 	if t == nil {
 		return errors.New("<nil> receiver")
 	}
@@ -1766,7 +1768,8 @@ func (t *Flow) UnmarshalBuffer(buf *bytes.Buffer) error {
 	t.Echo = false
 	t.Properties = nil
 
-	constructor, err := buf.ReadByte()
+	var constructor byte
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
 	}
@@ -1787,6 +1790,7 @@ func (t *Flow) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if descriptor != FlowDescriptor {
 		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
 	}
+
 	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
@@ -1979,7 +1983,6 @@ func (t *Transfer) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	if t == nil {
 		return errors.New("<nil> receiver")
 	}
-
 	buf.WriteByte(DescriptorEncoding)
 	err = marshalUlong(TransferDescriptor, buf)
 	if err != nil {
@@ -2185,7 +2188,7 @@ func (t *Transfer) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *Transfer) UnmarshalBuffer(buf *bytes.Buffer) error {
+func (t *Transfer) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
 	if t == nil {
 		return errors.New("<nil> receiver")
 	}
@@ -2202,7 +2205,8 @@ func (t *Transfer) UnmarshalBuffer(buf *bytes.Buffer) error {
 	t.Aborted = false
 	t.Batchable = false
 
-	constructor, err := buf.ReadByte()
+	var constructor byte
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
 	}
@@ -2223,6 +2227,7 @@ func (t *Transfer) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if descriptor != TransferDescriptor {
 		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
 	}
+
 	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
@@ -2400,7 +2405,6 @@ func (t *Disposition) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	if t == nil {
 		return errors.New("<nil> receiver")
 	}
-
 	buf.WriteByte(DescriptorEncoding)
 	err = marshalUlong(DispositionDescriptor, buf)
 	if err != nil {
@@ -2518,7 +2522,7 @@ func (t *Disposition) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *Disposition) UnmarshalBuffer(buf *bytes.Buffer) error {
+func (t *Disposition) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
 	if t == nil {
 		return errors.New("<nil> receiver")
 	}
@@ -2530,7 +2534,8 @@ func (t *Disposition) UnmarshalBuffer(buf *bytes.Buffer) error {
 	t.State = nil
 	t.Batchable = false
 
-	constructor, err := buf.ReadByte()
+	var constructor byte
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
 	}
@@ -2551,6 +2556,7 @@ func (t *Disposition) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if descriptor != DispositionDescriptor {
 		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
 	}
+
 	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
@@ -2683,7 +2689,6 @@ func (t *Detach) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	if t == nil {
 		return errors.New("<nil> receiver")
 	}
-
 	buf.WriteByte(DescriptorEncoding)
 	err = marshalUlong(DetachDescriptor, buf)
 	if err != nil {
@@ -2761,7 +2766,7 @@ func (t *Detach) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *Detach) UnmarshalBuffer(buf *bytes.Buffer) error {
+func (t *Detach) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
 	if t == nil {
 		return errors.New("<nil> receiver")
 	}
@@ -2770,7 +2775,8 @@ func (t *Detach) UnmarshalBuffer(buf *bytes.Buffer) error {
 	t.Closed = false
 	t.Error = nil
 
-	constructor, err := buf.ReadByte()
+	var constructor byte
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
 	}
@@ -2791,6 +2797,7 @@ func (t *Detach) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if descriptor != DetachDescriptor {
 		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
 	}
+
 	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
@@ -2902,7 +2909,6 @@ func (t *End) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	if t == nil {
 		return errors.New("<nil> receiver")
 	}
-
 	buf.WriteByte(DescriptorEncoding)
 	err = marshalUlong(EndDescriptor, buf)
 	if err != nil {
@@ -2956,14 +2962,15 @@ func (t *End) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *End) UnmarshalBuffer(buf *bytes.Buffer) error {
+func (t *End) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
 	if t == nil {
 		return errors.New("<nil> receiver")
 	}
 
 	t.Error = nil
 
-	constructor, err := buf.ReadByte()
+	var constructor byte
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
 	}
@@ -2984,6 +2991,7 @@ func (t *End) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if descriptor != EndDescriptor {
 		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
 	}
+
 	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
@@ -3079,7 +3087,6 @@ func (t *Close) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	if t == nil {
 		return errors.New("<nil> receiver")
 	}
-
 	buf.WriteByte(DescriptorEncoding)
 	err = marshalUlong(CloseDescriptor, buf)
 	if err != nil {
@@ -3133,14 +3140,15 @@ func (t *Close) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *Close) UnmarshalBuffer(buf *bytes.Buffer) error {
+func (t *Close) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
 	if t == nil {
 		return errors.New("<nil> receiver")
 	}
 
 	t.Error = nil
 
-	constructor, err := buf.ReadByte()
+	var constructor byte
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
 	}
@@ -3161,6 +3169,7 @@ func (t *Close) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if descriptor != CloseDescriptor {
 		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
 	}
+
 	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
@@ -3259,7 +3268,7 @@ func (t Role) Marshal() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (t Role) MarshalBuffer(buf *bytes.Buffer) error {
+func (t Role) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	return marshalBoolean(bool(t), buf)
 }
 
@@ -3267,8 +3276,9 @@ func (t *Role) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *Role) UnmarshalBuffer(buf *bytes.Buffer) error {
-	constructor, err := buf.ReadByte()
+func (t *Role) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
+	var constructor byte
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
@@ -3306,7 +3316,7 @@ func (t SenderSettleMode) Marshal() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (t SenderSettleMode) MarshalBuffer(buf *bytes.Buffer) error {
+func (t SenderSettleMode) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	return marshalUbyte(uint8(t), buf)
 }
 
@@ -3314,8 +3324,9 @@ func (t *SenderSettleMode) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *SenderSettleMode) UnmarshalBuffer(buf *bytes.Buffer) error {
-	constructor, err := buf.ReadByte()
+func (t *SenderSettleMode) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
+	var constructor byte
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
@@ -3353,7 +3364,7 @@ func (t ReceiverSettleMode) Marshal() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (t ReceiverSettleMode) MarshalBuffer(buf *bytes.Buffer) error {
+func (t ReceiverSettleMode) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	return marshalUbyte(uint8(t), buf)
 }
 
@@ -3361,8 +3372,9 @@ func (t *ReceiverSettleMode) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *ReceiverSettleMode) UnmarshalBuffer(buf *bytes.Buffer) error {
-	constructor, err := buf.ReadByte()
+func (t *ReceiverSettleMode) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
+	var constructor byte
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
@@ -3384,7 +3396,7 @@ func (t Handle) Marshal() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (t Handle) MarshalBuffer(buf *bytes.Buffer) error {
+func (t Handle) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	return marshalUint(uint32(t), buf)
 }
 
@@ -3392,8 +3404,9 @@ func (t *Handle) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *Handle) UnmarshalBuffer(buf *bytes.Buffer) error {
-	constructor, err := buf.ReadByte()
+func (t *Handle) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
+	var constructor byte
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
@@ -3415,7 +3428,7 @@ func (t Seconds) Marshal() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (t Seconds) MarshalBuffer(buf *bytes.Buffer) error {
+func (t Seconds) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	return marshalUint(uint32(t), buf)
 }
 
@@ -3423,8 +3436,9 @@ func (t *Seconds) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *Seconds) UnmarshalBuffer(buf *bytes.Buffer) error {
-	constructor, err := buf.ReadByte()
+func (t *Seconds) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
+	var constructor byte
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
@@ -3443,7 +3457,7 @@ func (t Milliseconds) Marshal() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (t Milliseconds) MarshalBuffer(buf *bytes.Buffer) error {
+func (t Milliseconds) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	return marshalUint(uint32(t), buf)
 }
 
@@ -3451,8 +3465,9 @@ func (t *Milliseconds) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *Milliseconds) UnmarshalBuffer(buf *bytes.Buffer) error {
-	constructor, err := buf.ReadByte()
+func (t *Milliseconds) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
+	var constructor byte
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
@@ -3471,7 +3486,7 @@ func (t DeliveryTag) Marshal() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (t DeliveryTag) MarshalBuffer(buf *bytes.Buffer) error {
+func (t DeliveryTag) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	return marshalBinary([]byte(t), buf)
 }
 
@@ -3479,8 +3494,9 @@ func (t *DeliveryTag) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *DeliveryTag) UnmarshalBuffer(buf *bytes.Buffer) error {
-	constructor, err := buf.ReadByte()
+func (t *DeliveryTag) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
+	var constructor byte
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
@@ -3499,7 +3515,7 @@ func (t DeliveryNumber) Marshal() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (t DeliveryNumber) MarshalBuffer(buf *bytes.Buffer) error {
+func (t DeliveryNumber) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	return marshalUint(uint32(t), buf)
 }
 
@@ -3507,8 +3523,9 @@ func (t *DeliveryNumber) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *DeliveryNumber) UnmarshalBuffer(buf *bytes.Buffer) error {
-	constructor, err := buf.ReadByte()
+func (t *DeliveryNumber) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
+	var constructor byte
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
@@ -3527,7 +3544,7 @@ func (t TransferNumber) Marshal() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (t TransferNumber) MarshalBuffer(buf *bytes.Buffer) error {
+func (t TransferNumber) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	return marshalUint(uint32(t), buf)
 }
 
@@ -3535,8 +3552,9 @@ func (t *TransferNumber) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *TransferNumber) UnmarshalBuffer(buf *bytes.Buffer) error {
-	constructor, err := buf.ReadByte()
+func (t *TransferNumber) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
+	var constructor byte
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
@@ -3558,7 +3576,7 @@ func (t SequenceNo) Marshal() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (t SequenceNo) MarshalBuffer(buf *bytes.Buffer) error {
+func (t SequenceNo) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	return marshalUint(uint32(t), buf)
 }
 
@@ -3566,8 +3584,9 @@ func (t *SequenceNo) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *SequenceNo) UnmarshalBuffer(buf *bytes.Buffer) error {
-	constructor, err := buf.ReadByte()
+func (t *SequenceNo) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
+	var constructor byte
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
@@ -3586,7 +3605,7 @@ func (t MessageFormat) Marshal() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (t MessageFormat) MarshalBuffer(buf *bytes.Buffer) error {
+func (t MessageFormat) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	return marshalUint(uint32(t), buf)
 }
 
@@ -3594,8 +3613,9 @@ func (t *MessageFormat) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *MessageFormat) UnmarshalBuffer(buf *bytes.Buffer) error {
-	constructor, err := buf.ReadByte()
+func (t *MessageFormat) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
+	var constructor byte
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
@@ -3614,7 +3634,7 @@ func (t IETFLanguageTag) Marshal() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (t IETFLanguageTag) MarshalBuffer(buf *bytes.Buffer) error {
+func (t IETFLanguageTag) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	return marshalSymbol(string(t), buf)
 }
 
@@ -3622,8 +3642,9 @@ func (t *IETFLanguageTag) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *IETFLanguageTag) UnmarshalBuffer(buf *bytes.Buffer) error {
-	constructor, err := buf.ReadByte()
+func (t *IETFLanguageTag) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
+	var constructor byte
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
@@ -3642,7 +3663,7 @@ func (t *Fields) Marshal() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (t *Fields) MarshalBuffer(buf *bytes.Buffer) error {
+func (t *Fields) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	return marshalMap((*types.Struct)(t), buf)
 }
 
@@ -3650,8 +3671,9 @@ func (t *Fields) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *Fields) UnmarshalBuffer(buf *bytes.Buffer) error {
-	constructor, err := buf.ReadByte()
+func (t *Fields) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
+	var constructor byte
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
@@ -3694,7 +3716,6 @@ func (t *Error) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	if t == nil {
 		return errors.New("<nil> receiver")
 	}
-
 	buf.WriteByte(DescriptorEncoding)
 	err = marshalUlong(ErrorDescriptor, buf)
 	if err != nil {
@@ -3772,7 +3793,7 @@ func (t *Error) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *Error) UnmarshalBuffer(buf *bytes.Buffer) error {
+func (t *Error) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
 	if t == nil {
 		return errors.New("<nil> receiver")
 	}
@@ -3781,7 +3802,8 @@ func (t *Error) UnmarshalBuffer(buf *bytes.Buffer) error {
 	t.Description = ""
 	t.Info = nil
 
-	constructor, err := buf.ReadByte()
+	var constructor byte
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
 	}
@@ -3802,6 +3824,7 @@ func (t *Error) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if descriptor != ErrorDescriptor {
 		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
 	}
+
 	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
@@ -3920,7 +3943,7 @@ func (t AMQPError) Marshal() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (t AMQPError) MarshalBuffer(buf *bytes.Buffer) error {
+func (t AMQPError) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	return marshalSymbol(string(t), buf)
 }
 
@@ -3928,8 +3951,9 @@ func (t *AMQPError) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *AMQPError) UnmarshalBuffer(buf *bytes.Buffer) error {
-	constructor, err := buf.ReadByte()
+func (t *AMQPError) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
+	var constructor byte
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
@@ -3960,7 +3984,7 @@ func (t ConnectionError) Marshal() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (t ConnectionError) MarshalBuffer(buf *bytes.Buffer) error {
+func (t ConnectionError) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	return marshalSymbol(string(t), buf)
 }
 
@@ -3968,8 +3992,9 @@ func (t *ConnectionError) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *ConnectionError) UnmarshalBuffer(buf *bytes.Buffer) error {
-	constructor, err := buf.ReadByte()
+func (t *ConnectionError) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
+	var constructor byte
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
@@ -4001,7 +4026,7 @@ func (t SessionError) Marshal() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (t SessionError) MarshalBuffer(buf *bytes.Buffer) error {
+func (t SessionError) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	return marshalSymbol(string(t), buf)
 }
 
@@ -4009,8 +4034,9 @@ func (t *SessionError) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *SessionError) UnmarshalBuffer(buf *bytes.Buffer) error {
-	constructor, err := buf.ReadByte()
+func (t *SessionError) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
+	var constructor byte
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
@@ -4043,7 +4069,7 @@ func (t LinkError) Marshal() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (t LinkError) MarshalBuffer(buf *bytes.Buffer) error {
+func (t LinkError) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	return marshalSymbol(string(t), buf)
 }
 
@@ -4051,8 +4077,9 @@ func (t *LinkError) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *LinkError) UnmarshalBuffer(buf *bytes.Buffer) error {
-	constructor, err := buf.ReadByte()
+func (t *LinkError) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
+	var constructor byte
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
@@ -4094,7 +4121,6 @@ func (t *Header) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	if t == nil {
 		return errors.New("<nil> receiver")
 	}
-
 	buf.WriteByte(DescriptorEncoding)
 	err = marshalUlong(HeaderDescriptor, buf)
 	if err != nil {
@@ -4212,7 +4238,7 @@ func (t *Header) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *Header) UnmarshalBuffer(buf *bytes.Buffer) error {
+func (t *Header) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
 	if t == nil {
 		return errors.New("<nil> receiver")
 	}
@@ -4223,7 +4249,8 @@ func (t *Header) UnmarshalBuffer(buf *bytes.Buffer) error {
 	t.FirstAcquirer = false
 	t.DeliveryCount = 0
 
-	constructor, err := buf.ReadByte()
+	var constructor byte
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
 	}
@@ -4244,6 +4271,7 @@ func (t *Header) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if descriptor != HeaderDescriptor {
 		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
 	}
+
 	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
@@ -4361,7 +4389,13 @@ func (t *DeliveryAnnotations) Marshal() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (t *DeliveryAnnotations) MarshalBuffer(buf *bytes.Buffer) error {
+func (t *DeliveryAnnotations) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	buf.WriteByte(DescriptorEncoding)
+	err = marshalUlong(DeliveryAnnotationsDescriptor, buf)
+	if err != nil {
+		return errors.Wrap(err, "marshal descriptor failed")
+	}
+
 	return marshalMap((*types.Struct)(t), buf)
 }
 
@@ -4369,8 +4403,31 @@ func (t *DeliveryAnnotations) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *DeliveryAnnotations) UnmarshalBuffer(buf *bytes.Buffer) error {
-	constructor, err := buf.ReadByte()
+func (t *DeliveryAnnotations) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
+	var constructor byte
+	constructor, err = buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if constructor == NullEncoding {
+		return errNull
+	} else if constructor != DescriptorEncoding {
+		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	var descriptor uint64
+	err = unmarshalUlong(&descriptor, constructor, buf)
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if descriptor != DeliveryAnnotationsDescriptor {
+		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
+	}
+
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
@@ -4403,7 +4460,13 @@ func (t *MessageAnnotations) Marshal() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (t *MessageAnnotations) MarshalBuffer(buf *bytes.Buffer) error {
+func (t *MessageAnnotations) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	buf.WriteByte(DescriptorEncoding)
+	err = marshalUlong(MessageAnnotationsDescriptor, buf)
+	if err != nil {
+		return errors.Wrap(err, "marshal descriptor failed")
+	}
+
 	return marshalMap((*types.Struct)(t), buf)
 }
 
@@ -4411,8 +4474,31 @@ func (t *MessageAnnotations) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *MessageAnnotations) UnmarshalBuffer(buf *bytes.Buffer) error {
-	constructor, err := buf.ReadByte()
+func (t *MessageAnnotations) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
+	var constructor byte
+	constructor, err = buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if constructor == NullEncoding {
+		return errNull
+	} else if constructor != DescriptorEncoding {
+		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	var descriptor uint64
+	err = unmarshalUlong(&descriptor, constructor, buf)
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if descriptor != MessageAnnotationsDescriptor {
+		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
+	}
+
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
@@ -4467,7 +4553,6 @@ func (t *Properties) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	if t == nil {
 		return errors.New("<nil> receiver")
 	}
-
 	buf.WriteByte(DescriptorEncoding)
 	err = marshalUlong(PropertiesDescriptor, buf)
 	if err != nil {
@@ -4713,7 +4798,7 @@ func (t *Properties) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *Properties) UnmarshalBuffer(buf *bytes.Buffer) error {
+func (t *Properties) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
 	if t == nil {
 		return errors.New("<nil> receiver")
 	}
@@ -4732,7 +4817,8 @@ func (t *Properties) UnmarshalBuffer(buf *bytes.Buffer) error {
 	t.GroupSequence = 0
 	t.ReplyToGroupID = ""
 
-	constructor, err := buf.ReadByte()
+	var constructor byte
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
 	}
@@ -4753,6 +4839,7 @@ func (t *Properties) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if descriptor != PropertiesDescriptor {
 		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
 	}
+
 	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
@@ -4934,7 +5021,13 @@ func (t *ApplicationProperties) Marshal() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (t *ApplicationProperties) MarshalBuffer(buf *bytes.Buffer) error {
+func (t *ApplicationProperties) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	buf.WriteByte(DescriptorEncoding)
+	err = marshalUlong(ApplicationPropertiesDescriptor, buf)
+	if err != nil {
+		return errors.Wrap(err, "marshal descriptor failed")
+	}
+
 	return marshalMap((*types.Struct)(t), buf)
 }
 
@@ -4942,8 +5035,31 @@ func (t *ApplicationProperties) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *ApplicationProperties) UnmarshalBuffer(buf *bytes.Buffer) error {
-	constructor, err := buf.ReadByte()
+func (t *ApplicationProperties) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
+	var constructor byte
+	constructor, err = buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if constructor == NullEncoding {
+		return errNull
+	} else if constructor != DescriptorEncoding {
+		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	var descriptor uint64
+	err = unmarshalUlong(&descriptor, constructor, buf)
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if descriptor != ApplicationPropertiesDescriptor {
+		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
+	}
+
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
@@ -4976,7 +5092,13 @@ func (t Data) Marshal() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (t Data) MarshalBuffer(buf *bytes.Buffer) error {
+func (t Data) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	buf.WriteByte(DescriptorEncoding)
+	err = marshalUlong(DataDescriptor, buf)
+	if err != nil {
+		return errors.Wrap(err, "marshal descriptor failed")
+	}
+
 	return marshalBinary([]byte(t), buf)
 }
 
@@ -4984,8 +5106,31 @@ func (t *Data) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *Data) UnmarshalBuffer(buf *bytes.Buffer) error {
-	constructor, err := buf.ReadByte()
+func (t *Data) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
+	var constructor byte
+	constructor, err = buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if constructor == NullEncoding {
+		return errNull
+	} else if constructor != DescriptorEncoding {
+		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	var descriptor uint64
+	err = unmarshalUlong(&descriptor, constructor, buf)
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if descriptor != DataDescriptor {
+		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
+	}
+
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
@@ -5011,7 +5156,13 @@ func (t *Footer) Marshal() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (t *Footer) MarshalBuffer(buf *bytes.Buffer) error {
+func (t *Footer) MarshalBuffer(buf *bytes.Buffer) (err error) {
+	buf.WriteByte(DescriptorEncoding)
+	err = marshalUlong(FooterDescriptor, buf)
+	if err != nil {
+		return errors.Wrap(err, "marshal descriptor failed")
+	}
+
 	return marshalMap((*types.Struct)(t), buf)
 }
 
@@ -5019,8 +5170,31 @@ func (t *Footer) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *Footer) UnmarshalBuffer(buf *bytes.Buffer) error {
-	constructor, err := buf.ReadByte()
+func (t *Footer) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
+	var constructor byte
+	constructor, err = buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if constructor == NullEncoding {
+		return errNull
+	} else if constructor != DescriptorEncoding {
+		return errors.Errorf("expected descriptor, got constructor 0x%02x", constructor)
+	}
+	constructor, err = buf.ReadByte()
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	var descriptor uint64
+	err = unmarshalUlong(&descriptor, constructor, buf)
+	if err != nil {
+		return errors.Wrap(err, "read descriptor failed")
+	}
+	if descriptor != FooterDescriptor {
+		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
+	}
+
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
@@ -5046,7 +5220,7 @@ func (t *Annotations) Marshal() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (t *Annotations) MarshalBuffer(buf *bytes.Buffer) error {
+func (t *Annotations) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	return marshalMap((*types.Struct)(t), buf)
 }
 
@@ -5054,8 +5228,9 @@ func (t *Annotations) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *Annotations) UnmarshalBuffer(buf *bytes.Buffer) error {
-	constructor, err := buf.ReadByte()
+func (t *Annotations) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
+	var constructor byte
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
@@ -5083,7 +5258,7 @@ func (t MessageIDUlong) Marshal() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (t MessageIDUlong) MarshalBuffer(buf *bytes.Buffer) error {
+func (t MessageIDUlong) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	return marshalUlong(uint64(t), buf)
 }
 
@@ -5091,8 +5266,9 @@ func (t *MessageIDUlong) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *MessageIDUlong) UnmarshalBuffer(buf *bytes.Buffer) error {
-	constructor, err := buf.ReadByte()
+func (t *MessageIDUlong) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
+	var constructor byte
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
@@ -5113,7 +5289,7 @@ func (t MessageIDUUID) Marshal() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (t MessageIDUUID) MarshalBuffer(buf *bytes.Buffer) error {
+func (t MessageIDUUID) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	return marshalUUID(UUID(t), buf)
 }
 
@@ -5121,8 +5297,9 @@ func (t *MessageIDUUID) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *MessageIDUUID) UnmarshalBuffer(buf *bytes.Buffer) error {
-	constructor, err := buf.ReadByte()
+func (t *MessageIDUUID) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
+	var constructor byte
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
@@ -5143,7 +5320,7 @@ func (t MessageIDBinary) Marshal() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (t MessageIDBinary) MarshalBuffer(buf *bytes.Buffer) error {
+func (t MessageIDBinary) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	return marshalBinary([]byte(t), buf)
 }
 
@@ -5151,8 +5328,9 @@ func (t *MessageIDBinary) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *MessageIDBinary) UnmarshalBuffer(buf *bytes.Buffer) error {
-	constructor, err := buf.ReadByte()
+func (t *MessageIDBinary) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
+	var constructor byte
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
@@ -5173,7 +5351,7 @@ func (t MessageIDString) Marshal() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (t MessageIDString) MarshalBuffer(buf *bytes.Buffer) error {
+func (t MessageIDString) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	return marshalString(string(t), buf)
 }
 
@@ -5181,8 +5359,9 @@ func (t *MessageIDString) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *MessageIDString) UnmarshalBuffer(buf *bytes.Buffer) error {
-	constructor, err := buf.ReadByte()
+func (t *MessageIDString) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
+	var constructor byte
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
@@ -5203,7 +5382,7 @@ func (t AddressString) Marshal() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (t AddressString) MarshalBuffer(buf *bytes.Buffer) error {
+func (t AddressString) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	return marshalString(string(t), buf)
 }
 
@@ -5211,8 +5390,9 @@ func (t *AddressString) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *AddressString) UnmarshalBuffer(buf *bytes.Buffer) error {
-	constructor, err := buf.ReadByte()
+func (t *AddressString) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
+	var constructor byte
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
@@ -5249,7 +5429,6 @@ func (t *Received) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	if t == nil {
 		return errors.New("<nil> receiver")
 	}
-
 	buf.WriteByte(DescriptorEncoding)
 	err = marshalUlong(ReceivedDescriptor, buf)
 	if err != nil {
@@ -5302,7 +5481,7 @@ func (t *Received) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *Received) UnmarshalBuffer(buf *bytes.Buffer) error {
+func (t *Received) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
 	if t == nil {
 		return errors.New("<nil> receiver")
 	}
@@ -5310,7 +5489,8 @@ func (t *Received) UnmarshalBuffer(buf *bytes.Buffer) error {
 	t.SectionNumber = 0
 	t.SectionOffset = 0
 
-	constructor, err := buf.ReadByte()
+	var constructor byte
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
 	}
@@ -5331,6 +5511,7 @@ func (t *Received) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if descriptor != ReceivedDescriptor {
 		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
 	}
+
 	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
@@ -5433,7 +5614,6 @@ func (t *Accepted) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	if t == nil {
 		return errors.New("<nil> receiver")
 	}
-
 	buf.WriteByte(DescriptorEncoding)
 	err = marshalUlong(AcceptedDescriptor, buf)
 	if err != nil {
@@ -5469,12 +5649,13 @@ func (t *Accepted) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *Accepted) UnmarshalBuffer(buf *bytes.Buffer) error {
+func (t *Accepted) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
 	if t == nil {
 		return errors.New("<nil> receiver")
 	}
 
-	constructor, err := buf.ReadByte()
+	var constructor byte
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
 	}
@@ -5495,6 +5676,7 @@ func (t *Accepted) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if descriptor != AcceptedDescriptor {
 		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
 	}
+
 	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
@@ -5576,7 +5758,6 @@ func (t *Rejected) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	if t == nil {
 		return errors.New("<nil> receiver")
 	}
-
 	buf.WriteByte(DescriptorEncoding)
 	err = marshalUlong(RejectedDescriptor, buf)
 	if err != nil {
@@ -5630,14 +5811,15 @@ func (t *Rejected) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *Rejected) UnmarshalBuffer(buf *bytes.Buffer) error {
+func (t *Rejected) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
 	if t == nil {
 		return errors.New("<nil> receiver")
 	}
 
 	t.Error = nil
 
-	constructor, err := buf.ReadByte()
+	var constructor byte
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
 	}
@@ -5658,6 +5840,7 @@ func (t *Rejected) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if descriptor != RejectedDescriptor {
 		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
 	}
+
 	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
@@ -5749,7 +5932,6 @@ func (t *Released) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	if t == nil {
 		return errors.New("<nil> receiver")
 	}
-
 	buf.WriteByte(DescriptorEncoding)
 	err = marshalUlong(ReleasedDescriptor, buf)
 	if err != nil {
@@ -5785,12 +5967,13 @@ func (t *Released) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *Released) UnmarshalBuffer(buf *bytes.Buffer) error {
+func (t *Released) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
 	if t == nil {
 		return errors.New("<nil> receiver")
 	}
 
-	constructor, err := buf.ReadByte()
+	var constructor byte
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
 	}
@@ -5811,6 +5994,7 @@ func (t *Released) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if descriptor != ReleasedDescriptor {
 		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
 	}
+
 	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
@@ -5894,7 +6078,6 @@ func (t *Modified) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	if t == nil {
 		return errors.New("<nil> receiver")
 	}
-
 	buf.WriteByte(DescriptorEncoding)
 	err = marshalUlong(ModifiedDescriptor, buf)
 	if err != nil {
@@ -5980,7 +6163,7 @@ func (t *Modified) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *Modified) UnmarshalBuffer(buf *bytes.Buffer) error {
+func (t *Modified) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
 	if t == nil {
 		return errors.New("<nil> receiver")
 	}
@@ -5989,7 +6172,8 @@ func (t *Modified) UnmarshalBuffer(buf *bytes.Buffer) error {
 	t.UndeliverableHere = false
 	t.MessageAnnotations = nil
 
-	constructor, err := buf.ReadByte()
+	var constructor byte
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
 	}
@@ -6010,6 +6194,7 @@ func (t *Modified) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if descriptor != ModifiedDescriptor {
 		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
 	}
+
 	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
@@ -6133,7 +6318,6 @@ func (t *Source) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	if t == nil {
 		return errors.New("<nil> receiver")
 	}
-
 	buf.WriteByte(DescriptorEncoding)
 	err = marshalUlong(SourceDescriptor, buf)
 	if err != nil {
@@ -6349,7 +6533,7 @@ func (t *Source) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *Source) UnmarshalBuffer(buf *bytes.Buffer) error {
+func (t *Source) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
 	if t == nil {
 		return errors.New("<nil> receiver")
 	}
@@ -6366,7 +6550,8 @@ func (t *Source) UnmarshalBuffer(buf *bytes.Buffer) error {
 	t.Outcomes = nil
 	t.Capabilities = nil
 
-	constructor, err := buf.ReadByte()
+	var constructor byte
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
 	}
@@ -6387,6 +6572,7 @@ func (t *Source) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if descriptor != SourceDescriptor {
 		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
 	}
+
 	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
@@ -6569,7 +6755,6 @@ func (t *Target) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	if t == nil {
 		return errors.New("<nil> receiver")
 	}
-
 	buf.WriteByte(DescriptorEncoding)
 	err = marshalUlong(TargetDescriptor, buf)
 	if err != nil {
@@ -6720,7 +6905,7 @@ func (t *Target) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *Target) UnmarshalBuffer(buf *bytes.Buffer) error {
+func (t *Target) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
 	if t == nil {
 		return errors.New("<nil> receiver")
 	}
@@ -6733,7 +6918,8 @@ func (t *Target) UnmarshalBuffer(buf *bytes.Buffer) error {
 	t.DynamicNodeProperties = nil
 	t.Capabilities = nil
 
-	constructor, err := buf.ReadByte()
+	var constructor byte
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
 	}
@@ -6754,6 +6940,7 @@ func (t *Target) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if descriptor != TargetDescriptor {
 		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
 	}
+
 	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
@@ -6893,7 +7080,7 @@ func (t TerminusDurability) Marshal() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (t TerminusDurability) MarshalBuffer(buf *bytes.Buffer) error {
+func (t TerminusDurability) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	return marshalUint(uint32(t), buf)
 }
 
@@ -6901,8 +7088,9 @@ func (t *TerminusDurability) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *TerminusDurability) UnmarshalBuffer(buf *bytes.Buffer) error {
-	constructor, err := buf.ReadByte()
+func (t *TerminusDurability) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
+	var constructor byte
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
@@ -6932,7 +7120,7 @@ func (t TerminusExpiryPolicy) Marshal() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (t TerminusExpiryPolicy) MarshalBuffer(buf *bytes.Buffer) error {
+func (t TerminusExpiryPolicy) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	return marshalSymbol(string(t), buf)
 }
 
@@ -6940,8 +7128,9 @@ func (t *TerminusExpiryPolicy) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *TerminusExpiryPolicy) UnmarshalBuffer(buf *bytes.Buffer) error {
-	constructor, err := buf.ReadByte()
+func (t *TerminusExpiryPolicy) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
+	var constructor byte
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
@@ -6971,7 +7160,7 @@ func (t StdDistMode) Marshal() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (t StdDistMode) MarshalBuffer(buf *bytes.Buffer) error {
+func (t StdDistMode) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	return marshalSymbol(string(t), buf)
 }
 
@@ -6979,8 +7168,9 @@ func (t *StdDistMode) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *StdDistMode) UnmarshalBuffer(buf *bytes.Buffer) error {
-	constructor, err := buf.ReadByte()
+func (t *StdDistMode) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
+	var constructor byte
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
@@ -6999,7 +7189,7 @@ func (t *FilterSet) Marshal() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (t *FilterSet) MarshalBuffer(buf *bytes.Buffer) error {
+func (t *FilterSet) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	return marshalMap((*types.Struct)(t), buf)
 }
 
@@ -7007,8 +7197,9 @@ func (t *FilterSet) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *FilterSet) UnmarshalBuffer(buf *bytes.Buffer) error {
-	constructor, err := buf.ReadByte()
+func (t *FilterSet) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
+	var constructor byte
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
@@ -7034,7 +7225,7 @@ func (t *NodeProperties) Marshal() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (t *NodeProperties) MarshalBuffer(buf *bytes.Buffer) error {
+func (t *NodeProperties) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	return marshalMap((*types.Struct)(t), buf)
 }
 
@@ -7042,8 +7233,9 @@ func (t *NodeProperties) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *NodeProperties) UnmarshalBuffer(buf *bytes.Buffer) error {
-	constructor, err := buf.ReadByte()
+func (t *NodeProperties) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
+	var constructor byte
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
@@ -7085,7 +7277,6 @@ func (t *DeleteOnClose) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	if t == nil {
 		return errors.New("<nil> receiver")
 	}
-
 	buf.WriteByte(DescriptorEncoding)
 	err = marshalUlong(DeleteOnCloseDescriptor, buf)
 	if err != nil {
@@ -7121,12 +7312,13 @@ func (t *DeleteOnClose) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *DeleteOnClose) UnmarshalBuffer(buf *bytes.Buffer) error {
+func (t *DeleteOnClose) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
 	if t == nil {
 		return errors.New("<nil> receiver")
 	}
 
-	constructor, err := buf.ReadByte()
+	var constructor byte
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
 	}
@@ -7147,6 +7339,7 @@ func (t *DeleteOnClose) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if descriptor != DeleteOnCloseDescriptor {
 		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
 	}
+
 	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
@@ -7225,7 +7418,6 @@ func (t *DeleteOnNoLinks) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	if t == nil {
 		return errors.New("<nil> receiver")
 	}
-
 	buf.WriteByte(DescriptorEncoding)
 	err = marshalUlong(DeleteOnNoLinksDescriptor, buf)
 	if err != nil {
@@ -7261,12 +7453,13 @@ func (t *DeleteOnNoLinks) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *DeleteOnNoLinks) UnmarshalBuffer(buf *bytes.Buffer) error {
+func (t *DeleteOnNoLinks) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
 	if t == nil {
 		return errors.New("<nil> receiver")
 	}
 
-	constructor, err := buf.ReadByte()
+	var constructor byte
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
 	}
@@ -7287,6 +7480,7 @@ func (t *DeleteOnNoLinks) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if descriptor != DeleteOnNoLinksDescriptor {
 		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
 	}
+
 	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
@@ -7365,7 +7559,6 @@ func (t *DeleteOnNoMessages) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	if t == nil {
 		return errors.New("<nil> receiver")
 	}
-
 	buf.WriteByte(DescriptorEncoding)
 	err = marshalUlong(DeleteOnNoMessagesDescriptor, buf)
 	if err != nil {
@@ -7401,12 +7594,13 @@ func (t *DeleteOnNoMessages) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *DeleteOnNoMessages) UnmarshalBuffer(buf *bytes.Buffer) error {
+func (t *DeleteOnNoMessages) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
 	if t == nil {
 		return errors.New("<nil> receiver")
 	}
 
-	constructor, err := buf.ReadByte()
+	var constructor byte
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
 	}
@@ -7427,6 +7621,7 @@ func (t *DeleteOnNoMessages) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if descriptor != DeleteOnNoMessagesDescriptor {
 		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
 	}
+
 	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
@@ -7505,7 +7700,6 @@ func (t *DeleteOnNoLinksOrMessages) MarshalBuffer(buf *bytes.Buffer) (err error)
 	if t == nil {
 		return errors.New("<nil> receiver")
 	}
-
 	buf.WriteByte(DescriptorEncoding)
 	err = marshalUlong(DeleteOnNoLinksOrMessagesDescriptor, buf)
 	if err != nil {
@@ -7541,12 +7735,13 @@ func (t *DeleteOnNoLinksOrMessages) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *DeleteOnNoLinksOrMessages) UnmarshalBuffer(buf *bytes.Buffer) error {
+func (t *DeleteOnNoLinksOrMessages) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
 	if t == nil {
 		return errors.New("<nil> receiver")
 	}
 
-	constructor, err := buf.ReadByte()
+	var constructor byte
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
 	}
@@ -7567,6 +7762,7 @@ func (t *DeleteOnNoLinksOrMessages) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if descriptor != DeleteOnNoLinksOrMessagesDescriptor {
 		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
 	}
+
 	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
@@ -7663,7 +7859,6 @@ func (t *SASLMechanisms) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	if t == nil {
 		return errors.New("<nil> receiver")
 	}
-
 	buf.WriteByte(DescriptorEncoding)
 	err = marshalUlong(SASLMechanismsDescriptor, buf)
 	if err != nil {
@@ -7708,14 +7903,15 @@ func (t *SASLMechanisms) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *SASLMechanisms) UnmarshalBuffer(buf *bytes.Buffer) error {
+func (t *SASLMechanisms) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
 	if t == nil {
 		return errors.New("<nil> receiver")
 	}
 
 	t.SASLServerMechanisms = nil
 
-	constructor, err := buf.ReadByte()
+	var constructor byte
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
 	}
@@ -7736,6 +7932,7 @@ func (t *SASLMechanisms) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if descriptor != SASLMechanismsDescriptor {
 		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
 	}
+
 	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
@@ -7834,7 +8031,6 @@ func (t *SASLInit) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	if t == nil {
 		return errors.New("<nil> receiver")
 	}
-
 	buf.WriteByte(DescriptorEncoding)
 	err = marshalUlong(SASLInitDescriptor, buf)
 	if err != nil {
@@ -7912,7 +8108,7 @@ func (t *SASLInit) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *SASLInit) UnmarshalBuffer(buf *bytes.Buffer) error {
+func (t *SASLInit) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
 	if t == nil {
 		return errors.New("<nil> receiver")
 	}
@@ -7921,7 +8117,8 @@ func (t *SASLInit) UnmarshalBuffer(buf *bytes.Buffer) error {
 	t.InitialResponse = nil
 	t.Hostname = ""
 
-	constructor, err := buf.ReadByte()
+	var constructor byte
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
 	}
@@ -7942,6 +8139,7 @@ func (t *SASLInit) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if descriptor != SASLInitDescriptor {
 		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
 	}
+
 	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
@@ -8058,7 +8256,6 @@ func (t *SASLChallenge) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	if t == nil {
 		return errors.New("<nil> receiver")
 	}
-
 	buf.WriteByte(DescriptorEncoding)
 	err = marshalUlong(SASLChallengeDescriptor, buf)
 	if err != nil {
@@ -8103,14 +8300,15 @@ func (t *SASLChallenge) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *SASLChallenge) UnmarshalBuffer(buf *bytes.Buffer) error {
+func (t *SASLChallenge) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
 	if t == nil {
 		return errors.New("<nil> receiver")
 	}
 
 	t.Challenge = nil
 
-	constructor, err := buf.ReadByte()
+	var constructor byte
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
 	}
@@ -8131,6 +8329,7 @@ func (t *SASLChallenge) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if descriptor != SASLChallengeDescriptor {
 		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
 	}
+
 	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
@@ -8227,7 +8426,6 @@ func (t *SASLResponse) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	if t == nil {
 		return errors.New("<nil> receiver")
 	}
-
 	buf.WriteByte(DescriptorEncoding)
 	err = marshalUlong(SASLResponseDescriptor, buf)
 	if err != nil {
@@ -8272,14 +8470,15 @@ func (t *SASLResponse) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *SASLResponse) UnmarshalBuffer(buf *bytes.Buffer) error {
+func (t *SASLResponse) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
 	if t == nil {
 		return errors.New("<nil> receiver")
 	}
 
 	t.Response = nil
 
-	constructor, err := buf.ReadByte()
+	var constructor byte
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
 	}
@@ -8300,6 +8499,7 @@ func (t *SASLResponse) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if descriptor != SASLResponseDescriptor {
 		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
 	}
+
 	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
@@ -8397,7 +8597,6 @@ func (t *SASLOutcome) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	if t == nil {
 		return errors.New("<nil> receiver")
 	}
-
 	buf.WriteByte(DescriptorEncoding)
 	err = marshalUlong(SASLOutcomeDescriptor, buf)
 	if err != nil {
@@ -8459,7 +8658,7 @@ func (t *SASLOutcome) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *SASLOutcome) UnmarshalBuffer(buf *bytes.Buffer) error {
+func (t *SASLOutcome) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
 	if t == nil {
 		return errors.New("<nil> receiver")
 	}
@@ -8467,7 +8666,8 @@ func (t *SASLOutcome) UnmarshalBuffer(buf *bytes.Buffer) error {
 	t.Code = 0
 	t.AdditionalData = nil
 
-	constructor, err := buf.ReadByte()
+	var constructor byte
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read descriptor failed")
 	}
@@ -8488,6 +8688,7 @@ func (t *SASLOutcome) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if descriptor != SASLOutcomeDescriptor {
 		return errors.Errorf("unexpected descriptor 0x%08x:0x%08x", descriptor>>32, descriptor)
 	}
+
 	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
@@ -8593,7 +8794,7 @@ func (t SASLCode) Marshal() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (t SASLCode) MarshalBuffer(buf *bytes.Buffer) error {
+func (t SASLCode) MarshalBuffer(buf *bytes.Buffer) (err error) {
 	return marshalUbyte(uint8(t), buf)
 }
 
@@ -8601,8 +8802,9 @@ func (t *SASLCode) Unmarshal(data []byte) error {
 	return t.UnmarshalBuffer(bytes.NewBuffer(data))
 }
 
-func (t *SASLCode) UnmarshalBuffer(buf *bytes.Buffer) error {
-	constructor, err := buf.ReadByte()
+func (t *SASLCode) UnmarshalBuffer(buf *bytes.Buffer) (err error) {
+	var constructor byte
+	constructor, err = buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}

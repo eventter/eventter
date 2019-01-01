@@ -78,6 +78,10 @@ func (s *sessionAMQPv1) Process(ctx context.Context, frame v1.Frame) (err error)
 	case *v1.Disposition:
 		return s.Disposition(ctx, frame)
 	case *v1.Transfer:
+		s.nextIncomingID += 1
+		s.incomingWindow -= 1
+		s.remoteOutgoingWindow -= 1
+
 		link, ok := s.links[frame.Handle]
 		if !ok {
 			handle = frame.Handle

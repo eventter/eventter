@@ -12,21 +12,19 @@ const (
 )
 
 type linkAMQPv1 struct {
-	state              int
-	session            *sessionAMQPv1
-	handle             v1.Handle
-	role               v1.Role
-	senderSettleMode   v1.SenderSettleMode
-	receiverSettleMode v1.ReceiverSettleMode
-	deliveryCount      v1.SequenceNo
-	initialLinkCredit  uint32
-	linkCredit         uint32
-	available          uint32
-	drain              bool
-	namespace          string
-	topic              string
-	currentTransfer    *v1.Transfer
-	buf                bytes.Buffer
+	state             int
+	session           *sessionAMQPv1
+	handle            v1.Handle
+	role              v1.Role
+	deliveryCount     v1.SequenceNo
+	initialLinkCredit uint32
+	linkCredit        uint32
+	available         uint32
+	drain             bool
+	namespace         string
+	topic             string
+	currentTransfer   *v1.Transfer
+	buf               bytes.Buffer
 }
 
 func (l *linkAMQPv1) Close() error {
