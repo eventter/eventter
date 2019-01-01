@@ -25,6 +25,7 @@ type sessionAMQPv1 struct {
 	remoteIncomingWindow  uint32
 	remoteOutgoingWindow  uint32
 	initialIncomingWindow uint32
+	initialOutgoingID     v1.TransferNumber
 	namespace             string
 	links                 map[v1.Handle]*linkAMQPv1
 }
@@ -63,15 +64,34 @@ func (s *sessionAMQPv1) Process(ctx context.Context, frame v1.Frame) (err error)
 		if err != nil {
 			return errors.Wrap(err, "session flow failed")
 		}
+		var link *linkAMQPv1
 		if frame.Handle != v1.HandleNull {
-			link, ok := s.links[frame.Handle]
+			var ok bool
+			link, ok = s.links[frame.Handle]
 			if !ok {
 				handle = frame.Handle
-				goto EndHandleNotFound
+				goto HandleNotFound
 			}
 			err = link.Flow(ctx, frame)
 			if err != nil {
-				goto EndErrantLink
+				return errors.Wrap(err, "link flow failed")
+			}
+		}
+		if frame.Echo {
+			echoFrame := &v1.Flow{
+				NextIncomingID: s.nextIncomingID,
+				IncomingWindow: s.incomingWindow,
+				NextOutgoingID: s.nextOutgoingID,
+				OutgoingWindow: s.outgoingWindow,
+			}
+			if link != nil {
+				echoFrame.Handle = link.handle
+				echoFrame.DeliveryCount = link.deliveryCount
+				echoFrame.LinkCredit = link.linkCredit
+			}
+			err = s.Send(echoFrame)
+			if err != nil {
+				return errors.Wrap(err, "send flow echo failed")
 			}
 		}
 		return nil
@@ -85,11 +105,11 @@ func (s *sessionAMQPv1) Process(ctx context.Context, frame v1.Frame) (err error)
 		link, ok := s.links[frame.Handle]
 		if !ok {
 			handle = frame.Handle
-			goto EndHandleNotFound
+			goto HandleNotFound
 		}
 		err = link.Transfer(ctx, frame)
 		if err != nil {
-			goto EndErrantLink
+			return errors.Wrap(err, "transfer failed")
 		}
 
 		if s.incomingWindow <= s.initialIncomingWindow/2 {
@@ -111,21 +131,12 @@ func (s *sessionAMQPv1) Process(ctx context.Context, frame v1.Frame) (err error)
 		return errors.Errorf("unexpected frame %T", frame)
 	}
 
-EndHandleNotFound:
+HandleNotFound:
 	s.state = sessionStateEnding
 	return s.Send(&v1.End{
 		Error: &v1.Error{
 			Condition:   v1.UnattachedHandleSessionError,
 			Description: errors.Errorf("link handle %v not found", handle).Error(),
-		},
-	})
-
-EndErrantLink:
-	s.state = sessionStateEnding
-	return s.Send(&v1.End{
-		Error: &v1.Error{
-			Condition:   v1.ErrantLinkSessionError,
-			Description: err.Error(),
 		},
 	})
 }

@@ -36,6 +36,7 @@ func (c *connectionAMQPv1) Begin(ctx context.Context, frame *v1.Begin) (err erro
 		links:                make(map[v1.Handle]*linkAMQPv1),
 	}
 	session.initialIncomingWindow = session.incomingWindow
+	session.initialOutgoingID = session.nextOutgoingID
 
 	c.sessions[session.remoteChannel] = session
 	err = c.Send(&v1.Begin{
