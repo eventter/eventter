@@ -31,7 +31,7 @@ type sessionAMQPv1 struct {
 func (s *sessionAMQPv1) Send(frame v1.Frame) error {
 	meta := frame.GetFrameMeta()
 	meta.Channel = s.channel
-	return s.connection.transport.Send(frame)
+	return s.connection.Send(frame)
 }
 
 func (s *sessionAMQPv1) Close() error {

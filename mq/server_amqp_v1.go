@@ -73,17 +73,8 @@ func (s *Server) ServeAMQPv1(ctx context.Context, transport *v1.Transport) (err 
 		return errors.Wrap(err, "set send timeout failed")
 	}
 
-	c := &connectionAMQPv1{
-		server:        s,
-		transport:     transport,
-		heartbeat:     heartbeat,
-		frames:        make(chan v1.Frame, 64),
-		receiveErrors: make(chan error, 1),
-		sessions:      make(map[uint16]*sessionAMQPv1),
-	}
-	defer c.Close()
+	connection := newConnectionAMQPv1(ctx, s, transport, heartbeat)
+	defer connection.Close()
 
-	go c.Read(ctx)
-
-	return c.Run(ctx)
+	return connection.Run(ctx)
 }
