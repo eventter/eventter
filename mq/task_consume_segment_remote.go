@@ -66,11 +66,12 @@ func (s *Server) taskConsumeSegmentRemote(ctx context.Context, state *ClusterSta
 
 		if messageMatches(publishing.Message, messageTime, topicName, consumerGroup) {
 			err = group.Offer(&consumers.Message{
-				Topic:        segment.Owner,
-				SegmentID:    segment.ID,
-				CommitOffset: response.CommitOffset,
-				Time:         messageTime,
-				Message:      publishing.Message,
+				TopicNamespace: segment.OwnerNamespace,
+				TopicName:      segment.OwnerName,
+				SegmentID:      segment.ID,
+				CommitOffset:   response.CommitOffset,
+				Time:           messageTime,
+				Message:        publishing.Message,
 			})
 			if err != nil {
 				return errors.Wrap(err, "offer failed")

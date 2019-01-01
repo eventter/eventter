@@ -2,7 +2,6 @@ syntax = "proto3";
 
 package io.eventter.mq;
 
-import "emq/emq.proto";
 import "cluster_state.proto";
 import "gogoproto/gogo.proto";
 
@@ -20,7 +19,8 @@ message DebugResponse {
 
 message ConsumerGroupWaitRequest {
     bool do_not_forward = 99;
-    NamespaceName consumer_group = 1 [(gogoproto.nullable) = false];
+    string namespace = 1;
+    string name = 2;
 }
 
 message ConsumerGroupWaitResponse {
@@ -30,8 +30,9 @@ message SegmentOpenRequest {
     // If true and node is not a leader, request will fail.
     bool leader_only = 99;
     uint64 node_id = 1 [(gogoproto.customname) = "NodeID"];
-    NamespaceName owner = 2 [(gogoproto.nullable) = false];
-    ClusterSegment.Type type = 3;
+    ClusterSegment.Type type = 2;
+    string owner_namespace = 3;
+    string owner_name = 4;
 }
 
 message SegmentOpenResponse {

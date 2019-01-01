@@ -16,12 +16,13 @@ func (s *ClusterState) doOpenSegment(cmd *ClusterCommandSegmentCreate) *ClusterS
 	next.OpenSegments = make([]*ClusterSegment, len(s.OpenSegments)+1)
 	copy(next.OpenSegments, s.OpenSegments)
 	next.OpenSegments[len(s.OpenSegments)] = &ClusterSegment{
-		ID:         cmd.ID,
-		Owner:      cmd.Owner,
-		Type:       cmd.Type,
-		Generation: cmd.Generation,
-		Shard:      cmd.Shard,
-		CreatedAt:  cmd.OpenedAt,
+		ID:             cmd.ID,
+		OwnerNamespace: cmd.OwnerNamespace,
+		OwnerName:      cmd.OwnerName,
+		Type:           cmd.Type,
+		Generation:     cmd.Generation,
+		Shard:          cmd.Shard,
+		CreatedAt:      cmd.OpenedAt,
 		Nodes: ClusterSegment_Nodes{
 			PrimaryNodeID:      cmd.PrimaryNodeID,
 			ReplicatingNodeIDs: cmd.ReplicatingNodeIDs,

@@ -173,13 +173,13 @@ func (s *Server) taskConsumerGroup(ctx context.Context, namespaceName string, co
 					}
 				}
 
-				topic := state.GetTopic(segment.Owner.Namespace, segment.Owner.Name)
+				topic := state.GetTopic(segment.OwnerNamespace, segment.OwnerName)
 				if topic == nil {
 					return errors.Errorf(
 						"segment %d references unknown topic %s/%s",
 						segment.ID,
-						segment.Owner.Namespace,
-						segment.Owner.Name,
+						segment.OwnerNamespace,
+						segment.OwnerName,
 					)
 				}
 

@@ -5,7 +5,6 @@ import (
 	"math"
 	"time"
 
-	"eventter.io/mq/emq"
 	"github.com/gogo/protobuf/proto"
 )
 
@@ -62,11 +61,9 @@ func (r *Reconciler) reconcileConsumerGroupOffsetCommitsSegment(state *ClusterSt
 	}
 
 	_, err := r.delegate.Apply(&ClusterCommandSegmentCreate{
-		ID: r.delegate.NextSegmentID(),
-		Owner: emq.NamespaceName{
-			Namespace: namespace.Name,
-			Name:      consumerGroup.Name,
-		},
+		ID:                 r.delegate.NextSegmentID(),
+		OwnerNamespace:     namespace.Name,
+		OwnerName:          consumerGroup.Name,
 		Type:               ClusterSegment_CONSUMER_GROUP_OFFSET_COMMITS,
 		OpenedAt:           time.Now(),
 		PrimaryNodeID:      primaryNodeID,
@@ -104,10 +101,10 @@ func (r *Reconciler) reconcileConsumerGroupOffsetCommits(state *ClusterState, na
 			if segment.Type != ClusterSegment_TOPIC {
 				continue
 			}
-			if segment.Owner.Namespace != namespace.Name {
+			if segment.OwnerNamespace != namespace.Name {
 				continue
 			}
-			if !boundTopicNames[segment.Owner.Name] {
+			if !boundTopicNames[segment.OwnerName] {
 				continue
 			}
 			if _, ok := m[segment.ID]; !ok {

@@ -36,10 +36,8 @@ func TestServer_ConsumerGroupWait(t *testing.T) {
 		defer cancel()
 
 		response, err := ts.Server.ConsumerGroupWait(ctx, &ConsumerGroupWaitRequest{
-			ConsumerGroup: emq.NamespaceName{
-				Namespace: "default",
-				Name:      "test-subscribe-consumer-group",
-			},
+			Namespace: "default",
+			Name:      "test-subscribe-consumer-group",
 		})
 		assert.NoError(err)
 		assert.NotNil(response)

@@ -151,10 +151,8 @@ func (ts *testServer) WaitForConsumerGroup(t *testing.T, ctx context.Context, na
 	defer cancel()
 
 	response, err := ts.Server.ConsumerGroupWait(ctx, &ConsumerGroupWaitRequest{
-		ConsumerGroup: emq.NamespaceName{
-			Namespace: namespace,
-			Name:      name,
-		},
+		Namespace: namespace,
+		Name:      name,
 	})
 	assert.NoError(err)
 	assert.NotNil(response)

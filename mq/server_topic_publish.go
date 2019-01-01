@@ -53,12 +53,10 @@ func (s *Server) Publish(ctx context.Context, request *emq.TopicPublishRequest) 
 
 		} else {
 			response, err := s.SegmentOpen(ctx, &SegmentOpenRequest{
-				NodeID: s.nodeID,
-				Owner: emq.NamespaceName{
-					Namespace: request.Namespace,
-					Name:      request.Name,
-				},
-				Type: ClusterSegment_TOPIC,
+				NodeID:         s.nodeID,
+				Type:           ClusterSegment_TOPIC,
+				OwnerNamespace: request.Namespace,
+				OwnerName:      request.Name,
 			})
 			if err != nil {
 				return nil, errors.Wrap(err, "segment open failed")

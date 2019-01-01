@@ -61,11 +61,12 @@ func (s *Server) taskConsumeSegmentLocal(ctx context.Context, state *ClusterStat
 
 		if messageMatches(publishing.Message, messageTime, topicName, consumerGroup) {
 			err = group.Offer(&consumers.Message{
-				Topic:        segment.Owner,
-				SegmentID:    segment.ID,
-				CommitOffset: commitOffset,
-				Time:         messageTime,
-				Message:      publishing.Message,
+				TopicNamespace: segment.OwnerNamespace,
+				TopicName:      segment.OwnerName,
+				SegmentID:      segment.ID,
+				CommitOffset:   commitOffset,
+				Time:           messageTime,
+				Message:        publishing.Message,
 			})
 			if err != nil {
 				return errors.Wrap(err, "offer failed")

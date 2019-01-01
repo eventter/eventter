@@ -2,7 +2,6 @@ syntax = "proto3";
 
 package io.eventter.mq;
 
-import "emq/emq.proto";
 import "gogoproto/gogo.proto";
 import "google/protobuf/duration.proto";
 import "google/protobuf/struct.proto";
@@ -57,25 +56,26 @@ message ClusterConsumerGroup {
 
 message ClusterSegment {
     uint64 id = 1 [(gogoproto.customname) = "ID"];
-    NamespaceName owner = 2 [(gogoproto.nullable) = false];
-    Type type = 3;
+    Type type = 2;
     enum Type {
         INVALID = 0;
         TOPIC = 1;
         CONSUMER_GROUP_OFFSET_COMMITS = 2;
     }
-    uint32 generation = 4;
-    uint32 shard = 5;
-    google.protobuf.Timestamp created_at = 6 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
-    google.protobuf.Timestamp closed_at = 7 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
-    Nodes nodes = 8 [(gogoproto.nullable) = false];
+    string owner_namespace = 3;
+    string owner_name = 4;
+    uint32 generation = 5;
+    uint32 shard = 6;
+    google.protobuf.Timestamp created_at = 7 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
+    google.protobuf.Timestamp closed_at = 8 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
+    Nodes nodes = 9 [(gogoproto.nullable) = false];
     message Nodes {
         uint64 primary_node_id = 1 [(gogoproto.customname) = "PrimaryNodeID"];
         repeated uint64 done_node_ids = 2 [(gogoproto.customname) = "DoneNodeIDs"];
         repeated uint64 replicating_node_ids = 3 [(gogoproto.customname) = "ReplicatingNodeIDs"];
     }
-    int64 size = 9;
-    bytes sha1 = 10;
+    int64 size = 10;
+    bytes sha1 = 11;
 }
 
 message ClusterNode {
@@ -119,13 +119,14 @@ message ClusterCommandConsumerGroupDelete {
 
 message ClusterCommandSegmentCreate {
     uint64 id = 1 [(gogoproto.customname) = "ID"];
-    NamespaceName owner = 2 [(gogoproto.nullable) = false];
-    ClusterSegment.Type type = 3;
-    uint32 generation = 4;
-    uint32 shard = 5;
-    google.protobuf.Timestamp opened_at = 6 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
-    uint64 primary_node_id = 7 [(gogoproto.customname) = "PrimaryNodeID"];
-    repeated uint64 replicating_node_ids = 8 [(gogoproto.customname) = "ReplicatingNodeIDs"];
+    ClusterSegment.Type type = 2;
+    string owner_namespace = 3;
+    string owner_name = 4;
+    uint32 generation = 5;
+    uint32 shard = 6;
+    google.protobuf.Timestamp opened_at = 7 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
+    uint64 primary_node_id = 8 [(gogoproto.customname) = "PrimaryNodeID"];
+    repeated uint64 replicating_node_ids = 9 [(gogoproto.customname) = "ReplicatingNodeIDs"];
 }
 
 message ClusterCommandSegmentClose {

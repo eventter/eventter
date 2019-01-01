@@ -134,8 +134,8 @@ func (s *Server) Subscribe(request *emq.ConsumerGroupSubscribeRequest, stream em
 		}
 
 		response := &emq.ConsumerGroupSubscribeResponse{
-			TopicNamespace: message.Topic.Namespace,
-			TopicName:      message.Topic.Name,
+			TopicNamespace: message.TopicNamespace,
+			TopicName:      message.TopicName,
 			Message:        message.Message,
 		}
 		if !request.AutoAck {

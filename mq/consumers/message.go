@@ -7,7 +7,8 @@ import (
 )
 
 type Message struct {
-	Topic          emq.NamespaceName
+	TopicNamespace string
+	TopicName      string
 	SegmentID      uint64
 	CommitOffset   int64
 	Time           time.Time

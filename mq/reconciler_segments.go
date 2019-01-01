@@ -31,7 +31,7 @@ func (r *Reconciler) reconcileOpenSegment(segment *ClusterSegment, state *Cluste
 	var replicationFactor uint32 = defaultReplicationFactor
 
 	if segment.Type == ClusterSegment_TOPIC {
-		topic := state.GetTopic(segment.Owner.Namespace, segment.Owner.Name)
+		topic := state.GetTopic(segment.OwnerNamespace, segment.OwnerName)
 
 		if topic == nil {
 			_, err := r.delegate.Apply(&ClusterCommandSegmentDelete{
@@ -44,8 +44,8 @@ func (r *Reconciler) reconcileOpenSegment(segment *ClusterSegment, state *Cluste
 			}
 			log.Printf(
 				"topic %s/%s does not exist, open segment %d deleted",
-				segment.Owner.Namespace,
-				segment.Owner.Name,
+				segment.OwnerNamespace,
+				segment.OwnerName,
 				segment.ID,
 			)
 			return
@@ -54,7 +54,7 @@ func (r *Reconciler) reconcileOpenSegment(segment *ClusterSegment, state *Cluste
 		replicationFactor = topic.ReplicationFactor
 
 	} else if segment.Type == ClusterSegment_CONSUMER_GROUP_OFFSET_COMMITS {
-		consumerGroup := state.GetConsumerGroup(segment.Owner.Namespace, segment.Owner.Name)
+		consumerGroup := state.GetConsumerGroup(segment.OwnerNamespace, segment.OwnerName)
 
 		if consumerGroup == nil {
 			_, err := r.delegate.Apply(&ClusterCommandSegmentDelete{
@@ -67,8 +67,8 @@ func (r *Reconciler) reconcileOpenSegment(segment *ClusterSegment, state *Cluste
 			}
 			log.Printf(
 				"consumer group %s/%s does not exist, open segment %d deleted",
-				segment.Owner.Namespace,
-				segment.Owner.Namespace,
+				segment.OwnerNamespace,
+				segment.OwnerNamespace,
 				segment.ID,
 			)
 			return
@@ -123,8 +123,8 @@ func (r *Reconciler) reconcileOpenSegmentWithAlivePrimary(segment *ClusterSegmen
 			"open segment %d (%s %s/%s) was over-replicated, removed replica(s)",
 			segment.ID,
 			segment.Type.String(),
-			segment.Owner.Namespace,
-			segment.Owner.Name,
+			segment.OwnerNamespace,
+			segment.OwnerName,
 		)
 
 	} else if aliveReplicas < replicationFactor {
@@ -183,8 +183,8 @@ func (r *Reconciler) reconcileOpenSegmentWithAlivePrimary(segment *ClusterSegmen
 				"open segment %d (%s %s/%s) was under-replicated, added replica(s)",
 				segment.ID,
 				segment.Type.String(),
-				segment.Owner.Namespace,
-				segment.Owner.Name,
+				segment.OwnerNamespace,
+				segment.OwnerName,
 			)
 		}
 	}
@@ -196,8 +196,8 @@ func (r *Reconciler) reconcileOpenSegmentWithDeadPrimary(segment *ClusterSegment
 			"open segment %d (%s %s/%s) has dead primary and no replica to promote to primary",
 			segment.ID,
 			segment.Type.String(),
-			segment.Owner.Namespace,
-			segment.Owner.Name,
+			segment.OwnerNamespace,
+			segment.OwnerName,
 		)
 		return
 	}
@@ -235,8 +235,8 @@ func (r *Reconciler) reconcileOpenSegmentWithDeadPrimary(segment *ClusterSegment
 			"open segment %d (%s %s/%s) has dead primary and no suitable replica",
 			segment.ID,
 			segment.Type.String(),
-			segment.Owner.Namespace,
-			segment.Owner.Name,
+			segment.OwnerNamespace,
+			segment.OwnerName,
 		)
 		return
 	}
@@ -266,8 +266,8 @@ func (r *Reconciler) reconcileOpenSegmentWithDeadPrimary(segment *ClusterSegment
 		"open segment %d (%s %s/%s) changed primary from %d to %d",
 		segment.ID,
 		segment.Type.String(),
-		segment.Owner.Namespace,
-		segment.Owner.Name,
+		segment.OwnerNamespace,
+		segment.OwnerName,
 		segment.Nodes.PrimaryNodeID,
 		newPrimaryNodeID,
 	)
@@ -283,7 +283,7 @@ func (r *Reconciler) reconcileClosedSegment(segment *ClusterSegment, state *Clus
 	var replicationFactor uint32 = defaultReplicationFactor
 
 	if segment.Type == ClusterSegment_TOPIC {
-		topic := state.GetTopic(segment.Owner.Namespace, segment.Owner.Name)
+		topic := state.GetTopic(segment.OwnerNamespace, segment.OwnerName)
 
 		if topic == nil {
 			_, err := r.delegate.Apply(&ClusterCommandSegmentDelete{
@@ -297,8 +297,8 @@ func (r *Reconciler) reconcileClosedSegment(segment *ClusterSegment, state *Clus
 
 			log.Printf(
 				"topic %s/%s does not exist, closed segment %d deleted",
-				segment.Owner.Namespace,
-				segment.Owner.Name,
+				segment.OwnerNamespace,
+				segment.OwnerName,
 				segment.ID,
 			)
 			return
@@ -332,8 +332,8 @@ func (r *Reconciler) reconcileClosedSegment(segment *ClusterSegment, state *Clus
 						"closed segment %d (%s %s/%s) fell off retention period and wasn't needed by any consumer group, deleted",
 						segment.ID,
 						segment.Type.String(),
-						segment.Owner.Namespace,
-						segment.Owner.Name,
+						segment.OwnerNamespace,
+						segment.OwnerName,
 					)
 					return
 				}
@@ -356,8 +356,8 @@ func (r *Reconciler) reconcileClosedSegment(segment *ClusterSegment, state *Clus
 		log.Printf(
 			"closed segment %d for consumer group %s/%s offset commits deleted",
 			segment.ID,
-			segment.Owner.Namespace,
-			segment.Owner.Namespace,
+			segment.OwnerNamespace,
+			segment.OwnerNamespace,
 		)
 		return
 	}
@@ -386,8 +386,8 @@ func (r *Reconciler) reconcileClosedSegment(segment *ClusterSegment, state *Clus
 				"closed segment %d (%s %s/%s) over-replicated, but none alive done replica found, won't do anything for now",
 				segment.ID,
 				segment.Type.String(),
-				segment.Owner.Namespace,
-				segment.Owner.Name,
+				segment.OwnerNamespace,
+				segment.OwnerName,
 			)
 			return
 		}
@@ -428,8 +428,8 @@ func (r *Reconciler) reconcileClosedSegment(segment *ClusterSegment, state *Clus
 			"closed segment %d (%s %s/%s) was over-replicated, removed replica(s)",
 			segment.ID,
 			segment.Type.String(),
-			segment.Owner.Namespace,
-			segment.Owner.Name,
+			segment.OwnerNamespace,
+			segment.OwnerName,
 		)
 
 	} else if aliveReplicas < replicationFactor {
@@ -438,8 +438,8 @@ func (r *Reconciler) reconcileClosedSegment(segment *ClusterSegment, state *Clus
 				"closed segment %d (%s %s/%s) under-replicated, but none alive done replica found, won't do anything for now",
 				segment.ID,
 				segment.Type.String(),
-				segment.Owner.Namespace,
-				segment.Owner.Name,
+				segment.OwnerNamespace,
+				segment.OwnerName,
 			)
 			return
 		}
@@ -506,8 +506,8 @@ func (r *Reconciler) reconcileClosedSegment(segment *ClusterSegment, state *Clus
 				"closed segment %d (%s %s/%s) was under-replicated, added replica(s)",
 				segment.ID,
 				segment.Type.String(),
-				segment.Owner.Namespace,
-				segment.Owner.Name,
+				segment.OwnerNamespace,
+				segment.OwnerName,
 			)
 		}
 	}

@@ -54,5 +54,5 @@ func (s *Server) SegmentRotate(ctx context.Context, request *SegmentCloseRequest
 		return nil, errors.New("segment deleted in between")
 	}
 
-	return s.txSegmentOpen(state, request.NodeID, oldSegment.Owner, oldSegment.Type)
+	return s.txSegmentOpen(state, request.NodeID, oldSegment.Type, oldSegment.OwnerNamespace, oldSegment.OwnerName)
 }

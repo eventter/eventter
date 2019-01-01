@@ -32,11 +32,6 @@ message NamespaceDeleteResponse {
     uint64 index = 2;
 }
 
-message NamespaceName {
-    string namespace = 1;
-    string name = 2;
-}
-
 message TopicCreateRequest {
     // If true and node is not a leader, request will fail.
     bool leader_only = 99;

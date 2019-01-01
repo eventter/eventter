@@ -6,7 +6,6 @@ import (
 	"math/rand"
 	"time"
 
-	"eventter.io/mq/emq"
 	"github.com/hashicorp/raft"
 	"github.com/pkg/errors"
 )
@@ -36,10 +35,10 @@ func (s *Server) SegmentOpen(ctx context.Context, request *SegmentOpenRequest) (
 	}
 	defer s.releaseTransaction()
 
-	return s.txSegmentOpen(s.clusterState.Current(), request.NodeID, request.Owner, request.Type)
+	return s.txSegmentOpen(s.clusterState.Current(), request.NodeID, request.Type, request.OwnerNamespace, request.OwnerName)
 }
 
-func (s *Server) txSegmentOpen(state *ClusterState, primaryNodeID uint64, owner emq.NamespaceName, segmentType ClusterSegment_Type) (*SegmentOpenResponse, error) {
+func (s *Server) txSegmentOpen(state *ClusterState, primaryNodeID uint64, segmentType ClusterSegment_Type, ownerNamespace string, ownerName string) (*SegmentOpenResponse, error) {
 	node := state.GetNode(primaryNodeID)
 	if node == nil {
 		return nil, errors.Errorf("node %d not found", primaryNodeID)
@@ -50,22 +49,22 @@ func (s *Server) txSegmentOpen(state *ClusterState, primaryNodeID uint64, owner 
 		replicationFactor uint32 = defaultReplicationFactor
 	)
 	if segmentType == ClusterSegment_TOPIC {
-		topic := state.GetTopic(owner.Namespace, owner.Name)
+		topic := state.GetTopic(ownerNamespace, ownerName)
 		if topic == nil {
-			return nil, errors.Errorf(notFoundErrorFormat, entityTopic, owner.Namespace, owner.Name)
+			return nil, errors.Errorf(notFoundErrorFormat, entityTopic, ownerNamespace, ownerName)
 		}
 
 		shards = topic.Shards
 		replicationFactor = topic.ReplicationFactor
 
 	} else if segmentType == ClusterSegment_CONSUMER_GROUP_OFFSET_COMMITS {
-		consumerGroup := state.GetConsumerGroup(owner.Namespace, owner.Name)
+		consumerGroup := state.GetConsumerGroup(ownerNamespace, ownerName)
 		if consumerGroup == nil {
-			return nil, errors.Errorf(notFoundErrorFormat, entityConsumerGroup, owner.Namespace, owner.Name)
+			return nil, errors.Errorf(notFoundErrorFormat, entityConsumerGroup, ownerNamespace, ownerName)
 		}
 	}
 
-	openSegments := state.FindOpenSegmentsFor(segmentType, owner.Namespace, owner.Name)
+	openSegments := state.FindOpenSegmentsFor(segmentType, ownerNamespace, ownerName)
 
 	// return node's existing segment if it exists
 	for _, segment := range openSegments {
@@ -94,7 +93,7 @@ func (s *Server) txSegmentOpen(state *ClusterState, primaryNodeID uint64, owner 
 
 	for _, segments := range [][]*ClusterSegment{state.ClosedSegments, state.OpenSegments} {
 		for _, segment := range segments {
-			if segment.Type == segmentType && segment.Owner.Namespace == owner.Namespace && segment.Owner.Name == owner.Name {
+			if segment.Type == segmentType && segment.OwnerNamespace == ownerNamespace && segment.OwnerName == ownerName {
 				if segment.Generation > generation {
 					generation = segment.Generation
 					generationSegments = generationSegments[:0]
@@ -175,7 +174,8 @@ func (s *Server) txSegmentOpen(state *ClusterState, primaryNodeID uint64, owner 
 	segmentID := s.clusterState.NextSegmentID()
 	cmd := &ClusterCommandSegmentCreate{
 		ID:                 segmentID,
-		Owner:              owner,
+		OwnerNamespace:     ownerNamespace,
+		OwnerName:          ownerName,
 		Type:               segmentType,
 		Generation:         generation,
 		Shard:              shard,
@@ -190,12 +190,12 @@ func (s *Server) txSegmentOpen(state *ClusterState, primaryNodeID uint64, owner 
 
 	// e) update consumer group offset commits if topic segment
 	if segmentType == ClusterSegment_TOPIC {
-		namespace, _ := state.FindNamespace(owner.Namespace)
+		namespace, _ := state.FindNamespace(ownerNamespace)
 		// namespace must not be nil as topic was found earlier and this method is called with tx mutex
 		for _, consumerGroup := range namespace.ConsumerGroups {
 			bound := false
 			for _, binding := range consumerGroup.Bindings {
-				if binding.TopicName == owner.Name {
+				if binding.TopicName == ownerName {
 					bound = true
 					break
 				}

@@ -86,7 +86,7 @@ func (s *ClusterState) FindOpenSegmentsFor(segmentType ClusterSegment_Type, name
 	var segments []*ClusterSegment
 
 	for _, segment := range s.OpenSegments {
-		if segment.Type == segmentType && segment.Owner.Namespace == namespaceName && segment.Owner.Name == name {
+		if segment.Type == segmentType && segment.OwnerNamespace == namespaceName && segment.OwnerName == name {
 			segments = append(segments, segment)
 		}
 	}

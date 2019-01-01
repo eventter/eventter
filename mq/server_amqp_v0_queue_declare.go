@@ -92,10 +92,8 @@ func (s *Server) handleAMQPv0QueueDeclare(ctx context.Context, transport *v0.Tra
 		}
 
 		_, err = s.ConsumerGroupWait(ctx, &ConsumerGroupWaitRequest{
-			ConsumerGroup: emq.NamespaceName{
-				Namespace: request.ConsumerGroup.Namespace,
-				Name:      request.ConsumerGroup.Name,
-			},
+			Namespace: request.ConsumerGroup.Namespace,
+			Name:      request.ConsumerGroup.Name,
 		})
 		if err != nil {
 			return errors.Wrap(err, "wait failed")

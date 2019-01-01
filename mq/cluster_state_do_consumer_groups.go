@@ -79,8 +79,8 @@ func (s *ClusterState) doDeleteConsumerGroup(cmd *ClusterCommandConsumerGroupDel
 	openSegmentsChanged := false
 	for _, segment := range s.OpenSegments {
 		if segment.Type == ClusterSegment_CONSUMER_GROUP_OFFSET_COMMITS &&
-			segment.Owner.Namespace == cmd.Namespace &&
-			segment.Owner.Name == cmd.Name {
+			segment.OwnerNamespace == cmd.Namespace &&
+			segment.OwnerName == cmd.Name {
 			openSegmentsChanged = true
 		} else {
 			nextOpenSegments = append(nextOpenSegments, segment)
@@ -93,8 +93,8 @@ func (s *ClusterState) doDeleteConsumerGroup(cmd *ClusterCommandConsumerGroupDel
 	closedSegmentsChanged := false
 	for _, segment := range s.ClosedSegments {
 		if segment.Type == ClusterSegment_CONSUMER_GROUP_OFFSET_COMMITS &&
-			segment.Owner.Namespace == cmd.Namespace &&
-			segment.Owner.Name == cmd.Name {
+			segment.OwnerNamespace == cmd.Namespace &&
+			segment.OwnerName == cmd.Name {
 			closedSegmentsChanged = true
 		} else {
 			nextClosedSegments = append(nextClosedSegments, segment)

@@ -88,8 +88,8 @@ func (s *ClusterState) doDeleteTopic(cmd *ClusterCommandTopicDelete) *ClusterSta
 		for _, commit := range consumerGroup.OffsetCommits {
 			segment := s.GetSegment(commit.SegmentID)
 			if segment == nil || (segment.Type == ClusterSegment_TOPIC &&
-				segment.Owner.Namespace == cmd.Namespace &&
-				segment.Owner.Name == cmd.Name) {
+				segment.OwnerNamespace == cmd.Namespace &&
+				segment.OwnerName == cmd.Name) {
 
 				changed = true
 			} else {
@@ -118,7 +118,7 @@ func (s *ClusterState) doDeleteTopic(cmd *ClusterCommandTopicDelete) *ClusterSta
 	nextOpenSegments := make([]*ClusterSegment, 0, len(s.OpenSegments))
 	openSegmentsChanged := false
 	for _, segment := range s.OpenSegments {
-		if segment.Type == ClusterSegment_TOPIC && segment.Owner.Namespace == cmd.Namespace && segment.Owner.Name == cmd.Name {
+		if segment.Type == ClusterSegment_TOPIC && segment.OwnerNamespace == cmd.Namespace && segment.OwnerName == cmd.Name {
 			openSegmentsChanged = true
 		} else {
 			nextOpenSegments = append(nextOpenSegments, segment)
@@ -130,7 +130,7 @@ func (s *ClusterState) doDeleteTopic(cmd *ClusterCommandTopicDelete) *ClusterSta
 	nextClosedSegments := make([]*ClusterSegment, 0, len(s.ClosedSegments))
 	closedSegmentsChanged := false
 	for _, segment := range s.ClosedSegments {
-		if segment.Type == ClusterSegment_TOPIC && segment.Owner.Namespace == cmd.Namespace && segment.Owner.Name == cmd.Name {
+		if segment.Type == ClusterSegment_TOPIC && segment.OwnerNamespace == cmd.Namespace && segment.OwnerName == cmd.Name {
 			closedSegmentsChanged = true
 		} else {
 			nextClosedSegments = append(nextClosedSegments, segment)

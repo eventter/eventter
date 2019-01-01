@@ -106,7 +106,7 @@ LOOP:
 
 			for _, segment := range state.OpenSegments {
 				if segment.Type == ClusterSegment_CONSUMER_GROUP_OFFSET_COMMITS && segment.Nodes.PrimaryNodeID == s.nodeID {
-					name := segment.Owner.Namespace + "/" + segment.Owner.Name
+					name := segment.OwnerNamespace + "/" + segment.OwnerName
 					consumerGroups[name] = true
 
 					if _, ok := runningConsumerGroups[name]; !ok {
@@ -116,7 +116,7 @@ LOOP:
 								return func(ctx context.Context) error {
 									return s.taskConsumerGroup(ctx, namespace, name, segmentID)
 								}
-							}(segment.Owner.Namespace, segment.Owner.Name, segment.ID),
+							}(segment.OwnerNamespace, segment.OwnerName, segment.ID),
 							name,
 						)
 					}
