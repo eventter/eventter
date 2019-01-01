@@ -2,34 +2,53 @@ package mq
 
 import (
 	"context"
+	"log"
 
 	"eventter.io/mq/amqp/v1"
 	"github.com/pkg/errors"
 )
 
-func (l *linkAMQPv1) Detach(ctx context.Context, frame *v1.Detach) error {
+func (s *sessionAMQPv1) Detach(ctx context.Context, frame *v1.Detach) error {
+	link, ok := s.links[frame.Handle]
+	if !ok {
+		s.state = sessionStateEnding
+		return s.Send(&v1.End{
+			Error: &v1.Error{
+				Condition:   v1.UnattachedHandleSessionError,
+				Description: errors.Errorf("link handle %v not found", frame.Handle).Error(),
+			},
+		})
+	}
+
 	if frame.Error != nil {
-		return errors.Errorf(
+		log.Printf(
 			"received link error from client [condition=%s, description=%s]",
 			frame.Error.Condition,
 			frame.Error.Description,
 		)
 	}
 
-	delete(l.session.links, l.handle)
-	err := l.Close()
+	delete(s.links, link.handle)
+	err := link.Close()
 	var detachError *v1.Error
 	if err != nil {
 		detachError = &v1.Error{
 			Condition:   v1.InternalErrorAMQPError,
 			Description: err.Error(),
 		}
+		if link.state == linkStateDetaching {
+			log.Printf("link close failed: %s", err)
+		}
 	}
 
-	err = l.session.Send(&v1.Detach{
-		Handle: l.handle,
-		Closed: true,
-		Error:  detachError,
-	})
-	return errors.Wrap(err, "send detach failed")
+	if link.state != linkStateDetaching {
+		err = s.Send(&v1.Detach{
+			Handle: link.handle,
+			Closed: true,
+			Error:  detachError,
+		})
+		return errors.Wrap(err, "send detach failed")
+	}
+
+	return nil
 }

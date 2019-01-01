@@ -683,13 +683,13 @@ const (
 )
 
 const (
-	RemoteChannelNull = math.MaxUint16
-	ChannelMax = math.MaxUint16 - 1
-	TransferNumberNull = math.MaxUint32
-	HandleNull = math.MaxUint32
-	HandleMax = math.MaxUint32 - 1
-	SenderSettleModeNull = math.MaxUint8 - 1
-	ReceiverSettleModeNull = math.MaxUint8 - 1
+	RemoteChannelNull uint16 = math.MaxUint16
+	ChannelMax uint16 = math.MaxUint16 - 1
+	TransferNumberNull TransferNumber = math.MaxUint32
+	HandleNull Handle = math.MaxUint32
+	HandleMax Handle = math.MaxUint32 - 1
+	SenderSettleModeNull SenderSettleMode = math.MaxUint8 - 1
+	ReceiverSettleModeNull ReceiverSettleMode = math.MaxUint8 - 1
 )
 
 var (
@@ -1015,18 +1015,10 @@ type {{ $name | convert }} interface {
 								}
 							{{ end -}}
 						{{- else if or (eq $fieldClass "restricted") (eq $field.Requires "error-condition") -}}
-							{{- if $field.TypeHasNull -}}
-								if constructor == NullEncoding {
-									t.{{ $field.Name | convert }} = {{ $field.TypeName | convert }}Null
-								} else {
-							{{ end -}}
 							err = t.{{ $field.Name | convert }}.UnmarshalBuffer(&itemBuf)
 							if err != nil {
 								return errors.Wrap(err, "unmarshal field {{ $field.Name }} failed")
 							}
-							{{- if $field.TypeHasNull -}}
-								}
-							{{ end -}}
 						{{- else if eq $fieldClass "composite" -}}
 							t.{{ $field.Name | convert }} = &{{ $field.CompositeTypeName }}{}
 							err = t.{{ $field.Name | convert }}.UnmarshalBuffer(&itemBuf)
@@ -1143,6 +1135,12 @@ type {{ $name | convert }} interface {
 						if err != nil {
 							return errors.Wrap(err, "read constructor failed")
 						}
+						{{ if $type.HasNull -}}
+							if constructor == NullEncoding {
+								*t = {{ $type.Name | convert }}Null
+								return nil
+							}
+						{{- end }}
 						return unmarshal{{ $primitiveType.Name | convert }}((*{{ $type.GoType }})(t), constructor, buf)
 					}
 				{{ end }}

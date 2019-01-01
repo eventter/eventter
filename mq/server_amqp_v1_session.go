@@ -9,23 +9,24 @@ import (
 )
 
 const (
-	sessionStateReady   = 0
-	sessionStateClosing = 1
+	sessionStateReady  = 0
+	sessionStateEnding = 1
 )
 
 type sessionAMQPv1 struct {
-	connection           *connectionAMQPv1
-	state                int
-	remoteChannel        uint16
-	channel              uint16
-	nextIncomingID       v1.TransferNumber
-	incomingWindow       uint32
-	nextOutgoingID       v1.TransferNumber
-	outgoingWindow       uint32
-	remoteIncomingWindow uint32
-	remoteOutgoingWindow uint32
-	namespace            string
-	links                map[v1.Handle]*linkAMQPv1
+	connection            *connectionAMQPv1
+	state                 int
+	remoteChannel         uint16
+	channel               uint16
+	nextIncomingID        v1.TransferNumber
+	incomingWindow        uint32
+	nextOutgoingID        v1.TransferNumber
+	outgoingWindow        uint32
+	remoteIncomingWindow  uint32
+	remoteOutgoingWindow  uint32
+	initialIncomingWindow uint32
+	namespace             string
+	links                 map[v1.Handle]*linkAMQPv1
 }
 
 func (s *sessionAMQPv1) Send(frame v1.Frame) error {
@@ -46,18 +47,17 @@ func (s *sessionAMQPv1) Close() error {
 }
 
 func (s *sessionAMQPv1) Process(ctx context.Context, frame v1.Frame) (err error) {
+	if s.state == sessionStateEnding {
+		return nil
+	}
+
 	var handle v1.Handle
 
 	switch frame := frame.(type) {
 	case *v1.Attach:
 		return s.Attach(ctx, frame)
 	case *v1.Detach:
-		link, ok := s.links[frame.Handle]
-		if !ok {
-			handle = frame.Handle
-			goto EndHandleNotFound
-		}
-		return link.Detach(ctx, frame)
+		return s.Detach(ctx, frame)
 	case *v1.Flow:
 		err = s.Flow(ctx, frame)
 		if err != nil {
@@ -87,13 +87,28 @@ func (s *sessionAMQPv1) Process(ctx context.Context, frame v1.Frame) (err error)
 		if err != nil {
 			goto EndErrantLink
 		}
+
+		if s.incomingWindow <= s.initialIncomingWindow/2 {
+			s.incomingWindow = s.initialIncomingWindow
+			err = s.Send(&v1.Flow{
+				NextIncomingID: s.nextIncomingID,
+				IncomingWindow: s.incomingWindow,
+				NextOutgoingID: s.nextOutgoingID,
+				OutgoingWindow: s.outgoingWindow,
+				Handle:         v1.HandleNull,
+			})
+			if err != nil {
+				return errors.Wrap(err, "send session flow failed")
+			}
+		}
+
 		return nil
 	default:
 		return errors.Errorf("unexpected frame %T", frame)
 	}
 
 EndHandleNotFound:
-	s.state = sessionStateClosing
+	s.state = sessionStateEnding
 	return s.Send(&v1.End{
 		Error: &v1.Error{
 			Condition:   v1.UnattachedHandleSessionError,
@@ -102,7 +117,7 @@ EndHandleNotFound:
 	})
 
 EndErrantLink:
-	s.state = sessionStateClosing
+	s.state = sessionStateEnding
 	return s.Send(&v1.End{
 		Error: &v1.Error{
 			Condition:   v1.ErrantLinkSessionError,

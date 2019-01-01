@@ -11,8 +11,10 @@ import (
 func (c *connectionAMQPv1) End(ctx context.Context, frame *v1.End) (err error) {
 	session, ok := c.sessions[frame.FrameMeta.Channel]
 	if !ok {
-		return c.forceClose(v1.IllegalStateAMQPError, errors.Errorf("received end on channel %d, but no session begun",
-			frame.FrameMeta.Channel))
+		return c.forceClose(
+			v1.IllegalStateAMQPError,
+			errors.Errorf("received end on channel %d, but no session begun", frame.FrameMeta.Channel),
+		)
 	}
 
 	if frame.Error != nil {
@@ -31,12 +33,12 @@ func (c *connectionAMQPv1) End(ctx context.Context, frame *v1.End) (err error) {
 			Condition:   v1.InternalErrorAMQPError,
 			Description: err.Error(),
 		}
-		if session.state == sessionStateClosing {
+		if session.state == sessionStateEnding {
 			log.Printf("session close failed: %s", err)
 		}
 	}
 
-	if session.state != sessionStateClosing {
+	if session.state != sessionStateEnding {
 		err = c.Send(&v1.End{FrameMeta: v1.FrameMeta{Channel: session.channel}, Error: endError})
 		if err != nil {
 			return errors.Wrap(err, "send end failed")

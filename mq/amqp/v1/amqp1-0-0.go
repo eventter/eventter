@@ -18,13 +18,13 @@ const (
 )
 
 const (
-	RemoteChannelNull      = math.MaxUint16
-	ChannelMax             = math.MaxUint16 - 1
-	TransferNumberNull     = math.MaxUint32
-	HandleNull             = math.MaxUint32
-	HandleMax              = math.MaxUint32 - 1
-	SenderSettleModeNull   = math.MaxUint8 - 1
-	ReceiverSettleModeNull = math.MaxUint8 - 1
+	RemoteChannelNull      uint16             = math.MaxUint16
+	ChannelMax             uint16             = math.MaxUint16 - 1
+	TransferNumberNull     TransferNumber     = math.MaxUint32
+	HandleNull             Handle             = math.MaxUint32
+	HandleMax              Handle             = math.MaxUint32 - 1
+	SenderSettleModeNull   SenderSettleMode   = math.MaxUint8 - 1
+	ReceiverSettleModeNull ReceiverSettleMode = math.MaxUint8 - 1
 )
 
 var (
@@ -943,15 +943,10 @@ func (t *Begin) UnmarshalBuffer(buf *bytes.Buffer) error {
 		}
 
 		if count > 1 {
-			if constructor == NullEncoding {
-				t.NextOutgoingID = TransferNumberNull
-			} else {
-				err = t.NextOutgoingID.UnmarshalBuffer(&itemBuf)
-				if err != nil {
-					return errors.Wrap(err, "unmarshal field next-outgoing-id failed")
-				}
+			err = t.NextOutgoingID.UnmarshalBuffer(&itemBuf)
+			if err != nil {
+				return errors.Wrap(err, "unmarshal field next-outgoing-id failed")
 			}
-
 			if count > 2 {
 				constructor, err = itemBuf.ReadByte()
 				if err != nil {
@@ -971,15 +966,10 @@ func (t *Begin) UnmarshalBuffer(buf *bytes.Buffer) error {
 						return errors.Wrap(err, "unmarshal field outgoing-window failed")
 					}
 					if count > 4 {
-						if constructor == NullEncoding {
-							t.HandleMax = HandleNull
-						} else {
-							err = t.HandleMax.UnmarshalBuffer(&itemBuf)
-							if err != nil {
-								return errors.Wrap(err, "unmarshal field handle-max failed")
-							}
+						err = t.HandleMax.UnmarshalBuffer(&itemBuf)
+						if err != nil {
+							return errors.Wrap(err, "unmarshal field handle-max failed")
 						}
-
 						if count > 5 {
 							constructor, err = itemBuf.ReadByte()
 							if err != nil {
@@ -1409,40 +1399,25 @@ func (t *Attach) UnmarshalBuffer(buf *bytes.Buffer) error {
 			return errors.Wrap(err, "unmarshal field name failed")
 		}
 		if count > 1 {
-			if constructor == NullEncoding {
-				t.Handle = HandleNull
-			} else {
-				err = t.Handle.UnmarshalBuffer(&itemBuf)
-				if err != nil {
-					return errors.Wrap(err, "unmarshal field handle failed")
-				}
+			err = t.Handle.UnmarshalBuffer(&itemBuf)
+			if err != nil {
+				return errors.Wrap(err, "unmarshal field handle failed")
 			}
-
 			if count > 2 {
 				err = t.Role.UnmarshalBuffer(&itemBuf)
 				if err != nil {
 					return errors.Wrap(err, "unmarshal field role failed")
 				}
 				if count > 3 {
-					if constructor == NullEncoding {
-						t.SndSettleMode = SenderSettleModeNull
-					} else {
-						err = t.SndSettleMode.UnmarshalBuffer(&itemBuf)
-						if err != nil {
-							return errors.Wrap(err, "unmarshal field snd-settle-mode failed")
-						}
+					err = t.SndSettleMode.UnmarshalBuffer(&itemBuf)
+					if err != nil {
+						return errors.Wrap(err, "unmarshal field snd-settle-mode failed")
 					}
-
 					if count > 4 {
-						if constructor == NullEncoding {
-							t.RcvSettleMode = ReceiverSettleModeNull
-						} else {
-							err = t.RcvSettleMode.UnmarshalBuffer(&itemBuf)
-							if err != nil {
-								return errors.Wrap(err, "unmarshal field rcv-settle-mode failed")
-							}
+						err = t.RcvSettleMode.UnmarshalBuffer(&itemBuf)
+						if err != nil {
+							return errors.Wrap(err, "unmarshal field rcv-settle-mode failed")
 						}
-
 						if count > 5 {
 							t.Source = &Source{}
 							err = t.Source.UnmarshalBuffer(&itemBuf)
@@ -1861,15 +1836,10 @@ func (t *Flow) UnmarshalBuffer(buf *bytes.Buffer) error {
 	_ = count
 
 	if count > 0 {
-		if constructor == NullEncoding {
-			t.NextIncomingID = TransferNumberNull
-		} else {
-			err = t.NextIncomingID.UnmarshalBuffer(&itemBuf)
-			if err != nil {
-				return errors.Wrap(err, "unmarshal field next-incoming-id failed")
-			}
+		err = t.NextIncomingID.UnmarshalBuffer(&itemBuf)
+		if err != nil {
+			return errors.Wrap(err, "unmarshal field next-incoming-id failed")
 		}
-
 		if count > 1 {
 			constructor, err = itemBuf.ReadByte()
 			if err != nil {
@@ -1880,15 +1850,10 @@ func (t *Flow) UnmarshalBuffer(buf *bytes.Buffer) error {
 				return errors.Wrap(err, "unmarshal field incoming-window failed")
 			}
 			if count > 2 {
-				if constructor == NullEncoding {
-					t.NextOutgoingID = TransferNumberNull
-				} else {
-					err = t.NextOutgoingID.UnmarshalBuffer(&itemBuf)
-					if err != nil {
-						return errors.Wrap(err, "unmarshal field next-outgoing-id failed")
-					}
+				err = t.NextOutgoingID.UnmarshalBuffer(&itemBuf)
+				if err != nil {
+					return errors.Wrap(err, "unmarshal field next-outgoing-id failed")
 				}
-
 				if count > 3 {
 					constructor, err = itemBuf.ReadByte()
 					if err != nil {
@@ -1899,15 +1864,10 @@ func (t *Flow) UnmarshalBuffer(buf *bytes.Buffer) error {
 						return errors.Wrap(err, "unmarshal field outgoing-window failed")
 					}
 					if count > 4 {
-						if constructor == NullEncoding {
-							t.Handle = HandleNull
-						} else {
-							err = t.Handle.UnmarshalBuffer(&itemBuf)
-							if err != nil {
-								return errors.Wrap(err, "unmarshal field handle failed")
-							}
+						err = t.Handle.UnmarshalBuffer(&itemBuf)
+						if err != nil {
+							return errors.Wrap(err, "unmarshal field handle failed")
 						}
-
 						if count > 5 {
 							err = t.DeliveryCount.UnmarshalBuffer(&itemBuf)
 							if err != nil {
@@ -2312,15 +2272,10 @@ func (t *Transfer) UnmarshalBuffer(buf *bytes.Buffer) error {
 	_ = count
 
 	if count > 0 {
-		if constructor == NullEncoding {
-			t.Handle = HandleNull
-		} else {
-			err = t.Handle.UnmarshalBuffer(&itemBuf)
-			if err != nil {
-				return errors.Wrap(err, "unmarshal field handle failed")
-			}
+		err = t.Handle.UnmarshalBuffer(&itemBuf)
+		if err != nil {
+			return errors.Wrap(err, "unmarshal field handle failed")
 		}
-
 		if count > 1 {
 			err = t.DeliveryID.UnmarshalBuffer(&itemBuf)
 			if err != nil {
@@ -2355,15 +2310,10 @@ func (t *Transfer) UnmarshalBuffer(buf *bytes.Buffer) error {
 								return errors.Wrap(err, "unmarshal field more failed")
 							}
 							if count > 6 {
-								if constructor == NullEncoding {
-									t.RcvSettleMode = ReceiverSettleModeNull
-								} else {
-									err = t.RcvSettleMode.UnmarshalBuffer(&itemBuf)
-									if err != nil {
-										return errors.Wrap(err, "unmarshal field rcv-settle-mode failed")
-									}
+								err = t.RcvSettleMode.UnmarshalBuffer(&itemBuf)
+								if err != nil {
+									return errors.Wrap(err, "unmarshal field rcv-settle-mode failed")
 								}
-
 								if count > 7 {
 									err = unmarshalDeliveryStateUnion(&t.State, &itemBuf)
 									if err != nil {
@@ -2890,15 +2840,10 @@ func (t *Detach) UnmarshalBuffer(buf *bytes.Buffer) error {
 	_ = count
 
 	if count > 0 {
-		if constructor == NullEncoding {
-			t.Handle = HandleNull
-		} else {
-			err = t.Handle.UnmarshalBuffer(&itemBuf)
-			if err != nil {
-				return errors.Wrap(err, "unmarshal field handle failed")
-			}
+		err = t.Handle.UnmarshalBuffer(&itemBuf)
+		if err != nil {
+			return errors.Wrap(err, "unmarshal field handle failed")
 		}
-
 		if count > 1 {
 			constructor, err = itemBuf.ReadByte()
 			if err != nil {
@@ -3327,6 +3272,7 @@ func (t *Role) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
+
 	return unmarshalBoolean((*bool)(t), constructor, buf)
 }
 
@@ -3373,6 +3319,10 @@ func (t *SenderSettleMode) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
+	if constructor == NullEncoding {
+		*t = SenderSettleModeNull
+		return nil
+	}
 	return unmarshalUbyte((*uint8)(t), constructor, buf)
 }
 
@@ -3416,6 +3366,10 @@ func (t *ReceiverSettleMode) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
+	if constructor == NullEncoding {
+		*t = ReceiverSettleModeNull
+		return nil
+	}
 	return unmarshalUbyte((*uint8)(t), constructor, buf)
 }
 
@@ -3442,6 +3396,10 @@ func (t *Handle) UnmarshalBuffer(buf *bytes.Buffer) error {
 	constructor, err := buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
+	}
+	if constructor == NullEncoding {
+		*t = HandleNull
+		return nil
 	}
 	return unmarshalUint((*uint32)(t), constructor, buf)
 }
@@ -3470,6 +3428,7 @@ func (t *Seconds) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
+
 	return unmarshalUint((*uint32)(t), constructor, buf)
 }
 
@@ -3497,6 +3456,7 @@ func (t *Milliseconds) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
+
 	return unmarshalUint((*uint32)(t), constructor, buf)
 }
 
@@ -3524,6 +3484,7 @@ func (t *DeliveryTag) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
+
 	return unmarshalBinary((*[]byte)(t), constructor, buf)
 }
 
@@ -3551,6 +3512,7 @@ func (t *DeliveryNumber) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
+
 	return unmarshalUint((*uint32)(t), constructor, buf)
 }
 
@@ -3577,6 +3539,10 @@ func (t *TransferNumber) UnmarshalBuffer(buf *bytes.Buffer) error {
 	constructor, err := buf.ReadByte()
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
+	}
+	if constructor == NullEncoding {
+		*t = TransferNumberNull
+		return nil
 	}
 	return unmarshalUint((*uint32)(t), constructor, buf)
 }
@@ -3605,6 +3571,7 @@ func (t *SequenceNo) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
+
 	return unmarshalUint((*uint32)(t), constructor, buf)
 }
 
@@ -3632,6 +3599,7 @@ func (t *MessageFormat) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
+
 	return unmarshalUint((*uint32)(t), constructor, buf)
 }
 
@@ -3659,6 +3627,7 @@ func (t *IETFLanguageTag) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
+
 	return unmarshalSymbol((*string)(t), constructor, buf)
 }
 
@@ -3964,6 +3933,7 @@ func (t *AMQPError) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
+
 	return unmarshalSymbol((*string)(t), constructor, buf)
 }
 
@@ -4003,6 +3973,7 @@ func (t *ConnectionError) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
+
 	return unmarshalSymbol((*string)(t), constructor, buf)
 }
 
@@ -4043,6 +4014,7 @@ func (t *SessionError) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
+
 	return unmarshalSymbol((*string)(t), constructor, buf)
 }
 
@@ -4084,6 +4056,7 @@ func (t *LinkError) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
+
 	return unmarshalSymbol((*string)(t), constructor, buf)
 }
 
@@ -5016,6 +4989,7 @@ func (t *Data) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
+
 	return unmarshalBinary((*[]byte)(t), constructor, buf)
 }
 
@@ -5122,6 +5096,7 @@ func (t *MessageIDUlong) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
+
 	return unmarshalUlong((*uint64)(t), constructor, buf)
 }
 
@@ -5151,6 +5126,7 @@ func (t *MessageIDUUID) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
+
 	return unmarshalUUID((*UUID)(t), constructor, buf)
 }
 
@@ -5180,6 +5156,7 @@ func (t *MessageIDBinary) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
+
 	return unmarshalBinary((*[]byte)(t), constructor, buf)
 }
 
@@ -5209,6 +5186,7 @@ func (t *MessageIDString) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
+
 	return unmarshalString((*string)(t), constructor, buf)
 }
 
@@ -5238,6 +5216,7 @@ func (t *AddressString) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
+
 	return unmarshalString((*string)(t), constructor, buf)
 }
 
@@ -6927,6 +6906,7 @@ func (t *TerminusDurability) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
+
 	return unmarshalUint((*uint32)(t), constructor, buf)
 }
 
@@ -6965,6 +6945,7 @@ func (t *TerminusExpiryPolicy) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
+
 	return unmarshalSymbol((*string)(t), constructor, buf)
 }
 
@@ -7003,6 +6984,7 @@ func (t *StdDistMode) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
+
 	return unmarshalSymbol((*string)(t), constructor, buf)
 }
 
@@ -8624,5 +8606,6 @@ func (t *SASLCode) UnmarshalBuffer(buf *bytes.Buffer) error {
 	if err != nil {
 		return errors.Wrap(err, "read constructor failed")
 	}
+
 	return unmarshalUbyte((*uint8)(t), constructor, buf)
 }

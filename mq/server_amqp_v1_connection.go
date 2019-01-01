@@ -112,21 +112,18 @@ func (c *connectionAMQPv1) Run(ctx context.Context) (err error) {
 						errors.Errorf("received frame %T on channel %d, but no session begun", frame, meta.Channel),
 					)
 				}
-
-				if session.state != sessionStateClosing {
-					err = session.Process(ctx, frame)
+				err = session.Process(ctx, frame)
+				if err != nil {
+					session.state = sessionStateEnding
+					err = c.Send(&v1.End{
+						FrameMeta: v1.FrameMeta{Channel: session.channel},
+						Error: &v1.Error{
+							Condition:   v1.InternalErrorAMQPError,
+							Description: err.Error(),
+						},
+					})
 					if err != nil {
-						session.state = sessionStateClosing
-						err = c.Send(&v1.End{
-							FrameMeta: v1.FrameMeta{Channel: session.channel},
-							Error: &v1.Error{
-								Condition:   v1.InternalErrorAMQPError,
-								Description: err.Error(),
-							},
-						})
-						if err != nil {
-							return errors.Wrap(err, "send end failed")
-						}
+						return errors.Wrap(err, "send end failed")
 					}
 				}
 			}
