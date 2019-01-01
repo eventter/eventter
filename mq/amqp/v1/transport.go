@@ -102,7 +102,6 @@ func (t *Transport) Send(frame Frame) (err error) {
 	var meta *FrameMeta
 	if frame != nil {
 		meta = frame.GetFrameMeta()
-
 		t.buf.Reset()
 		err = frame.MarshalBuffer(&t.buf)
 		if err != nil {

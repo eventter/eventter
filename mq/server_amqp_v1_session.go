@@ -59,14 +59,20 @@ func (s *sessionAMQPv1) Process(ctx context.Context, frame v1.Frame) (err error)
 		}
 		return link.Detach(ctx, frame)
 	case *v1.Flow:
-		link, ok := s.links[frame.Handle]
-		if !ok {
-			handle = frame.Handle
-			goto EndHandleNotFound
-		}
-		err = link.Flow(ctx, frame)
+		err = s.Flow(ctx, frame)
 		if err != nil {
-			goto EndErrantLink
+			return errors.Wrap(err, "session flow failed")
+		}
+		if frame.Handle != v1.HandleNull {
+			link, ok := s.links[frame.Handle]
+			if !ok {
+				handle = frame.Handle
+				goto EndHandleNotFound
+			}
+			err = link.Flow(ctx, frame)
+			if err != nil {
+				goto EndErrantLink
+			}
 		}
 		return nil
 	case *v1.Disposition:
@@ -90,7 +96,7 @@ EndHandleNotFound:
 	s.state = sessionStateClosing
 	return s.Send(&v1.End{
 		Error: &v1.Error{
-			Condition:   string(v1.UnattachedHandleSessionError),
+			Condition:   v1.UnattachedHandleSessionError,
 			Description: errors.Errorf("link handle %v not found", handle).Error(),
 		},
 	})
@@ -99,7 +105,7 @@ EndErrantLink:
 	s.state = sessionStateClosing
 	return s.Send(&v1.End{
 		Error: &v1.Error{
-			Condition:   string(v1.ErrantLinkSessionError),
+			Condition:   v1.ErrantLinkSessionError,
 			Description: err.Error(),
 		},
 	})

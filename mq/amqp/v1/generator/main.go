@@ -251,6 +251,13 @@ func (t *Type) GoType() (string, error) {
 	}
 }
 
+func (t *Type) HasNull() bool {
+	return t.Name == "transfer-number" ||
+		t.Name == "handle" ||
+		t.Name == "sender-settle-mode" ||
+		t.Name == "receiver-settle-mode"
+}
+
 type Encoding struct {
 	Name     string `xml:"name,attr"`
 	Code     int    `xml:"-"`
@@ -301,6 +308,8 @@ func (f *Field) goType() (string, error) {
 		} else {
 			return convert(f.Requires), nil
 		}
+	} else if f.Requires == "error-condition" {
+		return convert(f.Requires), nil
 	}
 
 	t := f.Type()
@@ -408,10 +417,8 @@ func (f *Field) GoNonZeroCheck(expr string) (string, error) {
 		return "", errors.Errorf("field %s (of type %s): did not find type %s", f.Name, f.Parent.Name, f.TypeName)
 	}
 
-	if t.Name == "transfer-number" {
-		return expr + " != TransferNumberNull", nil
-	} else if t.Name == "handle" {
-		return expr + " != HandleNull", nil
+	if t.HasNull() {
+		return expr + " != " + convert(t.Name+"-null"), nil
 	}
 
 	var err error
@@ -440,6 +447,64 @@ func (f *Field) GoNonZeroCheck(expr string) (string, error) {
 			return fmt.Sprintf("!%s.IsZero()", expr), nil
 		default:
 			return expr + " != 0", nil
+		}
+	} else {
+		return "", errors.Errorf("field %s (of type %s): unhandled class %s", f.Name, f.Parent.Name, t.Class)
+	}
+}
+
+func (f *Field) GoZeroValue() (string, error) {
+	if f.Name == "remote-channel" && f.Parent.Name == "begin" {
+		return "RemoteChannelNull", nil
+	}
+
+	if f.Requires == "error-condition" {
+		return "nil", nil
+	}
+
+	if f.TypeName == "*" {
+		return "nil", nil
+	}
+
+	if f.Multiple {
+		return "nil", nil
+	}
+
+	t := f.Type()
+	if t == nil {
+		return "", errors.Errorf("field %s (of type %s): did not find type %s", f.Name, f.Parent.Name, f.TypeName)
+	}
+
+	if t.HasNull() {
+		return convert(t.Name + "-null"), nil
+	}
+
+	var err error
+	if t.Class == "restricted" {
+		t, err = t.PrimitiveType()
+		if err != nil {
+			return "", errors.Wrapf(err, "field %s (of type %s): did not its primitive type %s", f.Name, f.Parent.Name, f.TypeName)
+		}
+	}
+
+	if t.Class == "composite" {
+		return "nil", nil
+	} else if t.Class == "primitive" {
+		switch t.Name {
+		case "boolean":
+			return "false", nil
+		case "symbol":
+			fallthrough
+		case "string":
+			return fmt.Sprintf("%q", ""), nil
+		case "map":
+			return "nil", nil
+		case "binary":
+			return "nil", nil
+		case "timestamp":
+			return "time.Time{}", nil
+		default:
+			return "0", nil
 		}
 	} else {
 		return "", errors.Errorf("field %s (of type %s): unhandled class %s", f.Name, f.Parent.Name, t.Class)
@@ -487,6 +552,13 @@ func (f *Field) CompositeTypeName() (string, error) {
 	}
 
 	return convert(f.TypeName), nil
+}
+
+func (f *Field) TypeHasNull() bool {
+	if t := f.Type(); t != nil {
+		return t.HasNull()
+	}
+	return false
 }
 
 type Choice struct {
@@ -616,6 +688,8 @@ const (
 	TransferNumberNull = math.MaxUint32
 	HandleNull = math.MaxUint32
 	HandleMax = math.MaxUint32 - 1
+	SenderSettleModeNull = math.MaxUint8 - 1
+	ReceiverSettleModeNull = math.MaxUint8 - 1
 )
 
 var (
@@ -668,6 +742,7 @@ type FrameMeta struct {
 {{ range $name := .UnionTypeNames }}
 type {{ $name | convert }} interface {
 	is{{ $name | convert }}()
+	MarshalBuffer(buf *bytes.Buffer) error
 }
 {{ end }}
 
@@ -727,7 +802,7 @@ type {{ $name | convert }} interface {
 
 				func (t *{{ $goTypeName }}) MarshalBuffer(buf *bytes.Buffer) (err error) {
 					if t == nil {
-						return errors.New("<nil>")
+						return errors.New("<nil> receiver")
 					}
 
 					buf.WriteByte(DescriptorEncoding)
@@ -767,12 +842,12 @@ type {{ $name | convert }} interface {
 								{{ else }}
 									panic("implement me: marshal multiple {{ $fieldClass }}")
 								{{- end }}
-							{{- else if eq $fieldClass "primitive" -}}
+							{{- else if and (eq $fieldClass "primitive") (not (eq $field.Requires "error-condition")) -}}
 								err = marshal{{ $field.TypeName | convert }}(t.{{ $field.Name | convert }}, &itemBuf)
 								if err != nil {
 									return errors.Wrap(err, "marshal field {{ $field.Name }} failed")
 								}
-							{{- else if or (eq $fieldClass "restricted") (eq $fieldClass "composite") -}}
+							{{- else if or (eq $fieldClass "restricted") (eq $fieldClass "composite") (eq $field.Requires "error-condition") -}}
 								err = t.{{ $field.Name | convert }}.MarshalBuffer(&itemBuf)
 								if err != nil {
 									return errors.Wrap(err, "marshal field {{ $field.Name }} failed")
@@ -820,8 +895,12 @@ type {{ $name | convert }} interface {
 
 				func (t *{{ $goTypeName }}) UnmarshalBuffer(buf *bytes.Buffer) error {
 					if t == nil {
-						return errors.New("<nil>")
+						return errors.New("<nil> receiver")
 					}
+
+					{{ range $index, $field := $type.Fields -}}
+						t.{{ $field.Name | convert }} = {{ $field.GoZeroValue }}
+					{{ end }}
 
 					constructor, err := buf.ReadByte()
 					if err != nil {
@@ -872,7 +951,8 @@ type {{ $name | convert }} interface {
 					if buf.Len() < size {
 						return errors.New("buffer underflow")
 					}
-					itemBuf := bytes.NewBuffer(buf.Next(size))
+					itemBuf := bytes.Buffer{}
+					itemBuf.Write(buf.Next(size))
 
 					var count int
 					switch constructor {
@@ -889,7 +969,8 @@ type {{ $name | convert }} interface {
 						count = int(endian.Uint32(itemBuf.Next(4)))
 					}
 
-					var done int = 0
+					_ = count
+
 					{{ range $index, $field := $type.Fields -}}
 						if count > {{ $index }} {
 						{{- $fieldClass := $field.TypeClass }}
@@ -901,7 +982,7 @@ type {{ $name | convert }} interface {
 						{{- end }}
 						{{ if $field.Multiple -}}
 							{{ if or (eq $fieldClass "primitive") (eq $fieldClass "restricted") -}}
-								err = unmarshal{{ $field.TypeName | convert }}Array(&t.{{ $field.Name | convert }}, constructor, itemBuf)
+								err = unmarshal{{ $field.TypeName | convert }}Array(&t.{{ $field.Name | convert }}, constructor, &itemBuf)
 								if err != nil {
 									return errors.Wrap(err, "unmarshal field {{ $field.Name }} failed")
 								}
@@ -910,62 +991,62 @@ type {{ $name | convert }} interface {
 							{{- end }}
 						{{- else if eq $field.PrimitiveTypeName "map" -}}
 							var map{{ $index }} *types.Struct
-							err = unmarshalMap(&map{{ $index }}, constructor, itemBuf)
+							err = unmarshalMap(&map{{ $index }}, constructor, &itemBuf)
 							if err != nil {
 								return errors.Wrap(err, "unmarshal field {{ $field.Name }} failed")
 							}
 							t.{{ $field.Name | convert }} = ({{ $field.GoType }})(map{{ $index }})
+						{{- else if eq $field.Requires "error-condition" -}}
+							err = unmarshalErrorCondition(&t.{{ $field.Name | convert }}, constructor, &itemBuf)
+							if err != nil {
+								return errors.Wrap(err, "unmarshal field {{ $field.Name }} failed")
+							}
 						{{- else if eq $fieldClass "primitive" -}}
 							{{- if and (eq $type.Name "begin") (eq $field.Name "remote-channel") -}}
 								if constructor == NullEncoding {
 									t.{{ $field.Name | convert }} = RemoteChannelNull
 								} else {
 							{{ end -}}
-							err = unmarshal{{ $field.TypeName | convert }}(&t.{{ $field.Name | convert }}, constructor, itemBuf)
+							err = unmarshal{{ $field.TypeName | convert }}(&t.{{ $field.Name | convert }}, constructor, &itemBuf)
 							if err != nil {
 								return errors.Wrap(err, "unmarshal field {{ $field.Name }} failed")
 							}
 							{{- if and (eq $type.Name "begin") (eq $field.Name "remote-channel") -}}
 								}
 							{{ end -}}
-						{{- else if eq $fieldClass "restricted" -}}
-							{{- if or (eq $field.TypeName "transfer-number") (eq $field.TypeName "handle") -}}
+						{{- else if or (eq $fieldClass "restricted") (eq $field.Requires "error-condition") -}}
+							{{- if $field.TypeHasNull -}}
 								if constructor == NullEncoding {
 									t.{{ $field.Name | convert }} = {{ $field.TypeName | convert }}Null
 								} else {
 							{{ end -}}
-							err = t.{{ $field.Name | convert }}.UnmarshalBuffer(itemBuf)
+							err = t.{{ $field.Name | convert }}.UnmarshalBuffer(&itemBuf)
 							if err != nil {
 								return errors.Wrap(err, "unmarshal field {{ $field.Name }} failed")
 							}
-							{{- if or (eq $field.TypeName "transfer-number") (eq $field.TypeName "handle") -}}
+							{{- if $field.TypeHasNull -}}
 								}
 							{{ end -}}
 						{{- else if eq $fieldClass "composite" -}}
 							t.{{ $field.Name | convert }} = &{{ $field.CompositeTypeName }}{}
-							err = t.{{ $field.Name | convert }}.UnmarshalBuffer(itemBuf)
+							err = t.{{ $field.Name | convert }}.UnmarshalBuffer(&itemBuf)
 							if err == errNull {
 								t.{{ $field.Name | convert }} = nil
 							} else if err != nil {
 								return errors.Wrap(err, "unmarshal field {{ $field.Name }} failed")
 							}
 						{{- else if eq $fieldClass "union" -}}
-							err = unmarshal{{ $field.UnionTypeName | convert }}Union(&t.{{ $field.Name | convert }}, itemBuf)
+							err = unmarshal{{ $field.UnionTypeName | convert }}Union(&t.{{ $field.Name | convert }}, &itemBuf)
 							if err != nil {
 								return errors.Wrap(err, "unmarshal field {{ $field.Name }} failed")
 							}
 						{{- else -}}
 							panic("implement me: unmarshal {{ $fieldClass }} field")
 						{{- end }}
-							done = {{ inc $index }}
 					{{ end }}
 					{{- range $type.Fields }}
 						}
 					{{- end }}
-
-					if count > done {
-						return errors.New("unmarshal failed: some fields were not read")
-					}
 
 					return nil
 				}

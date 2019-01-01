@@ -40,7 +40,7 @@ func (s *Server) ServeAMQPv1(ctx context.Context, transport *v1.Transport) (err 
 			return errors.Wrap(err, "send open failed")
 		}
 		err = transport.Send(&v1.Close{Error: &v1.Error{
-			Condition:   string(v1.ResourceLimitExceededAMQPError),
+			Condition:   v1.ResourceLimitExceededAMQPError,
 			Description: "client timeout too short",
 		}})
 		return errors.Wrap(err, "close failed")
@@ -50,7 +50,7 @@ func (s *Server) ServeAMQPv1(ctx context.Context, transport *v1.Transport) (err 
 			return errors.Wrap(err, "send open failed")
 		}
 		err = transport.Send(&v1.Close{Error: &v1.Error{
-			Condition:   string(v1.ResourceLimitExceededAMQPError),
+			Condition:   v1.ResourceLimitExceededAMQPError,
 			Description: "client timeout too long",
 		}})
 		return errors.Wrap(err, "close failed")

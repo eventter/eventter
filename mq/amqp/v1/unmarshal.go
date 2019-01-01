@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"math"
+	"strings"
 	"time"
 
 	"github.com/gogo/protobuf/types"
@@ -999,4 +1000,29 @@ func unmarshalOutcomeUnion(dst *Outcome, buf *bytes.Buffer) error {
 	}
 
 	return errors.Wrap(unmarshaler.UnmarshalBuffer(buf), "unmarshal outcome failed")
+}
+
+func unmarshalErrorCondition(dst *ErrorCondition, constructor byte, buf *bytes.Buffer) error {
+	if constructor == NullEncoding {
+		*dst = nil
+		return nil
+	}
+
+	var s string
+	err := unmarshalSymbol(&s, constructor, buf)
+	if err != nil {
+		return errors.Wrap(err, "unmarshal error-condition failed")
+	}
+
+	if strings.HasPrefix(s, "amqp:connection:") {
+		*dst = ConnectionError(s)
+	} else if strings.HasPrefix(s, "amqp:session:") {
+		*dst = SessionError(s)
+	} else if strings.HasPrefix(s, "amqp:link:") {
+		*dst = LinkError(s)
+	} else {
+		*dst = AMQPError(s)
+	}
+
+	return nil
 }

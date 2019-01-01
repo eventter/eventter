@@ -63,7 +63,7 @@ func (c *connectionAMQPv1) Send(frame v1.Frame) error {
 	return c.transport.Send(frame)
 }
 
-func (c *connectionAMQPv1) forceClose(condition string, description error) error {
+func (c *connectionAMQPv1) forceClose(condition v1.ErrorCondition, description error) error {
 	err := c.Send(&v1.Close{Error: &v1.Error{
 		Condition:   condition,
 		Description: description.Error(),
@@ -78,7 +78,7 @@ func (c *connectionAMQPv1) Run(ctx context.Context) (err error) {
 	for {
 		select {
 		case <-c.server.closed:
-			return c.forceClose(string(v1.ConnectionForcedConnectionError), errors.New("shutdown"))
+			return c.forceClose(v1.ConnectionForcedConnectionError, errors.New("shutdown"))
 
 		case <-heartbeats.C:
 			err = c.Send(nil)
@@ -87,7 +87,7 @@ func (c *connectionAMQPv1) Run(ctx context.Context) (err error) {
 			}
 
 		case receiveErr := <-c.receiveErrors:
-			return c.forceClose(string(v1.FramingErrorConnectionError), errors.Wrap(receiveErr, "receive failed"))
+			return c.forceClose(v1.FramingErrorConnectionError, errors.Wrap(receiveErr, "receive failed"))
 
 		case frame := <-c.frames:
 			switch frame := frame.(type) {
@@ -108,7 +108,7 @@ func (c *connectionAMQPv1) Run(ctx context.Context) (err error) {
 				session, ok := c.sessions[meta.Channel]
 				if !ok {
 					return c.forceClose(
-						string(v1.IllegalStateAMQPError),
+						v1.IllegalStateAMQPError,
 						errors.Errorf("received frame %T on channel %d, but no session begun", frame, meta.Channel),
 					)
 				}
@@ -120,7 +120,7 @@ func (c *connectionAMQPv1) Run(ctx context.Context) (err error) {
 						err = c.Send(&v1.End{
 							FrameMeta: v1.FrameMeta{Channel: session.channel},
 							Error: &v1.Error{
-								Condition:   string(v1.InternalErrorAMQPError),
+								Condition:   v1.InternalErrorAMQPError,
 								Description: err.Error(),
 							},
 						})

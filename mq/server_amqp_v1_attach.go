@@ -15,8 +15,18 @@ func (s *sessionAMQPv1) Attach(ctx context.Context, frame *v1.Attach) error {
 		s.state = sessionStateClosing
 		return s.Send(&v1.End{
 			Error: &v1.Error{
-				Condition:   string(v1.HandleInUseSessionError),
+				Condition:   v1.HandleInUseSessionError,
 				Description: errors.Errorf("link handle %v already in use", frame.Handle).Error(),
+			},
+		})
+	}
+
+	if frame.Handle == v1.HandleNull {
+		s.state = sessionStateClosing
+		return s.Send(&v1.End{
+			Error: &v1.Error{
+				Condition:   v1.InvalidFieldAMQPError,
+				Description: "handle is null",
 			},
 		})
 	}
@@ -69,13 +79,15 @@ func (s *sessionAMQPv1) attachTopic(ctx context.Context, frame *v1.Attach) (err 
 	}
 
 	link = &linkAMQPv1{
-		session:       s,
-		handle:        frame.Handle,
-		role:          frame.Role,
-		deliveryCount: frame.InitialDeliveryCount,
-		linkCredit:    math.MaxUint16,
-		namespace:     namespaceName,
-		topic:         topicName,
+		session:            s,
+		handle:             frame.Handle,
+		role:               !frame.Role,
+		senderSettleMode:   frame.SndSettleMode,
+		receiverSettleMode: frame.RcvSettleMode,
+		deliveryCount:      frame.InitialDeliveryCount,
+		linkCredit:         math.MaxUint16,
+		namespace:          namespaceName,
+		topic:              topicName,
 	}
 
 	s.links[frame.Handle] = link
@@ -117,7 +129,7 @@ func (s *sessionAMQPv1) detachImmediately(frame *v1.Attach, description error) e
 		Handle: frame.Handle,
 		Closed: true,
 		Error: &v1.Error{
-			Condition:   string(v1.InternalErrorAMQPError),
+			Condition:   v1.InternalErrorAMQPError,
 			Description: description.Error(),
 		},
 	})

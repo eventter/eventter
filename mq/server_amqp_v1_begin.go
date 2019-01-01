@@ -13,11 +13,11 @@ import (
 
 func (c *connectionAMQPv1) Begin(ctx context.Context, frame *v1.Begin) (err error) {
 	if _, ok := c.sessions[frame.FrameMeta.Channel]; ok {
-		return c.forceClose(string(v1.IllegalStateAMQPError), errors.Errorf("received begin on channel %d, but session already begun", frame.FrameMeta.Channel))
+		return c.forceClose(v1.IllegalStateAMQPError, errors.Errorf("received begin on channel %d, but session already begun", frame.FrameMeta.Channel))
 	}
 	namespace, err := structvalue.String((*types.Struct)(frame.Properties), "namespace", emq.DefaultNamespace)
 	if err != nil {
-		return c.forceClose(string(v1.InvalidFieldAMQPError), errors.Wrapf(err, "get namespace failed"))
+		return c.forceClose(v1.InvalidFieldAMQPError, errors.Wrapf(err, "get namespace failed"))
 	}
 	session := &sessionAMQPv1{
 		connection:           c,

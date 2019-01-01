@@ -21,7 +21,7 @@ func (l *linkAMQPv1) Detach(ctx context.Context, frame *v1.Detach) error {
 	var detachError *v1.Error
 	if err != nil {
 		detachError = &v1.Error{
-			Condition:   string(v1.InternalErrorAMQPError),
+			Condition:   v1.InternalErrorAMQPError,
 			Description: err.Error(),
 		}
 	}
