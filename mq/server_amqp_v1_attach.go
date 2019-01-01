@@ -43,7 +43,7 @@ func (s *sessionAMQPv1) attachTopic(ctx context.Context, frame *v1.Attach) (err 
 		goto ImmediateDetach
 	}
 
-	namespace, _ = s.server.clusterState.Current().FindNamespace(namespaceName)
+	namespace, _ = s.connection.server.clusterState.Current().FindNamespace(namespaceName)
 	if namespace == nil {
 		err = errors.Errorf("namespace %q not found", namespaceName)
 		goto ImmediateDetach
