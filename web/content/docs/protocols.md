@@ -8,9 +8,10 @@ bref = "Which protocols does EventterMQ support?"
 toc = true
 +++
 
-EventterMQ currently supports two protocols:
+EventterMQ currently supports three protocols:
 
-- [AMQP 0.9.1]({{< ref "/docs/amqp-0-9-1.md" >}}) (standardized messaging protocol),
+- [AMQP 0.9.1]({{< ref "/docs/amqp-0-9-1.md" >}}),
+- [AMQP 1.0]({{< ref "/docs/amqp-1-0.md" >}}),
 - [gRPC](https://grpc.io/) service described by `emq.proto` ([see it on GitHub](https://github.com/eventter/eventter/tree/master/mq/emq/emq.proto)).
 
 ### AMQP 0.9.1
@@ -37,6 +38,12 @@ AMQP 0.9.1 is a binary protocol intended for messaging. It's reasonably easy to 
 
 AMQP uses slightly different model for decoupling producers and consumers than EventterMQ. To see how AMQ entities map to EventterMQ entities read through separate [AMQP 0.9.1 article]({{< ref "/docs/amqp-0-9-1.md" >}}).
 
+### AMQP 1.0
+
+AMQP 1.0 defines a binary protocol for reliable message delivery. It doesn't, however, provide any means to create topics or consumer groups. You might know AMQP 1.0 as one of the protocols supported by [ActiveMQ](https://activemq.apache.org/).
+
+Learn how to connect using AMQP 1.0 in a [separate article]({{< ref "/docs/amqp-1-0.md" >}}).
+
 ### gRPC
 
 gRPC API is described by `emq.proto` ([see it on GitHub](https://github.com/eventter/eventter/tree/master/mq/emq/emq.proto)). You can use this API to manage namespaces, topics, consumer groups, and to work with messages (publish & consume). To see how to use this service definition file to generate client library, see [gRPC quick start](https://grpc.io/docs/quickstart/).
@@ -56,7 +63,6 @@ Example usage:
 
 Support for additional protocols is planned. At the moment planned protocols are:
 
-- AMQP 1.0 - it would seem that AMQP 1.0 is just another version of AMQP 0.9.1, however, they're, in essence, completely different protocols (different semantics, wire representations), albeit developed by the same working group and both targeted for messaging (AMQP 0.9.1 was chosen to be implemented first as it's used more),
 - HTTP - simple protocol, although not intended for messaging (if you look into `emq.proto`, you'll see that all RPC calls are annotated with HTTP verbs and paths, it should be easy to generate HTTP service using [grpc-gateway](https://github.com/grpc-ecosystem/grpc-gateway)).
 - MQTT - protocol mostly used for [IoT](https://en.wikipedia.org/wiki/Internet_of_things) and compute-/memory-constrained devices.
 
