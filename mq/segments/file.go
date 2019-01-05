@@ -32,7 +32,7 @@ type File struct {
 	term    uint32
 	file    *os.File
 	mutex   sync.Mutex
-	cond    *sync.Cond
+	cond    sync.Cond
 
 	// Following properties are used by Dir.
 
@@ -116,7 +116,7 @@ func Open(path string, filePerm os.FileMode, maxSize int64) (f *File, err error)
 		term:    1,
 	}
 
-	f.cond = sync.NewCond(&f.mutex)
+	f.cond.L = &f.mutex
 
 	return f, nil
 }

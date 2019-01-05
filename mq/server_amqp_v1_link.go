@@ -3,6 +3,7 @@ package mq
 import (
 	"bytes"
 	"context"
+	"log"
 	"strconv"
 	"sync"
 	"time"
@@ -60,9 +61,11 @@ func (l *topicLinkAMQPV1) Close() error {
 
 type consumerGroupLinkAMQPv1 struct {
 	base             baseLinkAMQPv1
+	namespace        string
+	name             string
+	autoAck          bool
 	subscriptionID   uint64
 	subscriptionSize uint32
-	autoAck          bool
 	ctx              context.Context
 	cancel           func()
 	mutex            sync.Mutex
@@ -70,8 +73,36 @@ type consumerGroupLinkAMQPv1 struct {
 	buf              bytes.Buffer
 }
 
-func (l *consumerGroupLinkAMQPv1) State() int {
-	return l.base.state
+func (l *consumerGroupLinkAMQPv1) Receive() {
+	err := l.base.session.connection.server.Subscribe(&emq.ConsumerGroupSubscribeRequest{
+		Namespace: l.namespace,
+		Name:      l.name,
+		Size_:     l.subscriptionSize,
+		AutoAck:   l.autoAck,
+	}, l)
+	if err != nil {
+		l.mutex.Lock()
+		l.base.state = linkStateDetaching
+		l.mutex.Unlock()
+		sendErr := l.base.session.Send(&v1.Detach{
+			Handle: l.base.handle,
+			Closed: true,
+			Error: &v1.Error{
+				Condition:   v1.InternalErrorAMQPError,
+				Description: err.Error(),
+			},
+		})
+		if sendErr != nil {
+			log.Printf("detach link error: %v", sendErr)
+		}
+	}
+}
+
+func (l *consumerGroupLinkAMQPv1) State() (state int) {
+	l.mutex.Lock()
+	state = l.base.state
+	l.mutex.Unlock()
+	return
 }
 
 func (l *consumerGroupLinkAMQPv1) Credit() (deliveryCount v1.SequenceNo, linkCredit uint32) {
@@ -143,14 +174,12 @@ func (l *consumerGroupLinkAMQPv1) Send(response *emq.ConsumerGroupSubscribeRespo
 
 	// link flow control
 	resizeSubscription := false
-	var newSubscriptionSize uint32
 	l.mutex.Lock()
 	for l.base.linkCredit == 0 {
 		l.cond.Wait()
 	}
 	if l.base.linkCredit > l.subscriptionSize {
 		resizeSubscription = true
-		newSubscriptionSize = l.base.linkCredit
 		l.subscriptionSize = l.base.linkCredit
 	}
 	l.base.deliveryCount++
@@ -162,7 +191,7 @@ func (l *consumerGroupLinkAMQPv1) Send(response *emq.ConsumerGroupSubscribeRespo
 		_, err = l.base.session.connection.server.SubscriptionResize(l.ctx, &SubscriptionResizeRequest{
 			NodeID:         response.NodeID,
 			SubscriptionID: response.SubscriptionID,
-			Size_:          newSubscriptionSize,
+			Size_:          l.subscriptionSize,
 		})
 		if err != nil {
 			return errors.Wrap(err, "resize subscription failed")

@@ -2,12 +2,10 @@ package mq
 
 import (
 	"context"
-	"log"
 	"math"
 	"strings"
 
 	"eventter.io/mq/amqp/v1"
-	"eventter.io/mq/emq"
 	"eventter.io/mq/structvalue"
 	"github.com/gogo/protobuf/types"
 	"github.com/pkg/errors"
@@ -218,8 +216,10 @@ func (s *sessionAMQPv1) attachConsumerGroup(ctx context.Context, frame *v1.Attac
 				role:          !frame.Role,
 				deliveryCount: v1.SequenceNo(0),
 			},
-			subscriptionSize: 1,
+			namespace:        namespace,
+			name:             name,
 			autoAck:          frame.SndSettleMode == v1.SettledSenderSettleMode,
+			subscriptionSize: 1,
 			ctx:              subscribeCtx,
 			cancel:           subscribeCancel,
 		}
@@ -240,28 +240,7 @@ func (s *sessionAMQPv1) attachConsumerGroup(ctx context.Context, frame *v1.Attac
 			return errors.Wrap(err, "send attach failed")
 		}
 
-		go func() {
-			err = s.connection.server.Subscribe(&emq.ConsumerGroupSubscribeRequest{
-				Namespace: namespace,
-				Name:      name,
-				Size_:     link.subscriptionSize,
-				AutoAck:   link.autoAck,
-			}, link)
-			if err != nil {
-				link.base.session.state = linkStateDetaching
-				sendErr := link.base.session.Send(&v1.Detach{
-					Handle: link.base.handle,
-					Closed: true,
-					Error: &v1.Error{
-						Condition:   v1.InternalErrorAMQPError,
-						Description: err.Error(),
-					},
-				})
-				if sendErr != nil {
-					log.Printf("detach error link error: %v", sendErr)
-				}
-			}
-		}()
+		go link.Receive()
 
 		return nil
 	}

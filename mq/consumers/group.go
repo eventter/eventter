@@ -22,7 +22,7 @@ var (
 type Group struct {
 	n        int
 	mutex    sync.Mutex
-	cond     *sync.Cond
+	cond     sync.Cond
 	messages []Message
 	read     int
 	write    int
@@ -40,7 +40,7 @@ func NewGroup(n int) (*Group, error) {
 		messages: make([]Message, n+1),
 	}
 
-	g.cond = sync.NewCond(&g.mutex)
+	g.cond.L = &g.mutex
 
 	return g, nil
 }
