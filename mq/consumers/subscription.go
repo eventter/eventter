@@ -96,7 +96,10 @@ func (s *Subscription) Next() (*Message, error) {
 
 	s.group.mutex.Unlock()
 
-	return &s.group.messages[i], nil
+	message := &Message{}
+	*message = s.group.messages[i]
+
+	return message, nil
 }
 
 func (s *Subscription) Ack(seqNo uint64) error {
