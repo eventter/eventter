@@ -96,9 +96,9 @@ func (s *Server) handleAMQPv0ChannelDelivery(ctx context.Context, transport *v0.
 		return errors.Wrap(err, "send content body failed")
 	}
 
-	// node ID / subscription ID / seq no of zero means that the subscription is in auto-ack mode
+	// seq no of zero means that the subscription is in auto-ack mode
 	// => do not track such in-flight messages as (n)acks won't ever arrive
-	if response.NodeID != 0 {
+	if response.SeqNo != 0 {
 		ch.inflight = append(ch.inflight, serverAMQPv0ChannelInflight{
 			deliveryTag:    ch.deliveryTag,
 			nodeID:         response.NodeID,

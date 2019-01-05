@@ -282,7 +282,7 @@ func TestServer_ServeAMQPv1_Attach_ConsumerGroup(t *testing.T) {
 			OutgoingWindow: 100,
 			Handle:         v1.Handle(0),
 			DeliveryCount:  response.InitialDeliveryCount,
-			LinkCredit:     1,
+			LinkCredit:     10,
 		})
 		assert.NoError(err)
 	}

@@ -59,12 +59,14 @@ func (l *topicLinkAMQPV1) Close() error {
 }
 
 type consumerGroupLinkAMQPv1 struct {
-	base   baseLinkAMQPv1
-	ctx    context.Context
-	cancel func()
-	mutex  sync.Mutex
-	cond   sync.Cond
-	buf    bytes.Buffer
+	base             baseLinkAMQPv1
+	subscriptionID   uint64
+	subscriptionSize uint32
+	ctx              context.Context
+	cancel           func()
+	mutex            sync.Mutex
+	cond             sync.Cond
+	buf              bytes.Buffer
 }
 
 func (l *consumerGroupLinkAMQPv1) State() int {
@@ -139,13 +141,32 @@ func (l *consumerGroupLinkAMQPv1) Send(response *emq.ConsumerGroupSubscribeRespo
 	}
 
 	// link flow control
+	resizeSubscription := false
+	var newSubscriptionSize uint32
 	l.mutex.Lock()
 	for l.base.linkCredit == 0 {
 		l.cond.Wait()
 	}
+	if l.base.linkCredit > l.subscriptionSize {
+		resizeSubscription = true
+		newSubscriptionSize = l.base.linkCredit
+		l.subscriptionSize = l.base.linkCredit
+	}
 	l.base.deliveryCount++
 	l.base.linkCredit--
 	l.mutex.Unlock()
+
+	// resize subscription
+	if resizeSubscription {
+		_, err = l.base.session.connection.server.SubscriptionResize(l.ctx, &SubscriptionResizeRequest{
+			NodeID:         response.NodeID,
+			SubscriptionID: response.SubscriptionID,
+			Size_:          newSubscriptionSize,
+		})
+		if err != nil {
+			return errors.Wrap(err, "resize subscription failed")
+		}
+	}
 
 	// create next delivery ID
 	l.base.session.deliveryID++

@@ -103,6 +103,10 @@ func (s *Subscription) Next() (*Message, error) {
 }
 
 func (s *Subscription) Ack(seqNo uint64) error {
+	if seqNo == 0 {
+		return errors.New("seq no must be positive")
+	}
+
 	s.group.mutex.Lock()
 
 	i := -1
@@ -154,6 +158,10 @@ func (s *Subscription) Ack(seqNo uint64) error {
 }
 
 func (s *Subscription) Nack(seqNo uint64) error {
+	if seqNo == 0 {
+		return errors.New("seq no must be positive")
+	}
+
 	s.group.mutex.Lock()
 
 	i := -1

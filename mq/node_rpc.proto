@@ -27,11 +27,14 @@ message ConsumerGroupWaitResponse {
 }
 
 message SubscriptionResizeRequest {
-
+    // If true and node does not manage consumer group, request will fail.
+    bool do_not_forward = 99;
+    uint64 node_id = 1 [(gogoproto.customname) = "NodeID"];
+    uint64 subscription_id = 2 [(gogoproto.customname) = "SubscriptionID"];
+    uint32 size = 3;
 }
 
 message SubscriptionResizeResponse {
-
 }
 
 message SegmentOpenRequest {

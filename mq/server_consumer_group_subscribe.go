@@ -134,13 +134,13 @@ func (s *Server) Subscribe(request *emq.ConsumerGroupSubscribeRequest, stream em
 		}
 
 		response := &emq.ConsumerGroupSubscribeResponse{
+			NodeID:         s.nodeID,
+			SubscriptionID: subscription.ID,
 			TopicNamespace: message.TopicNamespace,
 			TopicName:      message.TopicName,
 			Message:        message.Message,
 		}
 		if !request.AutoAck {
-			response.NodeID = s.nodeID
-			response.SubscriptionID = subscription.ID
 			response.SeqNo = message.SeqNo
 		}
 

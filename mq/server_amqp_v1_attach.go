@@ -214,8 +214,9 @@ func (s *sessionAMQPv1) attachConsumerGroup(ctx context.Context, frame *v1.Attac
 				role:          !frame.Role,
 				deliveryCount: v1.SequenceNo(0),
 			},
-			ctx:    subscribeCtx,
-			cancel: subscribeCancel,
+			subscriptionSize: 1,
+			ctx:              subscribeCtx,
+			cancel:           subscribeCancel,
 		}
 		link.cond.L = &link.mutex
 
@@ -238,7 +239,7 @@ func (s *sessionAMQPv1) attachConsumerGroup(ctx context.Context, frame *v1.Attac
 			err = s.connection.server.Subscribe(&emq.ConsumerGroupSubscribeRequest{
 				Namespace: namespace,
 				Name:      name,
-				Size_:     1,
+				Size_:     link.subscriptionSize,
 				AutoAck:   true, // FIXME
 			}, link)
 			if err != nil {
