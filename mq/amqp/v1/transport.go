@@ -46,6 +46,10 @@ func NewTransport(conn net.Conn) *Transport {
 	}
 }
 
+func (t *Transport) GetFrameMax() uint32 {
+	return t.frameMax
+}
+
 func (t *Transport) SetFrameMax(frameMax uint32) {
 	t.frameMax = frameMax
 }

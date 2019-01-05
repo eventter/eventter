@@ -33,9 +33,12 @@ func (c *connectionAMQPv1) Begin(ctx context.Context, frame *v1.Begin) (err erro
 		remoteOutgoingWindow: frame.OutgoingWindow,
 		channel:              frame.FrameMeta.Channel, // just use the same channel as client
 		namespace:            namespace,
-		links:                make(map[v1.Handle]*linkAMQPv1),
+		links:                make(map[v1.Handle]linkAMQPv1),
+		deliveryID:           v1.DeliveryNumber(0),
 	}
+	session.cond.L = &session.mutex
 	session.initialIncomingWindow = session.incomingWindow
+	session.initialOutgoingWindow = session.outgoingWindow
 	session.initialOutgoingID = session.nextOutgoingID
 
 	c.sessions[session.remoteChannel] = session

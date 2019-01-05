@@ -3,6 +3,7 @@ package mq
 import (
 	"context"
 	"log"
+	"sync"
 	"time"
 
 	"eventter.io/mq/amqp/v1"
@@ -11,6 +12,7 @@ import (
 
 type connectionAMQPv1 struct {
 	server        *Server
+	mutex         sync.Mutex
 	transport     *v1.Transport
 	heartbeat     time.Duration
 	frames        chan v1.Frame
@@ -59,8 +61,11 @@ func (c *connectionAMQPv1) Close() error {
 	return nil
 }
 
-func (c *connectionAMQPv1) Send(frame v1.Frame) error {
-	return c.transport.Send(frame)
+func (c *connectionAMQPv1) Send(frame v1.Frame) (err error) {
+	c.mutex.Lock()
+	err = c.transport.Send(frame)
+	c.mutex.Unlock()
+	return err
 }
 
 func (c *connectionAMQPv1) forceClose(condition v1.ErrorCondition, description error) error {

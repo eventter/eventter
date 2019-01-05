@@ -33,9 +33,6 @@ type Subscription struct {
 func (s *Subscription) SetSize(size uint32) {
 	s.group.mutex.Lock()
 	s.size = size
-	if s.size == 0 {
-		s.inflight = 0
-	}
 	s.group.cond.Broadcast()
 	s.group.mutex.Unlock()
 }

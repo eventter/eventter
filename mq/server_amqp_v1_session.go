@@ -3,6 +3,7 @@ package mq
 import (
 	"context"
 	"log"
+	"sync"
 
 	"eventter.io/mq/amqp/v1"
 	"github.com/pkg/errors"
@@ -18,6 +19,8 @@ type sessionAMQPv1 struct {
 	state                 int
 	remoteChannel         uint16
 	channel               uint16
+	mutex                 sync.Mutex
+	cond                  sync.Cond
 	nextIncomingID        v1.TransferNumber
 	incomingWindow        uint32
 	nextOutgoingID        v1.TransferNumber
@@ -25,9 +28,11 @@ type sessionAMQPv1 struct {
 	remoteIncomingWindow  uint32
 	remoteOutgoingWindow  uint32
 	initialIncomingWindow uint32
+	initialOutgoingWindow uint32
 	initialOutgoingID     v1.TransferNumber
 	namespace             string
-	links                 map[v1.Handle]*linkAMQPv1
+	links                 map[v1.Handle]linkAMQPv1
+	deliveryID            v1.DeliveryNumber
 }
 
 func (s *sessionAMQPv1) Send(frame v1.Frame) error {
@@ -43,7 +48,7 @@ func (s *sessionAMQPv1) Close() error {
 			log.Printf("link close failed with: %v", err)
 		}
 	}
-	s.links = make(map[v1.Handle]*linkAMQPv1)
+	s.links = make(map[v1.Handle]linkAMQPv1)
 	return nil
 }
 
@@ -64,7 +69,7 @@ func (s *sessionAMQPv1) Process(ctx context.Context, frame v1.Frame) (err error)
 		if err != nil {
 			return errors.Wrap(err, "session flow failed")
 		}
-		var link *linkAMQPv1
+		var link linkAMQPv1
 		if frame.Handle != v1.HandleNull {
 			var ok bool
 			link, ok = s.links[frame.Handle]
@@ -78,16 +83,17 @@ func (s *sessionAMQPv1) Process(ctx context.Context, frame v1.Frame) (err error)
 			}
 		}
 		if frame.Echo {
+			s.mutex.Lock()
 			echoFrame := &v1.Flow{
 				NextIncomingID: s.nextIncomingID,
 				IncomingWindow: s.incomingWindow,
 				NextOutgoingID: s.nextOutgoingID,
 				OutgoingWindow: s.outgoingWindow,
 			}
+			s.mutex.Unlock()
 			if link != nil {
-				echoFrame.Handle = link.handle
-				echoFrame.DeliveryCount = link.deliveryCount
-				echoFrame.LinkCredit = link.linkCredit
+				echoFrame.Handle = frame.Handle
+				echoFrame.DeliveryCount, echoFrame.LinkCredit = link.Credit()
 			}
 			err = s.Send(echoFrame)
 			if err != nil {
@@ -98,9 +104,12 @@ func (s *sessionAMQPv1) Process(ctx context.Context, frame v1.Frame) (err error)
 	case *v1.Disposition:
 		return s.Disposition(ctx, frame)
 	case *v1.Transfer:
-		s.nextIncomingID += 1
-		s.incomingWindow -= 1
-		s.remoteOutgoingWindow -= 1
+		s.mutex.Lock()
+		s.nextIncomingID++
+		s.incomingWindow--
+		s.remoteOutgoingWindow--
+		doFlow := s.incomingWindow <= s.initialIncomingWindow/2
+		s.mutex.Unlock()
 
 		link, ok := s.links[frame.Handle]
 		if !ok {
@@ -112,15 +121,19 @@ func (s *sessionAMQPv1) Process(ctx context.Context, frame v1.Frame) (err error)
 			return errors.Wrap(err, "transfer failed")
 		}
 
-		if s.incomingWindow <= s.initialIncomingWindow/2 {
+		if doFlow {
+			s.mutex.Lock()
 			s.incomingWindow = s.initialIncomingWindow
-			err = s.Send(&v1.Flow{
+			flowFrame := &v1.Flow{
 				NextIncomingID: s.nextIncomingID,
 				IncomingWindow: s.incomingWindow,
 				NextOutgoingID: s.nextOutgoingID,
 				OutgoingWindow: s.outgoingWindow,
 				Handle:         v1.HandleNull,
-			})
+			}
+			s.mutex.Unlock()
+
+			err = s.Send(flowFrame)
 			if err != nil {
 				return errors.Wrap(err, "send session flow failed")
 			}

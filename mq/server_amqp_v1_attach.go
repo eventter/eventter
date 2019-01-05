@@ -2,10 +2,12 @@ package mq
 
 import (
 	"context"
+	"log"
 	"math"
 	"strings"
 
 	"eventter.io/mq/amqp/v1"
+	"eventter.io/mq/emq"
 	"eventter.io/mq/structvalue"
 	"github.com/gogo/protobuf/types"
 	"github.com/pkg/errors"
@@ -102,17 +104,19 @@ func (s *sessionAMQPv1) attachTopic(ctx context.Context, frame *v1.Attach) (err 
 			goto ImmediateDetach
 		}
 
-		link := &linkAMQPv1{
-			state:         linkStateReady,
-			session:       s,
-			handle:        frame.Handle,
-			role:          !frame.Role,
-			deliveryCount: frame.InitialDeliveryCount,
-			linkCredit:    math.MaxUint16,
-			namespace:     namespace,
-			topic:         name,
+		link := &topicLinkAMQPV1{
+			base: baseLinkAMQPv1{
+				state:         linkStateReady,
+				session:       s,
+				handle:        frame.Handle,
+				role:          !frame.Role,
+				deliveryCount: frame.InitialDeliveryCount,
+				linkCredit:    math.MaxUint16,
+			},
+			namespace: namespace,
+			name:      name,
 		}
-		link.initialLinkCredit = link.linkCredit
+		link.initialLinkCredit = link.base.linkCredit
 
 		s.links[frame.Handle] = link
 		err = s.Send(&v1.Attach{
@@ -128,14 +132,16 @@ func (s *sessionAMQPv1) attachTopic(ctx context.Context, frame *v1.Attach) (err 
 			return errors.Wrap(err, "send attach failed")
 		}
 
+		s.mutex.Lock()
 		err = s.Send(&v1.Flow{
 			NextIncomingID: s.nextIncomingID,
 			IncomingWindow: s.incomingWindow,
 			NextOutgoingID: s.nextOutgoingID,
 			OutgoingWindow: s.outgoingWindow,
 			Handle:         frame.Handle,
-			LinkCredit:     link.linkCredit,
+			LinkCredit:     link.base.linkCredit,
 		})
+		s.mutex.Unlock()
 		if err != nil {
 			return errors.Wrap(err, "send flow failed")
 		}
@@ -199,15 +205,19 @@ func (s *sessionAMQPv1) attachConsumerGroup(ctx context.Context, frame *v1.Attac
 			goto ImmediateDetach
 		}
 
-		// TODO
-
-		link := &linkAMQPv1{
-			state:         linkStateReady,
-			session:       s,
-			handle:        frame.Handle,
-			role:          !frame.Role,
-			deliveryCount: v1.SequenceNo(0),
+		subscribeCtx, subscribeCancel := context.WithCancel(ctx)
+		link := &consumerGroupLinkAMQPv1{
+			base: baseLinkAMQPv1{
+				state:         linkStateReady,
+				session:       s,
+				handle:        frame.Handle,
+				role:          !frame.Role,
+				deliveryCount: v1.SequenceNo(0),
+			},
+			ctx:    subscribeCtx,
+			cancel: subscribeCancel,
 		}
+		link.cond.L = &link.mutex
 
 		s.links[frame.Handle] = link
 		err = s.Send(&v1.Attach{
@@ -218,11 +228,34 @@ func (s *sessionAMQPv1) attachConsumerGroup(ctx context.Context, frame *v1.Attac
 			RcvSettleMode:        frame.RcvSettleMode,
 			Source:               frame.Source,
 			Target:               frame.Target,
-			InitialDeliveryCount: link.deliveryCount,
+			InitialDeliveryCount: link.base.deliveryCount,
 		})
 		if err != nil {
 			return errors.Wrap(err, "send attach failed")
 		}
+
+		go func() {
+			err = s.connection.server.Subscribe(&emq.ConsumerGroupSubscribeRequest{
+				Namespace: namespace,
+				Name:      name,
+				Size_:     1,
+				AutoAck:   true, // FIXME
+			}, link)
+			if err != nil {
+				link.base.session.state = linkStateDetaching
+				sendErr := link.base.session.Send(&v1.Detach{
+					Handle: link.base.handle,
+					Closed: true,
+					Error: &v1.Error{
+						Condition:   v1.InternalErrorAMQPError,
+						Description: err.Error(),
+					},
+				})
+				if sendErr != nil {
+					log.Printf("detach error link error: %v", sendErr)
+				}
+			}
+		}()
 
 		return nil
 	}

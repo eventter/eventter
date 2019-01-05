@@ -28,7 +28,8 @@ func (s *sessionAMQPv1) Detach(ctx context.Context, frame *v1.Detach) error {
 		)
 	}
 
-	delete(s.links, link.handle)
+	delete(s.links, frame.Handle)
+	linkState := link.State()
 	err := link.Close()
 	var detachError *v1.Error
 	if err != nil {
@@ -36,14 +37,14 @@ func (s *sessionAMQPv1) Detach(ctx context.Context, frame *v1.Detach) error {
 			Condition:   v1.InternalErrorAMQPError,
 			Description: err.Error(),
 		}
-		if link.state == linkStateDetaching {
+		if linkState == linkStateDetaching {
 			log.Printf("link close failed: %s", err)
 		}
 	}
 
-	if link.state != linkStateDetaching {
+	if linkState != linkStateDetaching {
 		err = s.Send(&v1.Detach{
-			Handle: link.handle,
+			Handle: frame.Handle,
 			Closed: true,
 			Error:  detachError,
 		})
