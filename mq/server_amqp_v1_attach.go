@@ -157,6 +157,10 @@ func (s *sessionAMQPv1) attachConsumerGroup(ctx context.Context, frame *v1.Attac
 	var condition v1.ErrorCondition = v1.InvalidFieldAMQPError
 
 	{
+		if frame.SndSettleMode == v1.SenderSettleModeNull {
+			frame.SndSettleMode = v1.UnsettledSenderSettleMode
+		}
+
 		if frame.Source == nil {
 			err = errors.New("link has no source")
 			goto ImmediateDetach
@@ -215,6 +219,7 @@ func (s *sessionAMQPv1) attachConsumerGroup(ctx context.Context, frame *v1.Attac
 				deliveryCount: v1.SequenceNo(0),
 			},
 			subscriptionSize: 1,
+			autoAck:          frame.SndSettleMode == v1.SettledSenderSettleMode,
 			ctx:              subscribeCtx,
 			cancel:           subscribeCancel,
 		}
@@ -240,7 +245,7 @@ func (s *sessionAMQPv1) attachConsumerGroup(ctx context.Context, frame *v1.Attac
 				Namespace: namespace,
 				Name:      name,
 				Size_:     link.subscriptionSize,
-				AutoAck:   true, // FIXME
+				AutoAck:   link.autoAck,
 			}, link)
 			if err != nil {
 				link.base.session.state = linkStateDetaching

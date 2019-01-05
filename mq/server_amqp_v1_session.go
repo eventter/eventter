@@ -33,6 +33,14 @@ type sessionAMQPv1 struct {
 	namespace             string
 	links                 map[v1.Handle]linkAMQPv1
 	deliveryID            v1.DeliveryNumber
+	inflight              []sessionAMQPv1Inflight
+}
+
+type sessionAMQPv1Inflight struct {
+	deliveryID     v1.DeliveryNumber
+	nodeID         uint64
+	subscriptionID uint64
+	seqNo          uint64
 }
 
 func (s *sessionAMQPv1) Send(frame v1.Frame) error {

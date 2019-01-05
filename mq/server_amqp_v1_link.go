@@ -62,6 +62,7 @@ type consumerGroupLinkAMQPv1 struct {
 	base             baseLinkAMQPv1
 	subscriptionID   uint64
 	subscriptionSize uint32
+	autoAck          bool
 	ctx              context.Context
 	cancel           func()
 	mutex            sync.Mutex
@@ -178,7 +179,7 @@ func (l *consumerGroupLinkAMQPv1) Send(response *emq.ConsumerGroupSubscribeRespo
 		DeliveryID:    deliveryID,
 		DeliveryTag:   v1.DeliveryTag(strconv.Itoa(int(deliveryID))),
 		MessageFormat: 0,
-		Settled:       true, // FIXME
+		Settled:       response.SeqNo == 0,
 		More:          true,
 	}
 
@@ -198,13 +199,25 @@ func (l *consumerGroupLinkAMQPv1) Send(response *emq.ConsumerGroupSubscribeRespo
 
 		// session flow control
 		l.base.session.mutex.Lock()
+
 		for l.base.session.remoteIncomingWindow == 0 {
 			l.base.session.cond.Wait()
 		}
 		l.base.session.nextOutgoingID++
 		l.base.session.outgoingWindow--
 		l.base.session.remoteIncomingWindow--
+
 		doFlow := l.base.session.outgoingWindow <= l.base.session.initialOutgoingWindow/2
+
+		if !transfer.Settled && transfer.DeliveryTag != nil {
+			l.base.session.inflight = append(l.base.session.inflight, sessionAMQPv1Inflight{
+				deliveryID:     deliveryID,
+				nodeID:         response.NodeID,
+				subscriptionID: response.SubscriptionID,
+				seqNo:          response.SeqNo,
+			})
+		}
+
 		l.base.session.mutex.Unlock()
 
 		err = l.base.session.Send(transfer)

@@ -293,6 +293,7 @@ func TestServer_ServeAMQPv1_Attach_ConsumerGroup(t *testing.T) {
 		assert.NoError(err)
 		assert.NotNil(transfer)
 		assert.NotNil(transfer.FrameMeta.Payload)
+		assert.False(transfer.Settled)
 
 		buf := bytes.NewBuffer(transfer.FrameMeta.Payload)
 		var section v1.Section
@@ -307,5 +308,122 @@ func TestServer_ServeAMQPv1_Attach_ConsumerGroup(t *testing.T) {
 		assert.Equal(v1.Data("hello, world"), data)
 
 		assert.Equal(0, buf.Len())
+	}
+}
+
+func TestServer_ServeAMQPv1_Attach_ConsumerGroupByNamespaceProperty(t *testing.T) {
+	assert := require.New(t)
+
+	ts, client, cleanup, err := newClientAMQPv1(t)
+	assert.NoError(err)
+	defer cleanup()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	{
+		_, err = ts.CreateNamespace(ctx, &emq.NamespaceCreateRequest{
+			Namespace: "my-namespace",
+		})
+		assert.NoError(err)
+	}
+
+	{
+		_, err = ts.CreateConsumerGroup(ctx, &emq.ConsumerGroupCreateRequest{
+			ConsumerGroup: emq.ConsumerGroup{
+				Namespace: "my-namespace",
+				Name:      "my-cg",
+			},
+		})
+		assert.NoError(err)
+		ts.WaitForConsumerGroup(t, ctx, "my-namespace", "my-cg")
+	}
+
+	{
+		var response *v1.Begin
+		err = client.Call(&v1.Begin{
+			RemoteChannel:  v1.RemoteChannelNull,
+			NextOutgoingID: v1.TransferNumber(0),
+			IncomingWindow: 100,
+			OutgoingWindow: 100,
+		}, &response)
+		assert.NoError(err)
+		assert.Equal(uint16(0), response.RemoteChannel) // server might not, but for now uses that same channel
+	}
+
+	{
+		request := &v1.Attach{
+			Name:   "consumer-group-link",
+			Handle: v1.Handle(0),
+			Role:   v1.ReceiverRole,
+			Source: &v1.Source{
+				Address: v1.AddressString("my-cg"),
+			},
+			Properties: &v1.Fields{Fields: map[string]*types.Value{
+				"namespace": {Kind: &types.Value_StringValue{StringValue: "my-namespace"}},
+			}},
+		}
+		var response *v1.Attach
+		err = client.Call(request, &response)
+		assert.NoError(err)
+		assert.Equal(request.Name, response.Name)
+		assert.Equal(request.Handle, response.Handle)
+	}
+}
+
+func TestServer_ServeAMQPv1_Attach_ConsumerGroupByAbsoluteAddress(t *testing.T) {
+	assert := require.New(t)
+
+	ts, client, cleanup, err := newClientAMQPv1(t)
+	assert.NoError(err)
+	defer cleanup()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	{
+		_, err = ts.CreateNamespace(ctx, &emq.NamespaceCreateRequest{
+			Namespace: "my-namespace",
+		})
+		assert.NoError(err)
+	}
+
+	{
+		_, err = ts.CreateConsumerGroup(ctx, &emq.ConsumerGroupCreateRequest{
+			ConsumerGroup: emq.ConsumerGroup{
+				Namespace: "my-namespace",
+				Name:      "my-cg",
+			},
+		})
+		assert.NoError(err)
+		ts.WaitForConsumerGroup(t, ctx, "my-namespace", "my-cg")
+	}
+
+	{
+		var response *v1.Begin
+		err = client.Call(&v1.Begin{
+			RemoteChannel:  v1.RemoteChannelNull,
+			NextOutgoingID: v1.TransferNumber(0),
+			IncomingWindow: 100,
+			OutgoingWindow: 100,
+		}, &response)
+		assert.NoError(err)
+		assert.Equal(uint16(0), response.RemoteChannel) // server might not, but for now uses that same channel
+	}
+
+	{
+		request := &v1.Attach{
+			Name:   "consumer-group-link",
+			Handle: v1.Handle(0),
+			Role:   v1.ReceiverRole,
+			Source: &v1.Source{
+				Address: v1.AddressString("/my-namespace/my-cg"),
+			},
+		}
+		var response *v1.Attach
+		err = client.Call(request, &response)
+		assert.NoError(err)
+		assert.Equal(request.Name, response.Name)
+		assert.Equal(request.Handle, response.Handle)
 	}
 }
