@@ -42,7 +42,8 @@ func newClientAMQPv0(t *testing.T) (x1 *testServer, x2 *v0.Transport, cleanup fu
 
 	client := v0.NewTransport(clientConn)
 
-	err = client.Send(&v0.ConnectionOpen{VirtualHost: "/"})
+	var openOk *v0.ConnectionOpenOk
+	err = client.Call(&v0.ConnectionOpen{VirtualHost: "/"}, &openOk)
 	if err != nil {
 		return nil, nil, nil, errors.Wrap(err, "send connection.open failed")
 	}

@@ -39,6 +39,11 @@ func (s *Server) ServeAMQPv0(ctx context.Context, transport *v0.Transport) error
 		return errors.Wrap(err, "send connect.close failed")
 	}
 
+	err = transport.Send(&v0.ConnectionOpenOk{})
+	if err != nil {
+		return errors.Wrap(err, "send connection.open-ok failed")
+	}
+
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
