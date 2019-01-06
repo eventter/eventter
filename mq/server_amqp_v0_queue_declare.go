@@ -63,13 +63,6 @@ func (s *Server) handleAMQPv0QueueDeclare(ctx context.Context, transport *v0.Tra
 			Namespace: namespaceName,
 			Name:      frame.Queue,
 			Size_:     size,
-			Bindings: []*emq.ConsumerGroup_Binding{
-				{
-					TopicName:    defaultExchangeTopicName,
-					ExchangeType: emq.ExchangeTypeDirect,
-					By:           &emq.ConsumerGroup_Binding_RoutingKey{RoutingKey: frame.Queue},
-				},
-			},
 		},
 	}
 
@@ -79,6 +72,12 @@ func (s *Server) handleAMQPv0QueueDeclare(ctx context.Context, transport *v0.Tra
 		for _, clusterBinding := range cg.Bindings {
 			request.ConsumerGroup.Bindings = append(request.ConsumerGroup.Bindings, s.convertClusterBinding(clusterBinding))
 		}
+	} else {
+		request.ConsumerGroup.Bindings = append(request.ConsumerGroup.Bindings, &emq.ConsumerGroup_Binding{
+			TopicName:    defaultExchangeTopicName,
+			ExchangeType: emq.ExchangeTypeDirect,
+			By:           &emq.ConsumerGroup_Binding_RoutingKey{RoutingKey: frame.Queue},
+		})
 	}
 
 	if frame.Passive {
